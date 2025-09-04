@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Useful Links | Sigmi 2.0</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            @apply bg-gray-900 text-gray-100;
+        }
+        
+        .header-bg {
+            background: linear-gradient(135deg, rgba(24, 24, 27, 0.9) 0%, rgba(39, 39, 42, 0.9) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .link-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .link-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .category-title {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .category-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(168, 85, 247, 0.8) 0%, rgba(124, 58, 237, 0.8) 100%);
+            transform-origin: left;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .category-title:hover::after {
+            transform: scaleX(1);
+        }
+        
+        .theme-toggle {
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle:hover {
+            transform: rotate(30deg);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Header -->
+    <header class="header-bg fixed w-full z-50 border-b border-gray-800">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <!-- Logo -->
+                <div class="flex items-center space-x-2">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary-600 to-primary-400 flex items-center justify-center">
+                        <i data-feather="hexagon" class="text-white"></i>
+                    </div>
+                    <h1 class="text-2xl font-display font-bold bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
+                        Sigmi 2.0
+                    </h1>
+                </div>
+                
+                <!-- Navigation -->
+                <nav class="flex items-center space-x-4">
+                    <button id="mobile-menu-button" class="md:hidden text-gray-300 hover:text-white">
+                        <i data-feather="menu"></i>
+                    </button>
+                    
+                    <a href="index.html" 
+                       class="hidden md:flex items-center px-4 py-2 rounded-full bg-gray-800 hover:bg-gray-700 text-white font-medium transition-all duration-200">
+                        <i data-feather="home" class="mr-2"></i>
+                        Home
+                    </a>
+                    
+                    <a href="https://forum.whatthesigma.site/" 
+                       class="hidden md:flex items-center px-4 py-2 rounded-full bg-primary-600 hover:bg-primary-700 text-white font-medium transition-all duration-200 hover:shadow-lg hover:shadow-primary-500/20">
+                        <i data-feather="message-square" class="mr-2"></i>
+                        Chat Website
+                    </a>
+                    
+                    <a href="https://whatthesigma.site/" 
+                       class="hidden md:flex items-center px-4 py-2 rounded-full bg-gray-800 hover:bg-gray-700 text-white font-medium transition-all duration-200">
+                        <i data-feather="cpu" class="mr-2"></i>
+                        CCGS Version
+                    </a>
+                    
+                    <button id="theme-toggle" class="theme-toggle p-2 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white">
+                        <i data-feather="moon" class="hidden dark:block"></i>
+                        <i data-feather="sun" class="dark:hidden"></i>
+                    </button>
+                </nav>
+            </div>
+            
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden bg-gray-800 border-t border-gray-700">
+                <div class="container mx-auto px-4 py-3">
+                    <div class="flex flex-col space-y-3">
+                        <a href="index.html" 
+                           class="flex items-center px-4 py-2 rounded-lg bg-gray-700 text-white font-medium">
+                            <i data-feather="home" class="mr-2"></i>
+                            Home
+                        </a>
+                        
+                        <a href="https://forum.whatthesigma.site/" 
+                           class="flex items-center px-4 py-2 rounded-lg bg-gray-700 text-white font-medium">
+                            <i data-feather="message-square" class="mr-2"></i>
+                            Chat Website
+                        </a>
+                        
+                        <a href="https://whatthesigma.site/" 
+                           class="flex items-center px-4 py-2 rounded-lg bg-gray-700 text-white font-medium">
+                            <i data-feather="cpu" class="mr-2"></i>
+                            CCGS Version
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="pt-32 pb-16 px-4">
+        <div class="container mx-auto">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h1 class="text-4xl font-display font-bold mb-4">
+                    <span class="bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">Useful</span> Links
+                </h1>
+                <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+                    A curated collection of resources for developers, gamers, and tech enthusiasts.
+                </p>
+            </div>
+            
+            <!-- Illegal Section -->
+            <div class="mb-16" data-aos="fade-up">
+                <div class="flex items-center mb-6">
+                    <div class="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center mr-3">
+                        <i data-feather="alert-octagon" class="text-red-500"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white category-title">Illegal</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Link Card 1 -->
+                    <a href="https://1337x.to/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-red-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="download" class="text-red-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">1337x</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            Popular torrent site for movies, games, software and more.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 2 -->
+                    <a href="https://thepiratebay.org/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-red-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="anchor" class="text-red-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">The Pirate Bay</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            One of the most resilient torrent sites with a vast collection.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 3 -->
+                    <a href="https://rutracker.org/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-red-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="flag" class="text-red-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">RuTracker</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            Russian torrent tracker with extensive content library.
+                        </p>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Developer Tools Section -->
+            <div class="mb-16" data-aos="fade-up">
+                <div class="flex items-center mb-6">
+                    <div class="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center mr-3">
+                        <i data-feather="code" class="text-blue-500"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white category-title">Developer Tools</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Link Card 1 -->
+                    <a href="https://github.com/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-blue-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="github" class="text-blue-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">GitHub</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            Platform for version control and collaboration.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 2 -->
+                    <a href="https://git-scm.com/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-blue-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="git-branch" class="text-blue-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">Git</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            Distributed version control system.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 3 -->
+                    <a href="https://code.visualstudio.com/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-blue-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="code" class="text-blue-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">VS Code</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            Popular code editor with extensive extensions.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 4 -->
+                    <a href="https://www.jetbrains.com/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-blue-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="box" class="text-blue-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">JetBrains</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            Professional IDEs for various programming languages.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 5 -->
+                    <a href="https://stackoverflow.com/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-blue-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="help-circle" class="text-blue-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">Stack Overflow</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            Q&A platform for programmers.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 6 -->
+                    <a href="https://www.postman.com/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-blue-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="send" class="text-blue-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">Postman</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            API development and testing tool.
+                        </p>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Game Engines & Frameworks Section -->
+            <div class="mb-16" data-aos="fade-up">
+                <div class="flex items-center mb-6">
+                    <div class="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center mr-3">
+                        <i data-feather="package" class="text-purple-500"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white category-title">Game Engines & Frameworks</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Link Card 1 -->
+                    <a href="https://unity.com/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-purple-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="box" class="text-purple-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">Unity</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            Cross-platform game engine with C# scripting.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 2 -->
+                    <a href="https://www.unrealengine.com/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-purple-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="zap" class="text-purple-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">Unreal Engine</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            AAA game engine with Blueprint visual scripting.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 3 -->
+                    <a href="https://godotengine.org/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-purple-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="feather" class="text-purple-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">Godot</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            Open source game engine with GDScript.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 4 -->
+                    <a href="https://phaser.io/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-purple-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="globe" class="text-purple-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">Phaser</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            HTML5 game framework for desktop and mobile.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 5 -->
+                    <a href="https://www.pygame.org/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-purple-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="code" class="text-purple-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">Pygame</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            Python library for game development.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 6 -->
+                    <a href="https://www.cryengine.com/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-purple-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="wind" class="text-purple-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">CryEngine</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            Powerful game engine known for its visuals.
+                        </p>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Proxy & VPN Tools Section -->
+            <div class="mb-16" data-aos="fade-up">
+                <div class="flex items-center mb-6">
+                    <div class="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center mr-3">
+                        <i data-feather="shield" class="text-green-500"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white category-title">Proxy & VPN Tools</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Link Card 1 -->
+                    <a href="https://www.protonvpn.com/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-green-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="lock" class="text-green-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">ProtonVPN</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            Secure VPN with free tier available.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 2 -->
+                    <a href="https://nordvpn.com/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-green-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="compass" class="text-green-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">NordVPN</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            Popular VPN service with many servers.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 3 -->
+                    <a href="https://www.torproject.org/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-green-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="eye-off" class="text-green-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">Tor Browser</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            Anonymous browsing with onion routing.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 4 -->
+                    <a href="https://windscribe.com/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-green-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="wind" class="text-green-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">Windscribe</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            VPN with generous free data allowance.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 5 -->
+                    <a href="https://www.expressvpn.com/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-green-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="zap" class="text-green-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">ExpressVPN</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            High-speed VPN service.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 6 -->
+                    <a href="https://www.privacytools.io/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-green-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="shield" class="text-green-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">PrivacyTools</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            Resources for protecting your privacy online.
+                        </p>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Fun & Misc Section -->
+            <div class="mb-16" data-aos="fade-up">
+                <div class="flex items-center mb-6">
+                    <div class="w-8 h-8 rounded-full bg-yellow-500/10 flex items-center justify-center mr-3">
+                        <i data-feather="smile" class="text-yellow-500"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white category-title">Fun & Misc</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Link Card 1 -->
+                    <a href="https://www.reddit.com/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-yellow-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="message-square" class="text-yellow-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">Reddit</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            Social news aggregation and discussion.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 2 -->
+                    <a href="https://www.twitch.tv/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-yellow-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="video" class="text-yellow-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">Twitch</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            Live streaming platform for gamers.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 3 -->
+                    <a href="https://discord.com/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-yellow-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="message-circle" class="text-yellow-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">Discord</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            Voice and text chat for communities.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 4 -->
+                    <a href="https://www.spotify.com/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-yellow-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="music" class="text-yellow-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">Spotify</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            Music streaming service.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 5 -->
+                    <a href="https://www.netflix.com/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-yellow-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="film" class="text-yellow-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">Netflix</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            Streaming service for movies and TV shows.
+                        </p>
+                    </a>
+                    
+                    <!-- Link Card 6 -->
+                    <a href="https://www.youtube.com/" target="_blank" class="link-card bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-yellow-500">
+                        <div class="flex items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center mr-4">
+                                <i data-feather="youtube" class="text-yellow-500"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">YouTube</h3>
+                        </div>
+                        <p class="text-gray-400">
+                            Video sharing platform.
+                        </p>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 border-t border-gray-800 py-12 px-4">
+        <div class="container mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-600 to-primary-400 flex items-center justify-center">
+                            <i data-feather="hexagon" class="text-white w-4 h-4"></i>
+                        </div>
+                        <h3 class="text-xl font-display font-bold bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
+                            Sigmi 2.0
+                        </h3>
+                    </div>
+                    <p class="text-gray-400 text-sm">
+                        The ultimate resource hub for developers, gamers, and tech enthusiasts.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold text-white mb-4">Navigation</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="text-gray-400 hover:text-primary-500 transition-colors">Home</a></li>
+                        <li><a href="#illegal" class="text-gray-400 hover:text-primary-500 transition-colors">Illegal</a></li>
+                        <li><a href="#developer" class="text-gray-400 hover:text-primary-500 transition-colors">Developer Tools</a></li>
+                        <li><a href="#games" class="text-gray-400 hover:text-primary-500 transition-colors">Game Engines</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold text-white mb-4">Resources</h4>
+                    <ul class="space-y-2">
+                        <li><a href="https://forum.whatthesigma.site/" class="text-gray-400 hover:text-primary-500 transition-colors">Chat Website</a></li>
+                        <li><a href="https://whatthesigma.site/" class="text-gray-400 hover:text-primary-500 transition-colors">CCGS Version</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-primary-500 transition-colors">API</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-primary-500 transition-colors">Developers</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold text-white mb-4">Connect</h4>
+                    <div class="flex space-x-4 mb-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-primary-600 flex items-center justify-center transition-colors">
+                            <i data-feather="twitter" class="text-gray-300 hover:text-white"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-primary-600 flex items-center justify-center transition-colors">
+                            <i data-feather="discord" class="text-gray-300 hover:text-white"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-primary-600 flex items-center justify-center transition-colors">
+                            <i data-feather="youtube" class="text-gray-300 hover:text-white"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-primary-600 flex items-center justify-center transition-colors">
+                            <i data-feather="github" class="text-gray-300 hover:text-white"></i>
+                        </a>
+                    </div>
+                    <p class="text-gray-400 text-sm">
+                        support@sigmi.com
+                    </p>
+                </div>
+            </div>
+            
+            <div class="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-500 text-sm mb-4 md:mb-0">
+                    © 2023 Sigmi 2.0. All rights reserved.
+                </p>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-500 hover:text-gray-300 text-sm">Terms</a>
+                    <a href="#" class="text-gray-500 hover:text-gray-300 text-sm">Privacy</a>
+                    <a href="#" class="text-gray-500 hover:text-gray-300 text-sm">Cookies</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize AOS animations
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true
+        });
+        
+        // Initialize feather icons
+        feather.replace();
+        
+        // Theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        
+        themeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            localStorage.setItem('darkMode', isDark);
+            
+            // Update icon
+            const moonIcon = themeToggle.querySelector('.dark\\:block');
+            const sunIcon = themeToggle.querySelector('.dark\\:hidden');
+            
+            if (isDark) {
+                moonIcon.classList.remove('hidden');
+                sunIcon.classList.add('hidden');
+            } else {
+                moonIcon.classList.add('hidden');
+                sunIcon.classList.remove('hidden');
+            }
+        });
+        
+        // Check for saved theme preference
+        if (localStorage.getItem('darkMode') === 'false') {
+            html.classList.remove('dark');
+            const moonIcon = themeToggle.querySelector('.dark\\:block');
+            const sunIcon = themeToggle.querySelector('.dark\\:hidden');
+            moonIcon.classList.add('hidden');
+            sunIcon.classList.remove('hidden');
+        }
+        
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            const icon = mobileMenuButton.querySelector('i');
+            if (mobileMenu.classList.contains('hidden')) {
+                icon.setAttribute('data-feather', 'menu');
+            } else {
+                icon.setAttribute('data-feather', 'x');
+            }
+            feather.replace();
+        });
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</body>
+</html>
