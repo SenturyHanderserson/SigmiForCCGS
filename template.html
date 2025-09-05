@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hack Template | Purple Haze</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
+    <style>
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #6e45e2 0%, #88d3ce 100%);
+        }
+        .hover-scale {
+            transition: all 0.3s ease;
+        }
+        .hover-scale:hover {
+            transform: scale(1.02);
+        }
+        .file-card:hover .download-icon {
+            transform: translateY(-3px);
+        }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #fff;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg text-white font-sans">
+    <!-- Background Effect -->
+    <div id="vanta-bg" class="fixed inset-0 z-0"></div>
+
+    <!-- Main Container -->
+    <div class="relative z-10 min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="glassmorphism p-4 shadow-lg">
+            <div class="container mx-auto flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <button onclick="window.history.back()" class="p-2 rounded-full hover:bg-purple-700 transition">
+                        <i data-feather="arrow-left"></i>
+                    </button>
+                    <h1 class="text-2xl font-bold" id="dynamic-title">Loading...</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="p-2 rounded-full hover:bg-purple-700 transition">
+                        <i data-feather="user"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 container mx-auto p-4 md:p-6">
+            <div id="loadingIndicator" class="glassmorphism rounded-xl p-12 text-center">
+                <div class="loading-spinner mb-4"></div>
+                <p>Loading content...</p>
+            </div>
+            
+            <div id="contentContainer" class="hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Left Column -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <!-- Description Card -->
+                        <div class="glassmorphism rounded-xl p-6 shadow-lg hover-scale" data-aos="fade-right">
+                            <h2 class="text-xl font-semibold mb-4">About This Hack</h2>
+                            <p class="text-gray-200" id="dynamic-description">
+                                Loading description...
+                            </p>
+                        </div>
+
+                        <!-- Instructions Card -->
+                        <div class="glassmorphism rounded-xl p-6 shadow-lg hover-scale" data-aos="fade-right" data-aos-delay="100">
+                            <h2 class="text-xl font-semibold mb-4">Step-by-Step Instructions</h2>
+                            <ol class="list-decimal list-inside space-y-3 text-gray-200" id="dynamic-instructions">
+                                <li class="pl-2">Loading instructions...</li>
+                            </ol>
+                        </div>
+
+                        <!-- Video Tutorial Card -->
+                        <div class="glassmorphism rounded-xl p-6 shadow-lg hover-scale" data-aos="fade-right" data-aos-delay="200">
+                            <h2 class="text-xl font-semibold mb-4">Video Tutorial</h2>
+                            <div class="aspect-w-16 aspect-h-9 bg-black bg-opacity-30 rounded-lg overflow-hidden">
+                                <iframe id="dynamic-video" class="w-full h-64 md:h-96" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="space-y-6">
+                        <!-- Files Needed Card -->
+                        <div class="glassmorphism rounded-xl p-6 shadow-lg hover-scale" data-aos="fade-left">
+                            <h2 class="text-xl font-semibold mb-4">Files Needed</h2>
+                            <div class="space-y-3" id="dynamic-files">
+                                <div class="file-card glassmorphism p-4 rounded-lg flex justify-between items-center hover:bg-purple-700 transition cursor-pointer">
+                                    <div>
+                                        <h3 class="font-medium">Loading files...</h3>
+                                        <p class="text-sm text-gray-300">Please wait</p>
+                                    </div>
+                                    <div class="download-icon transition">
+                                        <i data-feather="download"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Warning Card -->
+                        <div class="glassmorphism rounded-xl p-6 shadow-lg hover-scale bg-opacity-70 bg-red-900" data-aos="fade-left" data-aos-delay="100">
+                            <div class="flex items-start space-x-3">
+                                <i data-feather="alert-triangle" class="text-yellow-300"></i>
+                                <div>
+                                    <h3 class="font-semibold">Important Notice</h3>
+                                    <p class="text-sm text-gray-200 mt-1">
+                                        Use at your own risk. We are not responsible for any bans or account terminations that may occur from using these tools.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Support Card -->
+                        <div class="glassmorphism rounded-xl p-6 shadow-lg hover-scale" data-aos="fade-left" data-aos-delay="200">
+                            <h2 class="text-xl font-semibold mb-4">Need Help?</h2>
+                            <p class="text-gray-200 mb-4">Join our Discord community for support and updates.</p>
+                            <button class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg flex items-center space-x-2 transition">
+                                <i data-feather="message-circle"></i>
+                                <span>Join Discord</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Error Message -->
+            <div id="errorMessage" class="glassmorphism rounded-xl p-8 text-center bg-red-900 bg-opacity-50 hidden">
+                <i data-feather="alert-circle" class="w-12 h-12 mx-auto mb-4 text-red-200"></i>
+                <h2 class="text-xl font-semibold mb-2">Failed to Load Content</h2>
+                <p class="text-gray-200 mb-4" id="errorText">There was a problem loading the requested content.</p>
+                <button onclick="loadContent()" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg transition">
+                    Try Again
+                </button>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="glassmorphism p-4 mt-6">
+            <div class="container mx-auto text-center text-sm text-gray-300">
+                <p>© 2023 Purple Haze. All rights reserved. | <a href="#" class="hover:text-white">Terms</a> • <a href="#" class="hover:text-white">Privacy</a></p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Initialize animations and icons
+        AOS.init();
+        feather.replace();
+
+        // Vanta.js background
+        VANTA.GLOBE({
+            el: "#vanta-bg",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            scale: 1.00,
+            scaleMobile: 1.00,
+            color: 0x6e45e2,
+            backgroundColor: 0x0,
+            size: 0.8
+        });
+
+        // Function to load content from server
+        function loadContent() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const type = urlParams.get('type');
+            const item = urlParams.get('item');
+            
+            // Show loading, hide content and error
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+            document.getElementById('contentContainer').classList.add('hidden');
+            document.getElementById('errorMessage').classList.add('hidden');
+            
+            if (!type || !item) {
+                showError('Invalid content parameters. Please go back and try again.');
+                return;
+            }
+            
+            // Make request to server
+            fetch(`https://your-render-proxy-url.onrender.com/api/content/${type}/${item}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(content => {
+                    // Update DOM with content
+                    document.getElementById('dynamic-title').textContent = content.title;
+                    document.getElementById('dynamic-description').textContent = content.description;
+                    
+                    const instructionsList = document.getElementById('dynamic-instructions');
+                    instructionsList.innerHTML = '';
+                    content.instructions.forEach(instruction => {
+                        const li = document.createElement('li');
+                        li.className = 'pl-2';
+                        li.textContent = instruction;
+                        instructionsList.appendChild(li);
+                    });
+
+                    if (content.video) {
+                        document.getElementById('dynamic-video').src = content.video;
+                    } else {
+                        document.getElementById('dynamic-video').src = 'https://www.youtube.com/embed/dQw4w9WgXcQ';
+                    }
+
+                    const filesContainer = document.getElementById('dynamic-files');
+                    filesContainer.innerHTML = '';
+                    
+                    if (content.files && content.files.length > 0) {
+                        content.files.forEach(file => {
+                            const fileDiv = document.createElement('div');
+                            fileDiv.className = 'file-card glassmorphism p-4 rounded-lg flex justify-between items-center hover:bg-purple-700 transition cursor-pointer';
+                            fileDiv.innerHTML = `
+                                <div>
+                                    <h3 class="font-medium">${file.name}</h3>
+                                    <p class="text-sm text-gray-300">${file.type} • ${file.size}</p>
+                                </div>
+                                <div class="download-icon transition">
+                                    <i data-feather="download"></i>
+                                </div>
+                            `;
+                            filesContainer.appendChild(fileDiv);
+                        });
+                    } else {
+                        filesContainer.innerHTML = '<p class="text-gray-400">No files available for this content.</p>';
+                    }
+
+                    // Hide loading, show content
+                    document.getElementById('loadingIndicator').classList.add('hidden');
+                    document.getElementById('contentContainer').classList.remove('hidden');
+                    
+                    // Refresh icons after dynamic content
+                    feather.replace();
+                })
+                .catch(error => {
+                    console.error('Error loading content:', error);
+                    showError(error.message || 'Failed to load content from server.');
+                });
+        }
+        
+        function showError(message) {
+            document.getElementById('loadingIndicator').classList.add('hidden');
+            document.getElementById('contentContainer').classList.add('hidden');
+            document.getElementById('errorMessage').classList.remove('hidden');
+            document.getElementById('errorText').textContent = message;
+        }
+
+        // Load content when page is ready
+        document.addEventListener('DOMContentLoaded', loadContent);
+    </script>
+</body>
+</html>
