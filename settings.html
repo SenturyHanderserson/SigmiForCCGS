@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings | Sigmi Team</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        .glass {
+            background: rgba(92, 50, 168, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #6e3b9c 0%, #3b1d6c 50%, #1a0933 100%);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #8e44ad 0%, #6c5ce7 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(142, 68, 173, 0.3);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg text-white font-sans">
+    <!-- Check authentication -->
+    <script>
+		const token = getCookie('AuthToken');
+		if (!token) {
+			window.location.href = 'index.html';
+		} else {
+			// Verify token with backend
+			fetch('https://your-render-proxy-url.onrender.com/api/verify-token', {
+				headers: {
+					'Authorization': `Bearer ${token}`
+				}
+			})
+			.then(response => {
+				if (!response.ok) {
+					window.location.href = 'index.html';
+				}
+			})
+			.catch(() => {
+				window.location.href = 'index.html';
+			});
+		}
+    </script>
+
+    <!-- Header -->
+    <header class="glass p-4 sticky top-0 z-40">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <a href="index.html" class="flex items-center">
+                    <i data-feather="hexagon" class="w-6 h-6 mr-2"></i>
+                    <span class="text-xl font-bold">Sigmi Team</span>
+                </a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="index.html" class="btn-primary px-4 py-2 rounded-lg text-sm">
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-4 mt-8">
+        <div class="glass rounded-xl p-8 mb-8">
+            <h1 class="text-2xl font-bold mb-8 flex items-center">
+                <i data-feather="settings" class="w-6 h-6 mr-3"></i>
+                Account Settings
+            </h1>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Account Info -->
+                <div class="lg:col-span-2">
+                    <div class="bg-purple-900 bg-opacity-50 rounded-xl p-6 mb-6">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center">
+                            <i data-feather="user" class="w-5 h-5 mr-2"></i>
+                            Account Information
+                        </h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block mb-2 text-sm">Username</label>
+                                <div class="px-4 py-2 rounded-lg bg-purple-800 bg-opacity-50">
+                                    <span id="usernameInfo">Loading...</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm">Member Since</label>
+                                <div class="px-4 py-2 rounded-lg bg-purple-800 bg-opacity-50">
+                                    <span id="joinDateInfo">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block mb-2 text-sm">Email (optional)</label>
+                            <input type="email" id="emailInput" class="w-full px-4 py-2 rounded-lg bg-purple-800 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Add your email">
+                        </div>
+                        
+                        <button id="saveAccountBtn" class="btn-primary py-2 px-4 rounded-lg text-sm">
+                            Save Changes
+                        </button>
+                    </div>
+                    
+                    <!-- Preferences -->
+                    <div class="bg-purple-900 bg-opacity-50 rounded-xl p-6">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center">
+                            <i data-feather="sliders" class="w-5 h-5 mr-2"></i>
+                            Preferences
+                        </h2>
+                        
+                        <div class="mb-6">
+                            <label class="block mb-2 text-sm">Theme</label>
+                            <select id="themeSelect" class="w-full px-4 py-2 rounded-lg bg-purple-800 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                <option value="dark">Dark (Default)</option>
+                                <option value="light">Light</option>
+                                <option value="amoled">AMOLED Black</option>
+                                <option value="purple">Purple Gradient</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block mb-2 text-sm">Dashboard Layout</label>
+                            <select id="layoutSelect" class="w-full px-4 py-2 rounded-lg bg-purple-800 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                <option value="grid">Grid View</option>
+                                <option value="list">List View</option>
+                                <option value="compact">Compact View</option>
+                            </select>
+                        </div>
+                        
+                        <button id="savePrefsBtn" class="btn-primary py-2 px-4 rounded-lg text-sm">
+                            Save Preferences
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Danger Zone -->
+                <div>
+                    <div class="bg-red-900 bg-opacity-20 rounded-xl p-6 border border-red-700">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center">
+                            <i data-feather="alert-triangle" class="w-5 h-5 mr-2"></i>
+                            Danger Zone
+                        </h2>
+                        
+                        <div class="mb-6">
+                            <h3 class="font-medium mb-2">Reset Preferences</h3>
+                            <p class="text-sm text-gray-300 mb-3">This will reset all your preferences to default settings.</p>
+                            <button id="resetPrefsBtn" class="btn-danger py-2 px-4 rounded-lg text-sm w-full">
+                                Reset Preferences
+                            </button>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <h3 class="font-medium mb-2">Clear All Data</h3>
+                            <p class="text-sm text-gray-300 mb-3">This will log you out and remove all locally stored data.</p>
+                            <button id="clearDataBtn" class="btn-danger py-2 px-4 rounded-lg text-sm w-full">
+                                Clear All Data
+                            </button>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-medium mb-2">Delete Account</h3>
+                            <p class="text-sm text-gray-300 mb-3">This action cannot be undone. All your data will be permanently deleted.</p>
+                            <button id="deleteAccountBtn" class="btn-danger py-2 px-4 rounded-lg text-sm w-full">
+                                Delete Account
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Confirmation Modal -->
+                    <div id="confirmModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
+                        <div class="glass rounded-xl p-6 max-w-md w-full mx-4">
+                            <h3 id="confirmTitle" class="text-xl font-bold mb-4">Confirm Action</h3>
+                            <p id="confirmMessage" class="mb-6 text-gray-300">Are you sure you want to perform this action?</p>
+                            <div class="flex gap-4">
+                                <button id="confirmCancel" class="flex-1 py-2 px-4 rounded-lg border border-purple-700 hover:bg-purple-800 hover:bg-opacity-50">
+                                    Cancel
+                                </button>
+                                <button id="confirmAction" class="flex-1 py-2 px-4 rounded-lg btn-danger">
+                                    Confirm
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            feather.replace();
+            AOS.init();
+            
+			// Load user data
+			const token = getCookie('AuthToken');
+			const currentUser = localStorage.getItem('currentUser') || 'User';
+			document.getElementById('usernameInfo').textContent = currentUser;
+
+			// Fetch user details from backend
+			fetch('https://your-render-proxy-url.onrender.com/api/user-info', {
+				headers: {
+					'Authorization': `Bearer ${token}`
+				}
+			})
+			.then(response => response.json())
+			.then(userData => {
+				document.getElementById('joinDateInfo').textContent = userData.joined || 'Unknown';
+			})
+			.catch(error => {
+				console.error('Error fetching user data:', error);
+				document.getElementById('joinDateInfo').textContent = 'Unknown';
+			});
+            
+            // Set join date (mock)
+            const joinDate = new Date();
+            joinDate.setDate(joinDate.getDate() - Math.floor(Math.random() * 30));
+            document.getElementById('joinDateInfo').textContent = joinDate.toLocaleDateString();
+            
+            // Load preferences from cookie
+            const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
+            
+            // Button event listeners
+            document.getElementById('saveAccountBtn').addEventListener('click', function() {
+                const email = document.getElementById('emailInput').value;
+                // In a real app, this would save to backend
+                alert('Account information saved!');
+            });
+            
+            document.getElementById('savePrefsBtn').addEventListener('click', function() {
+                const theme = document.getElementById('themeSelect').value;
+                const layout = document.getElementById('layoutSelect').value;
+                
+                // Update preferences cookie
+                preferences.theme = theme;
+                preferences.layout = layout;
+                setCookie('UserPreferences', JSON.stringify(preferences), 365);
+                
+                alert('Preferences saved!');
+            });
+            
+            document.getElementById('resetPrefsBtn').addEventListener('click', function() {
+                showConfirmModal(
+                    'Reset Preferences',
+                    'Are you sure you want to reset all your preferences to default settings?',
+                    function() {
+                        // Reset preferences
+                        setCookie('UserPreferences', '{}', 365);
+                        alert('Preferences have been reset. Page will reload.');
+                        setTimeout(() => location.reload(), 1000);
+                    }
+                );
+            });
+            
+            document.getElementById('clearDataBtn').addEventListener('click', function() {
+                showConfirmModal(
+                    'Clear All Data',
+                    'This will log you out and remove all locally stored data. Are you sure?',
+                    function() {
+                        // Clear all cookies and local storage
+                        document.cookie.split(";").forEach(cookie => {
+                            const eqPos = cookie.indexOf("=");
+                            const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                            document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+                        });
+                        localStorage.clear();
+                        alert('All data cleared. You will be redirected to login.');
+                        setTimeout(() => window.location.href = 'index.html', 1000);
+                    }
+                );
+            });
+            
+			document.getElementById('deleteAccountBtn').addEventListener('click', function() {
+				showConfirmModal(
+					'Delete Account',
+					'This action cannot be undone. All your data will be permanently deleted.',
+					function() {
+						const token = getCookie('AuthToken');
+						const currentUser = localStorage.getItem('currentUser');
+						
+						fetch(`https://your-render-proxy-url.onrender.com/api/users/${currentUser}`, {
+							method: 'DELETE',
+							headers: {
+								'Authorization': `Bearer ${token}`
+							}
+						})
+						.then(response => {
+							if (response.ok) {
+								// Clear all cookies and local storage
+								document.cookie.split(";").forEach(cookie => {
+									const eqPos = cookie.indexOf("=");
+									const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+									document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+								});
+								localStorage.clear();
+								alert('Account deleted. You will be redirected to the home page.');
+								setTimeout(() => window.location.href = 'index.html', 1000);
+							} else {
+								alert('Failed to delete account. Please try again.');
+							}
+						})
+						.catch(error => {
+							console.error('Error deleting account:', error);
+							alert('Failed to delete account. Please try again.');
+						});
+					}
+				);
+			});
+						
+            // Confirmation modal functions
+            function showConfirmModal(title, message, action) {
+                document.getElementById('confirmTitle').textContent = title;
+                document.getElementById('confirmMessage').textContent = message;
+                document.getElementById('confirmModal').classList.remove('hidden');
+                
+                document.getElementById('confirmCancel').onclick = function() {
+                    document.getElementById('confirmModal').classList.add('hidden');
+                };
+                
+                document.getElementById('confirmAction').onclick = function() {
+                    document.getElementById('confirmModal').classList.add('hidden');
+                    action();
+                };
+            }
+            
+            // Cookie functions
+            function setCookie(name, value, days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                const expires = "expires=" + date.toUTCString();
+                document.cookie = name + "=" + value + ";" + expires + ";path=/";
+            }
+            
+            function getCookie(name) {
+                const cookieName = name + "=";
+                const decodedCookie = decodeURIComponent(document.cookie);
+                const cookieArray = decodedCookie.split(';');
+                
+                for(let i = 0; i < cookieArray.length; i++) {
+                    let cookie = cookieArray[i];
+                    while (cookie.charAt(0) === ' ') {
+                        cookie = cookie.substring(1);
+                    }
+                    if (cookie.indexOf(cookieName) === 0) {
+                        return cookie.substring(cookieName.length, cookie.length);
+                    }
+                }
+                return "";
+            }
+        });
+    </script>
+</body>
+</html>
