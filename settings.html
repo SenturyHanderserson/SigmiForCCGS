@@ -291,7 +291,7 @@
                     function() {
                         const token = getCookie('AuthToken');
                         
-                        // Contact server to invalidate token (if your backend supports this)
+                        // Contact server to logout - REQUIRES SERVER CONFIRMATION
                         fetch('https://proxyforsigmi.onrender.com/api/logout', {
                             method: 'POST',
                             headers: {
@@ -300,22 +300,20 @@
                             }
                         })
                         .then(response => {
-                            // Regardless of server response, clear client-side data
-                            clearClientData();
-                            
                             if (response.ok) {
+                                // Server confirmed logout, clear client-side data
+                                clearClientData();
                                 alert('You have been logged out successfully.');
+                                window.location.href = 'index.html';
                             } else {
-                                alert('Logged out locally. Server logout may have failed.');
+                                // Server rejected logout, show error
+                                alert('Logout failed. Please try again.');
+                                console.error('Server logout failed:', response.status, response.statusText);
                             }
-                            window.location.href = 'index.html';
                         })
                         .catch(error => {
                             console.error('Logout error:', error);
-                            // Still clear client data even if server request fails
-                            clearClientData();
-                            alert('Logged out locally. Could not contact server.');
-                            window.location.href = 'index.html';
+                            alert('Logout failed. Could not contact server.');
                         });
                     }
                 );
