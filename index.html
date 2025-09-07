@@ -375,7 +375,7 @@
                 document.getElementById('authTitle').textContent = 'Login';
             });
 
-                        // Login Button
+            // Login Button - WITH PROPER ERROR HANDLING
             document.getElementById('loginBtn').addEventListener('click', async function() {
                 const username = document.getElementById('loginUsername').value;
                 const password = document.getElementById('loginPassword').value;
@@ -431,7 +431,7 @@
                     alert('Please enter both username and password');
                 }
             });
-            // Signup Button - WITH PROPER ERROR HANDLING
+                        // Signup Button - WITH PROPER ERROR HANDLING
             document.getElementById('signupBtn').addEventListener('click', async function() {
                 const username = document.getElementById('signupUsername').value;
                 const email = document.getElementById('signupEmail').value;
