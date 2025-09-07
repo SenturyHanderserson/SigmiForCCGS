@@ -416,50 +416,65 @@
 			});
 
 			// Signup Button
-			document.getElementById('signupBtn').addEventListener('click', async function() {
-				const username = document.getElementById('signupUsername').value;
-				const email = document.getElementById('signupEmail').value;
-				const password = document.getElementById('signupPassword').value;
-				const confirmPassword = document.getElementById('confirmPassword').value;
-				
-				if (password !== confirmPassword) {
-					alert('Passwords do not match');
-					return;
-				}
-				
-				if (username && password) {
-					try {
-						const response = await fetch('https://proxyforsigmi.onrender.com/api/signup', {
-							method: 'POST',
-							headers: {
-								'Content-Type': 'application/json'
-							},
-							body: JSON.stringify({ username, password })
-						});
-						
-						const data = await response.json();
-						
-						if (response.ok) {
-							// Store token and user info
-							setCookie('AuthToken', data.token, 30);
-							localStorage.setItem('currentUser', data.user);
-							localStorage.setItem('userRole', data.role);
-							
-							document.getElementById('authModal').classList.add('hidden');
-							document.getElementById('mainContent').classList.remove('hidden');
-							document.getElementById('usernameDisplay').textContent = data.user;
-							loadDashboard();
-						} else {
-							alert(data.error || 'Signup failed');
-						}
-					} catch (error) {
-						console.error('Signup error:', error);
-						alert('Signup failed. Please try again later.');
-					}
-				} else {
-					alert('Please fill in all required fields');
-				}
-			});
+			// Signup Button
+document.getElementById('signupBtn').addEventListener('click', async function() {
+    const username = document.getElementById('signupUsername').value;
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    if (password !== confirmPassword) {
+        alert('Passwords do not match');
+        return;
+    }
+    
+    if (username && password) {
+        try {
+            const response = await fetch('https://proxyforsigmi.onrender.com/api/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+            
+            // First check if response is OK
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Server error response:', errorText);
+                alert(`Signup failed: ${response.status} ${response.statusText}`);
+                return;
+            }
+            
+            // Check content type to ensure it's JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                console.error('Non-JSON response:', text);
+                alert('Server returned invalid response format');
+                return;
+            }
+            
+            const data = await response.json();
+            
+            // Store token and user info
+            setCookie('AuthToken', data.token, 30);
+            localStorage.setItem('currentUser', data.user);
+            localStorage.setItem('userRole', data.role);
+            
+            document.getElementById('authModal').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+            document.getElementById('usernameDisplay').textContent = data.user;
+            loadDashboard();
+            
+        } catch (error) {
+            console.error('Signup error:', error);
+            alert('Signup failed. Please try again later.');
+        }
+    } else {
+        alert('Please fill in all required fields');
+    }
+});
 
             // Sidebar Toggle
             document.getElementById('sidebarToggle').addEventListener('click', function() {
