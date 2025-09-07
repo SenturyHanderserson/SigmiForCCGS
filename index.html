@@ -260,7 +260,6 @@
             </div>
         </header>
 
-        <!-- Sidebar -->
         <div id="sidebar" class="glass fixed top-0 left-0 h-full w-64 z-30 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
             <div class="p-4 flex justify-between items-center border-b border-purple-800">
                 <h2 class="text-lg font-semibold">Current Members</h2>
@@ -269,38 +268,8 @@
                 </button>
             </div>
             <div class="p-4 overflow-y-auto h-[calc(100%-60px)]">
-                <div class="space-y-3">
-                    <div class="flex items-center p-2 rounded-lg hover:bg-purple-800 hover:bg-opacity-50">
-                        <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center mr-3">
-                            <span class="text-xs font-bold">AD</span>
-                        </div>
-                        <span>Admin</span>
-                    </div>
-                    <div class="flex items-center p-2 rounded-lg hover:bg-purple-800 hover:bg-opacity-50">
-                        <div class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center mr-3">
-                            <span class="text-xs font-bold">JD</span>
-                        </div>
-                        <span>John Doe</span>
-                    </div>
-                    <div class="flex items-center p-2 rounded-lg hover:bg-purple-800 hover:bg-opacity-50">
-                        <div class="w-8 h-8 rounded-full bg-purple-400 flex items-center justify-center mr-3">
-                            <span class="text-xs font-bold">SM</span>
-                        </div>
-                        <span>Sarah Miller</span>
-                    </div>
-                    <div class="flex items-center p-2 rounded-lg hover:bg-purple-800 hover:bg-opacity-50">
-                        <div class="w-8 h-8 rounded-full bg-purple-300 flex items-center justify-center mr-3">
-                            <span class="text-xs font-bold">TJ</span>
-                        </div>
-                        <span>Tom Johnson</span>
-                    </div>
-                    <div class="flex items-center p-2 rounded-lg hover:bg-purple-800 hover:bg-opacity-50">
-                        <div class="w-8 h-8 rounded-full bg-purple-200 flex items-center justify-center mr-3">
-                            <span class="text-xs font-bold">EB</span>
-                        </div>
-                        <span>Emma Brown</span>
-                    </div>
-                </div>
+                <!-- Members will be injected here -->
+                <div id="membersList" class="space-y-3"></div>
             </div>
         </div>
 
@@ -619,6 +588,55 @@
             
             return section;
         }
+
+        async function loadMembers() {
+            try {
+                const res = await fetch("https://proxyforsigmi.onrender.com/api/users", {
+                    credentials: "include"
+                });
+
+                if (!res.ok) throw new Error("Failed to fetch members");
+
+                const members = await res.json();
+                const container = document.getElementById("membersList");
+                container.innerHTML = ""; // clear old content
+
+                members.forEach(user => {
+                    // initials for avatar
+                    const initials = user.username
+                        .split(" ")
+                        .map(word => word[0].toUpperCase())
+                        .join("")
+                        .slice(0, 2);
+
+                    // random-ish purple shade
+                    const colors = [
+                        "bg-purple-600",
+                        "bg-purple-500",
+                        "bg-purple-400",
+                        "bg-purple-300",
+                        "bg-purple-200"
+                    ];
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+
+                    const memberDiv = document.createElement("div");
+                    memberDiv.className = "flex items-center p-2 rounded-lg hover:bg-purple-800 hover:bg-opacity-50";
+
+                    memberDiv.innerHTML = `
+                        <div class="w-8 h-8 rounded-full ${color} flex items-center justify-center mr-3">
+                            <span class="text-xs font-bold">${initials}</span>
+                        </div>
+                        <span>${user.username}</span>
+                    `;
+                    container.appendChild(memberDiv);
+                });
+            } catch (err) {
+                console.error("[ERROR] Failed to load members:", err);
+            }
+        }
+
+        // Load members when sidebar opens
+        document.addEventListener("DOMContentLoaded", loadMembers);
     </script>
 </body>
 </html>
