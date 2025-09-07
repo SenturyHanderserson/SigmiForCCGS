@@ -9,6 +9,7 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
     <style>
         .glass {
             background: rgba(92, 50, 168, 0.2);
@@ -35,56 +36,38 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3);
         }
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(108, 117, 125, 0.3);
+        }
     </style>
 </head>
 <body class="min-h-screen gradient-bg text-white font-sans">
     <!-- Check authentication -->
     <script>
-        // Cookie functions must be defined FIRST
-        function getCookie(name) {
-            const cookieName = name + "=";
-            const decodedCookie = decodeURIComponent(document.cookie);
-            const cookieArray = decodedCookie.split(';');
-            
-            for(let i = 0; i < cookieArray.length; i++) {
-                let cookie = cookieArray[i];
-                while (cookie.charAt(0) === ' ') {
-                    cookie = cookie.substring(1);
-                }
-                if (cookie.indexOf(cookieName) === 0) {
-                    return cookie.substring(cookieName.length, cookie.length);
-                }
-            }
-            return "";
-        }
-
-        function setCookie(name, value, days) {
-            const date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            const expires = "expires=" + date.toUTCString();
-            document.cookie = name + "=" + value + ";" + expires + ";path=/";
-        }
-
-        // Now check authentication
-        const token = getCookie('AuthToken');
-        if (!token) {
-            window.location.href = 'index.html';
-        } else {
-            // Verify token with backend
-            fetch('https://proxyforsigmi.onrender.com/api/verify-token', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    window.location.href = 'index.html';
-                }
-            })
-            .catch(() => {
-                window.location.href = 'index.html';
-            });
-        }
+		const token = getCookie('AuthToken');
+		if (!token) {
+			window.location.href = 'index.html';
+		} else {
+			// Verify token with backend
+			fetch('https://proxyforsigmi.onrender.com/api/verify-token', {
+				headers: {
+					'Authorization': `Bearer ${token}`
+				}
+			})
+			.then(response => {
+				if (!response.ok) {
+					window.location.href = 'index.html';
+				}
+			})
+			.catch(() => {
+				window.location.href = 'index.html';
+			});
+		}
     </script>
 
     <!-- Header -->
@@ -180,6 +163,23 @@
                 
                 <!-- Danger Zone -->
                 <div>
+                    <!-- Session Management -->
+                    <div class="bg-purple-900 bg-opacity-20 rounded-xl p-6 border border-purple-700 mb-6">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center">
+                            <i data-feather="log-out" class="w-5 h-5 mr-2"></i>
+                            Session
+                        </h2>
+                        
+                        <div class="mb-4">
+                            <h3 class="font-medium mb-2">Log Out</h3>
+                            <p class="text-sm text-gray-300 mb-3">Sign out of your account on this device.</p>
+                            <button id="logoutBtn" class="btn-secondary py-2 px-4 rounded-lg text-sm w-full">
+                                Log Out
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Danger Zone -->
                     <div class="bg-red-900 bg-opacity-20 rounded-xl p-6 border border-red-700">
                         <h2 class="text-xl font-semibold mb-4 flex items-center">
                             <i data-feather="alert-triangle" class="w-5 h-5 mr-2"></i>
@@ -234,51 +234,35 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             feather.replace();
-            if (typeof AOS !== 'undefined') {
-                AOS.init();
-            }
+            AOS.init();
             
-            // Load user data
-            const token = getCookie('AuthToken');
-            const currentUser = localStorage.getItem('currentUser') || 'User';
-            document.getElementById('usernameInfo').textContent = currentUser;
+			// Load user data
+			const token = getCookie('AuthToken');
+			const currentUser = localStorage.getItem('currentUser') || 'User';
+			document.getElementById('usernameInfo').textContent = currentUser;
 
-            // Fetch user details from backend with better error handling
-            fetch('https://proxyforsigmi.onrender.com/api/user-info', {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(userData => {
-                document.getElementById('joinDateInfo').textContent = userData.joined || 'Unknown';
-            })
-            .catch(error => {
-                console.error('Error fetching user data:', error);
-                document.getElementById('joinDateInfo').textContent = 'Unknown';
-                
-                // Set a mock date as fallback
-                const joinDate = new Date();
-                joinDate.setDate(joinDate.getDate() - Math.floor(Math.random() * 30));
-                document.getElementById('joinDateInfo').textContent = joinDate.toLocaleDateString();
-            });
+			// Fetch user details from backend
+			fetch('https://proxyforsigmi.onrender.com/api/user-info', {
+				headers: {
+					'Authorization': `Bearer ${token}`
+				}
+			})
+			.then(response => response.json())
+			.then(userData => {
+				document.getElementById('joinDateInfo').textContent = userData.joined || 'Unknown';
+			})
+			.catch(error => {
+				console.error('Error fetching user data:', error);
+				document.getElementById('joinDateInfo').textContent = 'Unknown';
+			});
+            
+            // Set join date (mock)
+            const joinDate = new Date();
+            joinDate.setDate(joinDate.getDate() - Math.floor(Math.random() * 30));
+            document.getElementById('joinDateInfo').textContent = joinDate.toLocaleDateString();
             
             // Load preferences from cookie
             const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
-            
-            // Set current theme and layout if they exist
-            if (preferences.theme) {
-                document.getElementById('themeSelect').value = preferences.theme;
-            }
-            if (preferences.layout) {
-                document.getElementById('layoutSelect').value = preferences.layout;
-            }
             
             // Button event listeners
             document.getElementById('saveAccountBtn').addEventListener('click', function() {
@@ -299,6 +283,44 @@
                 alert('Preferences saved!');
             });
             
+            // Logout button
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                showConfirmModal(
+                    'Log Out',
+                    'Are you sure you want to log out?',
+                    function() {
+                        const token = getCookie('AuthToken');
+                        
+                        // Contact server to invalidate token (if your backend supports this)
+                        fetch('https://proxyforsigmi.onrender.com/api/logout', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(response => {
+                            // Regardless of server response, clear client-side data
+                            clearClientData();
+                            
+                            if (response.ok) {
+                                alert('You have been logged out successfully.');
+                            } else {
+                                alert('Logged out locally. Server logout may have failed.');
+                            }
+                            window.location.href = 'index.html';
+                        })
+                        .catch(error => {
+                            console.error('Logout error:', error);
+                            // Still clear client data even if server request fails
+                            clearClientData();
+                            alert('Logged out locally. Could not contact server.');
+                            window.location.href = 'index.html';
+                        });
+                    }
+                );
+            });
+            
             document.getElementById('resetPrefsBtn').addEventListener('click', function() {
                 showConfirmModal(
                     'Reset Preferences',
@@ -317,57 +339,45 @@
                     'Clear All Data',
                     'This will log you out and remove all locally stored data. Are you sure?',
                     function() {
-                        // Clear all cookies and local storage
-                        document.cookie.split(";").forEach(cookie => {
-                            const eqPos = cookie.indexOf("=");
-                            const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-                            document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
-                        });
-                        localStorage.clear();
+                        clearClientData();
                         alert('All data cleared. You will be redirected to login.');
                         setTimeout(() => window.location.href = 'index.html', 1000);
                     }
                 );
             });
             
-            document.getElementById('deleteAccountBtn').addEventListener('click', function() {
-                showConfirmModal(
-                    'Delete Account',
-                    'This action cannot be undone. All your data will be permanently deleted.',
-                    function() {
-                        const token = getCookie('AuthToken');
-                        const currentUser = localStorage.getItem('currentUser');
-                        
-                        fetch(`https://proxyforsigmi.onrender.com/api/users/${encodeURIComponent(currentUser)}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'Authorization': `Bearer ${token}`,
-                                'Content-Type': 'application/json'
-                            }
-                        })
-                        .then(response => {
-                            if (response.ok) {
-                                // Clear all cookies and local storage
-                                document.cookie.split(";").forEach(cookie => {
-                                    const eqPos = cookie.indexOf("=");
-                                    const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-                                    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
-                                });
-                                localStorage.clear();
-                                alert('Account deleted. You will be redirected to the home page.');
-                                setTimeout(() => window.location.href = 'index.html', 1000);
-                            } else {
-                                alert('Failed to delete account. Please try again.');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error deleting account:', error);
-                            alert('Failed to delete account. Please try again.');
-                        });
-                    }
-                );
-            });
-                        
+			document.getElementById('deleteAccountBtn').addEventListener('click', function() {
+				showConfirmModal(
+					'Delete Account',
+					'This action cannot be undone. All your data will be permanently deleted.',
+					function() {
+						const token = getCookie('AuthToken');
+						const currentUser = localStorage.getItem('currentUser');
+						
+						fetch(`https://proxyforsigmi.onrender.com/api/users/${currentUser}`, {
+							method: 'DELETE',
+							headers: {
+								'Authorization': `Bearer ${token}`
+							}
+						})
+						.then(response => {
+							if (response.ok) {
+								// Clear all cookies and local storage
+								clearClientData();
+								alert('Account deleted. You will be redirected to the home page.');
+								setTimeout(() => window.location.href = 'index.html', 1000);
+							} else {
+								alert('Failed to delete account. Please try again.');
+							}
+						})
+						.catch(error => {
+							console.error('Error deleting account:', error);
+							alert('Failed to delete account. Please try again.');
+						});
+					}
+				);
+			});
+						
             // Confirmation modal functions
             function showConfirmModal(title, message, action) {
                 document.getElementById('confirmTitle').textContent = title;
@@ -382,6 +392,44 @@
                     document.getElementById('confirmModal').classList.add('hidden');
                     action();
                 };
+            }
+            
+            // Cookie functions
+            function setCookie(name, value, days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                const expires = "expires=" + date.toUTCString();
+                document.cookie = name + "=" + value + ";" + expires + ";path=/";
+            }
+            
+            function getCookie(name) {
+                const cookieName = name + "=";
+                const decodedCookie = decodeURIComponent(document.cookie);
+                const cookieArray = decodedCookie.split(';');
+                
+                for(let i = 0; i < cookieArray.length; i++) {
+                    let cookie = cookieArray[i];
+                    while (cookie.charAt(0) === ' ') {
+                        cookie = cookie.substring(1);
+                    }
+                    if (cookie.indexOf(cookieName) === 0) {
+                        return cookie.substring(cookieName.length, cookie.length);
+                    }
+                }
+                return "";
+            }
+            
+            // Function to clear client-side data
+            function clearClientData() {
+                // Clear all cookies
+                document.cookie.split(";").forEach(cookie => {
+                    const eqPos = cookie.indexOf("=");
+                    const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+                });
+                
+                // Clear local storage
+                localStorage.clear();
             }
         });
     </script>
