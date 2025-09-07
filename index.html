@@ -301,6 +301,31 @@
     </div>
 
     <script>
+        // Page mapping for different content items
+        const PAGE_MAPPING = {
+            // Hacks pages
+            'roblox': 'roblox.html',
+            'minecraft': 'minecraft.html',
+            'blooket': 'blooket.html',
+            'mathsonline': 'mathsonline.html',
+            
+            // Bypasses pages
+            'linewize': 'linewize.html',
+            'vpn': 'vpn.html',
+            'microsoft': 'microsoft.html',
+            'admin': 'admin.html',
+            
+            // Games pages
+            'arcade': 'arcade.html',
+            'puzzle': 'puzzle.html',
+            'strategy': 'strategy.html',
+            'multiplayer': 'multiplayer.html',
+            
+            // External games pages
+            'external_roblox': 'external-roblox.html',
+            'external_minecraft': 'external-minecraft.html'
+        };
+
         // Initialize AOS and Feather Icons
 		document.addEventListener('DOMContentLoaded', function() {
 			AOS.init();
@@ -536,7 +561,7 @@
             const decodedCookie = decodeURIComponent(document.cookie);
             const cookieArray = decodedCookie.split(';');
             
-            for(let i = 0; i < cookieArray.length; i++) {
+            for(let i = 0; i <cookieArray.length; i++) {
                 let cookie = cookieArray[i];
                 while (cookie.charAt(0) === ' ') {
                     cookie = cookie.substring(1);
@@ -598,6 +623,7 @@
 			// Refresh icons
 			feather.replace();
 		}
+        
         function createSection(title, icon, items) {
             const section = document.createElement('div');
             section.className = 'section';
@@ -625,8 +651,13 @@
             items.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'content-card bg-purple-900 bg-opacity-50 rounded-xl p-6 cursor-pointer';
+                
+                // Add click event to redirect to the appropriate page
                 card.addEventListener('click', function() {
-                    window.location.href = `content.html?type=${title.toLowerCase()}&item=${item}`;
+                    // For external items, prefix with "external_"
+                    const pageKey = title === 'External Games' ? `external_${item}` : item;
+                    const page = PAGE_MAPPING[pageKey] || 'content.html';
+                    window.location.href = page;
                 });
                 
                 const cardTitle = document.createElement('h4');
@@ -657,106 +688,107 @@
             
             return section;
         }
-async function loadMembers() {
-    try {
-        const token = getCookie('AuthToken');
-        if (!token) {
-            throw new Error("No authentication token found");
-        }
 
-        const res = await fetch("https://proxyforsigmi.onrender.com/api/users", {
-            method: "GET",
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            credentials: "include"
-        });
+        async function loadMembers() {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) {
+                    throw new Error("No authentication token found");
+                }
 
-        if (!res.ok) {
-            // More detailed error message
-            throw new Error(`Failed to fetch members: ${res.status} ${res.statusText}`);
-        }
+                const res = await fetch("https://proxyforsigmi.onrender.com/api/users", {
+                    method: "GET",
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: "include"
+                });
 
-        // Check if response is JSON
-        const contentType = res.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error("Server returned non-JSON response");
-        }
+                if (!res.ok) {
+                    // More detailed error message
+                    throw new Error(`Failed to fetch members: ${res.status} ${res.statusText}`);
+                }
 
-        const members = await res.json();
-        const container = document.getElementById("membersList");
-        
-        // Clear old content with a fade effect
-        container.innerHTML = "";
-        container.classList.remove("opacity-100");
-        container.classList.add("opacity-0");
-        
-        setTimeout(() => {
-            if (members.length === 0) {
+                // Check if response is JSON
+                const contentType = res.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error("Server returned non-JSON response");
+                }
+
+                const members = await res.json();
+                const container = document.getElementById("membersList");
+                
+                // Clear old content with a fade effect
+                container.innerHTML = "";
+                container.classList.remove("opacity-100");
+                container.classList.add("opacity-0");
+                
+                setTimeout(() => {
+                    if (members.length === 0) {
+                        container.innerHTML = `
+                            <div class="text-center py-8 text-gray-400">
+                                <i data-feather="users" class="w-12 h-12 mx-auto mb-4"></i>
+                                <p>No members found</p>
+                            </div>
+                        `;
+                    } else {
+                        members.forEach(user => {
+                            // initials for avatar
+                            const initials = user.username
+                                .split(" ")
+                                .map(word => word[0].toUpperCase())
+                                .join("")
+                                .slice(0, 2);
+
+                            // Color based on role for consistency
+                            let color = "bg-purple-600";
+                            if (user.role === "Owner") color = "bg-red-600";
+                            if (user.role === "Admin") color = "bg-blue-600";
+
+                            const memberDiv = document.createElement("div");
+                            memberDiv.className = "flex items-center p-3 rounded-lg hover:bg-purple-800 hover:bg-opacity-50 transition-colors duration-200";
+                            memberDiv.title = `Role: ${user.role} | Joined: ${user.joined || 'Unknown'}`;
+
+                            memberDiv.innerHTML = `
+                                <div class="w-10 h-10 rounded-full ${color} flex items-center justify-center mr-3 flex-shrink-0">
+                                    <span class="text-sm font-bold text-white">${initials}</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-medium truncate">${user.username}</div>
+                                    <div class="text-xs text-gray-400 capitalize">${user.role || 'Member'}</div>
+                                </div>
+                            `;
+                            container.appendChild(memberDiv);
+                        });
+                    }
+                    
+                    // Fade in the new content
+                    setTimeout(() => {
+                        container.classList.remove("opacity-0");
+                        container.classList.add("opacity-100");
+                        feather.replace(); // Refresh icons
+                    }, 50);
+                    
+                }, 100);
+                
+            } catch (err) {
+                console.error("[ERROR] Failed to load members:", err);
+                
+                const container = document.getElementById("membersList");
                 container.innerHTML = `
-                    <div class="text-center py-8 text-gray-400">
-                        <i data-feather="users" class="w-12 h-12 mx-auto mb-4"></i>
-                        <p>No members found</p>
+                    <div class="text-center py-8 text-red-300">
+                        <i data-feather="alert-triangle" class="w-12 h-12 mx-auto mb-4"></i>
+                        <p class="font-medium">Failed to load members</p>
+                        <p class="text-sm mt-2">${err.message}</p>
+                        <button onclick="loadMembers()" class="mt-4 px-4 py-2 bg-purple-700 rounded-lg hover:bg-purple-600 transition-colors">
+                            Try Again
+                        </button>
                     </div>
                 `;
-            } else {
-                members.forEach(user => {
-                    // initials for avatar
-                    const initials = user.username
-                        .split(" ")
-                        .map(word => word[0].toUpperCase())
-                        .join("")
-                        .slice(0, 2);
-
-                    // Color based on role for consistency
-                    let color = "bg-purple-600";
-                    if (user.role === "Owner") color = "bg-red-600";
-                    if (user.role === "Admin") color = "bg-blue-600";
-
-                    const memberDiv = document.createElement("div");
-                    memberDiv.className = "flex items-center p-3 rounded-lg hover:bg-purple-800 hover:bg-opacity-50 transition-colors duration-200";
-                    memberDiv.title = `Role: ${user.role} | Joined: ${user.joined || 'Unknown'}`;
-
-                    memberDiv.innerHTML = `
-                        <div class="w-10 h-10 rounded-full ${color} flex items-center justify-center mr-3 flex-shrink-0">
-                            <span class="text-sm font-bold text-white">${initials}</span>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="font-medium truncate">${user.username}</div>
-                            <div class="text-xs text-gray-400 capitalize">${user.role || 'Member'}</div>
-                        </div>
-                    `;
-                    container.appendChild(memberDiv);
-                });
+                feather.replace();
             }
-            
-            // Fade in the new content
-            setTimeout(() => {
-                container.classList.remove("opacity-0");
-                container.classList.add("opacity-100");
-                feather.replace(); // Refresh icons
-            }, 50);
-            
-        }, 100);
-        
-    } catch (err) {
-        console.error("[ERROR] Failed to load members:", err);
-        
-        const container = document.getElementById("membersList");
-        container.innerHTML = `
-            <div class="text-center py-8 text-red-300">
-                <i data-feather="alert-triangle" class="w-12 h-12 mx-auto mb-4"></i>
-                <p class="font-medium">Failed to load members</p>
-                <p class="text-sm mt-2">${err.message}</p>
-                <button onclick="loadMembers()" class="mt-4 px-4 py-2 bg-purple-700 rounded-lg hover:bg-purple-600 transition-colors">
-                    Try Again
-                </button>
-            </div>
-        `;
-        feather.replace();
-    }
-}
+        }
 
         // Load members when sidebar opens
         document.addEventListener("DOMContentLoaded", loadMembers);
