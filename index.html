@@ -102,15 +102,6 @@
             z-index: 100;
             transition: opacity 0.3s ease;
         }
-        
-        /* Prevent interaction while verifying */
-        .prevent-interaction {
-            pointer-events: none;
-            cursor: wait;
-        }
-        .allow-hover:hover {
-            cursor: wait;
-        }
     </style>
 </head>
 <body class="min-h-screen gradient-bg text-white font-sans">
@@ -130,8 +121,8 @@
 			</div>
 		</div>
 
-		<!-- Loading Overlay - For delayed server boot message -->
-		<div id="delayedLoadingOverlay" class="loading-overlay hidden">
+		<!-- Loading Overlay - For auto-login verification -->
+		<div id="loadingOverlay" class="loading-overlay hidden">
 			<div class="glass rounded-xl p-8 max-w-md w-full mx-4 text-center">
 				<div class="flex justify-center mb-6">
 					<div class="balls-loader">
@@ -141,8 +132,8 @@
 						<div></div>
 					</div>
 				</div>
-				<h2 class="text-2xl font-bold mb-2">Booting up the server...</h2>
-				<p class="text-gray-300">Please wait while we start the server</p>
+				<h2 class="text-2xl font-bold mb-2">Verifying session...</h2>
+				<p class="text-gray-300">Please wait while we verify your session</p>
 			</div>
 		</div>
 
@@ -444,41 +435,30 @@
                 const currentUser = localStorage.getItem('currentUser');
                 
                 if (token && currentUser) {
-                    // Show main content immediately but prevent interaction
+                    // Show main content with loading overlay for auto-login
                     document.getElementById('mainContent').classList.remove('hidden');
-                    document.getElementById('mainContent').classList.add('prevent-interaction');
-                    document.getElementById('mainContent').classList.add('allow-hover');
-                    
-                    // Set a timeout to show loading overlay after 5 seconds
-                    let serverWakeTimeout = setTimeout(() => {
-                        document.getElementById('delayedLoadingOverlay').classList.remove('hidden');
-                    }, 5000);
+                    document.getElementById('loadingOverlay').classList.remove('hidden');
                     
                     // Always verify token with server
                     verifyToken(token).then(isValid => {
-                        // Clear the timeout
-                        clearTimeout(serverWakeTimeout);
-                        document.getElementById('delayedLoadingOverlay').classList.add('hidden');
-                        
                         if (isValid) {
-                            // Allow interaction
-                            document.getElementById('mainContent').classList.remove('prevent-interaction');
-                            document.getElementById('mainContent').classList.remove('allow-hover');
+                            document.getElementById('loadingOverlay').classList.add('hidden');
                             loadDashboard();
                             loadMembers(); // Load members after authentication
                         } else {
-                            // Token is invalid, log user out and show auth modal
-                            logoutUser();
+                            // Token is invalid, show auth modal
+                            document.getElementById('loadingOverlay').classList.add('hidden');
+                            document.getElementById('mainContent').classList.add('hidden');
                             document.getElementById('authModal').classList.remove('hidden');
+                            // Clear invalid token
+                            setCookie('AuthToken', '', -1);
+                            localStorage.removeItem('currentUser');
+                            localStorage.removeItem('userRole');
                         }
                     }).catch(error => {
-                        // Clear the timeout
-                        clearTimeout(serverWakeTimeout);
-                        document.getElementById('delayedLoadingOverlay').classList.add('hidden');
-                        
                         console.error('Token verification failed:', error);
-                        // Log user out and show auth modal
-                        logoutUser();
+                        document.getElementById('loadingOverlay').classList.add('hidden');
+                        document.getElementById('mainContent').classList.add('hidden');
                         document.getElementById('authModal').classList.remove('hidden');
                     });
                 } else {
@@ -730,24 +710,6 @@
             }
         }
 
-        // Function to log user out
-        function logoutUser() {
-            // Clear all cookies
-            document.cookie.split(";").forEach(cookie => {
-                const eqPos = cookie.indexOf("=");
-                const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-                document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
-            });
-            
-            // Clear local storage
-            localStorage.clear();
-            
-            // Hide main content
-            document.getElementById('mainContent').classList.add('hidden');
-            document.getElementById('mainContent').classList.remove('prevent-interaction');
-            document.getElementById('mainContent').classList.remove('allow-hover');
-        }
-
         // Cookie Functions
         function setCookie(name, value, days) {
             const date = new Date();
@@ -957,7 +919,7 @@
                                     <span class="text-sm font-bold text-white">${initials}</span>
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <div class="font-medium truncate">${user.username</div>
+                                    <div class="font-medium truncate">${user.username}</div>
                                     <div class="text-xs text-gray-400 capitalize">${user.role || 'Member'}</div>
                                 </div>
                             `;
