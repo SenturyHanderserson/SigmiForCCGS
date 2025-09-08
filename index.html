@@ -86,11 +86,16 @@
             0% { transform: translate(0, 0); }
             100% { transform: translate(24px, 0); }
         }
+        
+        /* Fix for loading modal z-index */
+        #loadingModal {
+            z-index: 100 !important;
+        }
     </style>
 </head>
 <body class="min-h-screen gradient-bg text-white font-sans">
-    <!-- Loading Modal -->
-    <div id="loadingModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
+    <!-- Loading Modal - Increased z-index -->
+    <div id="loadingModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden" style="z-index: 100;">
         <div class="glass rounded-xl p-8 max-w-md w-full mx-4 text-center">
             <div class="flex justify-center mb-6">
                 <div class="balls-loader">
@@ -343,7 +348,21 @@
             </div>
             <div class="p-4 overflow-y-auto h-[calc(100%-60px)]">
                 <!-- Members will be injected here -->
-                <div id="membersList" class="space-y-3"></div>
+                <div id="membersList" class="space-y-3">
+                    <!-- Sample members data - will be replaced with actual data -->
+                    <div class="flex items-center p-3 rounded-lg bg-purple-800 bg-opacity-30">
+                        <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                        <span>Admin User</span>
+                    </div>
+                    <div class="flex items-center p-3 rounded-lg bg-purple-800 bg-opacity-30">
+                        <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                        <span>Moderator</span>
+                    </div>
+                    <div class="flex items-center p-3 rounded-lg bg-purple-800 bg-opacity-30">
+                        <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                        <span>Developer</span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -387,6 +406,15 @@
             'external_minecraft': 'external-minecraft.html'
         };
 
+        // Sample members data
+        const TEAM_MEMBERS = [
+            { name: "Admin User", role: "admin", status: "online" },
+            { name: "Moderator", role: "mod", status: "online" },
+            { name: "Developer", role: "dev", status: "online" },
+            { name: "Content Creator", role: "creator", status: "idle" },
+            { name: "Support Staff", role: "support", status: "offline" }
+        ];
+
         // Initialize AOS and Feather Icons
 		document.addEventListener('DOMContentLoaded', function() {
 			AOS.init();
@@ -418,6 +446,7 @@
                                 document.getElementById('loadingModal').classList.add('hidden');
                                 document.getElementById('mainContent').classList.remove('hidden');
                                 loadDashboard();
+                                loadMembersList();
                             } else {
                                 // Token is invalid, show auth modal
                                 document.getElementById('loadingModal').classList.add('hidden');
@@ -436,6 +465,7 @@
                         // Token was verified recently, no need to check with server
                         document.getElementById('mainContent').classList.remove('hidden');
                         loadDashboard();
+                        loadMembersList();
                     }
                 } else {
                     // No token or user info, show auth modal
@@ -552,6 +582,7 @@
                             document.getElementById('mainContent').classList.remove('hidden');
                             document.getElementById('usernameDisplay').textContent = data.user;
                             loadDashboard();
+                            loadMembersList();
                         } else {
                             document.getElementById('loadingModal').classList.add('hidden');
                             alert(data.error || 'Login failed');
@@ -628,6 +659,7 @@
                         document.getElementById('mainContent').classList.remove('hidden');
                         document.getElementById('usernameDisplay').textContent = data.user;
                         loadDashboard();
+                        loadMembersList();
                         
                     } catch (error) {
                         clearTimeout(serverWakeTimeout);
@@ -654,6 +686,36 @@
                 window.location.href = 'settings.html';
             });
         });
+
+        // Function to load members list
+        function loadMembersList() {
+            const membersList = document.getElementById('membersList');
+            if (!membersList) return;
+            
+            // Clear existing content
+            membersList.innerHTML = '';
+            
+            // Add members to the list
+            TEAM_MEMBERS.forEach(member => {
+                const memberElement = document.createElement('div');
+                memberElement.className = `flex items-center p-3 rounded-lg bg-purple-800 bg-opacity-30`;
+                
+                // Set status color
+                let statusColor = 'bg-gray-500'; // offline
+                if (member.status === 'online') statusColor = 'bg-green-500';
+                if (member.status === 'idle') statusColor = 'bg-yellow-500';
+                
+                memberElement.innerHTML = `
+                    <div class="w-3 h-3 ${statusColor} rounded-full mr-3"></div>
+                    <span>${member.name}</span>
+                `;
+                
+                membersList.appendChild(memberElement);
+            });
+            
+            // Refresh icons
+            feather.replace();
+        }
 
         // Function to show loading modal
         function showLoadingModal(message) {
@@ -708,123 +770,107 @@
 				});
 				
 				if (response.ok) {
-					const userData = await response.json();
-					return userData;
+					return await response.json();
 				}
+				return null;
 			} catch (error) {
 				console.error('Error fetching user data:', error);
+				return null;
 			}
-			return null;
 		}
 
         function getCookie(name) {
-            const cookieName = name + "=";
-            const decodedCookie = decodeURIComponent(document.cookie);
-            const cookieArray = decodedCookie.split(';');
-            
-            for(let i = 0; i <cookieArray.length; i++) {
-                let cookie = cookieArray[i];
-                while (cookie.charAt(0) === ' ') {
-                    cookie = cookie.substring(1);
-                }
-                if (cookie.indexOf(cookieName) === 0) {
-                    return cookie.substring(cookieName.length, cookie.length);
-                }
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
             }
-            return "";
+            return null;
         }
 
-        // Load Dashboard Content
-		async function loadDashboard() {
-			// First try to get username from localStorage
-			let username = localStorage.getItem('currentUser');
-			
-			// If not found in localStorage, fetch from server
-			if (!username) {
-				const userData = await fetchUserData();
-				if (userData && userData.username) {
-					username = userData.username;
-					localStorage.setItem('currentUser', username);
-				}
-			}
-			
-			// Update the UI
-			if (username) {
-				document.getElementById('usernameDisplay').textContent = username;
-			}
-			
-			// Rest of your existing loadDashboard code...
-			const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
-			const dashboard = document.getElementById('dashboardSections');
-			
-			// Clear existing content
-			dashboard.innerHTML = '';
-			
-			// Add sections based on preferences
-			if (preferences.hacks && preferences.hacks.length > 0) {
-				const section = createSection('Hacks', 'code', preferences.hacks);
-				dashboard.appendChild(section);
-			}
-			
-			if (preferences.bypasses && preferences.bypasses.length > 0) {
-				const section = createSection('Bypasses', 'unlock', preferences.bypasses);
-				dashboard.appendChild(section);
-			}
-			
-			if (preferences.games && preferences.games.length > 0) {
-				const section = createSection('Games', 'gamepad', preferences.games);
-				dashboard.appendChild(section);
-			}
-			
-			if (preferences.external && preferences.external.length > 0) {
-				const section = createSection('External Games', 'external-link', preferences.external);
-				dashboard.appendChild(section);
-			}
-			
-			// Refresh icons
-			feather.replace();
-		}
-        
-        function createSection(title, icon, items) {
-            const section = document.createElement('div');
-            section.className = 'section';
+        // Function to load dashboard based on preferences
+        function loadDashboard() {
+            const dashboardSections = document.getElementById('dashboardSections');
+            if (!dashboardSections) return;
             
-            const sectionHeader = document.createElement('div');
-            sectionHeader.className = 'flex items-center mb-6';
-            sectionHeader.innerHTML = `
-                <i data-feather="${icon}" class="w-8 h-8 mr-3"></i>
-                <h2 class="text-2xl font-bold">${title}</h2>
+            // Clear existing content
+            dashboardSections.innerHTML = '';
+            
+            // Get user preferences
+            const preferencesCookie = getCookie('UserPreferences');
+            if (!preferencesCookie) return;
+            
+            const preferences = JSON.parse(preferencesCookie);
+            
+            // Load sections based on preferences
+            if (preferences.hacks && preferences.hacks.length > 0) {
+                const section = createSection('Hacks', preferences.hacks, 'code');
+                dashboardSections.appendChild(section);
+            }
+            
+            if (preferences.bypasses && preferences.bypasses.length > 0) {
+                const section = createSection('Bypasses', preferences.bypasses, 'unlock');
+                dashboardSections.appendChild(section);
+            }
+            
+            if (preferences.games && preferences.games.length > 0) {
+                const section = createSection('Games', preferences.games, 'gamepad');
+                dashboardSections.appendChild(section);
+            }
+            
+            if (preferences.external && preferences.external.length > 0) {
+                const section = createSection('External Games', preferences.external, 'external-link');
+                dashboardSections.appendChild(section);
+            }
+            
+            // Refresh icons
+            feather.replace();
+        }
+
+        // Function to create a dashboard section
+        function createSection(title, items, icon) {
+            const section = document.createElement('div');
+            section.className = 'dashboard-section';
+            
+            let sectionHTML = `
+                <div class="flex items-center mb-6">
+                    <i data-feather="${icon}" class="w-6 h-6 mr-3"></i>
+                    <h3 class="text-xl font-semibold">${title}</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             `;
             
-            const grid = document.createElement('div');
-            grid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
-            
             items.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'content-card glass rounded-xl p-6 cursor-pointer hover:shadow-lg transition-all duration-300';
-                card.innerHTML = `
-                    <h3 class="text-xl font-semibold mb-2 capitalize">${item}</h3>
-                    <p class="text-gray-300 mb-4">Click to access ${item} content</p>
-                    <div class="flex items-center text-purple-300">
-                        <span>Open</span>
-                        <i data-feather="arrow-right" class="w-4 h-4 ml-2"></i>
+                sectionHTML += `
+                    <div class="content-card glass rounded-xl p-6">
+                        <h4 class="font-medium mb-3 capitalize">${item}</h4>
+                        <p class="text-gray-300 mb-4">Access ${item} content</p>
+                        <button class="btn-primary py-2 px-4 rounded-lg font-medium w-full access-btn" data-page="${item}">
+                            Access
+                        </button>
                     </div>
                 `;
-                
-                card.addEventListener('click', () => {
-                    // Check if this is an external item
-                    if (title === 'External Games') {
-                        window.location.href = PAGE_MAPPING[`external_${item}`] || '404.html';
-                    } else {
-                        window.location.href = PAGE_MAPPING[item] || '404.html';
-                    }
-                });
-                
-                grid.appendChild(card);
             });
             
-            section.appendChild(sectionHeader);
-            section.appendChild(grid);
+            sectionHTML += '</div>';
+            section.innerHTML = sectionHTML;
+            
+            // Add event listeners to access buttons
+            setTimeout(() => {
+                const accessButtons = section.querySelectorAll('.access-btn');
+                accessButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const page = this.getAttribute('data-page');
+                        if (PAGE_MAPPING[page]) {
+                            window.location.href = PAGE_MAPPING[page];
+                        } else {
+                            alert('Page not found');
+                        }
+                    });
+                });
+            }, 100);
             
             return section;
         }
