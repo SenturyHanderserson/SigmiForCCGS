@@ -387,63 +387,49 @@
             'external_minecraft': 'external-minecraft.html'
         };
 
-        // Initialize AOS and Feather Icons
-		document.addEventListener('DOMContentLoaded', function() {
-			AOS.init();
-			feather.replace();
-			
-			// Check if terms were accepted
-			if (!getCookie('AcceptedTerms')) {
-				document.getElementById('termsModal').classList.remove('hidden');
-			} else if (!getCookie('UserPreferences')) {
-				document.getElementById('customizeModal').classList.remove('hidden');
-			} else {
-                // Check if we have a token and if it's still valid
-                const token = getCookie('AuthToken');
-                const verificationTime = localStorage.getItem('KeyVerificationTime');
-                const currentUser = localStorage.getItem('currentUser');
-                
-                if (token && currentUser) {
-                    // Check if we need to verify with server (more than 24 hours since last verification)
-                    const now = Date.now();
-                    const needsVerification = !verificationTime || (now - parseInt(verificationTime)) > (24 * 60 * 60 * 1000);
-                    
-                    if (needsVerification) {
-                        // Show loading modal and verify token with server
-                        showLoadingModal("Logging you in...");
-                        verifyToken(token).then(isValid => {
-                            if (isValid) {
-                                // Token is valid, update verification time and show main content
-                                localStorage.setItem('KeyVerificationTime', now.toString());
-                                document.getElementById('loadingModal').classList.add('hidden');
-                                document.getElementById('mainContent').classList.remove('hidden');
-                                loadDashboard();
-                                loadMembers(); // Load members after authentication
-                            } else {
-                                // Token is invalid, show auth modal
-                                document.getElementById('loadingModal').classList.add('hidden');
-                                document.getElementById('authModal').classList.remove('hidden');
-                                // Clear invalid token
-                                setCookie('AuthToken', '', -1);
-                                localStorage.removeItem('currentUser');
-                                localStorage.removeItem('KeyVerificationTime');
-                            }
-                        }).catch(error => {
-                            console.error('Token verification failed:', error);
-                            document.getElementById('loadingModal').classList.add('hidden');
-                            document.getElementById('authModal').classList.remove('hidden');
-                        });
-                    } else {
-                        // Token was verified recently, no need to check with server
-                        document.getElementById('mainContent').classList.remove('hidden');
-                        loadDashboard();
-                        loadMembers(); // Load members after authentication
-                    }
-                } else {
-                    // No token or user info, show auth modal
-                    document.getElementById('authModal').classList.remove('hidden');
-                }
-			}
+	        // Initialize AOS and Feather Icons
+	  document.addEventListener('DOMContentLoaded', function() {
+	        AOS.init();
+	        feather.replace();
+	        
+	        // Check if terms were accepted
+	        if (!getCookie('AcceptedTerms')) {
+	            document.getElementById('termsModal').classList.remove('hidden');
+	        } else if (!getCookie('UserPreferences')) {
+	            document.getElementById('customizeModal').classList.remove('hidden');
+	        } else {
+	            // Check if we have a token
+	            const token = getCookie('AuthToken');
+	            const currentUser = localStorage.getItem('currentUser');
+	            
+	            if (token && currentUser) {
+	                // Always verify token with server
+	                showLoadingModal("Verifying session...");
+	                verifyToken(token).then(isValid => {
+	                    if (isValid) {
+	                        document.getElementById('loadingModal').classList.add('hidden');
+	                        document.getElementById('mainContent').classList.remove('hidden');
+	                        loadDashboard();
+	                        loadMembers(); // Load members after authentication
+	                    } else {
+	                        // Token is invalid, show auth modal
+	                        document.getElementById('loadingModal').classList.add('hidden');
+	                        document.getElementById('authModal').classList.remove('hidden');
+	                        // Clear invalid token
+	                        setCookie('AuthToken', '', -1);
+	                        localStorage.removeItem('currentUser');
+	                        localStorage.removeItem('userRole');
+	                    }
+	                }).catch(error => {
+	                    console.error('Token verification failed:', error);
+	                    document.getElementById('loadingModal').classList.add('hidden');
+	                    document.getElementById('authModal').classList.remove('hidden');
+	                });
+	            } else {
+	                // No token or user info, show auth modal
+	                document.getElementById('authModal').classList.remove('hidden');
+	            }
+	        }
 
             // Terms Modal Buttons
             document.getElementById('agreeBtn').addEventListener('click', function() {
