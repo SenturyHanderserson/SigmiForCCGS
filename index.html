@@ -86,10 +86,26 @@
             0% { transform: translate(0, 0); }
             100% { transform: translate(24px, 0); }
         }
+        
+        /* Loading overlay for main content */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.3s ease;
+        }
     </style>
 </head>
 <body class="min-h-screen gradient-bg text-white font-sans">
-		<!-- Loading Modal - Update z-index to be higher -->
+		<!-- Loading Modal - For initial login/signup -->
 		<div id="loadingModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
 			<div class="glass rounded-xl p-8 max-w-md w-full mx-4 text-center">
 				<div class="flex justify-center mb-6">
@@ -102,6 +118,22 @@
 				</div>
 				<h2 class="text-2xl font-bold mb-2" id="loadingText">Logging you in...</h2>
 				<p class="text-gray-300">Please wait while we verify your credentials</p>
+			</div>
+		</div>
+
+		<!-- Loading Overlay - For auto-login verification -->
+		<div id="loadingOverlay" class="loading-overlay hidden">
+			<div class="glass rounded-xl p-8 max-w-md w-full mx-4 text-center">
+				<div class="flex justify-center mb-6">
+					<div class="balls-loader">
+						<div></div>
+						<div></div>
+						<div></div>
+						<div></div>
+					</div>
+				</div>
+				<h2 class="text-2xl font-bold mb-2">Verifying session...</h2>
+				<p class="text-gray-300">Please wait while we verify your session</p>
 			</div>
 		</div>
 
@@ -387,49 +419,53 @@
             'external_minecraft': 'external-minecraft.html'
         };
 
-	        // Initialize AOS and Feather Icons
-	  document.addEventListener('DOMContentLoaded', function() {
-	        AOS.init();
-	        feather.replace();
-	        
-	        // Check if terms were accepted
-	        if (!getCookie('AcceptedTerms')) {
-	            document.getElementById('termsModal').classList.remove('hidden');
-	        } else if (!getCookie('UserPreferences')) {
-	            document.getElementById('customizeModal').classList.remove('hidden');
-	        } else {
-	            // Check if we have a token
-	            const token = getCookie('AuthToken');
-	            const currentUser = localStorage.getItem('currentUser');
-	            
-	            if (token && currentUser) {
-	                // Always verify token with server
-	                showLoadingModal("Verifying session...");
-	                verifyToken(token).then(isValid => {
-	                    if (isValid) {
-	                        document.getElementById('loadingModal').classList.add('hidden');
-	                        document.getElementById('mainContent').classList.remove('hidden');
-	                        loadDashboard();
-	                        loadMembers(); // Load members after authentication
-	                    } else {
-	                        // Token is invalid, show auth modal
-	                        document.getElementById('loadingModal').classList.add('hidden');
-	                        document.getElementById('authModal').classList.remove('hidden');
-	                        // Clear invalid token
-	                        setCookie('AuthToken', '', -1);
-	                        localStorage.removeItem('currentUser');
-	                        localStorage.removeItem('userRole');
-	                    }
-	                }).catch(error => {
-	                    console.error('Token verification failed:', error);
-	                    document.getElementById('loadingModal').classList.add('hidden');
-	                    document.getElementById('authModal').classList.remove('hidden');
-	                });
-	            } else {
-	                // No token or user info, show auth modal
-	                document.getElementById('authModal').classList.remove('hidden');
-	            }
-	        }
+        // Initialize AOS and Feather Icons
+		document.addEventListener('DOMContentLoaded', function() {
+			AOS.init();
+			feather.replace();
+			
+			// Check if terms were accepted
+			if (!getCookie('AcceptedTerms')) {
+				document.getElementById('termsModal').classList.remove('hidden');
+			} else if (!getCookie('UserPreferences')) {
+				document.getElementById('customizeModal').classList.remove('hidden');
+			} else {
+                // Check if we have a token
+                const token = getCookie('AuthToken');
+                const currentUser = localStorage.getItem('currentUser');
+                
+                if (token && currentUser) {
+                    // Show main content with loading overlay for auto-login
+                    document.getElementById('mainContent').classList.remove('hidden');
+                    document.getElementById('loadingOverlay').classList.remove('hidden');
+                    
+                    // Always verify token with server
+                    verifyToken(token).then(isValid => {
+                        if (isValid) {
+                            document.getElementById('loadingOverlay').classList.add('hidden');
+                            loadDashboard();
+                            loadMembers(); // Load members after authentication
+                        } else {
+                            // Token is invalid, show auth modal
+                            document.getElementById('loadingOverlay').classList.add('hidden');
+                            document.getElementById('mainContent').classList.add('hidden');
+                            document.getElementById('authModal').classList.remove('hidden');
+                            // Clear invalid token
+                            setCookie('AuthToken', '', -1);
+                            localStorage.removeItem('currentUser');
+                            localStorage.removeItem('userRole');
+                        }
+                    }).catch(error => {
+                        console.error('Token verification failed:', error);
+                        document.getElementById('loadingOverlay').classList.add('hidden');
+                        document.getElementById('mainContent').classList.add('hidden');
+                        document.getElementById('authModal').classList.remove('hidden');
+                    });
+                } else {
+                    // No token or user info, show auth modal
+                    document.getElementById('authModal').classList.remove('hidden');
+                }
+			}
 
             // Terms Modal Buttons
             document.getElementById('agreeBtn').addEventListener('click', function() {
@@ -533,7 +569,6 @@
                             setCookie('AuthToken', data.token, rememberMe ? 30 : 1);
                             localStorage.setItem('currentUser', data.user);
                             localStorage.setItem('userRole', data.role);
-                            localStorage.setItem('KeyVerificationTime', Date.now().toString());
                             
                             document.getElementById('loadingModal').classList.add('hidden');
                             document.getElementById('authModal').classList.add('hidden');
@@ -610,7 +645,6 @@
                         setCookie('AuthToken', data.token, 30);
                         localStorage.setItem('currentUser', data.user);
                         localStorage.setItem('userRole', data.role);
-                        localStorage.setItem('KeyVerificationTime', Date.now().toString());
                         
                         document.getElementById('loadingModal').classList.add('hidden');
                         document.getElementById('authModal').classList.add('hidden');
@@ -645,7 +679,7 @@
             });
         });
 
-        // Function to show loading modal
+        // Function to show loading modal (for initial login/signup)
         function showLoadingModal(message) {
             if (message) {
                 document.getElementById('loadingText').textContent = message;
