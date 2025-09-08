@@ -41,9 +41,70 @@
 		    opacity: 1; 
 		    transition: opacity 0.3s ease; 
 		}
+        
+        /* Loading spinner */
+        .balls-loader {
+            display: inline-block;
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+        .balls-loader div {
+            position: absolute;
+            top: 33px;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: #8e44ad;
+            animation-timing-function: cubic-bezier(0, 1, 1, 0);
+        }
+        .balls-loader div:nth-child(1) {
+            left: 8px;
+            animation: balls-loader1 0.6s infinite;
+        }
+        .balls-loader div:nth-child(2) {
+            left: 8px;
+            animation: balls-loader2 0.6s infinite;
+        }
+        .balls-loader div:nth-child(3) {
+            left: 32px;
+            animation: balls-loader2 0.6s infinite;
+        }
+        .balls-loader div:nth-child(4) {
+            left: 56px;
+            animation: balls-loader3 0.6s infinite;
+        }
+        @keyframes balls-loader1 {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+        @keyframes balls-loader3 {
+            0% { transform: scale(1); }
+            100% { transform: scale(0); }
+        }
+        @keyframes balls-loader2 {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(24px, 0); }
+        }
     </style>
 </head>
 <body class="min-h-screen gradient-bg text-white font-sans">
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
+        <div class="glass rounded-xl p-8 max-w-md w-full mx-4 text-center">
+            <div class="flex justify-center mb-6">
+                <div class="balls-loader">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                </div>
+            </div>
+            <h2 class="text-2xl font-bold mb-2" id="loadingText">Logging you in...</h2>
+            <p class="text-gray-300">Please wait while we verify your credentials</p>
+        </div>
+    </div>
+
 	<!-- Terms Modal -->
 	<div id="termsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
 	    <div class="glass rounded-xl p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
@@ -336,12 +397,50 @@
 				document.getElementById('termsModal').classList.remove('hidden');
 			} else if (!getCookie('UserPreferences')) {
 				document.getElementById('customizeModal').classList.remove('hidden');
-			} else if (!getCookie('AuthToken')) {
-				document.getElementById('authModal').classList.remove('hidden');
 			} else {
-				// User is authenticated, show main content
-				document.getElementById('mainContent').classList.remove('hidden');
-				loadDashboard(); // This will now fetch the username
+                // Check if we have a token and if it's still valid
+                const token = getCookie('AuthToken');
+                const verificationTime = localStorage.getItem('KeyVerificationTime');
+                const currentUser = localStorage.getItem('currentUser');
+                
+                if (token && currentUser) {
+                    // Check if we need to verify with server (more than 24 hours since last verification)
+                    const now = Date.now();
+                    const needsVerification = !verificationTime || (now - parseInt(verificationTime)) > (24 * 60 * 60 * 1000);
+                    
+                    if (needsVerification) {
+                        // Show loading modal and verify token with server
+                        showLoadingModal("Logging you in...");
+                        verifyToken(token).then(isValid => {
+                            if (isValid) {
+                                // Token is valid, update verification time and show main content
+                                localStorage.setItem('KeyVerificationTime', now.toString());
+                                document.getElementById('loadingModal').classList.add('hidden');
+                                document.getElementById('mainContent').classList.remove('hidden');
+                                loadDashboard();
+                            } else {
+                                // Token is invalid, show auth modal
+                                document.getElementById('loadingModal').classList.add('hidden');
+                                document.getElementById('authModal').classList.remove('hidden');
+                                // Clear invalid token
+                                setCookie('AuthToken', '', -1);
+                                localStorage.removeItem('currentUser');
+                                localStorage.removeItem('KeyVerificationTime');
+                            }
+                        }).catch(error => {
+                            console.error('Token verification failed:', error);
+                            document.getElementById('loadingModal').classList.add('hidden');
+                            document.getElementById('authModal').classList.remove('hidden');
+                        });
+                    } else {
+                        // Token was verified recently, no need to check with server
+                        document.getElementById('mainContent').classList.remove('hidden');
+                        loadDashboard();
+                    }
+                } else {
+                    // No token or user info, show auth modal
+                    document.getElementById('authModal').classList.remove('hidden');
+                }
 			}
 
             // Terms Modal Buttons
@@ -355,20 +454,20 @@
                 window.close();
             });
 
-			    const termsCheckbox = document.getElementById('termsAgreement');
-			    const agreeBtn = document.getElementById('agreeBtn');
-			    
-			    if (termsCheckbox && agreeBtn) {
-			        termsCheckbox.addEventListener('change', function() {
-			            if (this.checked) {
-			                agreeBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-			                agreeBtn.disabled = false;
-			            } else {
-			                agreeBtn.classList.add('opacity-50', 'cursor-not-allowed');
-			                agreeBtn.disabled = true;
-			            }
-			        });
-			    }
+			const termsCheckbox = document.getElementById('termsAgreement');
+			const agreeBtn = document.getElementById('agreeBtn');
+			
+			if (termsCheckbox && agreeBtn) {
+				termsCheckbox.addEventListener('change', function() {
+					if (this.checked) {
+						agreeBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+						agreeBtn.disabled = false;
+					} else {
+						agreeBtn.classList.add('opacity-50', 'cursor-not-allowed');
+						agreeBtn.disabled = true;
+					}
+				});
+			}
 
             // Save Preferences Button
             document.getElementById('savePreferencesBtn').addEventListener('click', function() {
@@ -404,17 +503,27 @@
                 const rememberMe = document.getElementById('rememberMe').checked;
                 
                 if (username && password) {
+                    showLoadingModal("Logging you in...");
+                    
+                    // Set a timeout to change the message if it takes too long
+                    const serverWakeTimeout = setTimeout(() => {
+                        document.getElementById('loadingText').textContent = "Waking the server...";
+                    }, 7000);
+                    
                     try {
-                            const response = await fetch('https://proxyforsigmi.onrender.com/api/login', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ username, password })
-                            });
-                                                    
+                        const response = await fetch('https://proxyforsigmi.onrender.com/api/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ username, password })
+                        });
+                                            
+                        clearTimeout(serverWakeTimeout);
+                        
                         // First check if response is OK
                         if (!response.ok) {
                             const errorText = await response.text();
                             console.error('Server error response:', errorText);
+                            document.getElementById('loadingModal').classList.add('hidden');
                             alert(`Login failed: ${response.status} ${response.statusText}`);
                             return;
                         }
@@ -424,6 +533,7 @@
                         if (!contentType || !contentType.includes('application/json')) {
                             const text = await response.text();
                             console.error('Non-JSON response:', text);
+                            document.getElementById('loadingModal').classList.add('hidden');
                             alert('Server returned invalid response format');
                             return;
                         }
@@ -435,23 +545,29 @@
                             setCookie('AuthToken', data.token, rememberMe ? 30 : 1);
                             localStorage.setItem('currentUser', data.user);
                             localStorage.setItem('userRole', data.role);
+                            localStorage.setItem('KeyVerificationTime', Date.now().toString());
                             
+                            document.getElementById('loadingModal').classList.add('hidden');
                             document.getElementById('authModal').classList.add('hidden');
                             document.getElementById('mainContent').classList.remove('hidden');
                             document.getElementById('usernameDisplay').textContent = data.user;
                             loadDashboard();
                         } else {
+                            document.getElementById('loadingModal').classList.add('hidden');
                             alert(data.error || 'Login failed');
                         }
                     } catch (error) {
+                        clearTimeout(serverWakeTimeout);
                         console.error('Login error:', error);
+                        document.getElementById('loadingModal').classList.add('hidden');
                         alert('Login failed. Please try again later.');
                     }
                 } else {
                     alert('Please enter both username and password');
                 }
             });
-                        // Signup Button - WITH PROPER ERROR HANDLING
+
+            // Signup Button - WITH PROPER ERROR HANDLING
             document.getElementById('signupBtn').addEventListener('click', async function() {
                 const username = document.getElementById('signupUsername').value;
                 const email = document.getElementById('signupEmail').value;
@@ -464,6 +580,13 @@
                 }
                 
                 if (username && password) {
+                    showLoadingModal("Creating your account...");
+                    
+                    // Set a timeout to change the message if it takes too long
+                    const serverWakeTimeout = setTimeout(() => {
+                        document.getElementById('loadingText').textContent = "Waking the server...";
+                    }, 7000);
+                    
                     try {
                         const response = await fetch('https://proxyforsigmi.onrender.com/api/signup', {
                             method: 'POST',
@@ -471,10 +594,13 @@
                             body: JSON.stringify({ username, password })
                         });
                         
+                        clearTimeout(serverWakeTimeout);
+                        
                         // First check if response is OK
                         if (!response.ok) {
                             const errorText = await response.text();
                             console.error('Server error response:', errorText);
+                            document.getElementById('loadingModal').classList.add('hidden');
                             alert(`Signup failed: ${response.status} ${response.statusText}`);
                             return;
                         }
@@ -484,6 +610,7 @@
                         if (!contentType || !contentType.includes('application/json')) {
                             const text = await response.text();
                             console.error('Non-JSON response:', text);
+                            document.getElementById('loadingModal').classList.add('hidden');
                             alert('Server returned invalid response format');
                             return;
                         }
@@ -494,14 +621,18 @@
                         setCookie('AuthToken', data.token, 30);
                         localStorage.setItem('currentUser', data.user);
                         localStorage.setItem('userRole', data.role);
+                        localStorage.setItem('KeyVerificationTime', Date.now().toString());
                         
+                        document.getElementById('loadingModal').classList.add('hidden');
                         document.getElementById('authModal').classList.add('hidden');
                         document.getElementById('mainContent').classList.remove('hidden');
                         document.getElementById('usernameDisplay').textContent = data.user;
                         loadDashboard();
                         
                     } catch (error) {
+                        clearTimeout(serverWakeTimeout);
                         console.error('Signup error:', error);
+                        document.getElementById('loadingModal').classList.add('hidden');
                         alert('Signup failed. Please try again later.');
                     }
                 } else {
@@ -524,6 +655,37 @@
             });
         });
 
+        // Function to show loading modal
+        function showLoadingModal(message) {
+            if (message) {
+                document.getElementById('loadingText').textContent = message;
+            }
+            document.getElementById('loadingModal').classList.remove('hidden');
+        }
+
+        // Function to verify token with server
+        async function verifyToken(token) {
+            try {
+                const response = await fetch('https://proxyforsigmi.onrender.com/api/verify-token', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    return false;
+                }
+                
+                const data = await response.json();
+                return data.valid === true;
+            } catch (error) {
+                console.error('Token verification error:', error);
+                return false;
+            }
+        }
+
         // Cookie Functions
         function setCookie(name, value, days) {
             const date = new Date();
@@ -531,7 +693,6 @@
             const expires = "expires=" + date.toUTCString();
             document.cookie = name + "=" + value + ";" + expires + ";path=/";
         }
-		
 		
 		async function fetchUserData() {
 			try {
@@ -630,56 +791,35 @@
             
             const sectionHeader = document.createElement('div');
             sectionHeader.className = 'flex items-center mb-6';
-            
-            const iconDiv = document.createElement('div');
-            iconDiv.className = 'w-10 h-10 rounded-full bg-purple-700 flex items-center justify-center mr-4';
-            
-            const iconElem = document.createElement('i');
-            iconElem.setAttribute('data-feather', icon);
-            iconDiv.appendChild(iconElem);
-            
-            const titleElem = document.createElement('h3');
-            titleElem.className = 'text-xl font-bold';
-            titleElem.textContent = title;
-            
-            sectionHeader.appendChild(iconDiv);
-            sectionHeader.appendChild(titleElem);
+            sectionHeader.innerHTML = `
+                <i data-feather="${icon}" class="w-8 h-8 mr-3"></i>
+                <h2 class="text-2xl font-bold">${title}</h2>
+            `;
             
             const grid = document.createElement('div');
-            grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6';
+            grid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
             
             items.forEach(item => {
                 const card = document.createElement('div');
-                card.className = 'content-card bg-purple-900 bg-opacity-50 rounded-xl p-6 cursor-pointer';
+                card.className = 'content-card glass rounded-xl p-6 cursor-pointer hover:shadow-lg transition-all duration-300';
+                card.innerHTML = `
+                    <h3 class="text-xl font-semibold mb-2 capitalize">${item}</h3>
+                    <p class="text-gray-300 mb-4">Click to access ${item} content</p>
+                    <div class="flex items-center text-purple-300">
+                        <span>Open</span>
+                        <i data-feather="arrow-right" class="w-4 h-4 ml-2"></i>
+                    </div>
+                `;
                 
-                // Add click event to redirect to the appropriate page
-                card.addEventListener('click', function() {
-                    // For external items, prefix with "external_"
-                    const pageKey = title === 'External Games' ? `external_${item}` : item;
-                    const page = PAGE_MAPPING[pageKey] || 'content.html';
-                    window.location.href = page;
+                card.addEventListener('click', () => {
+                    // Check if this is an external item
+                    if (title === 'External Games') {
+                        window.location.href = PAGE_MAPPING[`external_${item}`] || '404.html';
+                    } else {
+                        window.location.href = PAGE_MAPPING[item] || '404.html';
+                    }
                 });
                 
-                const cardTitle = document.createElement('h4');
-                cardTitle.className = 'text-lg font-semibold mb-2 capitalize';
-                cardTitle.textContent = item.replace(/([A-Z])/g, ' $1').trim();
-                
-                const cardDesc = document.createElement('p');
-                cardDesc.className = 'text-gray-300 text-sm';
-                
-                // Add descriptions based on item
-                if (title === 'Hacks') {
-                    cardDesc.textContent = `Learn about ${item} hacks and how they work.`;
-                } else if (title === 'Bypasses') {
-                    cardDesc.textContent = `Methods to bypass ${item} restrictions.`;
-                } else if (title === 'Games') {
-                    cardDesc.textContent = `Play ${item} games directly in your browser.`;
-                } else {
-                    cardDesc.textContent = `Links to ${item} with bypass instructions.`;
-                }
-                
-                card.appendChild(cardTitle);
-                card.appendChild(cardDesc);
                 grid.appendChild(card);
             });
             
@@ -688,110 +828,6 @@
             
             return section;
         }
-
-        async function loadMembers() {
-            try {
-                const token = getCookie('AuthToken');
-                if (!token) {
-                    throw new Error("No authentication token found");
-                }
-
-                const res = await fetch("https://proxyforsigmi.onrender.com/api/users", {
-                    method: "GET",
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: "include"
-                });
-
-                if (!res.ok) {
-                    // More detailed error message
-                    throw new Error(`Failed to fetch members: ${res.status} ${res.statusText}`);
-                }
-
-                // Check if response is JSON
-                const contentType = res.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error("Server returned non-JSON response");
-                }
-
-                const members = await res.json();
-                const container = document.getElementById("membersList");
-                
-                // Clear old content with a fade effect
-                container.innerHTML = "";
-                container.classList.remove("opacity-100");
-                container.classList.add("opacity-0");
-                
-                setTimeout(() => {
-                    if (members.length === 0) {
-                        container.innerHTML = `
-                            <div class="text-center py-8 text-gray-400">
-                                <i data-feather="users" class="w-12 h-12 mx-auto mb-4"></i>
-                                <p>No members found</p>
-                            </div>
-                        `;
-                    } else {
-                        members.forEach(user => {
-                            // initials for avatar
-                            const initials = user.username
-                                .split(" ")
-                                .map(word => word[0].toUpperCase())
-                                .join("")
-                                .slice(0, 2);
-
-                            // Color based on role for consistency
-                            let color = "bg-purple-600";
-                            if (user.role === "Owner") color = "bg-red-600";
-                            if (user.role === "Admin") color = "bg-blue-600";
-
-                            const memberDiv = document.createElement("div");
-                            memberDiv.className = "flex items-center p-3 rounded-lg hover:bg-purple-800 hover:bg-opacity-50 transition-colors duration-200";
-                            memberDiv.title = `Role: ${user.role} | Joined: ${user.joined || 'Unknown'}`;
-
-                            memberDiv.innerHTML = `
-                                <div class="w-10 h-10 rounded-full ${color} flex items-center justify-center mr-3 flex-shrink-0">
-                                    <span class="text-sm font-bold text-white">${initials}</span>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="font-medium truncate">${user.username}</div>
-                                    <div class="text-xs text-gray-400 capitalize">${user.role || 'Member'}</div>
-                                </div>
-                            `;
-                            container.appendChild(memberDiv);
-                        });
-                    }
-                    
-                    // Fade in the new content
-                    setTimeout(() => {
-                        container.classList.remove("opacity-0");
-                        container.classList.add("opacity-100");
-                        feather.replace(); // Refresh icons
-                    }, 50);
-                    
-                }, 100);
-                
-            } catch (err) {
-                console.error("[ERROR] Failed to load members:", err);
-                
-                const container = document.getElementById("membersList");
-                container.innerHTML = `
-                    <div class="text-center py-8 text-red-300">
-                        <i data-feather="alert-triangle" class="w-12 h-12 mx-auto mb-4"></i>
-                        <p class="font-medium">Failed to load members</p>
-                        <p class="text-sm mt-2">${err.message}</p>
-                        <button onclick="loadMembers()" class="mt-4 px-4 py-2 bg-purple-700 rounded-lg hover:bg-purple-600 transition-colors">
-                            Try Again
-                        </button>
-                    </div>
-                `;
-                feather.replace();
-            }
-        }
-
-        // Load members when sidebar opens
-        document.addEventListener("DOMContentLoaded", loadMembers);
     </script>
 </body>
 </html>
