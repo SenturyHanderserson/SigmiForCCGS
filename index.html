@@ -70,6 +70,13 @@
             left: 32px;
             animation: balls-loader2 0.6s infinite;
         }
+		        .section-selector {
+		            transition: all 0.3s ease;
+		        }
+	        .section-selector:hover {
+	            transform: translateY(-2px);
+	            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+	        }
         .balls-loader div:nth-child(4) {
             left: 56px;
             animation: balls-loader3 0.6s infinite;
@@ -178,106 +185,84 @@
                 <h2 class="text-2xl font-bold">Let's Customize Your Experience</h2>
                 <i data-feather="sliders" class="w-8 h-8"></i>
             </div>
-            <p class="mb-8 text-gray-300">Select your interests to personalize your dashboard.</p>
+            <p class="mb-8 text-gray-300">Select entire sections to personalize your dashboard.</p>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <!-- Hacks Section -->
-                <div class="content-card bg-purple-900 bg-opacity-50 rounded-xl p-6">
-                    <div class="flex items-center mb-4">
-                        <i data-feather="code" class="w-6 h-6 mr-3"></i>
-                        <h3 class="text-xl font-semibold">Hacks</h3>
+                <div class="content-card bg-purple-900 bg-opacity-50 rounded-xl p-6 cursor-pointer section-selector" data-section="hacks">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <i data-feather="code" class="w-6 h-6 mr-3"></i>
+                            <h3 class="text-xl font-semibold">Hacks</h3>
+                        </div>
+                        <div class="section-checkbox">
+                            <input type="checkbox" class="form-checkbox rounded text-purple-500 h-5 w-5" data-section="hacks">
+                        </div>
                     </div>
                     <p class="text-gray-300 mb-4">Various game hacks and cheats for educational purposes.</p>
-                    <div class="space-y-2">
-                        <label class="flex items-center">
-                            <input type="checkbox" class="form-checkbox rounded text-purple-500" name="hacks" value="roblox">
-                            <span class="ml-2">Roblox Executors</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" class="form-checkbox rounded text-purple-500" name="hacks" value="minecraft">
-                            <span class="ml-2">Minecraft Clients</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" class="form-checkbox rounded text-purple-500" name="hacks" value="blooket">
-                            <span class="ml-2">Blooket Hacks</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" class="form-checkbox rounded text-purple-500" name="hacks" value="mathsonline">
-                            <span class="ml-2">MathsOnline Hacks</span>
-                        </label>
+                    <div class="space-y-2 text-sm text-gray-400">
+                        <div>• Roblox Executors</div>
+                        <div>• Minecraft Clients</div>
+                        <div>• Blooket Hacks</div>
+                        <div>• MathsOnline Hacks</div>
                     </div>
                 </div>
 
                 <!-- Bypasses Section -->
-                <div class="content-card bg-purple-900 bg-opacity-50 rounded-xl p-6">
-                    <div class="flex items-center mb-4">
-                        <i data-feather="unlock" class="w-6 h-6 mr-3"></i>
-                        <h3 class="text-xl font-semibold">Bypasses</h3>
+                <div class="content-card bg-purple-900 bg-opacity-50 rounded-xl p-6 cursor-pointer section-selector" data-section="bypasses">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <i data-feather="unlock" class="w-6 h-6 mr-3"></i>
+                            <h3 class="text-xl font-semibold">Bypasses</h3>
+                        </div>
+                        <div class="section-checkbox">
+                            <input type="checkbox" class="form-checkbox rounded text-purple-500 h-5 w-5" data-section="bypasses">
+                        </div>
                     </div>
                     <p class="text-gray-300 mb-4">Tools to bypass restrictions for testing purposes.</p>
-                    <div class="space-y-2">
-                        <label class="flex items-center">
-                            <input type="checkbox" class="form-checkbox rounded text-purple-500" name="bypasses" value="linewize">
-                            <span class="ml-2">Linewize Bypass</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" class="form-checkbox rounded text-purple-500" name="bypasses" value="vpn">
-                            <span class="ml-2">VPN Solutions</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" class="form-checkbox rounded text-purple-500" name="bypasses" value="microsoft">
-                            <span class="ml-2">Unblock Microsoft Store</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" class="form-checkbox rounded text-purple-500" name="bypasses" value="admin">
-                            <span class="ml-2">Admin Access</span>
-                        </label>
+                    <div class="space-y-2 text-sm text-gray-400">
+                        <div>• Linewize Bypass</div>
+                        <div>• VPN Solutions</div>
+                        <div>• Unblock Microsoft Store</div>
+                        <div>• Admin Access</div>
                     </div>
                 </div>
 
                 <!-- Games Section -->
-                <div class="content-card bg-purple-900 bg-opacity-50 rounded-xl p-6">
-                    <div class="flex items-center mb-4">
-                        <i data-feather="gamepad" class="w-6 h-6 mr-3"></i>
-                        <h3 class="text-xl font-semibold">Games</h3>
+                <div class="content-card bg-purple-900 bg-opacity-50 rounded-xl p-6 cursor-pointer section-selector" data-section="games">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <i data-feather="gamepad" class="w-6 h-6 mr-3"></i>
+                            <h3 class="text-xl font-semibold">Games</h3>
+                        </div>
+                        <div class="section-checkbox">
+                            <input type="checkbox" class="form-checkbox rounded text-purple-500 h-5 w-5" data-section="games">
+                        </div>
                     </div>
                     <p class="text-gray-300 mb-4">Unblocked browser games for entertainment.</p>
-                    <div class="space-y-2">
-                        <label class="flex items-center">
-                            <input type="checkbox" class="form-checkbox rounded text-purple-500" name="games" value="arcade">
-                            <span class="ml-2">Classic Arcade</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" class="form-checkbox rounded text-purple-500" name="games" value="puzzle">
-                            <span class="ml-2">Puzzle Games</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" class="form-checkbox rounded text-purple-500" name="games" value="strategy">
-                            <span class="ml-2">Strategy Games</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" class="form-checkbox rounded text-purple-500" name="games" value="multiplayer">
-                            <span class="ml-2">Multiplayer Games</span>
-                        </label>
+                    <div class="space-y-2 text-sm text-gray-400">
+                        <div>• Classic Arcade</div>
+                        <div>• Puzzle Games</div>
+                        <div>• Strategy Games</div>
+                        <div>• Multiplayer Games</div>
                     </div>
                 </div>
 
                 <!-- External Games Section -->
-                <div class="content-card bg-purple-900 bg-opacity-50 rounded-xl p-6">
-                    <div class="flex items-center mb-4">
-                        <i data-feather="external-link" class="w-6 h-6 mr-3"></i>
-                        <h3 class="text-xl font-semibold">External Games</h3>
+                <div class="content-card bg-purple-900 bg-opacity-50 rounded-xl p-6 cursor-pointer section-selector" data-section="external">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <i data-feather="external-link" class="w-6 h-6 mr-3"></i>
+                            <h3 class="text-xl font-semibold">External Games</h3>
+                        </div>
+                        <div class="section-checkbox">
+                            <input type="checkbox" class="form-checkbox rounded text-purple-500 h-5 w-5" data-section="external">
+                        </div>
                     </div>
                     <p class="text-gray-300 mb-4">Links to popular games (more bypasses coming soon).</p>
-                    <div class="space-y-2">
-                        <label class="flex items-center">
-                            <input type="checkbox" class="form-checkbox rounded text-purple-500" name="external" value="roblox">
-                            <span class="ml-2">Roblox</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" class="form-checkbox rounded text-purple-500" name="external" value="minecraft">
-                            <span class="ml-2">Minecraft Java</span>
-                        </label>
+                    <div class="space-y-2 text-sm text-gray-400">
+                        <div>• Roblox</div>
+                        <div>• Minecraft Java</div>
                     </div>
                 </div>
             </div>
@@ -467,6 +452,8 @@
                 }
 			}
 
+
+			
             // Terms Modal Buttons
             document.getElementById('agreeBtn').addEventListener('click', function() {
                 setCookie('AcceptedTerms', 'true', 365);
@@ -493,13 +480,35 @@
 				});
 			}
 
+
+			           document.querySelectorAll('.section-selector').forEach(section => {
+			                section.addEventListener('click', function(e) {
+			                    // Don't trigger when clicking on the checkbox itself
+			                    if (e.target.type === 'checkbox') return;
+			                    
+			                    const checkbox = this.querySelector('input[type="checkbox"]');
+			                    checkbox.checked = !checkbox.checked;
+			                    
+			                    // Visual feedback
+			                    if (checkbox.checked) {
+			                        this.classList.add('ring-2', 'ring-purple-500');
+			                    } else {
+			                        this.classList.remove('ring-2', 'ring-purple-500');
+			                    }
+			                });
+			            });
+
             // Save Preferences Button
-            document.getElementById('savePreferencesBtn').addEventListener('click', function() {
+           document.getElementById('savePreferencesBtn').addEventListener('click', function() {
                 const preferences = {
-                    hacks: Array.from(document.querySelectorAll('input[name="hacks"]:checked')).map(el => el.value),
-                    bypasses: Array.from(document.querySelectorAll('input[name="bypasses"]:checked')).map(el => el.value),
-                    games: Array.from(document.querySelectorAll('input[name="games"]:checked')).map(el => el.value),
-                    external: Array.from(document.querySelectorAll('input[name="external"]:checked')).map(el => el.value)
+                    hacks: document.querySelector('input[data-section="hacks"]').checked ? 
+                        ['roblox', 'minecraft', 'blooket', 'mathsonline'] : [],
+                    bypasses: document.querySelector('input[data-section="bypasses"]').checked ? 
+                        ['linewize', 'vpn', 'microsoft', 'admin'] : [],
+                    games: document.querySelector('input[data-section="games"]').checked ? 
+                        ['arcade', 'puzzle', 'strategy', 'multiplayer'] : [],
+                    external: document.querySelector('input[data-section="external"]').checked ? 
+                        ['roblox', 'minecraft'] : []
                 };
                 
                 setCookie('UserPreferences', JSON.stringify(preferences), 365);
