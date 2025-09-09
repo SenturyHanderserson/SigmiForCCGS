@@ -814,8 +814,9 @@
 
             // Settings Button
             document.getElementById('settingsBtn').addEventListener('click', function() {
-                showNotification('Settings page coming soon!');
-            });
+                    window.location.href = 'settings.html';
+                });
+
 
             // Handle page navigation for non-existent pages
             document.addEventListener('click', function(e) {
