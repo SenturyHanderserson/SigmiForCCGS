@@ -15,18 +15,18 @@
             width: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: rgba(92, 50, 168, 0.1);
+            background: rgba(0, 0, 0, 0.2);
         }
         ::-webkit-scrollbar-thumb {
-            background: rgba(142, 68, 173, 0.6);
+            background: rgba(92, 50, 168, 0.5);
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: rgba(142, 68, 173, 0.8);
+            background: rgba(92, 50, 168, 0.7);
         }
 
         .glass {
-            background: rgba(92, 50, 168, 0.2);
+            background: rgba(92, 50, 168, 0.15);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -34,36 +34,41 @@
         
         .gradient-bg {
             background: linear-gradient(135deg, #6e3b9c 0%, #3b1d6c 50%, #1a0933 100%);
+            animation: gradientShift 15s ease infinite;
+            background-size: 200% 200%;
         }
         
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
         .btn-primary {
             background: linear-gradient(135deg, #8e44ad 0%, #6c5ce7 100%);
             transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(142, 68, 173, 0.2);
         }
-        
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(142, 68, 173, 0.3);
         }
-        
+
         .content-card {
             transition: all 0.3s ease;
-            background: rgba(92, 50, 168, 0.3);
+            background: rgba(92, 50, 168, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        
         .content-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-            background: rgba(92, 50, 168, 0.4);
+            background: rgba(92, 50, 168, 0.3);
         }
-        
+
         .opacity-0 { 
             opacity: 0; 
             transition: opacity 0.3s ease; 
         }
-        
         .opacity-100 { 
             opacity: 1; 
             transition: opacity 0.3s ease; 
@@ -72,25 +77,14 @@
         /* Notification system */
         .notification {
             position: fixed;
-            top: 1rem;
-            right: 1rem;
+            bottom: 20px;
+            right: 20px;
             z-index: 1000;
-            max-width: 24rem;
-            width: 100%;
+            transition: all 0.3s ease;
+            transform: translateX(120%);
         }
-        
-        .notification-item {
-            background: rgba(30, 30, 30, 0.9);
-            backdrop-filter: blur(10px);
-            border-left: 4px solid #8e44ad;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 0.5rem;
-            transform: translateX(100%);
-            animation: slideIn 0.3s forwards;
-        }
-        
-        @keyframes slideIn {
-            to { transform: translateX(0); }
+        .notification.show {
+            transform: translateX(0);
         }
         
         /* Loading spinner */
@@ -100,7 +94,6 @@
             width: 80px;
             height: 80px;
         }
-        
         .balls-loader div {
             position: absolute;
             top: 33px;
@@ -110,46 +103,37 @@
             background: #8e44ad;
             animation-timing-function: cubic-bezier(0, 1, 1, 0);
         }
-        
         .balls-loader div:nth-child(1) {
             left: 8px;
             animation: balls-loader1 0.6s infinite;
         }
-        
         .balls-loader div:nth-child(2) {
             left: 8px;
             animation: balls-loader2 0.6s infinite;
         }
-        
         .balls-loader div:nth-child(3) {
             left: 32px;
             animation: balls-loader2 0.6s infinite;
         }
-        
         .section-selector {
             transition: all 0.3s ease;
         }
-        
         .section-selector:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
         }
-        
         .balls-loader div:nth-child(4) {
             left: 56px;
             animation: balls-loader3 0.6s infinite;
         }
-        
         @keyframes balls-loader1 {
             0% { transform: scale(0); }
             100% { transform: scale(1); }
         }
-        
         @keyframes balls-loader3 {
             0% { transform: scale(1); }
             100% { transform: scale(0); }
         }
-        
         @keyframes balls-loader2 {
             0% { transform: translate(0, 0); }
             100% { transform: translate(24px, 0); }
@@ -171,34 +155,41 @@
             transition: opacity 0.3s ease;
         }
         
-        /* Pulse animation */
+        /* Floating particles background */
+        #vanta-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        /* Pulse animation for important elements */
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .pulse {
+            animation: pulse 2s infinite;
         }
         
-        .animate-pulse {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        /* Blue accent elements */
+        .blue-accent {
+            border-left: 3px solid #3b82f6;
         }
-        
-        /* Floating animation */
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
-        }
-        
-        .animate-float {
-            animation: float 3s ease-in-out infinite;
+        .blue-highlight {
+            color: #3b82f6;
         }
     </style>
 </head>
-<body class="min-h-screen gradient-bg text-white font-sans">
-    <!-- Notification container -->
-    <div id="notificationContainer" class="notification"></div>
-    
+<body class="min-h-screen gradient-bg text-white font-sans overflow-x-hidden">
     <!-- Vanta.js background -->
-    <div id="vanta-bg" class="fixed inset-0 -z-10"></div>
+    <div id="vanta-bg"></div>
+    
+    <!-- Notification container -->
+    <div id="notificationContainer" class="space-y-2"></div>
     
     <!-- Loading Modal - For initial login/signup -->
     <div id="loadingModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
@@ -239,7 +230,7 @@
                 <h2 class="text-2xl font-bold">Terms & Conditions</h2>
                 <i data-feather="file-text" class="w-8 h-8"></i>
             </div>
-            <div class="mb-6 text-gray-300">
+            <div class="mb-6 text-gray-300 blue-accent pl-4">
                 <p class="mb-4">Welcome to Sigmi Team! Please read these terms carefully before you use our services.</p>
                 <p class="mb-4">1. If you know the creator and decide to rat them out, you will be permanently suspended from all of our platforms.</p>
                 <p class="mb-4">2. All content provided is for educational purposes only.</p>
@@ -280,7 +271,7 @@
                 <div class="content-card bg-purple-900 bg-opacity-50 rounded-xl p-6 cursor-pointer section-selector" data-section="hacks">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center">
-                            <i data-feather="code" class="w-6 h-6 mr-3"></i>
+                            <i data-feather="code" class="w-6 h-6 mr-3 blue-highlight"></i>
                             <h3 class="text-xl font-semibold">Hacks</h3>
                         </div>
                         <div class="section-checkbox">
@@ -300,7 +291,7 @@
                 <div class="content-card bg-purple-900 bg-opacity-50 rounded-xl p-6 cursor-pointer section-selector" data-section="bypasses">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center">
-                            <i data-feather="unlock" class="w-6 h-6 mr-3"></i>
+                            <i data-feather="unlock" class="w-6 h-6 mr-3 blue-highlight"></i>
                             <h3 class="text-xl font-semibold">Bypasses</h3>
                         </div>
                         <div class="section-checkbox">
@@ -320,7 +311,7 @@
                 <div class="content-card bg-purple-900 bg-opacity-50 rounded-xl p-6 cursor-pointer section-selector" data-section="games">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center">
-                            <i data-feather="gamepad" class="w-6 h-6 mr-3"></i>
+                            <i data-feather="gamepad" class="w-6 h-6 mr-3 blue-highlight"></i>
                             <h3 class="text-xl font-semibold">Games</h3>
                         </div>
                         <div class="section-checkbox">
@@ -340,7 +331,7 @@
                 <div class="content-card bg-purple-900 bg-opacity-50 rounded-xl p-6 cursor-pointer section-selector" data-section="external">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center">
-                            <i data-feather="external-link" class="w-6 h-6 mr-3"></i>
+                            <i data-feather="external-link" class="w-6 h-6 mr-3 blue-highlight"></i>
                             <h3 class="text-xl font-semibold">External Games</h3>
                         </div>
                         <div class="section-checkbox">
@@ -355,7 +346,7 @@
                 </div>
             </div>
 
-            <button id="savePreferencesBtn" class="btn-primary py-3 px-6 rounded-lg font-medium w-full text-center">
+            <button id="savePreferencesBtn" class="btn-primary py-3 px-6 rounded-lg font-medium w-full text-center pulse">
                 Save Preferences
             </button>
         </div>
@@ -366,7 +357,7 @@
         <div class="glass rounded-xl p-8 max-w-md w-full mx-4">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold" id="authTitle">Login</h2>
-                <i data-feather="user" class="w-8 h-8"></i>
+                <i data-feather="user" class="w-8 h-8 blue-highlight"></i>
             </div>
             
             <div id="loginForm">
@@ -382,10 +373,10 @@
                     <input type="checkbox" id="rememberMe" class="rounded text-purple-500">
                     <label for="rememberMe" class="ml-2">Remember me</label>
                 </div>
-                <button id="loginBtn" class="btn-primary py-3 px-6 rounded-lg font-medium w-full mb-4">
+                <button id="loginBtn" class="btn-primary py-3 px-6 rounded-lg font-medium w-full mb-4 pulse">
                     Login
                 </button>
-                <p class="text-center text-gray-300">Don't have an account? <button id="switchToSignup" class="text-purple-300 hover:underline">Sign up</button></p>
+                <p class="text-center text-gray-300">Don't have an account? <button id="switchToSignup" class="text-purple-300 hover:underline blue-highlight">Sign up</button></p>
             </div>
             
             <div id="signupForm" class="hidden">
@@ -405,10 +396,10 @@
                     <label for="confirmPassword" class="block mb-2">Confirm Password</label>
                     <input type="password" id="confirmPassword" class="w-full px-4 py-2 rounded-lg bg-purple-900 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
-                <button id="signupBtn" class="btn-primary py-3 px-6 rounded-lg font-medium w-full mb-4">
+                <button id="signupBtn" class="btn-primary py-3 px-6 rounded-lg font-medium w-full mb-4 pulse">
                     Sign Up
                 </button>
-                <p class="text-center text-gray-300">Already have an account? <button id="switchToLogin" class="text-purple-300 hover:underline">Login</button></p>
+                <p class="text-center text-gray-300">Already have an account? <button id="switchToLogin" class="text-purple-300 hover:underline blue-highlight">Login</button></p>
             </div>
         </div>
     </div>
@@ -423,8 +414,8 @@
                         <i data-feather="menu" class="w-6 h-6"></i>
                     </button>
                     <h1 class="text-xl font-bold flex items-center">
-                        <i data-feather="hexagon" class="w-6 h-6 mr-2 text-purple-300"></i>
-                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-purple-300 to-pink-300">Sigmi Team</span>
+                        <i data-feather="hexagon" class="w-6 h-6 mr-2 blue-highlight"></i>
+                        Sigmi Team
                     </h1>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -432,7 +423,7 @@
                         <input type="text" placeholder="Search..." class="px-4 py-2 rounded-full bg-purple-900 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 pl-10">
                         <i data-feather="search" class="absolute left-3 top-2.5 w-5 h-5 text-gray-400"></i>
                     </div>
-                    <button id="settingsBtn" class="p-2 rounded-full hover:bg-purple-800 hover:bg-opacity-50 transition-colors">
+                    <button id="settingsBtn" class="hover:bg-purple-800 hover:bg-opacity-50 p-2 rounded-full transition-colors">
                         <i data-feather="settings" class="w-6 h-6"></i>
                     </button>
                 </div>
@@ -442,7 +433,7 @@
         <div id="sidebar" class="glass fixed top-0 left-0 h-full w-64 z-30 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out shadow-xl">
             <div class="p-4 flex justify-between items-center border-b border-purple-800">
                 <h2 class="text-lg font-semibold">Current Members</h2>
-                <button id="closeSidebar" class="md:hidden p-1 rounded-full hover:bg-purple-800 hover:bg-opacity-50 transition-colors">
+                <button id="closeSidebar" class="md:hidden hover:bg-purple-800 hover:bg-opacity-50 p-1 rounded-full transition-colors">
                     <i data-feather="x" class="w-5 h-5"></i>
                 </button>
             </div>
@@ -455,7 +446,7 @@
         <!-- Main Dashboard -->
         <main class="container mx-auto p-4 md:ml-64 mt-16">
             <div class="mb-8">
-                <h2 class="text-2xl font-bold mb-2">Welcome back, <span id="usernameDisplay" class="bg-clip-text text-transparent bg-gradient-to-r from-purple-300 to-pink-300">User</span>!</h2>
+                <h2 class="text-2xl font-bold mb-4">Welcome back, <span id="usernameDisplay" class="blue-highlight">User</span>!</h2>
                 <p class="text-gray-300">Here's what's new since your last visit.</p>
             </div>
 
@@ -477,40 +468,48 @@
             minWidth: 200.00,
             scale: 1.00,
             scaleMobile: 1.00,
-            color: 0x6e3b9c,
+            color: 0x5c32a8,
             backgroundColor: 0x1a0933,
             size: 0.8
         });
 
         // Notification system
-        function showNotification(message, type = 'info', duration = 5000) {
-            const container = document.getElementById('notificationContainer');
+        function showNotification(message, type = 'info') {
+            const notificationContainer = document.getElementById('notificationContainer');
             const notification = document.createElement('div');
-            notification.className = `notification-item ${type}`;
+            notification.className = `notification glass rounded-lg p-4 flex items-start ${type === 'error' ? 'bg-red-900 bg-opacity-50' : 'bg-purple-900 bg-opacity-50'}`;
             
-            notification.innerHTML = `
-                <div class="p-4">
-                    <div class="flex items-start">
-                        <i data-feather="${type === 'error' ? 'alert-triangle' : type === 'success' ? 'check-circle' : 'info'}" 
-                           class="w-5 h-5 mr-3 ${type === 'error' ? 'text-red-400' : type === 'success' ? 'text-green-400' : 'text-blue-400'}"></i>
-                        <div class="flex-1">
-                            <p class="text-sm font-medium">${message}</p>
-                        </div>
-                        <button class="ml-2 text-gray-400 hover:text-white" onclick="this.parentElement.parentElement.parentElement.remove()">
-                            <i data-feather="x" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
+            const icon = document.createElement('i');
+            icon.setAttribute('data-feather', type === 'error' ? 'alert-triangle' : 'info');
+            icon.className = 'mr-3 flex-shrink-0';
             
-            container.appendChild(notification);
-            feather.replace();
+            const text = document.createElement('div');
+            text.className = 'flex-1';
+            text.textContent = message;
             
-            // Auto remove after duration
-            setTimeout(() => {
-                notification.style.animation = 'slideIn 0.3s reverse forwards';
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '<i data-feather="x"></i>';
+            closeBtn.className = 'ml-4 text-gray-400 hover:text-white';
+            closeBtn.onclick = () => {
+                notification.classList.remove('show');
                 setTimeout(() => notification.remove(), 300);
-            }, duration);
+            };
+            
+            notification.appendChild(icon);
+            notification.appendChild(text);
+            notification.appendChild(closeBtn);
+            notificationContainer.appendChild(notification);
+            
+            // Trigger the show animation
+            setTimeout(() => notification.classList.add('show'), 10);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+            
+            feather.replace();
         }
 
         // Page mapping for different content items
@@ -537,20 +536,6 @@
             'external_roblox': 'external-roblox.html',
             'external_minecraft': 'external-minecraft.html'
         };
-
-        // Intercept all link clicks
-        document.addEventListener('click', function(e) {
-            if (e.target.tagName === 'A' || e.target.closest('a')) {
-                const link = e.target.tagName === 'A' ? e.target : e.target.closest('a');
-                const href = link.getAttribute('href');
-                
-                // Check if the href exists in our mapping
-                if (href && !PAGE_MAPPING[href.split('.')[0]] && href !== '#' && href !== 'javascript:void(0)') {
-                    e.preventDefault();
-                    showNotification('This feature is coming soon!', 'info');
-                }
-            }
-        });
 
         // Initialize AOS and Feather Icons
         document.addEventListener('DOMContentLoaded', function() {
@@ -702,7 +687,7 @@
                             const errorText = await response.text();
                             console.error('Server error response:', errorText);
                             document.getElementById('loadingModal').classList.add('hidden');
-                            showNotification('Login failed. Please try again.', 'error');
+                            showNotification(`Login failed: ${response.status} ${response.statusText}`, 'error');
                             return;
                         }
                         
@@ -730,7 +715,6 @@
                             document.getElementById('usernameDisplay').textContent = data.user;
                             loadDashboard();
                             loadMembers(); // Load members after successful login
-                            showNotification('Login successful!', 'success');
                         } else {
                             document.getElementById('loadingModal').classList.add('hidden');
                             showNotification(data.error || 'Login failed', 'error');
@@ -807,7 +791,6 @@
                         document.getElementById('usernameDisplay').textContent = data.user;
                         loadDashboard();
                         loadMembers(); // Load members after successful signup
-                        showNotification('Account created successfully!', 'success');
                         
                     } catch (error) {
                         clearTimeout(serverWakeTimeout);
@@ -831,7 +814,18 @@
 
             // Settings Button
             document.getElementById('settingsBtn').addEventListener('click', function() {
-                showNotification('Settings page is coming soon!', 'info');
+                showNotification('Settings page coming soon!');
+            });
+
+            // Handle page navigation for non-existent pages
+            document.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A' || (e.target.parentElement && e.target.parentElement.tagName === 'A')) {
+                    const href = e.target.href || (e.target.parentElement && e.target.parentElement.href);
+                    if (href && href.includes('.html') && !Object.values(PAGE_MAPPING).includes(href.split('/').pop())) {
+                        e.preventDefault();
+                        showNotification('This feature is coming soon!');
+                    }
+                }
             });
         });
 
@@ -973,8 +967,8 @@
             const sectionHeader = document.createElement('div');
             sectionHeader.className = 'flex items-center mb-6';
             sectionHeader.innerHTML = `
-                <i data-feather="${icon}" class="w-8 h-8 mr-3 text-purple-300"></i>
-                <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-300 to-pink-300">${title}</h2>
+                <i data-feather="${icon}" class="w-8 h-8 mr-3 blue-highlight"></i>
+                <h2 class="text-2xl font-bold">${title}</h2>
             `;
             
             const grid = document.createElement('div');
@@ -999,14 +993,14 @@
                         if (page) {
                             window.location.href = page;
                         } else {
-                            showNotification('This feature is coming soon!', 'info');
+                            showNotification('This feature is coming soon!');
                         }
                     } else {
                         const page = PAGE_MAPPING[item];
                         if (page) {
                             window.location.href = page;
                         } else {
-                            showNotification('This feature is coming soon!', 'info');
+                            showNotification('This feature is coming soon!');
                         }
                     }
                 });
