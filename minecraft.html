@@ -434,12 +434,12 @@
                     <div class="glassmorphism rounded-xl p-6 shadow-lg hover-scale" data-aos="fade-left" data-aos-delay="100">
                         <h2 class="text-xl font-semibold mb-4">Quick Actions</h2>
                         <div class="space-y-3">
-                            <button onclick="launchMinecraft()" class="minecraft-btn w-full py-3 px-4 rounded-lg flex items-center space-x-2 transition">
+                            <button onclick="handleLaunchMinecraft()" class="minecraft-btn w-full py-3 px-4 rounded-lg flex items-center space-x-2 transition">
                                 <i data-feather="play"></i>
                                 <span>Launch Minecraft</span>
                             </button>
                             
-                            <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 w-full py-3 px-4 rounded-lg flex items-center space-x-2 transition">
+                            <button onclick="handleCheckForUpdates()" class="bg-blue-600 hover:bg-blue-700 w-full py-3 px-4 rounded-lg flex items-center space-x-2 transition">
                                 <i data-feather="download-cloud"></i>
                                 <span>Check for Updates</span>
                             </button>
@@ -616,6 +616,26 @@
             } else {
                 redirectToOfficial(client);
             }
+        }
+
+        // Handle check for updates button - requires login
+        function handleCheckForUpdates() {
+            if (!isLoggedIn()) {
+                showLoginModal();
+                return;
+            }
+            
+            openModal();
+        }
+
+        // Handle launch Minecraft button - requires login
+        function handleLaunchMinecraft() {
+            if (!isLoggedIn()) {
+                showLoginModal();
+                return;
+            }
+            
+            launchMinecraft();
         }
 
         // Redirect to official website for downloads
@@ -828,4 +848,3 @@
     </script>
 </body>
 </html>
-
