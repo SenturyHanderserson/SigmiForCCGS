@@ -8,84 +8,39 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
     <style>
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.2);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(92, 50, 168, 0.5);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(92, 50, 168, 0.7);
-        }
-
         .glass {
-            background: rgba(92, 50, 168, 0.15);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: rgba(92, 50, 168, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
         .gradient-bg {
             background: linear-gradient(135deg, #6e3b9c 0%, #3b1d6c 50%, #1a0933 100%);
-            animation: gradientShift 15s ease infinite;
-            background-size: 200% 200%;
         }
-        
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
         .btn-primary {
             background: linear-gradient(135deg, #8e44ad 0%, #6c5ce7 100%);
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(142, 68, 173, 0.2);
         }
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(142, 68, 173, 0.3);
         }
-
         .content-card {
             transition: all 0.3s ease;
-            background: rgba(92, 50, 168, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.05);
         }
         .content-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-            background: rgba(92, 50, 168, 0.3);
         }
-
-        .opacity-0 { 
-            opacity: 0; 
-            transition: opacity 0.3s ease; 
-        }
-        .opacity-100 { 
-            opacity: 1; 
-            transition: opacity 0.3s ease; 
-        }
-        
-        /* Notification system */
-        .notification {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
-            transition: all 0.3s ease;
-            transform: translateX(120%);
-        }
-        .notification.show {
-            transform: translateX(0);
-        }
+		.opacity-0 { 
+		    opacity: 0; 
+		    transition: opacity 0.3s ease; 
+		}
+		.opacity-100 { 
+		    opacity: 1; 
+		    transition: opacity 0.3s ease; 
+		}
         
         /* Loading spinner */
         .balls-loader {
@@ -115,13 +70,13 @@
             left: 32px;
             animation: balls-loader2 0.6s infinite;
         }
-        .section-selector {
-            transition: all 0.3s ease;
-        }
-        .section-selector:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-        }
+		        .section-selector {
+		            transition: all 0.3s ease;
+		        }
+	        .section-selector:hover {
+	            transform: translateY(-2px);
+	            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+	        }
         .balls-loader div:nth-child(4) {
             left: 56px;
             animation: balls-loader3 0.6s infinite;
@@ -154,108 +109,74 @@
             z-index: 100;
             transition: opacity 0.3s ease;
         }
-        
-        /* Floating particles background */
-        #vanta-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-        }
-        
-        /* Pulse animation for important elements */
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-        
-        /* Blue accent elements */
-        .blue-accent {
-            border-left: 3px solid #3b82f6;
-        }
-        .blue-highlight {
-            color: #3b82f6;
-        }
     </style>
 </head>
-<body class="min-h-screen gradient-bg text-white font-sans overflow-x-hidden">
-    <!-- Vanta.js background -->
-    <div id="vanta-bg"></div>
-    
-    <!-- Notification container -->
-    <div id="notificationContainer" class="space-y-2"></div>
-    
-    <!-- Loading Modal - For initial login/signup -->
-    <div id="loadingModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
-        <div class="glass rounded-xl p-8 max-w-md w-full mx-4 text-center">
-            <div class="flex justify-center mb-6">
-                <div class="balls-loader">
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                </div>
-            </div>
-            <h2 class="text-2xl font-bold mb-2" id="loadingText">Logging you in...</h2>
-            <p class="text-gray-300">Please wait while we verify your credentials</p>
-        </div>
-    </div>
+<body class="min-h-screen gradient-bg text-white font-sans">
+		<!-- Loading Modal - For initial login/signup -->
+		<div id="loadingModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
+			<div class="glass rounded-xl p-8 max-w-md w-full mx-4 text-center">
+				<div class="flex justify-center mb-6">
+					<div class="balls-loader">
+						<div></div>
+						<div></div>
+						<div></div>
+						<div></div>
+					</div>
+				</div>
+				<h2 class="text-2xl font-bold mb-2" id="loadingText">Logging you in...</h2>
+				<p class="text-gray-300">Please wait while we verify your credentials</p>
+			</div>
+		</div>
 
-    <!-- Loading Overlay - For auto-login verification -->
-    <div id="loadingOverlay" class="loading-overlay hidden">
-        <div class="glass rounded-xl p-8 max-w-md w-full mx-4 text-center">
-            <div class="flex justify-center mb-6">
-                <div class="balls-loader">
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                </div>
-            </div>
-            <h2 class="text-2xl font-bold mb-2">Loading content...</h2>
-            <p class="text-gray-300">Please wait while we verify your session</p>
-        </div>
-    </div>
+		<!-- Loading Overlay - For auto-login verification -->
+		<div id="loadingOverlay" class="loading-overlay hidden">
+			<div class="glass rounded-xl p-8 max-w-md w-full mx-4 text-center">
+				<div class="flex justify-center mb-6">
+					<div class="balls-loader">
+						<div></div>
+						<div></div>
+						<div></div>
+						<div></div>
+					</div>
+				</div>
+				<h2 class="text-2xl font-bold mb-2">Loading content...</h2>
+				<p class="text-gray-300">Please wait while we verify your session</p>
+			</div>
+		</div>
 
-    <!-- Terms Modal -->
-    <div id="termsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
-        <div class="glass rounded-xl p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">Terms & Conditions</h2>
-                <i data-feather="file-text" class="w-8 h-8"></i>
-            </div>
-            <div class="mb-6 text-gray-300 blue-accent pl-4">
-                <p class="mb-4">Welcome to Sigmi Team! Please read these terms carefully before you use our services.</p>
-                <p class="mb-4">1. If you know the creator and decide to rat them out, you will be permanently suspended from all of our platforms.</p>
-                <p class="mb-4">2. All content provided is for educational purposes only.</p>
-                <p class="mb-4">3. You agree not to use our services for any illegal activities.</p>
-                <p class="mb-4">4. We are not responsible for any damages caused by misuse of our tools.</p>
-                <p class="mb-4">5. Your data will be handled according to our Privacy Policy.</p>
-                <p>By clicking "Agree", you acknowledge that you have read and understood these terms.</p>
-            </div>
-            
-            <!-- Checkbox for agreement -->
-            <div class="mb-6 flex items-center">
-                <input type="checkbox" id="termsAgreement" class="rounded text-purple-500 mr-3 h-5 w-5">
-                <label for="termsAgreement" class="text-gray-300">I have read and agree to the Terms & Conditions</label>
-            </div>
-            
-            <div class="flex flex-col sm:flex-row gap-4">
-                <button id="disagreeBtn" class="btn-primary py-3 px-6 rounded-lg font-medium flex-1 text-center">
-                    Disagree
-                </button>
-                <button id="agreeBtn" class="btn-primary py-3 px-6 rounded-lg font-medium flex-1 text-center opacity-50 cursor-not-allowed" disabled>
-                    Agree
-                </button>
-            </div>
-        </div>
-    </div>
+	<!-- Terms Modal -->
+	<div id="termsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
+	    <div class="glass rounded-xl p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+	        <div class="flex justify-between items-center mb-6">
+	            <h2 class="text-2xl font-bold">Terms & Conditions</h2>
+	            <i data-feather="file-text" class="w-8 h-8"></i>
+	        </div>
+	        <div class="mb-6 text-gray-300">
+	            <p class="mb-4">Welcome to Sigmi Team! Please read these terms carefully before you use our services.</p>
+	            <p class="mb-4">1. If you know the creator and decide to rat them out, you will be permanently suspended from all of our platforms.</p>
+	            <p class="mb-4">2. All content provided is for educational purposes only.</p>
+	            <p class="mb-4">3. You agree not to use our services for any illegal activities.</p>
+	            <p class="mb-4">4. We are not responsible for any damages caused by misuse of our tools.</p>
+	            <p class="mb-4">5. Your data will be handled according to our Privacy Policy.</p>
+	            <p>By clicking "Agree", you acknowledge that you have read and understood these terms.</p>
+	        </div>
+	        
+	        <!-- Checkbox for agreement -->
+	        <div class="mb-6 flex items-center">
+	            <input type="checkbox" id="termsAgreement" class="rounded text-purple-500 mr-3 h-5 w-5">
+	            <label for="termsAgreement" class="text-gray-300">I have read and agree to the Terms & Conditions</label>
+	        </div>
+	        
+	        <div class="flex flex-col sm:flex-row gap-4">
+	            <button id="disagreeBtn" class="btn-primary py-3 px-6 rounded-lg font-medium flex-1 text-center">
+	                Disagree
+	            </button>
+	            <button id="agreeBtn" class="btn-primary py-3 px-6 rounded-lg font-medium flex-1 text-center opacity-50 cursor-not-allowed" disabled>
+	                Agree
+	            </button>
+	        </div>
+	    </div>
+	</div>
 
     <!-- Customization Modal -->
     <div id="customizeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
@@ -271,7 +192,7 @@
                 <div class="content-card bg-purple-900 bg-opacity-50 rounded-xl p-6 cursor-pointer section-selector" data-section="hacks">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center">
-                            <i data-feather="code" class="w-6 h-6 mr-3 blue-highlight"></i>
+                            <i data-feather="code" class="w-6 h-6 mr-3"></i>
                             <h3 class="text-xl font-semibold">Hacks</h3>
                         </div>
                         <div class="section-checkbox">
@@ -291,7 +212,7 @@
                 <div class="content-card bg-purple-900 bg-opacity-50 rounded-xl p-6 cursor-pointer section-selector" data-section="bypasses">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center">
-                            <i data-feather="unlock" class="w-6 h-6 mr-3 blue-highlight"></i>
+                            <i data-feather="unlock" class="w-6 h-6 mr-3"></i>
                             <h3 class="text-xl font-semibold">Bypasses</h3>
                         </div>
                         <div class="section-checkbox">
@@ -311,7 +232,7 @@
                 <div class="content-card bg-purple-900 bg-opacity-50 rounded-xl p-6 cursor-pointer section-selector" data-section="games">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center">
-                            <i data-feather="gamepad" class="w-6 h-6 mr-3 blue-highlight"></i>
+                            <i data-feather="gamepad" class="w-6 h-6 mr-3"></i>
                             <h3 class="text-xl font-semibold">Games</h3>
                         </div>
                         <div class="section-checkbox">
@@ -331,7 +252,7 @@
                 <div class="content-card bg-purple-900 bg-opacity-50 rounded-xl p-6 cursor-pointer section-selector" data-section="external">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center">
-                            <i data-feather="external-link" class="w-6 h-6 mr-3 blue-highlight"></i>
+                            <i data-feather="external-link" class="w-6 h-6 mr-3"></i>
                             <h3 class="text-xl font-semibold">External Games</h3>
                         </div>
                         <div class="section-checkbox">
@@ -346,7 +267,7 @@
                 </div>
             </div>
 
-            <button id="savePreferencesBtn" class="btn-primary py-3 px-6 rounded-lg font-medium w-full text-center pulse">
+            <button id="savePreferencesBtn" class="btn-primary py-3 px-6 rounded-lg font-medium w-full text-center">
                 Save Preferences
             </button>
         </div>
@@ -357,7 +278,7 @@
         <div class="glass rounded-xl p-8 max-w-md w-full mx-4">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold" id="authTitle">Login</h2>
-                <i data-feather="user" class="w-8 h-8 blue-highlight"></i>
+                <i data-feather="user" class="w-8 h-8"></i>
             </div>
             
             <div id="loginForm">
@@ -373,10 +294,10 @@
                     <input type="checkbox" id="rememberMe" class="rounded text-purple-500">
                     <label for="rememberMe" class="ml-2">Remember me</label>
                 </div>
-                <button id="loginBtn" class="btn-primary py-3 px-6 rounded-lg font-medium w-full mb-4 pulse">
+                <button id="loginBtn" class="btn-primary py-3 px-6 rounded-lg font-medium w-full mb-4">
                     Login
                 </button>
-                <p class="text-center text-gray-300">Don't have an account? <button id="switchToSignup" class="text-purple-300 hover:underline blue-highlight">Sign up</button></p>
+                <p class="text-center text-gray-300">Don't have an account? <button id="switchToSignup" class="text-purple-300 hover:underline">Sign up</button></p>
             </div>
             
             <div id="signupForm" class="hidden">
@@ -396,10 +317,10 @@
                     <label for="confirmPassword" class="block mb-2">Confirm Password</label>
                     <input type="password" id="confirmPassword" class="w-full px-4 py-2 rounded-lg bg-purple-900 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
                 </div>
-                <button id="signupBtn" class="btn-primary py-3 px-6 rounded-lg font-medium w-full mb-4 pulse">
+                <button id="signupBtn" class="btn-primary py-3 px-6 rounded-lg font-medium w-full mb-4">
                     Sign Up
                 </button>
-                <p class="text-center text-gray-300">Already have an account? <button id="switchToLogin" class="text-purple-300 hover:underline blue-highlight">Login</button></p>
+                <p class="text-center text-gray-300">Already have an account? <button id="switchToLogin" class="text-purple-300 hover:underline">Login</button></p>
             </div>
         </div>
     </div>
@@ -407,14 +328,14 @@
     <!-- Main Content (Hidden until authenticated) -->
     <div id="mainContent" class="hidden">
         <!-- Header -->
-        <header class="glass p-4 sticky top-0 z-40 shadow-lg">
+        <header class="glass p-4 sticky top-0 z-40">
             <div class="container mx-auto flex justify-between items-center">
                 <div class="flex items-center space-x-4">
                     <button id="sidebarToggle" class="md:hidden">
                         <i data-feather="menu" class="w-6 h-6"></i>
                     </button>
                     <h1 class="text-xl font-bold flex items-center">
-                        <i data-feather="hexagon" class="w-6 h-6 mr-2 blue-highlight"></i>
+                        <i data-feather="hexagon" class="w-6 h-6 mr-2"></i>
                         Sigmi Team
                     </h1>
                 </div>
@@ -423,17 +344,17 @@
                         <input type="text" placeholder="Search..." class="px-4 py-2 rounded-full bg-purple-900 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 pl-10">
                         <i data-feather="search" class="absolute left-3 top-2.5 w-5 h-5 text-gray-400"></i>
                     </div>
-                    <button id="settingsBtn" class="hover:bg-purple-800 hover:bg-opacity-50 p-2 rounded-full transition-colors">
+                    <button id="settingsBtn">
                         <i data-feather="settings" class="w-6 h-6"></i>
                     </button>
                 </div>
             </div>
         </header>
 
-        <div id="sidebar" class="glass fixed top-0 left-0 h-full w-64 z-30 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out shadow-xl">
+        <div id="sidebar" class="glass fixed top-0 left-0 h-full w-64 z-30 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
             <div class="p-4 flex justify-between items-center border-b border-purple-800">
                 <h2 class="text-lg font-semibold">Current Members</h2>
-                <button id="closeSidebar" class="md:hidden hover:bg-purple-800 hover:bg-opacity-50 p-1 rounded-full transition-colors">
+                <button id="closeSidebar" class="md:hidden">
                     <i data-feather="x" class="w-5 h-5"></i>
                 </button>
             </div>
@@ -446,7 +367,7 @@
         <!-- Main Dashboard -->
         <main class="container mx-auto p-4 md:ml-64 mt-16">
             <div class="mb-8">
-                <h2 class="text-2xl font-bold mb-4">Welcome back, <span id="usernameDisplay" class="blue-highlight">User</span>!</h2>
+                <h2 class="text-2xl font-bold mb-4">Welcome back, <span id="usernameDisplay">User</span>!</h2>
                 <p class="text-gray-300">Here's what's new since your last visit.</p>
             </div>
 
@@ -458,60 +379,6 @@
     </div>
 
     <script>
-        // Initialize Vanta.js background
-        VANTA.GLOBE({
-            el: "#vanta-bg",
-            mouseControls: true,
-            touchControls: true,
-            gyroControls: false,
-            minHeight: 200.00,
-            minWidth: 200.00,
-            scale: 1.00,
-            scaleMobile: 1.00,
-            color: 0x5c32a8,
-            backgroundColor: 0x1a0933,
-            size: 0.8
-        });
-
-        // Notification system
-        function showNotification(message, type = 'info') {
-            const notificationContainer = document.getElementById('notificationContainer');
-            const notification = document.createElement('div');
-            notification.className = `notification glass rounded-lg p-4 flex items-start ${type === 'error' ? 'bg-red-900 bg-opacity-50' : 'bg-purple-900 bg-opacity-50'}`;
-            
-            const icon = document.createElement('i');
-            icon.setAttribute('data-feather', type === 'error' ? 'alert-triangle' : 'info');
-            icon.className = 'mr-3 flex-shrink-0';
-            
-            const text = document.createElement('div');
-            text.className = 'flex-1';
-            text.textContent = message;
-            
-            const closeBtn = document.createElement('button');
-            closeBtn.innerHTML = '<i data-feather="x"></i>';
-            closeBtn.className = 'ml-4 text-gray-400 hover:text-white';
-            closeBtn.onclick = () => {
-                notification.classList.remove('show');
-                setTimeout(() => notification.remove(), 300);
-            };
-            
-            notification.appendChild(icon);
-            notification.appendChild(text);
-            notification.appendChild(closeBtn);
-            notificationContainer.appendChild(notification);
-            
-            // Trigger the show animation
-            setTimeout(() => notification.classList.add('show'), 10);
-            
-            // Auto-remove after 5 seconds
-            setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => notification.remove(), 300);
-            }, 5000);
-            
-            feather.replace();
-        }
-
         // Page mapping for different content items
         const PAGE_MAPPING = {
             // Hacks pages
@@ -538,16 +405,16 @@
         };
 
         // Initialize AOS and Feather Icons
-        document.addEventListener('DOMContentLoaded', function() {
-            AOS.init();
-            feather.replace();
-            
-            // Check if terms were accepted
-            if (!getCookie('AcceptedTerms')) {
-                document.getElementById('termsModal').classList.remove('hidden');
-            } else if (!getCookie('UserPreferences')) {
-                document.getElementById('customizeModal').classList.remove('hidden');
-            } else {
+		document.addEventListener('DOMContentLoaded', function() {
+			AOS.init();
+			feather.replace();
+			
+			// Check if terms were accepted
+			if (!getCookie('AcceptedTerms')) {
+				document.getElementById('termsModal').classList.remove('hidden');
+			} else if (!getCookie('UserPreferences')) {
+				document.getElementById('customizeModal').classList.remove('hidden');
+			} else {
                 // Check if we have a token
                 const token = getCookie('AuthToken');
                 const currentUser = localStorage.getItem('currentUser');
@@ -583,8 +450,10 @@
                     // No token or user info, show auth modal
                     document.getElementById('authModal').classList.remove('hidden');
                 }
-            }
+			}
 
+
+			
             // Terms Modal Buttons
             document.getElementById('agreeBtn').addEventListener('click', function() {
                 setCookie('AcceptedTerms', 'true', 365);
@@ -596,40 +465,41 @@
                 window.close();
             });
 
-            const termsCheckbox = document.getElementById('termsAgreement');
-            const agreeBtn = document.getElementById('agreeBtn');
-            
-            if (termsCheckbox && agreeBtn) {
-                termsCheckbox.addEventListener('change', function() {
-                    if (this.checked) {
-                        agreeBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                        agreeBtn.disabled = false;
-                    } else {
-                        agreeBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                        agreeBtn.disabled = true;
-                    }
-                });
-            }
+			const termsCheckbox = document.getElementById('termsAgreement');
+			const agreeBtn = document.getElementById('agreeBtn');
+			
+			if (termsCheckbox && agreeBtn) {
+				termsCheckbox.addEventListener('change', function() {
+					if (this.checked) {
+						agreeBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+						agreeBtn.disabled = false;
+					} else {
+						agreeBtn.classList.add('opacity-50', 'cursor-not-allowed');
+						agreeBtn.disabled = true;
+					}
+				});
+			}
 
-            document.querySelectorAll('.section-selector').forEach(section => {
-                section.addEventListener('click', function(e) {
-                    // Don't trigger when clicking on the checkbox itself
-                    if (e.target.type === 'checkbox') return;
-                    
-                    const checkbox = this.querySelector('input[type="checkbox"]');
-                    checkbox.checked = !checkbox.checked;
-                    
-                    // Visual feedback
-                    if (checkbox.checked) {
-                        this.classList.add('ring-2', 'ring-purple-500');
-                    } else {
-                        this.classList.remove('ring-2', 'ring-purple-500');
-                    }
-                });
-            });
+
+			           document.querySelectorAll('.section-selector').forEach(section => {
+			                section.addEventListener('click', function(e) {
+			                    // Don't trigger when clicking on the checkbox itself
+			                    if (e.target.type === 'checkbox') return;
+			                    
+			                    const checkbox = this.querySelector('input[type="checkbox"]');
+			                    checkbox.checked = !checkbox.checked;
+			                    
+			                    // Visual feedback
+			                    if (checkbox.checked) {
+			                        this.classList.add('ring-2', 'ring-purple-500');
+			                    } else {
+			                        this.classList.remove('ring-2', 'ring-purple-500');
+			                    }
+			                });
+			            });
 
             // Save Preferences Button
-            document.getElementById('savePreferencesBtn').addEventListener('click', function() {
+           document.getElementById('savePreferencesBtn').addEventListener('click', function() {
                 const preferences = {
                     hacks: document.querySelector('input[data-section="hacks"]').checked ? 
                         ['roblox', 'minecraft', 'blooket', 'mathsonline'] : [],
@@ -687,7 +557,7 @@
                             const errorText = await response.text();
                             console.error('Server error response:', errorText);
                             document.getElementById('loadingModal').classList.add('hidden');
-                            showNotification(`Login failed: ${response.status} ${response.statusText}`, 'error');
+                            alert(`Login failed: ${response.status} ${response.statusText}`);
                             return;
                         }
                         
@@ -697,7 +567,7 @@
                             const text = await response.text();
                             console.error('Non-JSON response:', text);
                             document.getElementById('loadingModal').classList.add('hidden');
-                            showNotification('Server returned invalid response format', 'error');
+                            alert('Server returned invalid response format');
                             return;
                         }
                         
@@ -717,16 +587,16 @@
                             loadMembers(); // Load members after successful login
                         } else {
                             document.getElementById('loadingModal').classList.add('hidden');
-                            showNotification(data.error || 'Login failed', 'error');
+                            alert(data.error || 'Login failed');
                         }
                     } catch (error) {
                         clearTimeout(serverWakeTimeout);
                         console.error('Login error:', error);
                         document.getElementById('loadingModal').classList.add('hidden');
-                        showNotification('Login failed. Please try again later.', 'error');
+                        alert('Login failed. Please try again later.');
                     }
                 } else {
-                    showNotification('Please enter both username and password', 'error');
+                    alert('Please enter both username and password');
                 }
             });
 
@@ -738,7 +608,7 @@
                 const confirmPassword = document.getElementById('confirmPassword').value;
                 
                 if (password !== confirmPassword) {
-                    showNotification('Passwords do not match', 'error');
+                    alert('Passwords do not match');
                     return;
                 }
                 
@@ -764,7 +634,7 @@
                             const errorText = await response.text();
                             console.error('Server error response:', errorText);
                             document.getElementById('loadingModal').classList.add('hidden');
-                            showNotification(`Signup failed: ${response.status} ${response.statusText}`, 'error');
+                            alert(`Signup failed: ${response.status} ${response.statusText}`);
                             return;
                         }
                         
@@ -774,7 +644,7 @@
                             const text = await response.text();
                             console.error('Non-JSON response:', text);
                             document.getElementById('loadingModal').classList.add('hidden');
-                            showNotification('Server returned invalid response format', 'error');
+                            alert('Server returned invalid response format');
                             return;
                         }
                         
@@ -796,10 +666,10 @@
                         clearTimeout(serverWakeTimeout);
                         console.error('Signup error:', error);
                         document.getElementById('loadingModal').classList.add('hidden');
-                        showNotification('Signup failed. Please try again later.', 'error');
+                        alert('Signup failed. Please try again later.');
                     }
                 } else {
-                    showNotification('Please fill in all required fields', 'error');
+                    alert('Please fill in all required fields');
                 }
             });
 
@@ -814,19 +684,7 @@
 
             // Settings Button
             document.getElementById('settingsBtn').addEventListener('click', function() {
-                    window.location.href = 'settings.html';
-                });
-
-
-            // Handle page navigation for non-existent pages
-            document.addEventListener('click', function(e) {
-                if (e.target.tagName === 'A' || (e.target.parentElement && e.target.parentElement.tagName === 'A')) {
-                    const href = e.target.href || (e.target.parentElement && e.target.parentElement.href);
-                    if (href && href.includes('.html') && !Object.values(PAGE_MAPPING).includes(href.split('/').pop())) {
-                        e.preventDefault();
-                        showNotification('This feature is coming soon!');
-                    }
-                }
+                window.location.href = 'settings.html';
             });
         });
 
@@ -868,29 +726,29 @@
             const expires = "expires=" + date.toUTCString();
             document.cookie = name + "=" + value + ";" + expires + ";path=/";
         }
-        
-        async function fetchUserData() {
-            try {
-                const token = getCookie('AuthToken');
-                if (!token) return null;
-                
-                const response = await fetch('https://proxyforsigmi.onrender.com/api/user', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (response.ok) {
-                    const userData = await response.json();
-                    return userData;
-                }
-            } catch (error) {
-                console.error('Error fetching user data:', error);
-            }
-            return null;
-        }
+		
+		async function fetchUserData() {
+			try {
+				const token = getCookie('AuthToken');
+				if (!token) return null;
+				
+				const response = await fetch('https://proxyforsigmi.onrender.com/api/user', {
+					method: 'GET',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+						'Content-Type': 'application/json'
+					}
+				});
+				
+				if (response.ok) {
+					const userData = await response.json();
+					return userData;
+				}
+			} catch (error) {
+				console.error('Error fetching user data:', error);
+			}
+			return null;
+		}
 
         function getCookie(name) {
             const cookieName = name + "=";
@@ -910,56 +768,56 @@
         }
 
         // Load Dashboard Content
-        async function loadDashboard() {
-            // First try to get username from localStorage
-            let username = localStorage.getItem('currentUser');
-            
-            // If not found in localStorage, fetch from server
-            if (!username) {
-                const userData = await fetchUserData();
-                if (userData && userData.username) {
-                    username = userData.username;
-                    localStorage.setItem('currentUser', username);
-                }
-            }
-            
-            // Update the UI
-            if (username) {
-                document.getElementById('usernameDisplay').textContent = username;
-            }
-            
-            // Rest of your existing loadDashboard code...
-            const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
-            const dashboard = document.getElementById('dashboardSections');
-            
-            // Clear existing content
-            dashboard.innerHTML = '';
-            
-            // Add sections based on preferences
-            if (preferences.hacks && preferences.hacks.length > 0) {
-                const section = createSection('Hacks', 'code', preferences.hacks);
-                dashboard.appendChild(section);
-            }
-            
-            if (preferences.bypasses && preferences.bypasses.length > 0) {
-                const section = createSection('Bypasses', 'unlock', preferences.bypasses);
-                dashboard.appendChild(section);
-            }
-            
-            if (preferences.games && preferences.games.length > 0) {
-                const section = createSection('Games', 'gamepad', preferences.games);
-                dashboard.appendChild(section);
-                loadMembers(); // Load members after dashboard is loaded
-            }
-            
-            if (preferences.external && preferences.external.length > 0) {
-                const section = createSection('External Games', 'external-link', preferences.external);
-                dashboard.appendChild(section);
-            }
-            
-            // Refresh icons
-            feather.replace();
-        }
+		async function loadDashboard() {
+			// First try to get username from localStorage
+			let username = localStorage.getItem('currentUser');
+			
+			// If not found in localStorage, fetch from server
+			if (!username) {
+				const userData = await fetchUserData();
+				if (userData && userData.username) {
+					username = userData.username;
+					localStorage.setItem('currentUser', username);
+				}
+			}
+			
+			// Update the UI
+			if (username) {
+				document.getElementById('usernameDisplay').textContent = username;
+			}
+			
+			// Rest of your existing loadDashboard code...
+			const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
+			const dashboard = document.getElementById('dashboardSections');
+			
+			// Clear existing content
+			dashboard.innerHTML = '';
+			
+			// Add sections based on preferences
+			if (preferences.hacks && preferences.hacks.length > 0) {
+				const section = createSection('Hacks', 'code', preferences.hacks);
+				dashboard.appendChild(section);
+			}
+			
+			if (preferences.bypasses && preferences.bypasses.length > 0) {
+				const section = createSection('Bypasses', 'unlock', preferences.bypasses);
+				dashboard.appendChild(section);
+			}
+			
+			if (preferences.games && preferences.games.length > 0) {
+				const section = createSection('Games', 'gamepad', preferences.games);
+				dashboard.appendChild(section);
+				loadMembers(); // Load members after dashboard is loaded
+			}
+			
+			if (preferences.external && preferences.external.length > 0) {
+				const section = createSection('External Games', 'external-link', preferences.external);
+				dashboard.appendChild(section);
+			}
+			
+			// Refresh icons
+			feather.replace();
+		}
         
         function createSection(title, icon, items) {
             const section = document.createElement('div');
@@ -968,7 +826,7 @@
             const sectionHeader = document.createElement('div');
             sectionHeader.className = 'flex items-center mb-6';
             sectionHeader.innerHTML = `
-                <i data-feather="${icon}" class="w-8 h-8 mr-3 blue-highlight"></i>
+                <i data-feather="${icon}" class="w-8 h-8 mr-3"></i>
                 <h2 class="text-2xl font-bold">${title}</h2>
             `;
             
@@ -980,7 +838,7 @@
                 card.className = 'content-card glass rounded-xl p-6 cursor-pointer hover:shadow-lg transition-all duration-300';
                 card.innerHTML = `
                     <h3 class="text-xl font-semibold mb-2 capitalize">${item}</h3>
-                    <p class="text-gray-300 mb-4">Click to access ${item} content</p>
+                    <p class="text-gray-300 mb-4">Take a look at ${item} content</p>
                     <div class="flex items-center text-purple-300">
                         <span>Open</span>
                         <i data-feather="arrow-right" class="w-4 h-4 ml-2"></i>
@@ -990,19 +848,9 @@
                 card.addEventListener('click', () => {
                     // Check if this is an external item
                     if (title === 'External Games') {
-                        const page = PAGE_MAPPING[`external_${item}`];
-                        if (page) {
-                            window.location.href = page;
-                        } else {
-                            showNotification('This feature is coming soon!');
-                        }
+                        window.location.href = PAGE_MAPPING[`external_${item}`] || '404.html';
                     } else {
-                        const page = PAGE_MAPPING[item];
-                        if (page) {
-                            window.location.href = page;
-                        } else {
-                            showNotification('This feature is coming soon!');
-                        }
+                        window.location.href = PAGE_MAPPING[item] || '404.html';
                     }
                 });
                 
