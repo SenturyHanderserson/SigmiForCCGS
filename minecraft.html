@@ -276,6 +276,45 @@
         </div>
     </div>
 
+    <!-- Minecraft Education Local Download Modal -->
+    <div id="educationModal" class="modal-overlay">
+        <div class="modal-content glassmorphism rounded-xl p-6 w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold">Minecraft Education Edition</h2>
+                <button onclick="closeEducationModal()" class="p-1 rounded-full hover:bg-purple-700 transition">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            <p class="text-gray-300 mb-6">Choose how you'd like to get Minecraft Education Edition:</p>
+            
+            <div class="space-y-4">
+                <div class="client-option glassmorphism p-4 rounded-lg flex items-center space-x-4" onclick="downloadEducationLocal()">
+                    <div class="w-12 h-12 rounded-full bg-green-600 flex items-center justify-center">
+                        <i data-feather="download" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-medium">Download Local File</h3>
+                        <p class="text-sm text-gray-300">Direct download (EXE)</p>
+                    </div>
+                </div>
+                
+                <div class="client-option glassmorphism p-4 rounded-lg flex items-center space-x-4" onclick="redirectToOfficial('education')">
+                    <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center">
+                        <i data-feather="external-link" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-medium">Official Website</h3>
+                        <p class="text-sm text-gray-300">Visit official site</p>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="closeEducationModal()" class="w-full mt-6 py-2 px-4 rounded-lg border border-purple-700 hover:bg-purple-800 hover:bg-opacity-50 transition">
+                Cancel
+            </button>
+        </div>
+    </div>
+
     <!-- Main Container -->
     <div class="relative z-10 min-h-screen flex flex-col">
         <!-- Header -->
@@ -346,7 +385,7 @@
                         <h2 class="text-xl font-semibold mb-4">Available Clients</h2>
                         <div class="space-y-3">
                             <div class="file-card glassmorphism p-4 rounded-lg flex justify-between items-center hover:bg-purple-700 transition cursor-pointer" 
-                                 onclick="redirectToOfficial('oblivion')">
+                                 onclick="handleClientClick('oblivion')">
                                 <div>
                                     <h3 class="font-medium">Oblivion Client (recommended)</h3>
                                     <p class="text-sm text-gray-300">JAR • Official Site</p>
@@ -357,7 +396,7 @@
                             </div>
                             
                             <div class="file-card glassmorphism p-4 rounded-lg flex justify-between items-center hover:bg-purple-700 transition cursor-pointer" 
-                                 onclick="redirectToOfficial('meteor')">
+                                 onclick="handleClientClick('meteor')">
                                 <div>
                                     <h3 class="font-medium">Meteor Client</h3>
                                     <p class="text-sm text-gray-300">JAR • Official Site</p>
@@ -368,7 +407,7 @@
                             </div>
                             
                             <div class="file-card glassmorphism p-4 rounded-lg flex justify-between items-center hover:bg-purple-700 transition cursor-pointer" 
-                                 onclick="redirectToOfficial('wurst')">
+                                 onclick="handleClientClick('wurst')">
                                 <div>
                                     <h3 class="font-medium">Wurst Client</h3>
                                     <p class="text-sm text-gray-300">JAR • Official Site</p>
@@ -379,7 +418,7 @@
                             </div>
 
                             <div class="file-card glassmorphism p-4 rounded-lg flex justify-between items-center hover:bg-purple-700 transition cursor-pointer" 
-                                 onclick="redirectToOfficial('education')">
+                                 onclick="handleClientClick('education')">
                                 <div>
                                     <h3 class="font-medium">Minecraft Education Edition</h3>
                                     <p class="text-sm text-gray-300">EXE • Bypass ICT Block</p>
@@ -466,9 +505,20 @@
         const CLIENT_URLS = {
             oblivion: "https://oblivionexecutor.site/#products",
             meteor: "https://meteorclient.com/",
-            wurst: "https://www.wurstclient.net/download/",
-            education: "https://education.minecraft.net/en-us/get-started/download"
+            wurst: "https://www.wurstclient.net/download/"
         };
+
+        // Local file download URLs
+        const LOCAL_DOWNLOADS = {
+            education: "Minecraft Education Installer.exe" // This should point to your actual file
+        };
+
+        // Function to check if user is logged in
+        function isLoggedIn() {
+            const token = getCookie('AuthToken');
+            const currentUser = localStorage.getItem('currentUser');
+            return !!(token && currentUser);
+        }
 
         // Function to verify token with server
         async function verifyToken(token) {
@@ -544,9 +594,50 @@
             document.getElementById('updateModal').classList.remove('active');
         }
 
+        // Education modal functions
+        function openEducationModal() {
+            document.getElementById('educationModal').classList.add('active');
+        }
+
+        function closeEducationModal() {
+            document.getElementById('educationModal').classList.remove('active');
+        }
+
+        // Handle client click - check if user is logged in first
+        function handleClientClick(client) {
+            if (!isLoggedIn()) {
+                showLoginModal();
+                return;
+            }
+            
+            if (client === 'education') {
+                openEducationModal();
+            } else {
+                redirectToOfficial(client);
+            }
+        }
+
         // Redirect to official website for downloads
         function redirectToOfficial(client) {
             window.open(CLIENT_URLS[client], '_blank');
+        }
+
+        // Download local file for Minecraft Education
+        function downloadEducationLocal() {
+            if (!isLoggedIn()) {
+                showLoginModal();
+                return;
+            }
+            
+            // Create a temporary link to trigger download
+            const link = document.createElement('a');
+            link.href = LOCAL_DOWNLOADS.education;
+            link.download = 'MinecraftEducationEdition.exe';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            closeEducationModal();
         }
 
         // Redirect to update check (official website)
@@ -579,6 +670,12 @@
         document.getElementById('updateModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeModal();
+            }
+        });
+
+        document.getElementById('educationModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEducationModal();
             }
         });
 
