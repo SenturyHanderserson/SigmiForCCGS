@@ -906,7 +906,7 @@
                 if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
                     const path = window.location.pathname.split('/').pop();
                     if (!Object.values(PAGE_MAPPING).includes(path) && path !== 'settings.html') {
-                        showNotification('Coming soon! This page is under development.', 'info');
+                        showNotification('This website is currently in beta, so expect issues.', 'info');
                     }
                 }
             });
