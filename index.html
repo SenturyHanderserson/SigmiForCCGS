@@ -590,30 +590,30 @@
             });
         }
         
-		// Page mapping for different content items
-		const PAGE_MAPPING = {
-			// Hacks pages
-			'roblox': 'roblox.html',
-			'minecraft': 'minecraft.html',
-			'blooket': 'blooket.html',
-			'mathsonline': 'mathsonline.html',
-			
-			// Bypasses pages
-			'linewize': 'linewize.html',
-			'vpn': 'vpn.html',
-			'microsoft': 'microsoft.html',
-			'admin': 'admin.html',
-			
-			// Games pages
-			'arcade': 'maths.html',
-			'allgames': 'mathematics.html',  // This was correct
-			'strategy': 'strategy.html',
-			'multiplayer': 'multiplayer.html',
-			
-			// External games pages
-			'external_roblox': 'external-roblox.html',
-			'external_minecraft': 'external-minecraft.html'
-		};
+        // Page mapping for different content items
+        const PAGE_MAPPING = {
+            // Hacks pages
+            'roblox': 'roblox.html',
+            'minecraft': 'minecraft.html',
+            'blooket': 'blooket.html',
+            'mathsonline': 'mathsonline.html',
+            
+            // Bypasses pages
+            'linewize': 'linewize.html',
+            'vpn': 'vpn.html',
+            'microsoft': 'microsoft.html',
+            'admin': 'admin.html',
+            
+            // Games pages
+            'arcade': 'maths.html',
+            'allgames': 'mathematics.html',
+            'strategy': 'strategy.html',
+            'multiplayer': 'multiplayer.html',
+            
+            // External games pages
+            'external_roblox': 'external-roblox.html',
+            'external_minecraft': 'external-minecraft.html'
+        };
 
         // Initialize AOS and Feather Icons
         document.addEventListener('DOMContentLoaded', function() {
@@ -1070,27 +1070,24 @@
                     </div>
                 `;
                 
-			card.addEventListener('click', () => {
-				let page;
-				
-				// Check if this is an external item
-				if (title === 'External Games') {
-					page = PAGE_MAPPING[`external_${item}`];
-				} else {
-					page = PAGE_MAPPING[item];
-				}
-				
-				if (page) {
-					window.location.href = page;
-				} else {
-					// Try alternative mappings for specific cases
-					if (item === 'allgames' && !page) {
-						window.location.href = 'mathematics.html';
-					} else {
-						showNotification('Coming soon! This feature is under development.', 'info');
-					}
-				}
-			});
+                card.addEventListener('click', () => {
+                    // Check if this is an external item
+                    if (title === 'External Games') {
+                        const page = PAGE_MAPPING[`external_${item}`];
+                        if (page) {
+                            window.location.href = page;
+                        } else {
+                            showNotification('Coming soon! This feature is under development.', 'info');
+                        }
+                    } else {
+                        const page = PAGE_MAPPING[item];
+                        if (page) {
+                            window.location.href = page;
+                        } else {
+                            showNotification('Coming soon! This feature is under development.', 'info');
+                        }
+                    }
+                });
                 
                 grid.appendChild(card);
             });
