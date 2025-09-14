@@ -737,93 +737,98 @@
                 document.getElementById('authTitle').textContent = 'Login';
             });
 
-// Login Button - WITH PROPER ERROR HANDLING (UPDATED FOR BLACKLIST)
-document.getElementById('loginBtn').addEventListener('click', async function() {
-    const username = document.getElementById('loginUsername').value;
-    const password = document.getElementById('loginPassword').value;
-    const rememberMe = document.getElementById('rememberMe').checked;
-    
-    if (username && password) {
-        showLoadingModal("Logging you in...");
-        
-        // Set a timeout to change the message if it takes too long
-        const serverWakeTimeout = setTimeout(() => {
-            document.getElementById('loadingText').textContent = "Waking the server...";
-        }, 7000);
-        
-        try {
-            const response = await fetch('https://proxyforsigmi.onrender.com/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-                                        
-            clearTimeout(serverWakeTimeout);
-            
-            // First check if response is OK
-            if (!response.ok) {
-                // Check if this is a blacklist error (403 status)
-                if (response.status === 403) {
-                    const errorData = await response.json();
-                    document.getElementById('loadingModal').classList.add('hidden');
-                    
-                    // Set blacklist cookie if provided by server
-                    if (errorData.blacklistCookie) {
-                        setCookie('blacklist', errorData.blacklistCookie, 365);
-                    }
-                    
-                    showNotification(`Login failed: ${errorData.error} - ${errorData.blacklistReason || ''}`, 'error', 10000);
-                    return;
-                }
-                
-                const errorText = await response.text();
-                console.error('Server error response:', errorText);
-                document.getElementById('loadingModal').classList.add('hidden');
-                showNotification(`Login failed: ${response.status} ${response.statusText}`, 'error');
-                return;
-            }
-            
-            // Check content type to ensure it's JSON
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                const text = await response.text();
-                console.error('Non-JSON response:', text);
-                document.getElementById('loadingModal').classList.add('hidden');
-                showNotification('Server returned invalid response format', 'error');
-                return;
-            }
-            
-            const data = await response.json();
-            
-            if (response.ok) {
-                // Store token and user info
-                setCookie('AuthToken', data.token, rememberMe ? 30 : 1);
-                localStorage.setItem('currentUser', data.user);
-                localStorage.setItem('userRole', data.role);
-                
-                document.getElementById('loadingModal').classList.add('hidden');
-                document.getElementById('authModal').classList.add('hidden');
-                document.getElementById('mainContent').classList.remove('hidden');
-                document.getElementById('usernameDisplay').textContent = data.user;
-                loadDashboard();
-                loadMembers(); // Load members after successful login
-                showNotification('Login successful!', 'success');
-            } else {
-                document.getElementById('loadingModal').classList.add('hidden');
-                showNotification(data.error || 'Login failed', 'error');
-            }
-        } catch (error) {
-            clearTimeout(serverWakeTimeout);
-            console.error('Login error:', error);
-            document.getElementById('loadingModal').classList.add('hidden');
-            showNotification('Login failed. Please try again later.', 'error');
-        }
-    } else {
-        showNotification('Please enter both username and password', 'warning');
-    }
-});
-
-		// Signup Button - WITH PROPER ERROR HANDLING (UPDATED FOR BLACKLIST)
+			document.getElementById('loginBtn').addEventListener('click', async function() {
+				const username = document.getElementById('loginUsername').value;
+				const password = document.getElementById('loginPassword').value;
+				const rememberMe = document.getElementById('rememberMe').checked;
+				
+				if (username && password) {
+					showLoadingModal("Logging you in...");
+					
+					const serverWakeTimeout = setTimeout(() => {
+						document.getElementById('loadingText').textContent = "Waking the server...";
+					}, 7000);
+					
+					try {
+						const response = await fetch('https://proxyforsigmi.onrender.com/api/login', {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({ username, password }),
+							credentials: 'include' // IMPORTANT: This allows cookies to be set
+						});
+													
+						clearTimeout(serverWakeTimeout);
+						
+						// First check if response is OK
+						if (!response.ok) {
+							// Check if this is a blacklist error (403 status)
+							if (response.status === 403) {
+								try {
+									const errorData = await response.json();
+									document.getElementById('loadingModal').classList.add('hidden');
+									
+									// The server should set the cookie automatically via Set-Cookie header
+									// We just need to handle the UI response
+									showNotification(`Account blacklisted: ${errorData.blacklistReason || 'No reason provided'}`, 'error', 10000);
+									
+									// Disable login/signup buttons
+									document.getElementById('loginBtn').disabled = true;
+									document.getElementById('signupBtn').disabled = true;
+									document.getElementById('loginBtn').textContent = 'Account Blacklisted';
+									document.getElementById('signupBtn').textContent = 'Account Blacklisted';
+									
+									return;
+								} catch (parseError) {
+									console.error('Error parsing blacklist response:', parseError);
+								}
+							}
+							
+							const errorText = await response.text();
+							console.error('Server error response:', errorText);
+							document.getElementById('loadingModal').classList.add('hidden');
+							showNotification(`Login failed: ${response.status} ${response.statusText}`, 'error');
+							return;
+						}
+						
+						// Check content type to ensure it's JSON
+						const contentType = response.headers.get('content-type');
+						if (!contentType || !contentType.includes('application/json')) {
+							const text = await response.text();
+							console.error('Non-JSON response:', text);
+							document.getElementById('loadingModal').classList.add('hidden');
+							showNotification('Server returned invalid response format', 'error');
+							return;
+						}
+						
+						const data = await response.json();
+						
+						if (response.ok) {
+							// Store token and user info
+							setCookie('AuthToken', data.token, rememberMe ? 30 : 1);
+							localStorage.setItem('currentUser', data.user);
+							localStorage.setItem('userRole', data.role);
+							
+							document.getElementById('loadingModal').classList.add('hidden');
+							document.getElementById('authModal').classList.add('hidden');
+							document.getElementById('mainContent').classList.remove('hidden');
+							document.getElementById('usernameDisplay').textContent = data.user;
+							loadDashboard();
+							loadMembers(); // Load members after successful login
+							showNotification('Login successful!', 'success');
+						} else {
+							document.getElementById('loadingModal').classList.add('hidden');
+							showNotification(data.error || 'Login failed', 'error');
+						}
+					} catch (error) {
+						clearTimeout(serverWakeTimeout);
+						console.error('Login error:', error);
+						document.getElementById('loadingModal').classList.add('hidden');
+						showNotification('Login failed. Please try again later.', 'error');
+					}
+				} else {
+					showNotification('Please enter both username and password', 'warning');
+				}
+			});
 		document.getElementById('signupBtn').addEventListener('click', async function() {
 			const username = document.getElementById('signupUsername').value;
 			const email = document.getElementById('signupEmail').value;
@@ -838,7 +843,6 @@ document.getElementById('loginBtn').addEventListener('click', async function() {
 			if (username && password) {
 				showLoadingModal("Creating your account...");
 				
-				// Set a timeout to change the message if it takes too long
 				const serverWakeTimeout = setTimeout(() => {
 					document.getElementById('loadingText').textContent = "Waking the server...";
 				}, 7000);
@@ -847,7 +851,8 @@ document.getElementById('loginBtn').addEventListener('click', async function() {
 					const response = await fetch('https://proxyforsigmi.onrender.com/api/signup', {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ username, password })
+						body: JSON.stringify({ username, password }),
+						credentials: 'include' // IMPORTANT: This allows cookies to be set/received
 					});
 					
 					clearTimeout(serverWakeTimeout);
@@ -855,16 +860,23 @@ document.getElementById('loginBtn').addEventListener('click', async function() {
 					if (!response.ok) {
 						// Check if this is a blacklist error (403 status)
 						if (response.status === 403) {
-							const errorData = await response.json();
-							document.getElementById('loadingModal').classList.add('hidden');
-							
-							// Set blacklist cookie if provided by server
-							if (errorData.blacklistCookie) {
-								setCookie('blacklist', errorData.blacklistCookie, 365);
+							try {
+								const errorData = await response.json();
+								document.getElementById('loadingModal').classList.add('hidden');
+								
+								// The server should set the cookie automatically via Set-Cookie header
+								showNotification(`Signup blocked: ${errorData.error} - ${errorData.blacklistReason || ''}`, 'error', 10000);
+								
+								// Disable login/signup buttons
+								document.getElementById('loginBtn').disabled = true;
+								document.getElementById('signupBtn').disabled = true;
+								document.getElementById('loginBtn').textContent = 'Account Creation Blocked';
+								document.getElementById('signupBtn').textContent = 'Account Creation Blocked';
+								
+								return;
+							} catch (parseError) {
+								console.error('Error parsing blacklist response:', parseError);
 							}
-							
-							showNotification(`Signup failed: ${errorData.error} - ${errorData.blacklistReason || ''}`, 'error', 10000);
-							return;
 						}
 						
 						const errorText = await response.text();
