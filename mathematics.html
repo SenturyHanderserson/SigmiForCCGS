@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maths online - Google Search</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+	<link href="//www.gstatic.com/images/branding/searchlogo/ico/favicon.ico" rel="icon">
+    <style>
+        #vanta-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .glass {
+            background: rgba(92, 50, 168, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #6e3b9c 0%, #3b1d6c 50%, #1a0933 100%);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #8e44ad 0%, #6c5ce7 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(142, 68, 173, 0.3);
+        }
+        
+        .game-card {
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(142, 68, 173, 0.3) 0%, rgba(108, 92, 231, 0.3) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .game-card:hover::before {
+            opacity: 1;
+        }
+        
+        .game-card .play-btn {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .game-card:hover .play-btn {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .neon-text {
+            text-shadow: 0 0 10px #8e44ad, 0 0 20px #8e44ad, 0 0 30px #8e44ad;
+            animation: neon-pulse 2s infinite alternate;
+        }
+        
+        @keyframes neon-pulse {
+            0% {
+                text-shadow: 0 0 10px #8e44ad, 0 0 20px #8e44ad, 0 0 30px #8e44ad;
+            }
+            100% {
+                text-shadow: 0 0 15px #8e44ad, 0 0 30px #8e44ad, 0 0 45px #8e44ad;
+            }
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .glow {
+            filter: drop-shadow(0 0 8px rgba(142, 68, 173, 0.7));
+        }
+        
+        .gradient-text {
+            background: linear-gradient(90deg, #8e44ad, #6c5ce7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(142, 68, 173, 0.6);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(142, 68, 173, 0.8);
+        }
+        
+        .filter-chip {
+            transition: all 0.2s ease;
+        }
+        
+        .filter-chip.active {
+            background: linear-gradient(135deg, #8e44ad 0%, #6c5ce7 100%);
+            color: white;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white font-sans overflow-x-hidden">
+    <!-- Vanta.js background -->
+    <div id="vanta-bg"></div>
+    
+    <!-- Particles -->
+    <div class="particles" id="particles"></div>
+    
+    <!-- Header -->
+    <header class="glass p-4 sticky top-0 z-40">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <a href="index.html" class="flex items-center">
+                    <i data-feather="arrow-left" class="w-6 h-6 mr-2"></i>
+                    <h1 class="text-xl font-bold flex items-center">
+                        <i data-feather="hexagon" class="w-6 h-6 mr-2"></i>
+                        Sigmi Arcade
+                    </h1>
+                </a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <input type="text" id="search-input" placeholder="Search games..." class="px-4 py-2 rounded-full bg-purple-900 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 pl-10">
+                    <i data-feather="search" class="absolute left-3 top-2.5 w-5 h-5 text-gray-400"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Page Header -->
+        <section class="mb-12 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 neon-text">All Games</h1>
+            <p class="text-xl text-gray-300 max-w-3xl mx-auto">Browse our complete collection of games across all categories</p>
+        </section>
+
+        <!-- Filters -->
+        <section class="mb-8 glass rounded-xl p-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold gradient-text mb-4 md:mb-0">Filters</h2>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <select id="sort-select" class="appearance-none bg-purple-900 bg-opacity-50 border border-purple-700 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="popular">Sort by: Popular</option>
+                            <option value="newest">Sort by: Newest</option>
+                            <option value="highest">Sort by: Highest Rated</option>
+                            <option value="most-played">Sort by: Most Played</option>
+                        </select>
+                        <i data-feather="chevron-down" class="absolute right-3 top-2.5 w-5 h-5 text-gray-400 pointer-events-none"></i>
+                    </div>
+                    <button id="filter-btn" class="btn-primary py-2 px-4 rounded-lg flex items-center">
+                        <i data-feather="filter" class="w-5 h-5 mr-2"></i>
+                        Filter
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap gap-3">
+                <button data-category="all" class="filter-chip active px-4 py-2 rounded-full bg-purple-900/50 border border-purple-700">All Games</button>
+                <button data-category="action" class="filter-chip px-4 py-2 rounded-full bg-purple-900/50 border border-purple-700 flex items-center">
+                    <i data-feather="zap" class="w-4 h-4 mr-1"></i> Action
+                </button>
+                <button data-category="adventure" class="filter-chip px-4 py-2 rounded-full bg-purple-900/50 border border-purple-700 flex items-center">
+                    <i data-feather="compass" class="w-4 h-4 mr-1"></i> Adventure
+                </button>
+                <button data-category="puzzle" class="filter-chip px-4 py-2 rounded-full bg-purple-900/50 border border-purple-700 flex items-center">
+                    <i data-feather="puzzle" class="w-4 h-4 mr-1"></i> Puzzle
+                </button>
+                <button data-category="strategy" class="filter-chip px-4 py-2 rounded-full bg-purple-900/50 border border-purple-700 flex items-center">
+                    <i data-feather="cpu" class="w-4 h-4 mr-1"></i> Strategy
+                </button>
+                <button data-category="multiplayer" class="filter-chip px-4 py-2 rounded-full bg-purple-900/50 border border-purple-700 flex items-center">
+                    <i data-feather="users" class="w-4 h-4 mr-1"></i> Multiplayer
+                </button>
+                <button data-category="premium" class="filter-chip px-4 py-2 rounded-full bg-purple-900/50 border border-purple-700 flex items-center">
+                    <i data-feather="award" class="w-4 h-4 mr-1"></i> Premium
+                </button>
+                <button data-category="new" class="filter-chip px-4 py-2 rounded-full bg-purple-900/50 border border-purple-700 flex items-center">
+                    <i data-feather="clock" class="w-4 h-4 mr-1"></i> New
+                </button>
+            </div>
+        </section>
+
+        <!-- Games Grid -->
+        <section>
+            <div id="games-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                <!-- Games will be dynamically loaded here -->
+            </div>
+            
+            <!-- Pagination -->
+            <div class="flex justify-center mt-12">
+                <nav id="pagination" class="glass rounded-full p-2">
+                    <!-- Pagination will be dynamically generated -->
+                </nav>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass mt-16 py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <div class="flex items-center">
+                        <i data-feather="hexagon" class="w-8 h-8 mr-2 text-purple-400"></i>
+                        <span class="text-xl font-bold">Sigmi Arcade</span>
+                    </div>
+                    <p class="text-gray-300 mt-2">The ultimate gaming experience</p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-300 hover:text-white">
+                        <i data-feather="twitter" class="w-5 h-5"></i>
+                    </a>
+                    <a href="#" class="text-gray-300 hover:text-white">
+                        <i data-feather="instagram" class="w-5 h-5"></i>
+                    </a>
+                    <a href="#" class="text-gray-300 hover:text-white">
+                        <i data-feather="facebook" class="w-5 h-5"></i>
+                    </a>
+                    <a href="#" class="text-gray-300 hover:text-white">
+                        <i data-feather="youtube" class="w-5 h-5"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="border-t border-purple-800 mt-8 pt-8 flex flex-col md:flex-row justify-between">
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-8 mb-6 md:mb-0">
+                    <div>
+                        <h3 class="text-sm font-semibold uppercase mb-4">Company</h3>
+                        <ul class="space-y-2">
+                            <li><a href="#" class="text-gray-300 hover:text-white text-sm">About</a></li>
+                            <li><a href="#" class="text-gray-300 hover:text-white text-sm">Careers</a></li>
+                            <li><a href="#" class="text-gray-300 hover:text-white text-sm">Blog</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold uppercase mb-4">Support</h3>
+                        <ul class="space-y-2">
+                            <li><a href="#" class="text-gray-300 hover:text-white text-sm">Help Center</a></li>
+                            <li><a href="#" class="text-gray-300 hover:text-white text-sm">Contact Us</a></li>
+                            <li><a href="#" class="text-gray-300 hover:text-white text-sm">Status</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold uppercase mb-4">Legal</h3>
+                        <ul class="space-y-2">
+                            <li><a href="#" class="text-gray-300 hover:text-white text-sm">Privacy</a></li>
+                            <li><a href="#" class="text-gray-300 hover:text-white text-sm">Terms</a></li>
+                            <li><a href="#" class="text-gray-300 hover:text-white text-sm">Cookie Policy</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="md:w-1/3">
+                    <h3 class="text-sm font-semibold uppercase mb-4">Subscribe to our newsletter</h3>
+                    <div class="flex">
+                        <input type="email" placeholder="Your email" class="px-4 py-2 rounded-l-lg bg-purple-900 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 w-full">
+                        <button class="btn-primary px-4 py-2 rounded-r-lg">
+                            <i data-feather="send" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2">We'll never share your email with anyone else.</p>
+                </div>
+            </div>
+            <div class="mt-8 text-center text-gray-400 text-sm">
+                <p>© 2023 Sigmi Team. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Game data
+        const gamesData = [
+            {
+                id: 1,
+                title: "Galactic Warriors",
+                description: "Epic space battles with stunning graphics",
+                rating: 4.7,
+                category: ["action", "new"],
+                image: "https://via.placeholder.com/640x360/6e3b9c/ffffff?text=Galactic+Warriors",
+                plays: 12500
+            },
+            {
+                id: 2,
+                title: "Treasure Hunter",
+                description: "Explore ancient ruins and find hidden treasures",
+                rating: 4.5,
+                category: ["adventure"],
+                image: "https://via.placeholder.com/640x360/3b1d6c/ffffff?text=Treasure+Hunter",
+                plays: 9800
+            },
+            {
+                id: 3,
+                title: "Math Blaster",
+                description: "Fun way to learn math through gaming",
+                rating: 4.8,
+                category: ["puzzle", "hot"],
+                image: "https://via.placeholder.com/640x360/8e44ad/ffffff?text=Math+Blaster",
+                plays: 15600
+            },
+            {
+                id: 4,
+                title: "Chess Masters",
+                description: "Classic chess with modern twists",
+                rating: 4.9,
+                category: ["strategy"],
+                image: "https://via.placeholder.com/640x360/6c5ce7/ffffff?text=Chess+Masters",
+                plays: 21000
+            },
+            {
+                id: 5,
+                title: "Basketball Pro",
+                description: "Realistic basketball simulation game",
+                rating: 4.6,
+                category: ["action", "multiplayer"],
+                image: "https://via.placeholder.com/640x360/1a0933/ffffff?text=Basketball+Pro",
+                plays: 8700
+            },
+            {
+                id: 6,
+                title: "Ninja Adventure",
+                description: "Stealth action game with ninja skills",
+                rating: 4.7,
+                category: ["action", "adventure", "new"],
+                image: "https://via.placeholder.com/640x360/6e3b9c/ffffff?text=Ninja+Adventure",
+                plays: 11200
+            },
+            {
+                id: 7,
+                title: "Word Connect",
+                description: "Connect letters to form words",
+                rating: 4.4,
+                category: ["puzzle"],
+                image: "https://via.placeholder.com/640x360/3b1d6c/ffffff?text=Word+Connect",
+                plays: 7600
+            },
+            {
+                id: 8,
+                title: "Racing Legends",
+                description: "High-speed racing with exotic cars",
+                rating: 4.9,
+                category: ["action", "premium"],
+                image: "https://via.placeholder.com/640x360/8e44ad/ffffff?text=Racing+Legends",
+                plays: 18900
+            },
+            {
+                id: 9,
+                title: "Pirate Wars",
+                description: "Naval battles in the golden age of piracy",
+                rating: 4.5,
+                category: ["strategy", "multiplayer"],
+                image: "https://via.placeholder.com/640x360/6c5ce7/ffffff?text=Pirate+Wars",
+                plays: 9500
+            },
+            {
+                id: 10,
+                title: "Jewel Crush",
+                description: "Match colorful jewels in this addictive puzzle",
+                rating: 4.3,
+                category: ["puzzle"],
+                image: "https://via.placeholder.com/640x360/1a0933/ffffff?text=Jewel+Crush",
+                plays: 14300
+            },
+            {
+                id: 11,
+                title: "Farm Frenzy",
+                description: "Build and manage your dream farm",
+                rating: 4.6,
+                category: ["strategy", "free"],
+                image: "https://via.placeholder.com/640x360/6e3b9c/ffffff?text=Farm+Frenzy",
+                plays: 12800
+            },
+            {
+                id: 12,
+                title: "Tank Battle",
+                description: "Strategic tank warfare simulation",
+                rating: 4.5,
+                category: ["strategy", "action"],
+                image: "https://via.placeholder.com/640x360/3b1d6c/ffffff?text=Tank+Battle",
+                plays: 10200
+            },
+            {
+                id: 13,
+                title: "Dino Run",
+                description: "Endless runner with prehistoric creatures",
+                rating: 4.7,
+                category: ["adventure", "new"],
+                image: "https://via.placeholder.com/640x360/8e44ad/ffffff?text=Dino+Run",
+                plays: 8900
+            },
+            {
+                id: 14,
+                title: "Bubble Shooter",
+                description: "Classic bubble shooting puzzle game",
+                rating: 4.4,
+                category: ["puzzle"],
+                image: "https://via.placeholder.com/640x360/6c5ce7/ffffff?text=Bubble+Shooter",
+                plays: 16700
+            },
+            {
+                id: 15,
+                title: "Zombie Apocalypse",
+                description: "Survive the zombie outbreak",
+                rating: 4.8,
+                category: ["action", "hot"],
+                image: "https://via.placeholder.com/640x360/1a0933/ffffff?text=Zombie+Apocalypse",
+                plays: 20100
+            }
+        ];
+
+        // Initialize Vanta.js background
+        VANTA.GLOBE({
+            el: "#vanta-bg",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            scale: 1.00,
+            scaleMobile: 1.00,
+            color: 0x8e44ad,
+            backgroundColor: 0x1a0933,
+            size: 0.8
+        });
+        
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: false
+        });
+        
+        // Initialize Feather Icons
+        feather.replace();
+        
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Random size between 1px and 3px
+                const size = Math.random() * 2 + 1;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // Random position
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                
+                // Random opacity
+                particle.style.opacity = Math.random() * 0.5 + 0.1;
+                
+                // Add animation
+                gsap.to(particle, {
+                    x: `${(Math.random() - 0.5) * 100}px`,
+                    y: `${(Math.random() - 0.5) * 100}px`,
+                    duration: Math.random() * 10 + 10,
+                    repeat: -1,
+                    yoyo: true,
+                    ease: "sine.inOut"
+                });
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // Create particles on load
+        document.addEventListener('DOMContentLoaded', createParticles);
+        
+        // Add hover effect to game cards
+        document.querySelectorAll('.game-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+        
+        // Filter chips functionality
+        document.querySelectorAll('.filter-chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                
+                const category = this.getAttribute('data-category');
+                filterGames(category);
+            });
+        });
+        
+        // Pagination variables
+        let currentPage = 1;
+        const gamesPerPage = 10;
+        let filteredGames = [...gamesData];
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            renderGames();
+            setupPagination();
+            setupSearch();
+            setupSorting();
+        });
+        
+        // Render games based on current page and filters
+        function renderGames() {
+            const gamesContainer = document.getElementById('games-container');
+            gamesContainer.innerHTML = '';
+            
+            const startIndex = (currentPage - 1) * gamesPerPage;
+            const endIndex = startIndex + gamesPerPage;
+            const gamesToRender = filteredGames.slice(startIndex, endIndex);
+            
+            gamesToRender.forEach((game, index) => {
+                const gameCard = document.createElement('div');
+                gameCard.className = 'game-card glass rounded-xl p-4 relative';
+                gameCard.setAttribute('data-aos', 'fade-up');
+                gameCard.setAttribute('data-aos-delay', (index * 50).toString());
+                
+                let badges = '';
+                if (game.category.includes('new')) {
+                    badges += '<div class="absolute top-3 right-3 bg-purple-600 text-xs px-2 py-1 rounded-full">NEW</div>';
+                }
+                if (game.category.includes('hot')) {
+                    badges += '<div class="absolute top-3 right-3 bg-pink-600 text-xs px-2 py-1 rounded-full">HOT</div>';
+                }
+                if (game.category.includes('premium')) {
+                    badges += '<div class="absolute top-3 right-3 bg-blue-600 text-xs px-2 py-1 rounded-full">PREMIUM</div>';
+                }
+                if (game.category.includes('free')) {
+                    badges += '<div class="absolute top-3 right-3 bg-green-600 text-xs px-2 py-1 rounded-full">FREE</div>';
+                }
+                
+                gameCard.innerHTML = `
+                    ${badges}
+                    <div class="flex justify-center mb-3">
+                        <img src="${game.image}" alt="${game.title}" class="w-full h-40 object-cover rounded-lg glow">
+                    </div>
+                    <h3 class="text-lg font-semibold mb-1">${game.title}</h3>
+                    <p class="text-sm text-gray-300 mb-3">${game.description}</p>
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center text-yellow-400 text-sm">
+                            <i data-feather="star" class="w-3 h-3 fill-current mr-1"></i>
+                            <span>${game.rating}</span>
+                        </div>
+                        <button class="play-btn btn-primary py-1.5 px-3 rounded-lg text-xs flex items-center">
+                            Play <i data-feather="play" class="w-3 h-3 ml-1"></i>
+                        </button>
+                    </div>
+                `;
+                
+                gamesContainer.appendChild(gameCard);
+            });
+            
+            // Reinitialize feather icons for the new content
+            feather.replace();
+            
+            // Reinitialize AOS for the new content
+            AOS.refresh();
+        }
+        
+        // Setup pagination
+        function setupPagination() {
+            const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
+            const paginationContainer = document.getElementById('pagination');
+            
+            let paginationHTML = `
+                <ul class="flex items-center space-x-2">
+                    <li>
+                        <button id="prev-page" class="w-10 h-10 rounded-full flex items-center justify-center bg-purple-900/50 border border-purple-700">
+                            <i data-feather="chevron-left" class="w-5 h-5"></i>
+                        </button>
+                    </li>
+            `;
+            
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                    paginationHTML += `
+                        <li>
+                            <button data-page="${i}" class="page-btn w-10 h-10 rounded-full flex items-center justify-center ${i === currentPage ? 'btn-primary' : 'bg-purple-900/50 border border-purple-700 hover:bg-purple-900/30'}">${i}</button>
+                        </li>
+                    `;
+                } else if (i === currentPage - 2 || i === currentPage + 2) {
+                    paginationHTML += `<li><span class="px-2">...</span></li>`;
+                }
+            }
+            
+            paginationHTML += `
+                    <li>
+                        <button id="next-page" class="w-10 h-10 rounded-full flex items-center justify-center bg-purple-900/50 border border-purple-700">
+                            <i data-feather="chevron-right" class="w-5 h-5"></i>
+                        </button>
+                    </li>
+                </ul>
+            `;
+            
+            paginationContainer.innerHTML = paginationHTML;
+            
+            // Add event listeners to pagination buttons
+            document.querySelectorAll('.page-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    currentPage = parseInt(this.getAttribute('data-page'));
+                    renderGames();
+                    setupPagination();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            });
+            
+            document.getElementById('prev-page').addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderGames();
+                    setupPagination();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            });
+            
+            document.getElementById('next-page').addEventListener('click', function() {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderGames();
+                    setupPagination();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            });
+            
+            // Reinitialize feather icons
+            feather.replace();
+        }
+        
+        // Filter games by category
+        function filterGames(category) {
+            if (category === 'all') {
+                filteredGames = [...gamesData];
+            } else {
+                filteredGames = gamesData.filter(game => 
+                    game.category.includes(category)
+                );
+            }
+            
+            currentPage = 1;
+            renderGames();
+            setupPagination();
+        }
+        
+        // Setup search functionality
+        function setupSearch() {
+            const searchInput = document.getElementById('search-input');
+            
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                
+                if (searchTerm.length > 2) {
+                    filteredGames = gamesData.filter(game => 
+                        game.title.toLowerCase().includes(searchTerm) || 
+                        game.description.toLowerCase().includes(searchTerm)
+                    );
+                } else {
+                    filteredGames = [...gamesData];
+                }
+                
+                currentPage = 1;
+                renderGames();
+                setupPagination();
+            });
+        }
+        
+        // Setup sorting functionality
+        function setupSorting() {
+            const sortSelect = document.getElementById('sort-select');
+            
+            sortSelect.addEventListener('change', function() {
+                const sortValue = this.value;
+                
+                switch(sortValue) {
+                    case 'popular':
+                        filteredGames.sort((a, b) => b.plays - a.plays);
+                        break;
+                    case 'newest':
+                        // Assuming newer games have higher IDs
+                        filteredGames.sort((a, b) => b.id - a.id);
+                        break;
+                    case 'highest':
+                        filteredGames.sort((a, b) => b.rating - a.rating);
+                        break;
+                    case 'most-played':
+                        filteredGames.sort((a, b) => b.plays - a.plays);
+                        break;
+                }
+                
+                currentPage = 1;
+                renderGames();
+                setupPagination();
+            });
+        }
+    </script>
+</body>
+</html>
