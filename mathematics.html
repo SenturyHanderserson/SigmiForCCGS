@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>maths online - Google Search</title>
+    <title>Sigmi Arcade - All Games</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
@@ -360,6 +360,18 @@
                 <button data-category="new" class="filter-chip px-4 py-2 rounded-full bg-purple-900/50 border border-purple-700 flex items-center">
                     <i data-feather="clock" class="w-4 h-4 mr-1"></i> New
                 </button>
+                <button data-category="idle" class="filter-chip px-4 py-2 rounded-full bg-purple-900/50 border border-purple-700 flex items-center">
+                    <i data-feather="repeat" class="w-4 h-4 mr-1"></i> Idle
+                </button>
+                <button data-category="shooter" class="filter-chip px-4 py-2 rounded-full bg-purple-900/50 border border-purple-700 flex items-center">
+                    <i data-feather="target" class="w-4 h-4 mr-1"></i> Shooter
+                </button>
+                <button data-category="sports" class="filter-chip px-4 py-2 rounded-full bg-purple-900/50 border border-purple-700 flex items-center">
+                    <i data-feather="activity" class="w-4 h-4 mr-1"></i> Sports
+                </button>
+                <button data-category="rhythm" class="filter-chip px-4 py-2 rounded-full bg-purple-900/50 border border-purple-700 flex items-center">
+                    <i data-feather="music" class="w-4 h-4 mr-1"></i> Rhythm
+                </button>
             </div>
         </section>
 
@@ -443,163 +455,463 @@
                 </div>
             </div>
             <div class="mt-8 text-center text-gray-400 text-sm">
-                <p>© 2023 Sigmi Team. All rights reserved.</p>
+                <p>© 2025 Sigmi Team. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
     <script>
-        // Game data
+        // Game data - Updated with accurate categories and play counts
         const gamesData = [
             {
                 id: 1,
-                title: "Galactic Warriors",
-                description: "Epic space battles with stunning graphics",
+                title: "Minecraft Java",
+                description: "A replica of Minecraft Java Edition in your browser! Uses cracked accounts.",
                 rating: 4.7,
-                category: ["action", "new"],
-                image: "https://via.placeholder.com/640x360/6e3b9c/ffffff?text=Galactic+Warriors",
-                plays: 12500,
-                url: "https://example.com/game1"
+                category: ["sandbox", "adventure", "multiplayer", "new"],
+                image: "images/Screenshot 2025-09-10 130935.png",
+                plays: 25400,
+                url: "https://amazingwebsitesupersigma.github.io/Precision-Client/"
             },
             {
                 id: 2,
-                title: "Treasure Hunter",
-                description: "Explore ancient ruins and find hidden treasures",
+                title: "Bitlife",
+                description: "See how well you can do in an emulated life!",
                 rating: 4.5,
-                category: ["adventure"],
-                image: "https://via.placeholder.com/640x360/3b1d6c/ffffff?text=Treasure+Hunter",
+                category: ["simulation", "strategy"],
+                image: "images/bitlife.jpg",
                 plays: 9800,
-                url: "https://example.com/game2"
+                url: "https://amazingwebsitesupersigma.github.io/bitlife"
             },
             {
                 id: 3,
-                title: "Math Blaster",
-                description: "Fun way to learn math through gaming",
+                title: "Time Shooter 3",
+                description: "Slow motion shooter, your goal is to kill the terrorists and free the hostages!",
                 rating: 4.8,
-                category: ["puzzle", "hot"],
-                image: "https://via.placeholder.com/640x360/8e44ad/ffffff?text=Math+Blaster",
+                category: ["shooter", "action"],
+                image: "images/timeshooter.png",
                 plays: 15600,
-                url: "https://example.com/game3"
+                url: "https://amazingwebsitesupersigma.github.io/timeshooter/"
             },
             {
                 id: 4,
-                title: "Chess Masters",
-                description: "Classic chess with modern twists",
+                title: "Drift Boss",
+                description: "See how long you can drift on the platforms",
                 rating: 4.9,
-                category: ["strategy"],
-                image: "https://via.placeholder.com/640x360/6c5ce7/ffffff?text=Chess+Masters",
+                category: ["racing", "action"],
+                image: "images/driftboss.png",
                 plays: 21000,
-                url: "https://example.com/game4"
+                url: "https://quiz-50.github.io/driving-games/drift-boss/"
             },
             {
                 id: 5,
-                title: "Basketball Pro",
-                description: "Realistic basketball simulation game",
+                title: "Gun Mayhem 2",
+                description: "Who is the better gunner? Kill bots and play with friends!",
                 rating: 4.6,
-                category: ["action", "multiplayer"],
-                image: "https://via.placeholder.com/640x360/1a0933/ffffff?text=Basketball+Pro",
+                category: ["shooter", "action", "multiplayer"],
+                image: "images/gunMayham2.png",
                 plays: 8700,
-                url: "https://example.com/game5"
+                url: "https://quiz-50.github.io/action-games/gun-mayhem-2/"
             },
             {
                 id: 6,
-                title: "Ninja Adventure",
-                description: "Stealth action game with ninja skills",
+                title: "Retro Bowl",
+                description: "Classic Super Bowl/football arcade game",
                 rating: 4.7,
-                category: ["action", "adventure", "new"],
-                image: "https://via.placeholder.com/640x360/6e3b9c/ffffff?text=Ninja+Adventure",
+                category: ["sports", "strategy"],
+                image: "images/retrobowl.png",
                 plays: 11200,
-                url: "https://example.com/game6"
+                url: "https://amazingwebsitesupersigma.github.io/retrobowl/"
             },
             {
                 id: 7,
-                title: "Word Connect",
-                description: "Connect letters to form words",
+                title: "Cookie Clicker",
+                description: "Click a cookie. An idle game with different ways to get cookies.",
                 rating: 4.4,
-                category: ["puzzle"],
-                image: "https://via.placeholder.com/640x360/3b1d6c/ffffff?text=Word+Connect",
+                category: ["idle", "puzzle"],
+                image: "images/Cookie_Clicker_logo.png",
                 plays: 7600,
-                url: "https://example.com/game7"
+                url: "https://amazingwebsitesupersigma.github.io/cookieclicker/"
             },
             {
                 id: 8,
-                title: "Racing Legends",
-                description: "High-speed racing with exotic cars",
+                title: "Sausage Flip",
+                description: "Flip the sausage for as many levels as you can!",
                 rating: 4.9,
-                category: ["action", "premium"],
-                image: "https://via.placeholder.com/640x360/8e44ad/ffffff?text=Racing+Legends",
+                category: ["action", "puzzle", "premium"],
+                image: "images/sausageflip.png",
                 plays: 18900,
-                url: "https://example.com/game8"
+                url: "https://lnahtml.github.io/a6/sausage-flip/"
             },
             {
                 id: 9,
-                title: "Pirate Wars",
-                description: "Naval battles in the golden age of piracy",
+                title: "Moto X3M Winter",
+                description: "See if you can beat all levels, crazy motorcycle tricks!",
                 rating: 4.5,
-                category: ["strategy", "multiplayer"],
-                image: "https://via.placeholder.com/640x360/6c5ce7/ffffff?text=Pirate+Wars",
+                category: ["racing", "action"],
+                image: "images/MotoX3M-Winter_OG-logo.jpg",
                 plays: 9500,
-                url: "https://example.com/game9"
+                url: "https://ezunblocktheopps.github.io/motox3mwinter"
             },
             {
                 id: 10,
-                title: "Jewel Crush",
-                description: "Match colorful jewels in this addictive puzzle",
+                title: "Idle Breakout",
+                description: "Upgrade your balls until you break out!",
                 rating: 4.3,
-                category: ["puzzle"],
-                image: "https://via.placeholder.com/640x360/1a0933/ffffff?text=Jewel+Crush",
+                category: ["idle", "puzzle"],
+                image: "images/idlebreakout.png",
                 plays: 14300,
-                url: "https://example.com/game10"
+                url: "https://amazingwebsitesupersigma.github.io/idlebreakout/"
             },
             {
                 id: 11,
-                title: "Farm Frenzy",
-                description: "Build and manage your dream farm",
+                title: "Drive Mad",
+                description: "Cruise through levels using your skills",
                 rating: 4.6,
-                category: ["strategy", "free"],
-                image: "https://via.placeholder.com/640x360/6e3b9c/ffffff?text=Farm+Frenzy",
+                category: ["racing", "action"],
+                image: "images/drivemad.png",
                 plays: 12800,
-                url: "https://example.com/game11"
+                url: "https://amazingwebsitesupersigma.github.io/drivemad/"
             },
             {
                 id: 12,
-                title: "Tank Battle",
-                description: "Strategic tank warfare simulation",
+                title: "Gun Spin",
+                description: "See how far you can travel, spinning and firing!",
                 rating: 4.5,
-                category: ["strategy", "action"],
-                image: "https://via.placeholder.com/640x360/3b1d6c/ffffff?text=Tank+Battle",
+                category: ["shooter", "action"],
+                image: "images/gunSpin.png",
                 plays: 10200,
-                url: "https://example.com/game12"
+                url: "https://amazingwebsitesupersigma.github.io/gunspin/"
             },
             {
                 id: 13,
-                title: "Dino Run",
-                description: "Endless runner with prehistoric creatures",
+                title: "Rooftop Snipers",
+                description: "Crazy shooter, fun chaotic and unique!",
                 rating: 4.7,
-                category: ["adventure", "new"],
-                image: "https://via.placeholder.com/640x360/8e44ad/ffffff?text=Dino+Run",
+                category: ["shooter", "action", "multiplayer"],
+                image: "images/rooftop-snipers.png",
                 plays: 8900,
-                url: "https://example.com/game13"
+                url: "https://amazingwebsitesupersigma.github.io/rooftops/"
             },
             {
                 id: 14,
-                title: "Bubble Shooter",
-                description: "Classic bubble shooting puzzle game",
+                title: "Five Nights At Diddy's",
+                description: "FNAF 1, custom loading screen",
                 rating: 4.4,
-                category: ["puzzle"],
-                image: "https://via.placeholder.com/640x360/6c5ce7/ffffff?text=Bubble+Shooter",
+                category: ["horror", "strategy"],
+                image: "images/Screenshot 2025-09-14 141139.png",
                 plays: 16700,
-                url: "https://example.com/game14"
+                url: "https://amazingwebsitesupersigma.github.io/hd_fnaf/1/"
             },
             {
                 id: 15,
-                title: "Zombie Apocalypse",
-                description: "Survive the zombie outbreak",
+                title: "Five Nights at Freddy's 2",
+                description: "FNAF 2 in JS and HTML",
                 rating: 4.8,
-                category: ["action", "hot"],
-                image: "https://via.placeholder.com/640x360/1a0933/ffffff?text=Zombie+Apocalypse",
+                category: ["horror", "strategy"],
+                image: "images/fnaf2.jpg",
                 plays: 20100,
-                url: "https://example.com/game15"
+                url: "https://amazingwebsitesupersigma.github.io/hd_fnaf/2/"
+            },
+            {
+                id: 16,
+                title: "Five Nights At Freddy's 3",
+                description: "FNAF 3 in JS and HTML",
+                rating: 4.4,
+                category: ["horror", "strategy"],
+                image: "images/fnaf3.jpg",
+                plays: 14500,
+                url: "https://amazingwebsitesupersigma.github.io/hd_fnaf/3/"
+            },
+            {
+                id: 17,
+                title: "Five Nights At Freddy's 4",
+                description: "FNAF 4 in JS and HTML",
+                rating: 4.4,
+                category: ["horror", "strategy"],
+                image: "images/fnaf4.jpg",
+                plays: 13200,
+                url: "https://amazingwebsitesupersigma.github.io/hd_fnaf/4/"
+            },
+            {
+                id: 18,
+                title: "Gambling",
+                description: "The mathematics of gambling",
+                rating: 4.4,
+                category: ["puzzle", "strategy"],
+                image: "images/Screenshot 2025-09-14 143337.png",
+                plays: 8200,
+                url: "https://www.transum.org/Maths/Activity/Probability/Gambling.asp"
+            },
+            {
+                id: 19,
+                title: "Ballistic",
+                description: "Launch balls in strategic ways to maximize your score!",
+                rating: 4.4,
+                category: ["puzzle", "strategy"],
+                image: "images/ballistic.png",
+                plays: 11200,
+                url: "https://quiz-50.github.io/strategy-games/ballistic/"
+            },
+            {
+                id: 20,
+                title: "1v1.lol",
+                description: "Unblocked fortnite! A clone similar to it, although multiplayer may be blocked",
+                rating: 4.4,
+                category: ["shooter", "action", "multiplayer"],
+                image: "images/1v1lol.png",
+                plays: 25300,
+                url: "https://quiz-50.github.io/action-games/1v1-lol/"
+            },
+            {
+                id: 21,
+                title: "OSU",
+                description: "Rhythm game with anime girls",
+                rating: 4.4,
+                category: ["rhythm", "music"],
+                image: "images/osuLogo.png",
+                plays: 17800,
+                url: "https://amazingwebsitesupersigma.github.io/osu/"
+            },
+            {
+                id: 22,
+                title: "Tunnel Rush",
+                description: "Seizure warning! Flashing colors may hurt your eyes. Rush through a tunnel.",
+                rating: 4.4,
+                category: ["action", "racing"],
+                image: "images/tunnel-rush.png",
+                plays: 19200,
+                url: "https://quiz-50.github.io/action-games/tunnel-rush/"
+            },
+            {
+                id: 23,
+                title: "Tiny Fishing",
+                description: "Idle fishing game, upgrades and chances",
+                rating: 4.4,
+                category: ["idle", "puzzle"],
+                image: "images/TinyFishing_OG-logo.jpg.png",
+                plays: 12500,
+                url: "https://amazingwebsitesupersigma.github.io/tinyfishing/"
+            },
+            {
+                id: 24,
+                title: "Slow Roads",
+                description: "Relaxing idle driving game, simple and fun",
+                rating: 4.4,
+                category: ["racing", "idle"],
+                image: "images/slow-roads.png",
+                plays: 9800,
+                url: "https://ezunblocktheopps.github.io/slowroads"
+            },
+            {
+                id: 25,
+                title: "Geometry Dash",
+                description: "Jump over spikes, obstacles and beat levels",
+                rating: 4.4,
+                category: ["rhythm", "action"],
+                image: "images/geometrydash.jpg",
+                plays: 23100,
+                url: "https://amazingwebsitesupersigma.github.io/geodash/"
+            },
+            {
+                id: 26,
+                title: "Subway Surfers",
+                description: "Classic mobile game, run from the officer dodging trains!",
+                rating: 4.4,
+                category: ["action", "endless"],
+                image: "images/subwaySurfers.png",
+                plays: 24500,
+                url: "https://sigmasigmapd2mods.github.io/subwaysurfers/"
+            },
+            {
+                id: 27,
+                title: "Basket Random",
+                description: "Funny basketball game, 1v1 a bot or a friend!",
+                rating: 4.4,
+                category: ["sports", "multiplayer"],
+                image: "images/basketrandom.png",
+                plays: 15200,
+                url: "https://amazingwebsitesupersigma.github.io/basketrandom/"
+            },
+            {
+                id: 28,
+                title: "Friday Night Funkin",
+                description: "Rhythm game with arrows, great for practising reaction time!",
+                rating: 4.4,
+                category: ["rhythm", "music"],
+                image: "images/Friday-Night-Funkin-logo.png",
+                plays: 19800,
+                url: "https://amazingwebsitesupersigma.github.io/fnf/"
+            },
+            {
+                id: 29,
+                title: "Stickman Hook",
+                description: "Swing with a grappling hook past all the levels!",
+                rating: 4.4,
+                category: ["action", "puzzle"],
+                image: "images/stickmanHook.jpg",
+                plays: 14300,
+                url: "https://ezunblocktheopps.github.io/stickmanhook"
+            },
+            {
+                id: 30,
+                title: "2048",
+                description: "Move the blocks using the arrow keys to combine into 2048!",
+                rating: 4.4,
+                category: ["puzzle", "strategy"],
+                image: "images/2048_logo.png",
+                plays: 18700,
+                url: "https://sigmasigmapd2mods.github.io/2048/"
+            },
+            {
+                id: 31,
+                title: "Choppy Orc",
+                description: "Use your axe to parkour to the end, try to set a record!",
+                rating: 4.4,
+                category: ["action", "puzzle"],
+                image: "images/Choppy_Orc.png",
+                plays: 11200,
+                url: "https://sigmasigmapd2mods.github.io/choppy-orc/"
+            },
+            {
+                id: 32,
+                title: "Basketball Stars",
+                description: "The classic 1v1 basketball game, abilities, moves and more!",
+                rating: 4.4,
+                category: ["sports", "multiplayer"],
+                image: "images/basketballstars.jpg",
+                plays: 16700,
+                url: "https://amazingwebsitesupersigma.github.io/basketballstars/"
+            },
+            {
+                id: 33,
+                title: "Tanuki Sunset",
+                description: "Drift on your skateboard, hit some sick tricks and have fun!",
+                rating: 4.4,
+                category: ["racing", "action"],
+                image: "images/tanukiSunset.png",
+                plays: 9800,
+                url: "https://amazingwebsitesupersigma.github.io/tanukisunset/"
+            },
+            {
+                id: 34,
+                title: "CSGO Clicker",
+                description: "Click your way to skins, upgrades and crates in a Counter Strike themed clicker!",
+                rating: 4.3,
+                category: ["idle", "clicker"],
+                image: "images/CSGOclicker.png",
+                plays: 15400,
+                url: "https://ezunblocktheopps.github.io/csgoclicker/"
+            },
+            {
+                id: 35,
+                title: "Doge Miner",
+                description: "Mine dogecoins with your pickaxe, upgrade and expand your empire!",
+                rating: 4.6,
+                category: ["idle", "clicker"],
+                image: "images/dogeMiner.jpg",
+                plays: 17800,
+                url: "https://amazingwebsitesupersigma.github.io/dogeminer/"
+            },
+            {
+                id: 36,
+                title: "Super Hot",
+                description: "Time only moves when you do. A tactical slow-motion shooting puzzle!",
+                rating: 4.7,
+                category: ["shooter", "strategy"],
+                image: "images/SUPERHOT_Logo.png",
+                plays: 16200,
+                url: "https://quiz-50.github.io/action-games/superhot/"
+            },
+            {
+                id: 37,
+                title: "10 Minutes Till Dawn",
+                description: "Survive waves of monsters for 10 minutes, roguelike shooter gameplay.",
+                rating: 4.5,
+                category: ["shooter", "action", "survival"],
+                image: "images/10MinutesTillDawn.png",
+                plays: 13300,
+                url: "https://quiz-50.github.io/action-games/10-minutes-till-dawn/"
+            },
+            {
+                id: 38,
+                title: "World's Hardest Game",
+                description: "Navigate the red square avoiding blue circles, reach the goal without dying.",
+                rating: 4.8,
+                category: ["puzzle", "challenge"],
+                image: "images/WorldsHardestGame_OG-logo.jpg",
+                plays: 22000,
+                url: "https://quiz-50.github.io/action-games/worlds-hardest-game/"
+            },
+            {
+                id: 39,
+                title: "Fake Stake",
+                description: "Casino-style minigames with fake coins, bet big or go broke!",
+                rating: 4.2,
+                category: ["casino", "puzzle"],
+                image: "images/fakeStake.png",
+                plays: 9100,
+                url: "https://stake.whatthesigma.site/"
+            },
+            {
+                id: 40,
+                title: "Undertale",
+                description: "Indie RPG where you can choose to fight or show mercy to monsters.",
+                rating: 4.9,
+                category: ["adventure", "rpg", "story"],
+                image: "images/Undertale-logo.jpg",
+                plays: 18900,
+                url: "https://amazingwebsitesupersigma.github.io/undertale/"
+            },
+            {
+                id: 41,
+                title: "Deltarune",
+                description: "Toby Fox's follow-up to Undertale, with turn-based battles and story-driven gameplay.",
+                rating: 4.8,
+                category: ["adventure", "rpg", "story"],
+                image: "images/deltarune.png",
+                plays: 17500,
+                url: "https://amazingwebsitesupersigma.github.io/deltarune/"
+            },
+            {
+                id: 42,
+                title: "Hotline Miami",
+                description: "Fast-paced top-down shooter with brutal combat and retro vibes.",
+                rating: 4.7,
+                category: ["shooter", "action", "arcade"],
+                image: "images/HotlineMiami.png",
+                plays: 14900,
+                url: "https://amazingwebsitesupersigma.github.io/hotline-miami/"
+            },
+            {
+                id: 43,
+                title: "UltraKill",
+                description: "Retro-inspired FPS with movement, combos and gore — DOOM vibes!",
+                rating: 4.8,
+                category: ["shooter", "action"],
+                image: "images/UltraKill.png",
+                plays: 18200,
+                url: "https://amazingwebsitesupersigma.github.io/UltraKill/"
+            },
+            {
+                id: 44,
+                title: "People Playground",
+                description: "Sandbox game where you can experiment with ragdolls and weapons.",
+                rating: 4.7,
+                category: ["sandbox", "simulation"],
+                image: "images/peoplePlayground.jpg",
+                plays: 16000,
+                url: "https://amazingwebsitesupersigma.github.io/People-Playground/"
+            },
+            {
+                id: 45,
+                title: "Buckshot Roulette",
+                description: "Russian roulette card game with high stakes and luck-based chaos.",
+                rating: 4.5,
+                category: ["casino", "strategy"],
+                image: "images/buckshotRoulette.png",
+                plays: 12300,
+                url: "https://amazingwebsitesupersigma.github.io/buckshot-roulette/"
             }
         ];
 
@@ -845,10 +1157,14 @@
                             <i data-feather="star" class="w-3 h-3 fill-current mr-1"></i>
                             <span>${game.rating}</span>
                         </div>
-                        <button onclick="handleGameClick('${game.url}')" class="play-btn btn-primary py-1.5 px-3 rounded-lg text-xs flex items-center">
-                            Play <i data-feather="play" class="w-3 h-3 ml-1"></i>
-                        </button>
+                        <div class="text-gray-300 text-xs">
+                            <i data-feather="users" class="w-3 h-3 inline mr-1"></i>
+                            <span>${game.plays.toLocaleString()}</span>
+                        </div>
                     </div>
+                    <button onclick="handleGameClick('${game.url}')" class="play-btn btn-primary py-1.5 px-3 rounded-lg text-xs flex items-center mt-3 w-full justify-center">
+                        Play <i data-feather="play" class="w-3 h-3 ml-1"></i>
+                    </button>
                 `;
                 
                 gamesContainer.appendChild(gameCard);
@@ -988,6 +1304,8 @@
                     case 'most-played':
                         filteredGames.sort((a, b) => b.plays - a.plays);
                         break;
+                    default:
+                        break;
                 }
                 
                 currentPage = 1;
@@ -995,6 +1313,7 @@
                 setupPagination();
             });
         }
+
     </script>
 </body>
 </html>
