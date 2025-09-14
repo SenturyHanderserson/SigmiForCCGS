@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blacklist Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #6e45e2 0%, #88d3ce 100%);
+        }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #fff;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .login-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .login-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .login-content {
+            background: linear-gradient(135deg, #6e3b9c 0%, #3b1d6c 50%, #1a0933 100%);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .login-modal.active .login-content {
+            transform: scale(1);
+        }
+        .medal-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1rem;
+            background: linear-gradient(135deg, #FFD700 0%, #DAA520 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        .user-status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .status-blacklisted {
+            background-color: #ef4444;
+            color: white;
+        }
+        .status-clean {
+            background-color: #10b981;
+            color: white;
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg text-white font-sans">
+    <!-- Login Modal -->
+    <div id="loginModal" class="login-modal">
+        <div class="login-content">
+            <div class="medal-icon">
+                <i data-feather="award" class="w-10 h-10 text-white"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-4">Authentication Required</h2>
+            <p class="text-gray-300 mb-6">You need to be logged in to access the blacklist management system.</p>
+            <button onclick="redirectToLogin()" class="bg-purple-600 hover:bg-purple-700 py-3 px-6 rounded-lg font-medium w-full mb-4">
+                Sign In
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div class="glassmorphism rounded-xl p-8 max-w-md w-full mx-4 text-center">
+            <div class="loading-spinner mb-4"></div>
+            <h2 class="text-2xl font-bold mb-2">Verifying session...</h2>
+            <p class="text-gray-300">Please wait while we verify your permissions</p>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="relative z-10 min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="glassmorphism p-4 shadow-lg">
+            <div class="container mx-auto flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-2xl font-bold">Blacklist Management</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="logoutButton" class="p-2 rounded-full hover:bg-purple-700 transition">
+                        <i data-feather="log-out"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 container mx-auto p-4 md:p-6">
+            <!-- User Info -->
+            <div id="userInfo" class="glassmorphism rounded-xl p-6 mb-6 hidden">
+                <h2 class="text-xl font-semibold mb-4">Your Account</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-gray-300">Username</p>
+                        <p id="userUsername" class="font-medium"></p>
+                    </div>
+                    <div>
+                        <p class="text-gray-300">Role</p>
+                        <p id="userRole" class="font-medium"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Blacklist Form -->
+            <div class="glassmorphism rounded-xl p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4">Blacklist User</h2>
+                <form id="blacklistForm" class="space-y-4">
+                    <div>
+                        <label for="username" class="block text-gray-300 mb-2">Username</label>
+                        <input type="text" id="username" required class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <label for="reason" class="block text-gray-300 mb-2">Reason</label>
+                        <textarea id="reason" required class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-medium">
+                        Blacklist User
+                    </button>
+                </form>
+            </div>
+
+            <!-- Users List -->
+            <div class="glassmorphism rounded-xl p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold">All Users</h2>
+                    <button id="refreshUsers" class="p-2 rounded-full hover:bg-purple-700 transition">
+                        <i data-feather="refresh-cw"></i>
+                    </button>
+                </div>
+                <div id="usersList" class="space-y-4">
+                    <!-- Users will be loaded here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Initialize animations and icons
+        AOS.init();
+        feather.replace();
+
+        // Server URL
+        const SERVER_URL = "https://proxyforsigmi.onrender.com";
+
+        // Function to check if user is logged in
+        function isLoggedIn() {
+            const token = getCookie('AuthToken');
+            const currentUser = localStorage.getItem('currentUser');
+            return !!(token && currentUser);
+        }
+
+        // Function to verify token with server
+        async function verifyToken(token) {
+            try {
+                const response = await fetch(`${SERVER_URL}/api/verify-token`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    return false;
+                }
+                
+                const data = await response.json();
+                return data.valid === true;
+            } catch (error) {
+                console.error('Token verification error:', error);
+                return false;
+            }
+        }
+
+        // Function to get user info
+        async function getUserInfo(token) {
+            try {
+                const response = await fetch(`${SERVER_URL}/api/user-info`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to get user info');
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Get user info error:', error);
+                throw error;
+            }
+        }
+
+        // Check authentication status on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            const token = getCookie('AuthToken');
+            const currentUser = localStorage.getItem('currentUser');
+            
+            if (token && currentUser) {
+                // Show loading overlay while verifying token
+                document.getElementById('loadingOverlay').classList.remove('hidden');
+                
+                try {
+                    // Verify token with server
+                    const isValid = await verifyToken(token);
+                    
+                    if (!isValid) {
+                        // Token is invalid, show login modal
+                        showLoginModal();
+                        return;
+                    }
+                    
+                    // Get user info to check permissions
+                    const userInfo = await getUserInfo(token);
+                    
+                    // Check if user has admin permissions
+                    if (userInfo.role !== "Owner" && userInfo.role !== "Admin") {
+                        alert("Insufficient permissions. Only admins can access this page.");
+                        window.location.href = "https://senturyhanderserson.github.io/SigmiForCCGS/";
+                        return;
+                    }
+                    
+                    // Show user info
+                    document.getElementById('userInfo').classList.remove('hidden');
+                    document.getElementById('userUsername').textContent = userInfo.username;
+                    document.getElementById('userRole').textContent = userInfo.role;
+                    
+                    // Load users list
+                    loadUsersList();
+                    
+                } catch (error) {
+                    console.error('Authentication error:', error);
+                    showLoginModal();
+                } finally {
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                }
+            } else {
+                // No token found, show login modal
+                showLoginModal();
+            }
+        });
+
+        // Show login modal function
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.add('active');
+        }
+
+        // Redirect to login page
+        function redirectToLogin() {
+            window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
+        }
+
+        // Load users list
+        async function loadUsersList() {
+            try {
+                const token = getCookie('AuthToken');
+                const response = await fetch(`${SERVER_URL}/api/users`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load users');
+                }
+                
+                const users = await response.json();
+                const container = document.getElementById('usersList');
+                
+                if (users.length === 0) {
+                    container.innerHTML = '<p class="text-gray-400 text-center py-4">No users found</p>';
+                    return;
+                }
+                
+                container.innerHTML = users.map(user => `
+                    <div class="glassmorphism p-4 rounded-lg flex justify-between items-center">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-medium">${user.username}</span>
+                                <span class="user-status-badge ${user.blacklisted ? 'status-blacklisted' : 'status-clean'}">
+                                    ${user.blacklisted ? 'Blacklisted' : 'Clean'}
+                                </span>
+                            </div>
+                            <div class="text-sm text-gray-300">
+                                Role: ${user.role} • Joined: ${user.joined}
+                                ${user.blacklisted ? `• Reason: ${user.blacklistReason}` : ''}
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            ${user.blacklisted ? `
+                                <button onclick="unblacklistUser('${user.username}')" class="p-2 bg-green-600 hover:bg-green-700 rounded-lg">
+                                    <i data-feather="check-circle" class="w-4 h-4"></i>
+                                </button>
+                            ` : `
+                                <button onclick="showBlacklistForm('${user.username}')" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg">
+                                    <i data-feather="x-circle" class="w-4 h-4"></i>
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `).join('');
+                
+                feather.replace();
+                
+            } catch (error) {
+                console.error('Failed to load users:', error);
+                document.getElementById('usersList').innerHTML = `
+                    <p class="text-red-300 text-center py-4">Error loading users: ${error.message}</p>
+                `;
+            }
+        }
+
+        // Show blacklist form with pre-filled username
+        function showBlacklistForm(username) {
+            document.getElementById('username').value = username;
+            document.getElementById('reason').focus();
+        }
+
+        // Blacklist user
+        async function blacklistUser(username, reason) {
+            try {
+                const token = getCookie('AuthToken');
+                const response = await fetch(`${SERVER_URL}/api/blacklist/${username}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ reason })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to blacklist user');
+                }
+                
+                const result = await response.json();
+                alert(`User ${username} has been blacklisted: ${result.blacklistReason}`);
+                
+                // Reload users list
+                loadUsersList();
+                
+            } catch (error) {
+                console.error('Blacklist error:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        // Unblacklist user
+        async function unblacklistUser(username) {
+            if (!confirm(`Are you sure you want to unblacklist ${username}?`)) {
+                return;
+            }
+            
+            try {
+                const token = getCookie('AuthToken');
+                const response = await fetch(`${SERVER_URL}/api/unblacklist/${username}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to unblacklist user');
+                }
+                
+                alert(`User ${username} has been unblacklisted`);
+                
+                // Reload users list
+                loadUsersList();
+                
+            } catch (error) {
+                console.error('Unblacklist error:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        // Handle blacklist form submission
+        document.getElementById('blacklistForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const reason = document.getElementById('reason').value.trim();
+            
+            if (!username) {
+                alert('Please enter a username');
+                return;
+            }
+            
+            if (!reason) {
+                alert('Please enter a reason for blacklisting');
+                return;
+            }
+            
+            blacklistUser(username, reason);
+            
+            // Reset form
+            this.reset();
+        });
+
+        // Refresh users list
+        document.getElementById('refreshUsers').addEventListener('click', function() {
+            loadUsersList();
+        });
+
+        // Logout button
+        document.getElementById('logoutButton').addEventListener('click', function() {
+            // Clear auth data
+            document.cookie = 'AuthToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            localStorage.removeItem('currentUser');
+            
+            // Redirect to login
+            window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
+        });
+
+        // Cookie Functions
+        function getCookie(name) {
+            const cookieName = name + "=";
+            const decodedCookie = decodeURIComponent(document.cookie);
+            const cookieArray = decodedCookie.split(';');
+            
+            for(let i = 0; i < cookieArray.length; i++) {
+                let cookie = cookieArray[i];
+                while (cookie.charAt(0) === ' ') {
+                    cookie = cookie.substring(1);
+                }
+                if (cookie.indexOf(cookieName) === 0) {
+                    return cookie.substring(cookieName.length, cookie.length);
+                }
+            }
+            return "";
+        }
+    </script>
+</body>
+</html>
