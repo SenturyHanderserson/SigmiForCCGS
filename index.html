@@ -618,6 +618,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             AOS.init();
             feather.replace();
+			checkBlacklistCookie();
             
             // Check if terms were accepted
             if (!getCookie('AcceptedTerms')) {
@@ -736,181 +737,210 @@
                 document.getElementById('authTitle').textContent = 'Login';
             });
 
-            // Login Button - WITH PROPER ERROR HANDLING
-            document.getElementById('loginBtn').addEventListener('click', async function() {
-                const username = document.getElementById('loginUsername').value;
-                const password = document.getElementById('loginPassword').value;
-                const rememberMe = document.getElementById('rememberMe').checked;
-                
-                if (username && password) {
-                    showLoadingModal("Logging you in...");
-                    
-                    // Set a timeout to change the message if it takes too long
-                    const serverWakeTimeout = setTimeout(() => {
-                        document.getElementById('loadingText').textContent = "Waking the server...";
-                    }, 7000);
-                    
-                    try {
-                        const response = await fetch('https://proxyforsigmi.onrender.com/api/login', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ username, password })
-                        });
-                                            
-                        clearTimeout(serverWakeTimeout);
-                        
-                        // First check if response is OK
-                        if (!response.ok) {
-                            const errorText = await response.text();
-                            console.error('Server error response:', errorText);
-                            document.getElementById('loadingModal').classList.add('hidden');
-                            showNotification(`Login failed: ${response.status} ${response.statusText}`, 'error');
-                            return;
-                        }
-                        
-                        // Check content type to ensure it's JSON
-                        const contentType = response.headers.get('content-type');
-                        if (!contentType || !contentType.includes('application/json')) {
-                            const text = await response.text();
-                            console.error('Non-JSON response:', text);
-                            document.getElementById('loadingModal').classList.add('hidden');
-                            showNotification('Server returned invalid response format', 'error');
-                            return;
-                        }
-                        
-                        const data = await response.json();
-                        
-                        if (response.ok) {
-                            // Store token and user info
-                            setCookie('AuthToken', data.token, rememberMe ? 30 : 1);
-                            localStorage.setItem('currentUser', data.user);
-                            localStorage.setItem('userRole', data.role);
-                            
-                            document.getElementById('loadingModal').classList.add('hidden');
-                            document.getElementById('authModal').classList.add('hidden');
-                            document.getElementById('mainContent').classList.remove('hidden');
-                            document.getElementById('usernameDisplay').textContent = data.user;
-                            loadDashboard();
-                            loadMembers(); // Load members after successful login
-                            showNotification('Login successful!', 'success');
-                        } else {
-                            document.getElementById('loadingModal').classList.add('hidden');
-                            showNotification(data.error || 'Login failed', 'error');
-                        }
-                    } catch (error) {
-                        clearTimeout(serverWakeTimeout);
-                        console.error('Login error:', error);
-                        document.getElementById('loadingModal').classList.add('hidden');
-                        showNotification('Login failed. Please try again later.', 'error');
-                    }
-                } else {
-                    showNotification('Please enter both username and password', 'warning');
-                }
+// Login Button - WITH PROPER ERROR HANDLING (UPDATED FOR BLACKLIST)
+document.getElementById('loginBtn').addEventListener('click', async function() {
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
+    const rememberMe = document.getElementById('rememberMe').checked;
+    
+    if (username && password) {
+        showLoadingModal("Logging you in...");
+        
+        // Set a timeout to change the message if it takes too long
+        const serverWakeTimeout = setTimeout(() => {
+            document.getElementById('loadingText').textContent = "Waking the server...";
+        }, 7000);
+        
+        try {
+            const response = await fetch('https://proxyforsigmi.onrender.com/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
             });
-
-            // Signup Button - WITH PROPER ERROR HANDLING
-            document.getElementById('signupBtn').addEventListener('click', async function() {
-                const username = document.getElementById('signupUsername').value;
-                const email = document.getElementById('signupEmail').value;
-                const password = document.getElementById('signupPassword').value;
-                const confirmPassword = document.getElementById('confirmPassword').value;
-                
-                if (password !== confirmPassword) {
-                    showNotification('Passwords do not match', 'warning');
+                                        
+            clearTimeout(serverWakeTimeout);
+            
+            // First check if response is OK
+            if (!response.ok) {
+                // Check if this is a blacklist error (403 status)
+                if (response.status === 403) {
+                    const errorData = await response.json();
+                    document.getElementById('loadingModal').classList.add('hidden');
+                    
+                    // Set blacklist cookie if provided by server
+                    if (errorData.blacklistCookie) {
+                        setCookie('blacklist', errorData.blacklistCookie, 365);
+                    }
+                    
+                    showNotification(`Login failed: ${errorData.error} - ${errorData.blacklistReason || ''}`, 'error', 10000);
                     return;
                 }
                 
-                if (username && password) {
-                    showLoadingModal("Creating your account...");
-                    
-                    // Set a timeout to change the message if it takes too long
-                    const serverWakeTimeout = setTimeout(() => {
-                        document.getElementById('loadingText').textContent = "Waking the server...";
-                    }, 7000);
-                    
-                    try {
-                        const response = await fetch('https://proxyforsigmi.onrender.com/api/signup', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ username, password })
-                        });
-                        
-                        clearTimeout(serverWakeTimeout);
-                        
-                        // First check if response is OK
-                        if (!response.ok) {
-                            const errorText = await response.text();
-                            console.error('Server error response:', errorText);
-                            document.getElementById('loadingModal').classList.add('hidden');
-                            showNotification(`Signup failed: ${response.status} ${response.statusText}`, 'error');
-                            return;
-                        }
-                        
-                        // Check content type to ensure it's JSON
-                        const contentType = response.headers.get('content-type');
-                        if (!contentType || !contentType.includes('application/json')) {
-                            const text = await response.text();
-                            console.error('Non-JSON response:', text);
-                            document.getElementById('loadingModal').classList.add('hidden');
-                            showNotification('Server returned invalid response format', 'error');
-                            return;
-                        }
-                        
-                        const data = await response.json();
-                        
-                        // Store token and user info
-                        setCookie('AuthToken', data.token, 30);
-                        localStorage.setItem('currentUser', data.user);
-                        localStorage.setItem('userRole', data.role);
-                        
-                        document.getElementById('loadingModal').classList.add('hidden');
-                        document.getElementById('authModal').classList.add('hidden');
-                        document.getElementById('mainContent').classList.remove('hidden');
-                        document.getElementById('usernameDisplay').textContent = data.user;
-                        loadDashboard();
-                        loadMembers(); // Load members after successful signup
-                        showNotification('Account created successfully!', 'success');
-                        
-                    } catch (error) {
-                        clearTimeout(serverWakeTimeout);
-                        console.error('Signup error:', error);
-                        document.getElementById('loadingModal').classList.add('hidden');
-                        showNotification('Signup failed. Please try again later.', 'error');
-                    }
-                } else {
-                    showNotification('Please fill in all required fields', 'warning');
-                }
-            });
-
-            // Sidebar Toggle
-            document.getElementById('sidebarToggle').addEventListener('click', function() {
-                document.getElementById('sidebar').classList.remove('-translate-x-full');
-            });
-
-            document.getElementById('closeSidebar').addEventListener('click', function() {
-                document.getElementById('sidebar').classList.add('-translate-x-full');
-            });
-
-            // Settings Button
-            document.getElementById('settingsBtn').addEventListener('click', function() {
-                window.location.href = 'settings.html';
-            });
+                const errorText = await response.text();
+                console.error('Server error response:', errorText);
+                document.getElementById('loadingModal').classList.add('hidden');
+                showNotification(`Login failed: ${response.status} ${response.statusText}`, 'error');
+                return;
+            }
             
-            // Floating Action Button
-            document.getElementById('fabBtn').addEventListener('click', function() {
-                showNotification('Coming soon! This feature is under development.', 'info');
-            });
+            // Check content type to ensure it's JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                console.error('Non-JSON response:', text);
+                document.getElementById('loadingModal').classList.add('hidden');
+                showNotification('Server returned invalid response format', 'error');
+                return;
+            }
             
-            // Handle 404 redirects
-            window.addEventListener('load', function() {
-                if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
-                    const path = window.location.pathname.split('/').pop();
-                    if (!Object.values(PAGE_MAPPING).includes(path) && path !== 'settings.html') {
-                        showNotification('This website is currently in beta, so expect issues.', 'info');
-                    }
-                }
-            });
-        });
+            const data = await response.json();
+            
+            if (response.ok) {
+                // Store token and user info
+                setCookie('AuthToken', data.token, rememberMe ? 30 : 1);
+                localStorage.setItem('currentUser', data.user);
+                localStorage.setItem('userRole', data.role);
+                
+                document.getElementById('loadingModal').classList.add('hidden');
+                document.getElementById('authModal').classList.add('hidden');
+                document.getElementById('mainContent').classList.remove('hidden');
+                document.getElementById('usernameDisplay').textContent = data.user;
+                loadDashboard();
+                loadMembers(); // Load members after successful login
+                showNotification('Login successful!', 'success');
+            } else {
+                document.getElementById('loadingModal').classList.add('hidden');
+                showNotification(data.error || 'Login failed', 'error');
+            }
+        } catch (error) {
+            clearTimeout(serverWakeTimeout);
+            console.error('Login error:', error);
+            document.getElementById('loadingModal').classList.add('hidden');
+            showNotification('Login failed. Please try again later.', 'error');
+        }
+    } else {
+        showNotification('Please enter both username and password', 'warning');
+    }
+});
+
+		// Signup Button - WITH PROPER ERROR HANDLING (UPDATED FOR BLACKLIST)
+		document.getElementById('signupBtn').addEventListener('click', async function() {
+			const username = document.getElementById('signupUsername').value;
+			const email = document.getElementById('signupEmail').value;
+			const password = document.getElementById('signupPassword').value;
+			const confirmPassword = document.getElementById('confirmPassword').value;
+			
+			if (password !== confirmPassword) {
+				showNotification('Passwords do not match', 'warning');
+				return;
+			}
+			
+			if (username && password) {
+				showLoadingModal("Creating your account...");
+				
+				// Set a timeout to change the message if it takes too long
+				const serverWakeTimeout = setTimeout(() => {
+					document.getElementById('loadingText').textContent = "Waking the server...";
+				}, 7000);
+				
+				try {
+					const response = await fetch('https://proxyforsigmi.onrender.com/api/signup', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ username, password })
+					});
+					
+					clearTimeout(serverWakeTimeout);
+					
+					if (!response.ok) {
+						// Check if this is a blacklist error (403 status)
+						if (response.status === 403) {
+							const errorData = await response.json();
+							document.getElementById('loadingModal').classList.add('hidden');
+							
+							// Set blacklist cookie if provided by server
+							if (errorData.blacklistCookie) {
+								setCookie('blacklist', errorData.blacklistCookie, 365);
+							}
+							
+							showNotification(`Signup failed: ${errorData.error} - ${errorData.blacklistReason || ''}`, 'error', 10000);
+							return;
+						}
+						
+						const errorText = await response.text();
+						console.error('Server error response:', errorText);
+						document.getElementById('loadingModal').classList.add('hidden');
+						showNotification(`Signup failed: ${response.status} ${response.statusText}`, 'error');
+						return;
+					}
+					
+					// Check content type to ensure it's JSON
+					const contentType = response.headers.get('content-type');
+					if (!contentType || !contentType.includes('application/json')) {
+						const text = await response.text();
+						console.error('Non-JSON response:', text);
+						document.getElementById('loadingModal').classList.add('hidden');
+						showNotification('Server returned invalid response format', 'error');
+						return;
+					}
+					
+					const data = await response.json();
+					
+					// Store token and user info
+					setCookie('AuthToken', data.token, 30);
+					localStorage.setItem('currentUser', data.user);
+					localStorage.setItem('userRole', data.role);
+					
+					document.getElementById('loadingModal').classList.add('hidden');
+					document.getElementById('authModal').classList.add('hidden');
+					document.getElementById('mainContent').classList.remove('hidden');
+					document.getElementById('usernameDisplay').textContent = data.user;
+					loadDashboard();
+					loadMembers(); // Load members after successful signup
+					showNotification('Account created successfully!', 'success');
+					
+				} catch (error) {
+					clearTimeout(serverWakeTimeout);
+					console.error('Signup error:', error);
+					document.getElementById('loadingModal').classList.add('hidden');
+					showNotification('Signup failed. Please try again later.', 'error');
+				}
+			} else {
+				showNotification('Please fill in all required fields', 'warning');
+			}
+		});
+
+		// Sidebar Toggle
+		document.getElementById('sidebarToggle').addEventListener('click', function() {
+			document.getElementById('sidebar').classList.remove('-translate-x-full');
+		});
+
+		document.getElementById('closeSidebar').addEventListener('click', function() {
+			document.getElementById('sidebar').classList.add('-translate-x-full');
+		});
+
+		// Settings Button
+		document.getElementById('settingsBtn').addEventListener('click', function() {
+			window.location.href = 'settings.html';
+		});
+
+		// Floating Action Button
+		document.getElementById('fabBtn').addEventListener('click', function() {
+			showNotification('Coming soon! This feature is under development.', 'info');
+		});
+
+		// Handle 404 redirects
+		window.addEventListener('load', function() {
+			if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
+				const path = window.location.pathname.split('/').pop();
+				if (!Object.values(PAGE_MAPPING).includes(path) && path !== 'settings.html') {
+					showNotification('This website is currently in beta, so expect issues.', 'info');
+				}
+			}
+			
+			// Check for blacklist cookie on page load
+			checkBlacklistCookie();
+		});
 
         // Function to show loading modal (for initial login/signup)
         function showLoadingModal(message) {
@@ -919,6 +949,36 @@
             }
             document.getElementById('loadingModal').classList.remove('hidden');
         }
+
+			// Add this function to check for blacklist cookie
+			function checkBlacklistCookie() {
+				const blacklistCookie = getCookie('blacklist');
+				if (blacklistCookie) {
+					// If user has a blacklist cookie, check with server if it's valid
+					fetch('https://proxyforsigmi.onrender.com/api/check-blacklist-cookie', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({ blacklistCookie })
+					})
+					.then(response => response.json())
+					.then(data => {
+						if (data.blacklisted) {
+							// User is blacklisted, show message and prevent actions
+							showNotification(`Your account is blacklisted: ${data.blacklistReason}`, 'error', 10000);
+							// Disable login/signup forms
+							document.getElementById('loginBtn').disabled = true;
+							document.getElementById('signupBtn').disabled = true;
+							document.getElementById('loginBtn').textContent = 'Account Blacklisted';
+							document.getElementById('signupBtn').textContent = 'Account Blacklisted';
+						}
+					})
+					.catch(error => {
+						console.error('Error checking blacklist cookie:', error);
+					});
+				}
+			}
 
         // Function to verify token with server
         async function verifyToken(token) {
