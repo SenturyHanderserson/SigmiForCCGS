@@ -137,10 +137,6 @@
                 if (!response.ok) {
                     throw new Error('Invalid token');
                 }
-                return response.json();
-            })
-            .then(data => {
-                // Get user info to check role
                 return fetch('/api/user-info', {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -165,6 +161,7 @@
                 }
             })
             .catch(error => {
+                console.error('Authentication error:', error);
                 showMessage(error.message, 'error');
             });
         });
@@ -194,6 +191,7 @@
                 });
             })
             .catch(error => {
+                console.error('Error loading usernames:', error);
                 showMessage(error.message, 'error');
             });
         }
@@ -243,6 +241,7 @@
                 }
             })
             .catch(error => {
+                console.error('Error searching user:', error);
                 showMessage(error.message, 'error');
             });
         }
@@ -288,6 +287,7 @@
                 loadBlacklist();
             })
             .catch(error => {
+                console.error('Error toggling blacklist:', error);
                 showMessage(error.message, 'error');
             });
         }
@@ -328,6 +328,7 @@
                 }
             })
             .catch(error => {
+                console.error('Error loading blacklist:', error);
                 showMessage(error.message, 'error');
             });
         }
@@ -362,6 +363,7 @@
                 });
             })
             .catch(error => {
+                console.error('Error loading all users:', error);
                 showMessage(error.message, 'error');
             });
         }
