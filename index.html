@@ -1097,7 +1097,6 @@
             return section;
         }
 
-        // Load members function
 async function loadMembers() {
     try {
         const token = getCookie('AuthToken');
@@ -1126,12 +1125,26 @@ async function loadMembers() {
         const members = await res.json();
         const container = document.getElementById("membersList");
 
-        // ✅ Deduplicate users (by ID if available, else by username)
-        const uniqueMembers = Array.from(
-            new Map(
-                members.map(user => [user.id || user.username, user])
-            ).values()
-        );
+        // Step 1: Deduplicate by ID or username
+        const dedupedMembersMap = new Map();
+        members.forEach(user => {
+            const key = user.id || user.username;
+            if (!dedupedMembersMap.has(key)) {
+                dedupedMembersMap.set(key, []);
+            }
+            dedupedMembersMap.get(key).push(user);
+        });
+
+        // Step 2: If there are duplicates (same username), remove 1 random one
+        const uniqueMembers = [];
+        dedupedMembersMap.forEach(users => {
+            if (users.length > 1) {
+                // Pick a random one to remove
+                const removeIndex = Math.floor(Math.random() * users.length);
+                users.splice(removeIndex, 1);
+            }
+            uniqueMembers.push(...users);
+        });
 
         // Clear old content with a fade effect
         container.innerHTML = "";
@@ -1148,14 +1161,12 @@ async function loadMembers() {
                 `;
             } else {
                 uniqueMembers.forEach(user => {
-                    // initials for avatar
                     const initials = user.username
                         .split(" ")
                         .map(word => word[0].toUpperCase())
                         .join("")
                         .slice(0, 2);
 
-                    // Color based on role for consistency
                     let color = "bg-purple-600";
                     if (user.role === "Owner") color = "bg-red-600";
                     if (user.role === "Admin") color = "bg-blue-600";
@@ -1177,7 +1188,6 @@ async function loadMembers() {
                 });
             }
 
-            // Fade in the new content
             setTimeout(() => {
                 container.classList.remove("opacity-0");
                 container.classList.add("opacity-100");
