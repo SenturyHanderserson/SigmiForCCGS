@@ -182,309 +182,168 @@
     </div>
 
     <script>
-        // Initialize animations and icons
         AOS.init();
         feather.replace();
 
-        // Server URL
         const SERVER_URL = "https://proxyforsigmi.onrender.com";
 
-        // Function to check if user is logged in
-        function isLoggedIn() {
-            const token = getCookie('AuthToken');
-            const currentUser = localStorage.getItem('currentUser');
-            return !!(token && currentUser);
-        }
-
-        // Function to verify token with server
-        async function verifyToken(token) {
-            try {
-                const response = await fetch(`${SERVER_URL}/api/verify-token`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    return false;
-                }
-                
-                const data = await response.json();
-                return data.valid === true;
-            } catch (error) {
-                console.error('Token verification error:', error);
-                return false;
+        function getCookie(name){
+            const cookieName=name+"=";
+            const decodedCookie=decodeURIComponent(document.cookie);
+            const ca=decodedCookie.split(';');
+            for(let i=0;i<ca.length;i++){
+                let c=ca[i].trim();
+                if(c.indexOf(cookieName)===0) return c.substring(cookieName.length);
             }
+            return "";
         }
 
-        // Function to get user info
-        async function getUserInfo(token) {
-            try {
-                const response = await fetch(`${SERVER_URL}/api/user-info`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
+        function redirectToLogin(){window.location.href='https://senturyhanderserson.github.io/SigmiForCCGS/';}
+
+        async function verifyToken(token){
+            try{
+                const res=await fetch(`${SERVER_URL}/api/verify-token`,{
+                    headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'}
                 });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to get user info');
-                }
-                
-                return await response.json();
-            } catch (error) {
-                console.error('Get user info error:', error);
-                throw error;
-            }
+                if(!res.ok) return false;
+                const data=await res.json(); return data.valid===true;
+            }catch(e){console.error(e);return false;}
         }
 
-        // Check authentication status on page load
-        document.addEventListener('DOMContentLoaded', async function() {
-            const token = getCookie('AuthToken');
-            const currentUser = localStorage.getItem('currentUser');
-            
-            if (token && currentUser) {
-                // Show loading overlay while verifying token
-                document.getElementById('loadingOverlay').classList.remove('hidden');
-                
-                try {
-                    // Verify token with server
-                    const isValid = await verifyToken(token);
-                    
-                    if (!isValid) {
-                        // Token is invalid, show login modal
-                        showLoginModal();
-                        return;
-                    }
-                    
-                    // Get user info to check permissions
-                    const userInfo = await getUserInfo(token);
-                    
-                    // Check if user has admin permissions
-                    if (userInfo.role !== "Owner" && userInfo.role !== "Admin") {
-                        alert("Insufficient permissions. Only admins can access this page.");
-                        window.location.href = "https://senturyhanderserson.github.io/SigmiForCCGS/";
-                        return;
-                    }
-                    
-                    // Show user info
-                    document.getElementById('userInfo').classList.remove('hidden');
-                    document.getElementById('userUsername').textContent = userInfo.username;
-                    document.getElementById('userRole').textContent = userInfo.role;
-                    
-                    // Load users list
-                    loadUsersList();
-                    
-                } catch (error) {
-                    console.error('Authentication error:', error);
-                    showLoginModal();
-                } finally {
-                    document.getElementById('loadingOverlay').classList.add('hidden');
-                }
-            } else {
-                // No token found, show login modal
-                showLoginModal();
-            }
-        });
-
-        // Show login modal function
-        function showLoginModal() {
-            document.getElementById('loginModal').classList.add('active');
-        }
-
-        // Redirect to login page
-        function redirectToLogin() {
-            window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
-        }
-
-        // Load users list
-        async function loadUsersList() {
-            try {
-                const token = getCookie('AuthToken');
-                const response = await fetch(`${SERVER_URL}/api/users`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
+        async function getUserInfo(token){
+            try{
+                const res=await fetch(`${SERVER_URL}/api/user-info`,{
+                    headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'}
                 });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to load users');
-                }
-                
-                const users = await response.json();
-                const container = document.getElementById('usersList');
-                
-                if (users.length === 0) {
-                    container.innerHTML = '<p class="text-gray-400 text-center py-4">No users found</p>';
-                    return;
-                }
-                
-                container.innerHTML = users.map(user => `
+                if(!res.ok)throw new Error('Failed to get user info');
+                return await res.json();
+            }catch(e){console.error(e);throw e;}
+        }
+
+        async function loadUsersList(){
+            try{
+                const token=getCookie('AuthToken');
+                const res=await fetch(`${SERVER_URL}/api/users`,{
+                    headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'}
+                });
+                if(!res.ok)throw new Error('Failed to load users');
+                const users=await res.json();
+                const container=document.getElementById('usersList');
+                if(users.length===0){container.innerHTML='<p class="text-gray-400 text-center py-4">No users found</p>';return;}
+                container.innerHTML=users.map(user=>`
                     <div class="glassmorphism p-4 rounded-lg flex justify-between items-center">
                         <div>
                             <div class="flex items-center space-x-2">
                                 <span class="font-medium">${user.username}</span>
-                                <span class="user-status-badge ${user.blacklisted ? 'status-blacklisted' : 'status-clean'}">
-                                    ${user.blacklisted ? 'Blacklisted' : 'Clean'}
+                                <span class="user-status-badge ${user.blacklisted?'status-blacklisted':'status-clean'}">
+                                    ${user.blacklisted?'Blacklisted':'Clean'}
                                 </span>
                             </div>
                             <div class="text-sm text-gray-300">
-                                Role: ${user.role} • Joined: ${user.joined}
-                                ${user.blacklisted ? `• Reason: ${user.blacklistReason}` : ''}
+                                Role: ${user.role} • Joined: ${user.joined} ${user.blacklisted?`• Reason: ${user.blacklistReason}`:''}
                             </div>
                         </div>
                         <div class="flex space-x-2">
-                            ${user.blacklisted ? `
-                                <button onclick="unblacklistUser('${user.username}')" class="p-2 bg-green-600 hover:bg-green-700 rounded-lg">
-                                    <i data-feather="check-circle" class="w-4 h-4"></i>
-                                </button>
+                            ${user.blacklisted?`
+                            <button onclick="unblacklistUser('${user.username}')" 
+                                class="bg-green-600 hover:bg-green-700 text-white py-1 px-4 rounded-lg text-sm">
+                                Unblacklist
+                            </button>
                             ` : `
-                                <button onclick="showBlacklistForm('${user.username}')" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg">
-                                    <i data-feather="x-circle" class="w-4 h-4"></i>
-                                </button>
+                            <button onclick="blacklistAutofill('${user.username}')" 
+                                class="bg-red-600 hover:bg-red-700 text-white py-1 px-4 rounded-lg text-sm">
+                                Blacklist
+                            </button>
                             `}
                         </div>
                     </div>
                 `).join('');
-                
-                feather.replace();
-                
-            } catch (error) {
-                console.error('Failed to load users:', error);
-                document.getElementById('usersList').innerHTML = `
-                    <p class="text-red-300 text-center py-4">Error loading users: ${error.message}</p>
-                `;
+            }catch(e){
+                console.error('Error loading users:',e);
+                document.getElementById('usersList').innerHTML='<p class="text-red-400 text-center py-4">Failed to load users</p>';
             }
         }
 
-        // Show blacklist form with pre-filled username
-        function showBlacklistForm(username) {
-            document.getElementById('username').value = username;
+        // Autofill blacklist form with username
+        function blacklistAutofill(username){
+            document.getElementById('username').value=username;
             document.getElementById('reason').focus();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // Blacklist user
-        async function blacklistUser(username, reason) {
-            try {
-                const token = getCookie('AuthToken');
-                const response = await fetch(`${SERVER_URL}/api/blacklist/${username}`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ reason })
+        async function blacklistUser(username,reason){
+            try{
+                const token=getCookie('AuthToken');
+                const res=await fetch(`${SERVER_URL}/api/blacklist`,{
+                    method:'POST',
+                    headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+                    body:JSON.stringify({username,reason})
                 });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to blacklist user');
-                }
-                
-                const result = await response.json();
-                alert(`User ${username} has been blacklisted: ${result.blacklistReason}`);
-                
-                // Reload users list
+                if(!res.ok) throw new Error('Failed to blacklist user');
+                alert(`User ${username} blacklisted successfully`);
                 loadUsersList();
-                
-            } catch (error) {
-                console.error('Blacklist error:', error);
-                alert(`Error: ${error.message}`);
-            }
+            }catch(e){alert('Error: '+e.message);}
         }
 
         // Unblacklist user
-        async function unblacklistUser(username) {
-            if (!confirm(`Are you sure you want to unblacklist ${username}?`)) {
-                return;
-            }
-            
-            try {
-                const token = getCookie('AuthToken');
-                const response = await fetch(`${SERVER_URL}/api/unblacklist/${username}`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
+        async function unblacklistUser(username){
+            try{
+                const token=getCookie('AuthToken');
+                const res=await fetch(`${SERVER_URL}/api/unblacklist`,{
+                    method:'POST',
+                    headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+                    body:JSON.stringify({username})
                 });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to unblacklist user');
-                }
-                
-                alert(`User ${username} has been unblacklisted`);
-                
-                // Reload users list
+                if(!res.ok) throw new Error('Failed to unblacklist user');
+                alert(`User ${username} unblacklisted successfully`);
                 loadUsersList();
-                
-            } catch (error) {
-                console.error('Unblacklist error:', error);
-                alert(`Error: ${error.message}`);
-            }
+            }catch(e){alert('Error: '+e.message);}
         }
 
-        // Handle blacklist form submission
-        document.getElementById('blacklistForm').addEventListener('submit', function(e) {
+        // Event listeners
+        document.getElementById('blacklistForm').addEventListener('submit',function(e){
             e.preventDefault();
-            
-            const username = document.getElementById('username').value.trim();
-            const reason = document.getElementById('reason').value.trim();
-            
-            if (!username) {
-                alert('Please enter a username');
-                return;
+            const username=document.getElementById('username').value.trim();
+            const reason=document.getElementById('reason').value.trim();
+            if(username && reason){
+                blacklistUser(username,reason);
+                this.reset();
             }
-            
-            if (!reason) {
-                alert('Please enter a reason for blacklisting');
-                return;
-            }
-            
-            blacklistUser(username, reason);
-            
-            // Reset form
-            this.reset();
         });
 
-        // Refresh users list
-        document.getElementById('refreshUsers').addEventListener('click', function() {
-            loadUsersList();
+        document.getElementById('refreshUsers').addEventListener('click',loadUsersList);
+
+        document.getElementById('logoutButton').addEventListener('click',function(){
+            document.cookie="AuthToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            window.location.reload();
         });
 
-        // Logout button
-        document.getElementById('logoutButton').addEventListener('click', function() {
-            // Clear auth data
-            document.cookie = 'AuthToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-            localStorage.removeItem('currentUser');
-            
-            // Redirect to login
-            window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
-        });
+        // On load
+        window.addEventListener('load',async()=>{
+            const token=getCookie('AuthToken');
+            if(!token){document.getElementById('loadingOverlay').style.display='none';document.getElementById('loginModal').classList.add('active');return;}
+            const valid=await verifyToken(token);
+            if(!valid){document.getElementById('loadingOverlay').style.display='none';document.getElementById('loginModal').classList.add('active');return;}
 
-        // Cookie Functions
-        function getCookie(name) {
-            const cookieName = name + "=";
-            const decodedCookie = decodeURIComponent(document.cookie);
-            const cookieArray = decodedCookie.split(';');
-            
-            for(let i = 0; i < cookieArray.length; i++) {
-                let cookie = cookieArray[i];
-                while (cookie.charAt(0) === ' ') {
-                    cookie = cookie.substring(1);
+            try{
+                const user=await getUserInfo(token);
+                document.getElementById('userUsername').textContent=user.username;
+                document.getElementById('userRole').textContent=user.role;
+                document.getElementById('userInfo').classList.remove('hidden');
+
+                if(user.role!=='Owner' && user.role!=='Admin'){
+                    document.getElementById('blacklistForm').innerHTML='<p class="text-red-400">You do not have permission to manage the blacklist.</p>';
+                }else{
+                    loadUsersList();
                 }
-                if (cookie.indexOf(cookieName) === 0) {
-                    return cookie.substring(cookieName.length, cookie.length);
-                }
+            }catch(e){
+                console.error(e);
+                document.getElementById('loginModal').classList.add('active');
+            }finally{
+                document.getElementById('loadingOverlay').style.display='none';
             }
-            return "";
-        }
+        });
     </script>
 </body>
 </html>
