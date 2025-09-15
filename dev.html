@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blacklist Management</title>
+    <title>Admin Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
@@ -89,6 +89,56 @@
             background-color: #10b981;
             color: white;
         }
+        /* Modal styles for trolling options */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #6e3b9c 0%, #3b1d6c 50%, #1a0933 100%);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+        
+        .user-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.25rem;
+            transition: background-color 0.2s;
+        }
+        
+        .user-checkbox:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
     </style>
 </head>
 <body class="min-h-screen gradient-bg text-white font-sans">
@@ -99,7 +149,7 @@
                 <i data-feather="award" class="w-10 h-10 text-white"></i>
             </div>
             <h2 class="text-2xl font-bold mb-4">Authentication Required</h2>
-            <p class="text-gray-300 mb-6">You need to be logged in to access the blacklist management system.</p>
+            <p class="text-gray-300 mb-6">You need to be logged in to access the admin management system.</p>
             <button onclick="redirectToLogin()" class="bg-purple-600 hover:bg-purple-700 py-3 px-6 rounded-lg font-medium w-full mb-4">
                 Sign In
             </button>
@@ -115,13 +165,96 @@
         </div>
     </div>
 
+    <!-- Trolling Options Modals -->
+    <div id="broadcastModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Broadcast Message</h2>
+                <button onclick="closeModal('broadcastModal')" class="p-1 rounded-full hover:bg-purple-700">
+                    <i data-feather="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="mb-4">
+                <label for="broadcastMessage" class="block text-gray-300 mb-2">Message</label>
+                <textarea id="broadcastMessage" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="4" placeholder="Enter message to broadcast to all users"></textarea>
+            </div>
+            <div class="mb-4">
+                <label for="broadcastDuration" class="block text-gray-300 mb-2">Duration (hours)</label>
+                <select id="broadcastDuration" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <option value="1">1 hour</option>
+                    <option value="6">6 hours</option>
+                    <option value="24" selected>24 hours</option>
+                    <option value="72">72 hours</option>
+                    <option value="168">1 week</option>
+                </select>
+            </div>
+            <button onclick="sendBroadcast()" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-medium w-full">
+                Send Broadcast
+            </button>
+        </div>
+    </div>
+
+    <div id="specificMessageModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Send Specific Message</h2>
+                <button onclick="closeModal('specificMessageModal')" class="p-1 rounded-full hover:bg-purple-700">
+                    <i data-feather="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="mb-4">
+                <label for="specificMessage" class="block text-gray-300 mb-2">Message</label>
+                <textarea id="specificMessage" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="4" placeholder="Enter message to send to selected users"></textarea>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-300 mb-2">Select Recipients</label>
+                <div class="max-h-48 overflow-y-auto bg-gray-800 bg-opacity-50 rounded-lg p-2" id="recipientsList">
+                    <!-- Users will be populated here -->
+                </div>
+            </div>
+            <div class="flex space-x-2">
+                <button onclick="selectAllUsers()" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-medium flex-1">
+                    Select All
+                </button>
+                <button onclick="deselectAllUsers()" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-medium flex-1">
+                    Deselect All
+                </button>
+            </div>
+            <button onclick="sendSpecificMessage()" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-medium w-full mt-4">
+                Send Message
+            </button>
+        </div>
+    </div>
+
+    <div id="warnModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Warn User</h2>
+                <button onclick="closeModal('warnModal')" class="p-1 rounded-full hover:bg-purple-700">
+                    <i data-feather="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="mb-4">
+                <label for="warnUsername" class="block text-gray-300 mb-2">Username</label>
+                <input type="text" id="warnUsername" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter username to warn">
+            </div>
+            <div class="mb-4">
+                <label for="warnMessage" class="block text-gray-300 mb-2">Warning Message</label>
+                <textarea id="warnMessage" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="4" placeholder="Enter warning message"></textarea>
+            </div>
+            <button onclick="sendWarning()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-medium w-full">
+                Send Warning
+            </button>
+        </div>
+    </div>
+
     <!-- Main Container -->
     <div class="relative z-10 min-h-screen flex flex-col">
         <!-- Header -->
         <header class="glassmorphism p-4 shadow-lg">
             <div class="container mx-auto flex justify-between items-center">
                 <div class="flex items-center space-x-4">
-                    <h1 class="text-2xl font-bold">Blacklist Management</h1>
+                    <h1 class="text-2xl font-bold">Admin Management</h1>
                 </div>
                 <div class="flex items-center space-x-4">
                     <button id="logoutButton" class="p-2 rounded-full hover:bg-purple-700 transition">
@@ -145,6 +278,25 @@
                         <p class="text-gray-300">Role</p>
                         <p id="userRole" class="font-medium"></p>
                     </div>
+                </div>
+            </div>
+
+            <!-- Trolling Options -->
+            <div class="glassmorphism rounded-xl p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4">Admin Tools</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <button onclick="openModal('broadcastModal')" class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium flex flex-col items-center justify-center">
+                        <i data-feather="megaphone" class="w-8 h-8 mb-2"></i>
+                        <span>Broadcast Message</span>
+                    </button>
+                    <button onclick="openModal('specificMessageModal')" class="bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium flex flex-col items-center justify-center">
+                        <i data-feather="mail" class="w-8 h-8 mb-2"></i>
+                        <span>Specific Message</span>
+                    </button>
+                    <button onclick="openModal('warnModal')" class="bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-lg font-medium flex flex-col items-center justify-center">
+                        <i data-feather="alert-triangle" class="w-8 h-8 mb-2"></i>
+                        <span>Warn User</span>
+                    </button>
                 </div>
             </div>
 
@@ -182,168 +334,480 @@
     </div>
 
     <script>
+        // Initialize animations and icons
         AOS.init();
         feather.replace();
 
+        // Server URL
         const SERVER_URL = "https://proxyforsigmi.onrender.com";
 
-        function getCookie(name){
-            const cookieName=name+"=";
-            const decodedCookie=decodeURIComponent(document.cookie);
-            const ca=decodedCookie.split(';');
-            for(let i=0;i<ca.length;i++){
-                let c=ca[i].trim();
-                if(c.indexOf(cookieName)===0) return c.substring(cookieName.length);
+        // Function to check if user is logged in
+        function isLoggedIn() {
+            const token = getCookie('AuthToken');
+            const currentUser = localStorage.getItem('currentUser');
+            return !!(token && currentUser);
+        }
+
+        // Function to verify token with server
+        async function verifyToken(token) {
+            try {
+                const response = await fetch(`${SERVER_URL}/api/verify-token`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    return false;
+                }
+                
+                const data = await response.json();
+                return data.valid === true;
+            } catch (error) {
+                console.error('Token verification error:', error);
+                return false;
             }
-            return "";
         }
 
-        function redirectToLogin(){window.location.href='https://senturyhanderserson.github.io/SigmiForCCGS/';}
-
-        async function verifyToken(token){
-            try{
-                const res=await fetch(`${SERVER_URL}/api/verify-token`,{
-                    headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'}
+        // Function to get user info
+        async function getUserInfo(token) {
+            try {
+                const response = await fetch(`${SERVER_URL}/api/user-info`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
                 });
-                if(!res.ok) return false;
-                const data=await res.json(); return data.valid===true;
-            }catch(e){console.error(e);return false;}
+                
+                if (!response.ok) {
+                    throw new Error('Failed to get user info');
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Get user info error:', error);
+                throw error;
+            }
         }
 
-        async function getUserInfo(token){
-            try{
-                const res=await fetch(`${SERVER_URL}/api/user-info`,{
-                    headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'}
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+            
+            // If opening specific message modal, populate users list
+            if (modalId === 'specificMessageModal') {
+                populateRecipientsList();
+            }
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+        
+        // Populate recipients list for specific messages
+        function populateRecipientsList() {
+            const recipientsList = document.getElementById('recipientsList');
+            const users = JSON.parse(localStorage.getItem('allUsers') || '[]');
+            
+            recipientsList.innerHTML = '';
+            
+            users.forEach(user => {
+                const userDiv = document.createElement('div');
+                userDiv.className = 'user-checkbox';
+                userDiv.innerHTML = `
+                    <input type="checkbox" id="user-${user.username}" name="recipients" value="${user.username}" class="mr-2">
+                    <label for="user-${user.username}" class="cursor-pointer">${user.username} (${user.role})</label>
+                `;
+                recipientsList.appendChild(userDiv);
+            });
+        }
+        
+        // Select all users for messaging
+        function selectAllUsers() {
+            const checkboxes = document.querySelectorAll('input[name="recipients"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = true;
+            });
+        }
+        
+        // Deselect all users for messaging
+        function deselectAllUsers() {
+            const checkboxes = document.querySelectorAll('input[name="recipients"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        }
+        
+        // Send broadcast message
+        async function sendBroadcast() {
+            const message = document.getElementById('broadcastMessage').value.trim();
+            const duration = parseInt(document.getElementById('broadcastDuration').value);
+            
+            if (!message) {
+                alert('Please enter a message to broadcast');
+                return;
+            }
+            
+            try {
+                const token = getCookie('AuthToken');
+                const response = await fetch(`${SERVER_URL}/api/broadcast`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message, duration })
                 });
-                if(!res.ok)throw new Error('Failed to get user info');
-                return await res.json();
-            }catch(e){console.error(e);throw e;}
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to send broadcast');
+                }
+                
+                const result = await response.json();
+                alert(`Broadcast sent successfully! It will be active for ${duration} hours.`);
+                closeModal('broadcastModal');
+                document.getElementById('broadcastMessage').value = '';
+                
+            } catch (error) {
+                console.error('Broadcast error:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+        
+        // Send specific message to selected users
+        async function sendSpecificMessage() {
+            const message = document.getElementById('specificMessage').value.trim();
+            const checkboxes = document.querySelectorAll('input[name="recipients"]:checked');
+            const recipients = Array.from(checkboxes).map(cb => cb.value);
+            
+            if (!message) {
+                alert('Please enter a message to send');
+                return;
+            }
+            
+            if (recipients.length === 0) {
+                alert('Please select at least one recipient');
+                return;
+            }
+            
+            try {
+                const token = getCookie('AuthToken');
+                const response = await fetch(`${SERVER_URL}/api/send-message`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message, recipients })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to send message');
+                }
+                
+                const result = await response.json();
+                alert(`Message sent to ${recipients.length} user(s): "${message}"`);
+                closeModal('specificMessageModal');
+                document.getElementById('specificMessage').value = '';
+                deselectAllUsers();
+                
+            } catch (error) {
+                console.error('Message send error:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+        
+        // Send warning to a user
+        async function sendWarning() {
+            const username = document.getElementById('warnUsername').value.trim();
+            const warning = document.getElementById('warnMessage').value.trim();
+            
+            if (!username) {
+                alert('Please enter a username to warn');
+                return;
+            }
+            
+            try {
+                const token = getCookie('AuthToken');
+                const response = await fetch(`${SERVER_URL}/api/warn-user`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, warning })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to send warning');
+                }
+                
+                const result = await response.json();
+                alert(`Warning sent to ${username}: "${warning || 'You have been warned by an administrator.'}"`);
+                closeModal('warnModal');
+                document.getElementById('warnUsername').value = '';
+                document.getElementById('warnMessage').value = '';
+                
+            } catch (error) {
+                console.error('Warning error:', error);
+                alert(`Error: ${error.message}`);
+            }
         }
 
-        async function loadUsersList(){
-            try{
-                const token=getCookie('AuthToken');
-                const res=await fetch(`${SERVER_URL}/api/users`,{
-                    headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'}
+        // Check authentication status on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            const token = getCookie('AuthToken');
+            const currentUser = localStorage.getItem('currentUser');
+            
+            if (token && currentUser) {
+                // Show loading overlay while verifying token
+                document.getElementById('loadingOverlay').classList.remove('hidden');
+                
+                try {
+                    // Verify token with server
+                    const isValid = await verifyToken(token);
+                    
+                    if (!isValid) {
+                        // Token is invalid, show login modal
+                        showLoginModal();
+                        return;
+                    }
+                    
+                    // Get user info to check permissions
+                    const userInfo = await getUserInfo(token);
+                    
+                    // Check if user has admin permissions
+                    if (userInfo.role !== "Owner" && userInfo.role !== "Admin") {
+                        alert("Insufficient permissions. Only admins can access this page.");
+                        window.location.href = "https://senturyhanderserson.github.io/SigmiForCCGS/";
+                        return;
+                    }
+                    
+                    // Show user info
+                    document.getElementById('userInfo').classList.remove('hidden');
+                    document.getElementById('userUsername').textContent = userInfo.username;
+                    document.getElementById('userRole').textContent = userInfo.role;
+                    
+                    // Load users list
+                    loadUsersList();
+                    
+                } catch (error) {
+                    console.error('Authentication error:', error);
+                    showLoginModal();
+                } finally {
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                }
+            } else {
+                // No token found, show login modal
+                showLoginModal();
+            }
+        });
+
+        // Show login modal function
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.add('active');
+        }
+
+        // Redirect to login page
+        function redirectToLogin() {
+            window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
+        }
+
+        // Load users list
+        async function loadUsersList() {
+            try {
+                const token = getCookie('AuthToken');
+                const response = await fetch(`${SERVER_URL}/api/users`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
                 });
-                if(!res.ok)throw new Error('Failed to load users');
-                const users=await res.json();
-                const container=document.getElementById('usersList');
-                if(users.length===0){container.innerHTML='<p class="text-gray-400 text-center py-4">No users found</p>';return;}
-                container.innerHTML=users.map(user=>`
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load users');
+                }
+                
+                const users = await response.json();
+                
+                // Store users for use in the specific message modal
+                localStorage.setItem('allUsers', JSON.stringify(users));
+                
+                const container = document.getElementById('usersList');
+                
+                if (users.length === 0) {
+                    container.innerHTML = '<p class="text-gray-400 text-center py-4">No users found</p>';
+                    return;
+                }
+                
+                container.innerHTML = users.map(user => `
                     <div class="glassmorphism p-4 rounded-lg flex justify-between items-center">
                         <div>
                             <div class="flex items-center space-x-2">
                                 <span class="font-medium">${user.username}</span>
-                                <span class="user-status-badge ${user.blacklisted?'status-blacklisted':'status-clean'}">
-                                    ${user.blacklisted?'Blacklisted':'Clean'}
+                                <span class="user-status-badge ${user.blacklisted ? 'status-blacklisted' : 'status-clean'}">
+                                    ${user.blacklisted ? 'Blacklisted' : 'Clean'}
                                 </span>
                             </div>
                             <div class="text-sm text-gray-300">
-                                Role: ${user.role} • Joined: ${user.joined} ${user.blacklisted?`• Reason: ${user.blacklistReason}`:''}
+                                Role: ${user.role} • Joined: ${user.joined}
+                                ${user.blacklisted ? `• Reason: ${user.blacklistReason}` : ''}
                             </div>
                         </div>
                         <div class="flex space-x-2">
-                            ${user.blacklisted?`
-                            <button onclick="unblacklistUser('${user.username}')" 
-                                class="bg-green-600 hover:bg-green-700 text-white py-1 px-4 rounded-lg text-sm">
-                                Unblacklist
-                            </button>
+                            ${user.blacklisted ? `
+                                <button onclick="unblacklistUser('${user.username}')" class="p-2 bg-green-600 hover:bg-green-700 rounded-lg">
+                                    <i data-feather="check-circle" class="w-4 h-4"></i>
+                                </button>
                             ` : `
-                            <button onclick="blacklistAutofill('${user.username}')" 
-                                class="bg-red-600 hover:bg-red-700 text-white py-1 px-4 rounded-lg text-sm">
-                                Blacklist
-                            </button>
+                                <button onclick="showBlacklistForm('${user.username}')" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg">
+                                    <i data-feather="x-circle" class="w-4 h-4"></i>
+                                </button>
                             `}
                         </div>
                     </div>
                 `).join('');
-            }catch(e){
-                console.error('Error loading users:',e);
-                document.getElementById('usersList').innerHTML='<p class="text-red-400 text-center py-4">Failed to load users</p>';
+                
+                feather.replace();
+                
+            } catch (error) {
+                console.error('Failed to load users:', error);
+                document.getElementById('usersList').innerHTML = `
+                    <p class="text-red-300 text-center py-4">Error loading users: ${error.message}</p>
+                `;
             }
         }
 
-        // Autofill blacklist form with username
-        function blacklistAutofill(username){
-            document.getElementById('username').value=username;
+        // Show blacklist form with pre-filled username
+        function showBlacklistForm(username) {
+            document.getElementById('username').value = username;
             document.getElementById('reason').focus();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // Blacklist user
-        async function blacklistUser(username,reason){
-            try{
-                const token=getCookie('AuthToken');
-                const res=await fetch(`${SERVER_URL}/api/blacklist`,{
-                    method:'POST',
-                    headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
-                    body:JSON.stringify({username,reason})
+        async function blacklistUser(username, reason) {
+            try {
+                const token = getCookie('AuthToken');
+                const response = await fetch(`${SERVER_URL}/api/blacklist/${username}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ reason })
                 });
-                if(!res.ok) throw new Error('Failed to blacklist user');
-                alert(`User ${username} blacklisted successfully`);
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to blacklist user');
+                }
+                
+                const result = await response.json();
+                alert(`User ${username} has been blacklisted: ${result.blacklistReason}`);
+                
+                // Reload users list
                 loadUsersList();
-            }catch(e){alert('Error: '+e.message);}
+                
+            } catch (error) {
+                console.error('Blacklist error:', error);
+                alert(`Error: ${error.message}`);
+            }
         }
 
         // Unblacklist user
-        async function unblacklistUser(username){
-            try{
-                const token=getCookie('AuthToken');
-                const res=await fetch(`${SERVER_URL}/api/unblacklist`,{
-                    method:'POST',
-                    headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
-                    body:JSON.stringify({username})
+        async function unblacklistUser(username) {
+            if (!confirm(`Are you sure you want to unblacklist ${username}?`)) {
+                return;
+            }
+            
+            try {
+                const token = getCookie('AuthToken');
+                const response = await fetch(`${SERVER_URL}/api/unblacklist/${username}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
                 });
-                if(!res.ok) throw new Error('Failed to unblacklist user');
-                alert(`User ${username} unblacklisted successfully`);
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to unblacklist user');
+                }
+                
+                alert(`User ${username} has been unblacklisted`);
+                
+                // Reload users list
                 loadUsersList();
-            }catch(e){alert('Error: '+e.message);}
+                
+            } catch (error) {
+                console.error('Unblacklist error:', error);
+                alert(`Error: ${error.message}`);
+            }
         }
 
-        // Event listeners
-        document.getElementById('blacklistForm').addEventListener('submit',function(e){
+        // Handle blacklist form submission
+        document.getElementById('blacklistForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const username=document.getElementById('username').value.trim();
-            const reason=document.getElementById('reason').value.trim();
-            if(username && reason){
-                blacklistUser(username,reason);
-                this.reset();
+            
+            const username = document.getElementById('username').value.trim();
+            const reason = document.getElementById('reason').value.trim();
+            
+            if (!username) {
+                alert('Please enter a username');
+                return;
             }
+            
+            if (!reason) {
+                alert('Please enter a reason for blacklisting');
+                return;
+            }
+            
+            blacklistUser(username, reason);
+            
+            // Reset form
+            this.reset();
         });
 
-        document.getElementById('refreshUsers').addEventListener('click',loadUsersList);
-
-        document.getElementById('logoutButton').addEventListener('click',function(){
-            document.cookie="AuthToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            window.location.reload();
+        // Refresh users list
+        document.getElementById('refreshUsers').addEventListener('click', function() {
+            loadUsersList();
         });
 
-        // On load
-        window.addEventListener('load',async()=>{
-            const token=getCookie('AuthToken');
-            if(!token){document.getElementById('loadingOverlay').style.display='none';document.getElementById('loginModal').classList.add('active');return;}
-            const valid=await verifyToken(token);
-            if(!valid){document.getElementById('loadingOverlay').style.display='none';document.getElementById('loginModal').classList.add('active');return;}
+        // Logout button
+        document.getElementById('logoutButton').addEventListener('click', function() {
+            // Clear auth data
+            document.cookie = 'AuthToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            localStorage.removeItem('currentUser');
+            
+            // Redirect to login
+            window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
+        });
 
-            try{
-                const user=await getUserInfo(token);
-                document.getElementById('userUsername').textContent=user.username;
-                document.getElementById('userRole').textContent=user.role;
-                document.getElementById('userInfo').classList.remove('hidden');
-
-                if(user.role!=='Owner' && user.role!=='Admin'){
-                    document.getElementById('blacklistForm').innerHTML='<p class="text-red-400">You do not have permission to manage the blacklist.</p>';
-                }else{
-                    loadUsersList();
+        // Cookie Functions
+        function getCookie(name) {
+            const cookieName = name + "=";
+            const decodedCookie = decodeURIComponent(document.cookie);
+            const cookieArray = decodedCookie.split(';');
+            
+            for(let i = 0; i < cookieArray.length; i++) {
+                let cookie = cookieArray[i];
+                while (cookie.charAt(0) === ' ') {
+                    cookie = cookie.substring(1);
                 }
-            }catch(e){
-                console.error(e);
-                document.getElementById('loginModal').classList.add('active');
-            }finally{
-                document.getElementById('loadingOverlay').style.display='none';
+                if (cookie.indexOf(cookieName) === 0) {
+                    return cookie.substring(cookieName.length, cookie.length);
+                }
             }
-        });
+            return "";
+        }
     </script>
 </body>
 </html>
