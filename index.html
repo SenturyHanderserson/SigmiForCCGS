@@ -1415,26 +1415,21 @@ async function loadMembers() {
         const members = await res.json();
         const container = document.getElementById("membersList");
 
-        // Step 1: Deduplicate by ID or username
-        const dedupedMembersMap = new Map();
-        members.forEach(user => {
-            const key = user.id || user.username;
-            if (!dedupedMembersMap.has(key)) {
-                dedupedMembersMap.set(key, []);
+        // Proper deduplication
+        const seen = new Set();
+        const uniqueMembers = members.filter(user => {
+            const identifier = user.id || user.username;
+            if (seen.has(identifier)) {
+                return false;
             }
-            dedupedMembersMap.get(key).push(user);
+            seen.add(identifier);
+            return true;
         });
 
-        // Step 2: If there are duplicates (same username), remove 1 random one
-        const uniqueMembers = [];
-        dedupedMembersMap.forEach(users => {
-            if (users.length > 1) {
-                // Pick a random one to remove
-                const removeIndex = Math.floor(Math.random() * users.length);
-                users.splice(removeIndex, 1);
-            }
-            uniqueMembers.push(...users);
-        });
+        // Filter out deleted members
+        const activeMembers = uniqueMembers.filter(user => 
+            !user.deleted && !user.isDeleted && user.status !== 'deleted'
+        );
 
         // Clear old content with a fade effect
         container.innerHTML = "";
@@ -1442,7 +1437,7 @@ async function loadMembers() {
         container.classList.add("opacity-0");
 
         setTimeout(() => {
-            if (uniqueMembers.length === 0) {
+            if (activeMembers.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-8 text-gray-400">
                         <i data-feather="users" class="w-12 h-12 mx-auto mb-4"></i>
@@ -1450,7 +1445,7 @@ async function loadMembers() {
                     </div>
                 `;
             } else {
-                uniqueMembers.forEach(user => {
+                activeMembers.forEach(user => {
                     const initials = user.username
                         .split(" ")
                         .map(word => word[0].toUpperCase())
@@ -1481,7 +1476,7 @@ async function loadMembers() {
             setTimeout(() => {
                 container.classList.remove("opacity-0");
                 container.classList.add("opacity-100");
-                feather.replace(); // Refresh icons
+                feather.replace();
             }, 50);
 
         }, 100);
