@@ -615,7 +615,7 @@
             },
             {
                 id: 16,
-                title: "Five Nights At Freddy's 3",
+                title: "Five Nights at Freddy's 3",
                 description: "FNAF 3 in JS and HTML",
                 rating: 4.4,
                 category: ["horror", "strategy"],
@@ -625,7 +625,7 @@
             },
             {
                 id: 17,
-                title: "Five Nights At Freddy's 4",
+                title: "Five Nights at Freddy's 4",
                 description: "FNAF 4 in JS and HTML",
                 rating: 4.4,
                 category: ["horror", "strategy"],
@@ -918,7 +918,7 @@
                 title: "Crazy Cattle 3d",
                 description: "Crazy Cattle 3D is a wacky physics-based game where you wrangle, chase, and herd chaotic cows through obstacle-filled environments.",
                 rating: 4.7,
-                category: ["stratagy", "new"],
+                category: ["strategy", "new"],
                 image: "images/crazyCattle3d.png",
                 plays: 16000,
                 url: "https://crazycattle3d.github.io/"
@@ -1047,11 +1047,36 @@
             
             // Initialize the rest of the page
             createParticles();
+            
+            // Check for hash in URL and filter accordingly
+            checkUrlHash();
+            
             renderGames();
             setupPagination();
             setupSearch();
             setupSorting();
         });
+
+        // Function to check URL hash and filter games
+        function checkUrlHash() {
+            const hash = window.location.hash.substring(1); // Remove the # character
+            if (hash) {
+                // Find the button with the matching data-category
+                const categoryButton = document.querySelector(`[data-category="${hash}"]`);
+                if (categoryButton) {
+                    // Remove active class from all buttons
+                    document.querySelectorAll('.filter-chip').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    
+                    // Add active class to the matching button
+                    categoryButton.classList.add('active');
+                    
+                    // Filter games by the category
+                    filterGames(hash);
+                }
+            }
+        }
 
         // Show login modal function
         function showLoginModal() {
@@ -1117,9 +1142,20 @@
                 this.classList.add('active');
                 
                 const category = this.getAttribute('data-category');
+                
+                // Update URL hash
+                if (category === 'all') {
+                    window.location.hash = '';
+                } else {
+                    window.location.hash = category;
+                }
+                
                 filterGames(category);
             });
         });
+        
+        // Listen for hash changes
+        window.addEventListener('hashchange', checkUrlHash);
         
         // Pagination variables
         let currentPage = 1;
@@ -1327,5 +1363,3 @@
     </script>
 </body>
 </html>
-
-
