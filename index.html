@@ -11,6 +11,75 @@
     <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
 	<link class="favicon" rel="icon" type="image/x-icon" href="https://quiz-50.github.io/media/drive.ico">
     <style>
+        /* Theme Variables */
+        :root {
+            --bg-primary: #1a0933;
+            --bg-secondary: #3b1d6c;
+            --bg-tertiary: #6e3b9c;
+            --text-primary: #ffffff;
+            --text-secondary: #d8d8d8;
+            --accent-primary: #8e44ad;
+            --accent-secondary: #6c5ce7;
+            --glass-bg: rgba(92, 50, 168, 0.2);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Theme Classes */
+        .theme-dark {
+            --bg-primary: #1a0933;
+            --bg-secondary: #3b1d6c;
+            --bg-tertiary: #6e3b9c;
+            --text-primary: #ffffff;
+            --text-secondary: #d8d8d8;
+            --accent-primary: #8e44ad;
+            --accent-secondary: #6c5ce7;
+            --glass-bg: rgba(92, 50, 168, 0.2);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        .theme-light {
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #e9ecef;
+            --bg-tertiary: #dee2e6;
+            --text-primary: #212529;
+            --text-secondary: #495057;
+            --accent-primary: #6f42c1;
+            --accent-secondary: #6610f2;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(0, 0, 0, 0.1);
+        }
+
+        .theme-amoled {
+            --bg-primary: #000000;
+            --bg-secondary: #111111;
+            --bg-tertiary: #222222;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --accent-primary: #8e44ad;
+            --accent-secondary: #9b59b6;
+            --glass-bg: rgba(0, 0, 0, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.05);
+        }
+
+        .theme-purple {
+            --bg-primary: #1a0933;
+            --bg-secondary: #3b1d6c;
+            --bg-tertiary: #6e3b9c;
+            --text-primary: #ffffff;
+            --text-secondary: #d8d8d8;
+            --accent-primary: #8e44ad;
+            --accent-secondary: #6c5ce7;
+            --glass-bg: rgba(92, 50, 168, 0.3);
+            --glass-border: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Apply Theme Variables */
+        body {
+            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
+            color: var(--text-primary);
+            transition: background 0.5s ease, color 0.3s ease;
+        }
+
         #vanta-bg {
             position: fixed;
             top: 0;
@@ -21,18 +90,14 @@
         }
         
         .glass {
-            background: rgba(92, 50, 168, 0.2);
+            background: var(--glass-bg);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .gradient-bg {
-            background: linear-gradient(135deg, #6e3b9c 0%, #3b1d6c 50%, #1a0933 100%);
+            border: 1px solid var(--glass-border);
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #8e44ad 0%, #6c5ce7 100%);
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
             transition: all 0.3s ease;
         }
         
@@ -49,7 +114,7 @@
         .content-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-            border-color: rgba(255, 255, 255, 0.2);
+            border-color: var(--glass-border);
         }
         
         .opacity-0 { 
@@ -73,10 +138,10 @@
         }
         
         .notification {
-            background: rgba(92, 50, 168, 0.8);
+            background: var(--glass-bg);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
             border-radius: 0.5rem;
             padding: 1rem;
             margin-bottom: 0.5rem;
@@ -126,7 +191,7 @@
             width: 13px;
             height: 13px;
             border-radius: 50%;
-            background: #8e44ad;
+            background: var(--accent-primary);
             animation-timing-function: cubic-bezier(0, 1, 1, 0);
         }
         
@@ -153,11 +218,11 @@
         .section-selector:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-            border-color: rgba(255, 255, 255, 0.2);
+            border-color: var(--glass-border);
         }
         
         .section-selector.selected {
-            border: 2px solid rgba(142, 68, 173, 0.8);
+            border: 2px solid var(--accent-primary);
             box-shadow: 0 0 0 3px rgba(142, 68, 173, 0.3);
         }
         
@@ -594,95 +659,78 @@
     </div>
 
     <script>
-        // Initialize Vanta.js background
-        VANTA.GLOBE({
-            el: "#vanta-bg",
-            mouseControls: true,
-            touchControls: true,
-            gyroControls: false,
-            minHeight: 200.00,
-            minWidth: 200.00,
-            scale: 1.00,
-            scaleMobile: 1.00,
-            color: 0x8e44ad,
-            backgroundColor: 0x1a0933,
-            size: 0.8
-        });
-        
-        // Notification system
-        function showNotification(message, type = 'info', duration = 5000) {
-            const container = document.getElementById('notificationContainer');
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            
-            let icon = 'info';
-            if (type === 'error') icon = 'alert-triangle';
-            if (type === 'success') icon = 'check-circle';
-            if (type === 'warning') icon = 'alert-circle';
-            
-            notification.innerHTML = `
-                <div class="notification-icon">
-                    <i data-feather="${icon}"></i>
-                </div>
-                <div class="notification-content">
-                    ${message}
-                </div>
-                <div class="notification-close">
-                    <i data-feather="x"></i>
-                </div>
-            `;
-            
-            container.appendChild(notification);
-            feather.replace();
-            
-            // Auto-remove after duration
-            setTimeout(() => {
-                notification.classList.add('hidden');
-                setTimeout(() => {
-                    notification.remove();
-                }, 300);
-            }, duration);
-            
-            // Close button
-            notification.querySelector('.notification-close').addEventListener('click', () => {
-                notification.classList.add('hidden');
-                setTimeout(() => {
-                    notification.remove();
-                }, 300);
-            });
+        // Theme Management Functions
+        function getTheme() {
+            const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
+            return preferences.theme || 'dark';
         }
-        
-        // Page mapping for different content items
-        const PAGE_MAPPING = {
-            // Hacks pages
-           // 'roblox': 'roblox.html',
-            'minecraft': 'minecraft.html',
-            'blooket': 'blooket.html',
-           // 'mathsonline': 'mathsonline.html',
-			'autoclicker': 'Autoclicker.html',
+
+        function setTheme(theme) {
+            // Update the theme class on body
+            document.body.className = document.body.className.replace(/\btheme-\w+/g, '');
+            document.body.classList.add(`theme-${theme}`);
             
-            // Bypasses pages
-          //  'linewize': 'linewize.html',
-            //'vpn': 'vpn.html',
-            //'microsoft': 'microsoft.html',
-            //'admin': 'admin.html',
+            // Save to preferences
+            const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
+            preferences.theme = theme;
+            setCookie('UserPreferences', JSON.stringify(preferences), 365);
+        }
+
+        function applyThemeOnLoad() {
+            const theme = getTheme();
+            setTheme(theme);
+        }
+
+        // Initialize Vanta.js background with theme-specific colors
+        function initVantaBackground() {
+            const theme = getTheme();
+            let color, bgColor;
             
-            // Games pages
-            'arcade': 'maths.html',
-            'allgames': 'mathematics.html',
-            'strategy': 'mathematics.html#strategy',
-            'multiplayer': 'mathematics.html#multiplayer',
+            switch(theme) {
+                case 'light':
+                    color = 0x6f42c1;
+                    bgColor = 0xf8f9fa;
+                    break;
+                case 'amoled':
+                    color = 0x8e44ad;
+                    bgColor = 0x0;
+                    break;
+                case 'purple':
+                    color = 0x8e44ad;
+                    bgColor = 0x1a0933;
+                    break;
+                default: // dark
+                    color = 0x8e44ad;
+                    bgColor = 0x1a0933;
+            }
             
-            // External games pages
-           // 'external_roblox': 'external-roblox.html',
-         //   'external_minecraft': 'external-minecraft.html'
-        };
+            if (window.VANTA) {
+                VANTA.GLOBE({
+                    el: "#vanta-bg",
+                    mouseControls: true,
+                    touchControls: true,
+                    gyroControls: false,
+                    minHeight: 200.00,
+                    minWidth: 200.00,
+                    scale: 1.00,
+                    scaleMobile: 1.00,
+                    color: color,
+                    backgroundColor: bgColor,
+                    size: 0.8
+                });
+            }
+        }
 
         // Initialize AOS and Feather Icons
         document.addEventListener('DOMContentLoaded', function() {
             AOS.init();
             feather.replace();
-			checkBlacklistCookie();
+            
+            // Apply theme immediately on page load
+            applyThemeOnLoad();
+            initVantaBackground();
+            
+            checkBlacklistCookie();
             
             // Check if terms were accepted
             if (!getCookie('AcceptedTerms')) {
