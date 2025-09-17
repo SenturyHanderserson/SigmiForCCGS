@@ -13,27 +13,27 @@
     <style>
         /* Theme Variables */
         :root {
-            --bg-primary: #0a1931;
-            --bg-secondary: #1a3c6e;
-            --bg-tertiary: #2a5ca9;
+            --bg-primary: #1a0933;
+            --bg-secondary: #3b1d6c;
+            --bg-tertiary: #6e3b9c;
             --text-primary: #ffffff;
             --text-secondary: #d8d8d8;
-            --accent-primary: #2563eb;
-            --accent-secondary: #3b82f6;
-            --glass-bg: rgba(37, 99, 235, 0.2);
+            --accent-primary: #8e44ad;
+            --accent-secondary: #6c5ce7;
+            --glass-bg: rgba(92, 50, 168, 0.2);
             --glass-border: rgba(255, 255, 255, 0.1);
         }
 
         /* Theme Classes */
         .theme-dark {
-            --bg-primary: #0a1931;
-            --bg-secondary: #1a3c6e;
-            --bg-tertiary: #2a5ca9;
+            --bg-primary: #1a0933;
+            --bg-secondary: #3b1d6c;
+            --bg-tertiary: #6e3b9c;
             --text-primary: #ffffff;
             --text-secondary: #d8d8d8;
-            --accent-primary: #2563eb;
-            --accent-secondary: #3b82f6;
-            --glass-bg: rgba(37, 99, 235, 0.2);
+            --accent-primary: #8e44ad;
+            --accent-secondary: #6c5ce7;
+            --glass-bg: rgba(92, 50, 168, 0.2);
             --glass-border: rgba(255, 255, 255, 0.1);
         }
 
@@ -43,8 +43,8 @@
             --bg-tertiary: #dee2e6;
             --text-primary: #212529;
             --text-secondary: #495057;
-            --accent-primary: #2563eb;
-            --accent-secondary: #3b82f6;
+            --accent-primary: #6f42c1;
+            --accent-secondary: #6610f2;
             --glass-bg: rgba(255, 255, 255, 0.7);
             --glass-border: rgba(0, 0, 0, 0.1);
         }
@@ -55,21 +55,21 @@
             --bg-tertiary: #222222;
             --text-primary: #ffffff;
             --text-secondary: #cccccc;
-            --accent-primary: #2563eb;
-            --accent-secondary: #3b82f6;
+            --accent-primary: #8e44ad;
+            --accent-secondary: #9b59b6;
             --glass-bg: rgba(0, 0, 0, 0.8);
             --glass-border: rgba(255, 255, 255, 0.05);
         }
 
-        .theme-blue {
-            --bg-primary: #0a1931;
-            --bg-secondary: #1a3c6e;
-            --bg-tertiary: #2a5ca9;
+        .theme-purple {
+            --bg-primary: #1a0933;
+            --bg-secondary: #3b1d6c;
+            --bg-tertiary: #6e3b9c;
             --text-primary: #ffffff;
             --text-secondary: #d8d8d8;
-            --accent-primary: #2563eb;
-            --accent-secondary: #3b82f6;
-            --glass-bg: rgba(37, 99, 235, 0.3);
+            --accent-primary: #8e44ad;
+            --accent-secondary: #6c5ce7;
+            --glass-bg: rgba(92, 50, 168, 0.3);
             --glass-border: rgba(255, 255, 255, 0.15);
         }
 
@@ -94,7 +94,7 @@
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 10px 20px rgba(142, 68, 173, 0.3);
         }
 
         .btn-danger {
@@ -137,11 +137,11 @@
 
         .theme-preview.selected {
             border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 0 0 3px rgba(142, 68, 173, 0.3);
         }
 
         .theme-dark-preview {
-            background: linear-gradient(135deg, #2a5ca9 0%, #1a3c6e 50%, #0a1931 100%);
+            background: linear-gradient(135deg, #6e3b9c 0%, #3b1d6c 50%, #1a0933 100%);
         }
 
         .theme-light-preview {
@@ -152,8 +152,8 @@
             background: linear-gradient(135deg, #222222 0%, #111111 50%, #000000 100%);
         }
 
-        .theme-blue-preview {
-            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #1a3c6e 100%);
+        .theme-purple-preview {
+            background: linear-gradient(135deg, #8e44ad 0%, #6c5ce7 50%, #3b1d6c 100%);
         }
 
         .theme-name {
@@ -279,7 +279,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Account Info -->
                 <div class="lg:col-span-2">
-                    <div class="bg-blue-900 bg-opacity-50 rounded-xl p-6 mb-6">
+                    <div class="bg-purple-900 bg-opacity-50 rounded-xl p-6 mb-6">
                         <h2 class="text-xl font-semibold mb-4 flex items-center">
                             <i data-feather="user" class="w-5 h-5 mr-2"></i>
                             Account Information
@@ -288,13 +288,13 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                             <div>
                                 <label class="block mb-2 text-sm">Username</label>
-                                <div class="px-4 py-2 rounded-lg bg-blue-800 bg-opacity-50">
+                                <div class="px-4 py-2 rounded-lg bg-purple-800 bg-opacity-50">
                                     <span id="usernameInfo">Loading...</span>
                                 </div>
                             </div>
                             <div>
                                 <label class="block mb-2 text-sm">Member Since</label>
-                                <div class="px-4 py-2 rounded-lg bg-blue-800 bg-opacity-50">
+                                <div class="px-4 py-2 rounded-lg bg-purple-800 bg-opacity-50">
                                     <span id="joinDateInfo">Loading...</span>
                                 </div>
                             </div>
@@ -302,7 +302,7 @@
                         
                         <div class="mb-4">
                             <label class="block mb-2 text-sm">Email (optional)</label>
-                            <input type="email" id="emailInput" class="w-full px-4 py-2 rounded-lg bg-blue-800 bg-opacity-50 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Add your email">
+                            <input type="email" id="emailInput" class="w-full px-4 py-2 rounded-lg bg-purple-800 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Add your email">
                         </div>
                         
                         <button id="saveAccountBtn" class="btn-primary py-2 px-4 rounded-lg text-sm">
@@ -311,7 +311,7 @@
                     </div>
                     
                     <!-- Preferences -->
-                    <div class="bg-blue-900 bg-opacity-50 rounded-xl p-6">
+                    <div class="bg-purple-900 bg-opacity-50 rounded-xl p-6">
                         <h2 class="text-xl font-semibold mb-4 flex items-center">
                             <i data-feather="sliders" class="w-5 h-5 mr-2"></i>
                             Preferences
@@ -335,23 +335,23 @@
                                         <div class="theme-name">AMOLED</div>
                                     </div>
                                 </div>
-                                <div class="theme-option" data-theme="blue">
-                                    <div class="theme-preview theme-blue-preview">
-                                        <div class="theme-name">Blue</div>
+                                <div class="theme-option" data-theme="purple">
+                                    <div class="theme-preview theme-purple-preview">
+                                        <div class="theme-name">Purple</div>
                                     </div>
                                 </div>
                             </div>
-                            <select id="themeSelect" class="w-full px-4 py-2 rounded-lg bg-blue-800 bg-opacity-50 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 hidden">
+                            <select id="themeSelect" class="w-full px-4 py-2 rounded-lg bg-purple-800 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 hidden">
                                 <option value="dark">Dark (Default)</option>
                                 <option value="light">Light</option>
                                 <option value="amoled">AMOLED Black</option>
-                                <option value="blue">Blue Gradient</option>
+                                <option value="purple">Purple Gradient</option>
                             </select>
                         </div>
                         
                         <div class="mb-6">
                             <label class="block mb-2 text-sm">Dashboard Layout</label>
-                            <select id="layoutSelect" class="w-full px-4 py-2 rounded-lg bg-blue-800 bg-opacity-50 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <select id="layoutSelect" class="w-full px-4 py-2 rounded-lg bg-purple-800 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
                                 <option value="grid">Grid View</option>
                                 <option value="list">List View</option>
                                 <option value="compact">Compact View</option>
@@ -367,7 +367,7 @@
                 <!-- Danger Zone -->
                 <div>
                     <!-- Session Management -->
-                    <div class="bg-blue-900 bg-opacity-20 rounded-xl p-6 border border-blue-700 mb-6">
+                    <div class="bg-purple-900 bg-opacity-20 rounded-xl p-6 border border-purple-700 mb-6">
                         <h2 class="text-xl font-semibold mb-4 flex items-center">
                             <i data-feather="log-out" class="w-5 h-5 mr-2"></i>
                             Session
@@ -420,7 +420,7 @@
                             <h3 id="confirmTitle" class="text-xl font-bold mb-4">Confirm Action</h3>
                             <p id="confirmMessage" class="mb-6 text-gray-300">Are you sure you want to perform this action?</p>
                             <div class="flex gap-4">
-                                <button id="confirmCancel" class="flex-1 py-2 px-4 rounded-lg border border-blue-700 hover:bg-blue-800 hover:bg-opacity-50">
+                                <button id="confirmCancel" class="flex-1 py-2 px-4 rounded-lg border border-purple-700 hover:bg-purple-800 hover:bg-opacity-50">
                                     Cancel
                                 </button>
                                 <button id="confirmAction" class="flex-1 py-2 px-4 rounded-lg btn-danger">
