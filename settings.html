@@ -9,40 +9,167 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons"></script>
     <style>
+        /* Theme Variables */
+        :root {
+            --bg-primary: #1a0933;
+            --bg-secondary: #3b1d6c;
+            --bg-tertiary: #6e3b9c;
+            --text-primary: #ffffff;
+            --text-secondary: #d8d8d8;
+            --accent-primary: #8e44ad;
+            --accent-secondary: #6c5ce7;
+            --glass-bg: rgba(92, 50, 168, 0.2);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Theme Classes */
+        .theme-dark {
+            --bg-primary: #1a0933;
+            --bg-secondary: #3b1d6c;
+            --bg-tertiary: #6e3b9c;
+            --text-primary: #ffffff;
+            --text-secondary: #d8d8d8;
+            --accent-primary: #8e44ad;
+            --accent-secondary: #6c5ce7;
+            --glass-bg: rgba(92, 50, 168, 0.2);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        .theme-light {
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #e9ecef;
+            --bg-tertiary: #dee2e6;
+            --text-primary: #212529;
+            --text-secondary: #495057;
+            --accent-primary: #6f42c1;
+            --accent-secondary: #6610f2;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(0, 0, 0, 0.1);
+        }
+
+        .theme-amoled {
+            --bg-primary: #000000;
+            --bg-secondary: #111111;
+            --bg-tertiary: #222222;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --accent-primary: #8e44ad;
+            --accent-secondary: #9b59b6;
+            --glass-bg: rgba(0, 0, 0, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.05);
+        }
+
+        .theme-purple {
+            --bg-primary: #1a0933;
+            --bg-secondary: #3b1d6c;
+            --bg-tertiary: #6e3b9c;
+            --text-primary: #ffffff;
+            --text-secondary: #d8d8d8;
+            --accent-primary: #8e44ad;
+            --accent-secondary: #6c5ce7;
+            --glass-bg: rgba(92, 50, 168, 0.3);
+            --glass-border: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Apply Theme Variables */
+        body {
+            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
+            color: var(--text-primary);
+            transition: background 0.5s ease, color 0.3s ease;
+        }
+
         .glass {
-            background: rgba(92, 50, 168, 0.2);
+            background: var(--glass-bg);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
         }
-        .gradient-bg {
-            background: linear-gradient(135deg, #6e3b9c 0%, #3b1d6c 50%, #1a0933 100%);
-        }
+
         .btn-primary {
-            background: linear-gradient(135deg, #8e44ad 0%, #6c5ce7 100%);
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
             transition: all 0.3s ease;
         }
+
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(142, 68, 173, 0.3);
         }
+
         .btn-danger {
             background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
             transition: all 0.3s ease;
         }
+
         .btn-danger:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3);
         }
+
         .btn-secondary {
             background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
             transition: all 0.3s ease;
         }
+
         .btn-secondary:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(108, 117, 125, 0.3);
+        }
+        
+        /* Theme Preview Cards */
+        .theme-preview {
+            width: 100%;
+            height: 80px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .theme-preview:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .theme-preview.selected {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(142, 68, 173, 0.3);
+        }
+
+        .theme-dark-preview {
+            background: linear-gradient(135deg, #6e3b9c 0%, #3b1d6c 50%, #1a0933 100%);
+        }
+
+        .theme-light-preview {
+            background: linear-gradient(135deg, #dee2e6 0%, #e9ecef 50%, #f8f9fa 100%);
+        }
+
+        .theme-amoled-preview {
+            background: linear-gradient(135deg, #222222 0%, #111111 50%, #000000 100%);
+        }
+
+        .theme-purple-preview {
+            background: linear-gradient(135deg, #8e44ad 0%, #6c5ce7 50%, #3b1d6c 100%);
+        }
+
+        .theme-name {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 4px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .theme-light-preview .theme-name {
+            background: rgba(255, 255, 255, 0.8);
+            color: #000;
         }
         
         /* Loading overlay for main content */
@@ -74,7 +201,7 @@
             width: 13px;
             height: 13px;
             border-radius: 50%;
-            background: #8e44ad;
+            background: var(--accent-primary);
             animation-timing-function: cubic-bezier(0, 1, 1, 0);
         }
         .balls-loader div:nth-child(1) {
@@ -107,7 +234,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen gradient-bg text-white font-sans">
+<body class="min-h-screen text-white font-sans">
     <!-- Loading Overlay - For auto-login verification -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="glass rounded-xl p-8 max-w-md w-full mx-4 text-center">
@@ -192,7 +319,29 @@
                         
                         <div class="mb-6">
                             <label class="block mb-2 text-sm">Theme</label>
-                            <select id="themeSelect" class="w-full px-4 py-2 rounded-lg bg-purple-800 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                <div class="theme-option" data-theme="dark">
+                                    <div class="theme-preview theme-dark-preview selected">
+                                        <div class="theme-name">Dark</div>
+                                    </div>
+                                </div>
+                                <div class="theme-option" data-theme="light">
+                                    <div class="theme-preview theme-light-preview">
+                                        <div class="theme-name">Light</div>
+                                    </div>
+                                </div>
+                                <div class="theme-option" data-theme="amoled">
+                                    <div class="theme-preview theme-amoled-preview">
+                                        <div class="theme-name">AMOLED</div>
+                                    </div>
+                                </div>
+                                <div class="theme-option" data-theme="purple">
+                                    <div class="theme-preview theme-purple-preview">
+                                        <div class="theme-name">Purple</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <select id="themeSelect" class="w-full px-4 py-2 rounded-lg bg-purple-800 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 hidden">
                                 <option value="dark">Dark (Default)</option>
                                 <option value="light">Light</option>
                                 <option value="amoled">AMOLED Black</option>
@@ -286,6 +435,37 @@
     </main>
 
     <script>
+        // Theme Management Functions
+        function getTheme() {
+            const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
+            return preferences.theme || 'dark';
+        }
+
+        function setTheme(theme) {
+            // Update the theme class on body
+            document.body.className = document.body.className.replace(/\btheme-\w+/g, '');
+            document.body.classList.add(`theme-${theme}`);
+            
+            // Update the theme select dropdown
+            document.getElementById('themeSelect').value = theme;
+            
+            // Update the theme preview selection
+            document.querySelectorAll('.theme-preview').forEach(preview => {
+                preview.classList.remove('selected');
+            });
+            document.querySelector(`.theme-option[data-theme="${theme}"] .theme-preview`).classList.add('selected');
+            
+            // Save to preferences
+            const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
+            preferences.theme = theme;
+            setCookie('UserPreferences', JSON.stringify(preferences), 365);
+        }
+
+        function applyThemeOnLoad() {
+            const theme = getTheme();
+            setTheme(theme);
+        }
+
         // Cookie Functions
         function getCookie(name) {
             const cookieName = name + "=";
@@ -401,6 +581,17 @@
         document.addEventListener('DOMContentLoaded', function() {
             feather.replace();
             AOS.init();
+            
+            // Apply theme on page load
+            applyThemeOnLoad();
+            
+            // Theme selection handlers
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const theme = this.getAttribute('data-theme');
+                    setTheme(theme);
+                });
+            });
             
             // Check if user is already blacklisted
             if (checkBlacklisted()) {
