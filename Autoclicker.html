@@ -316,8 +316,8 @@
                     <div class="glassmorphism rounded-xl p-6 shadow-lg hover-scale" data-aos="fade-right" data-aos-delay="100">
                         <h2 class="text-xl font-semibold mb-4">Installation Instructions</h2>
                         <ol class="list-decimal list-inside space-y-3 text-gray-200">
-                            <li class="pl-2">Visit the official website using the download buttons on the right</li>
-                            <li class="pl-2">Download the python from the official source</li>
+                            <li class="pl-2">Visit the official website using the download buttons on the right (download the .py or python file)</li>
+                            <li class="pl-2">Download the python from the official source (run the installer and press install now and finish the install)</li>
                             <li class="pl-2">In the file directory, you'd want to open cmd prompt which can be done by right clicking on the background inside the folder where it is downloaded</li>
                             <li class="pl-2">Another way of doing this open command prompt and type: cd downloads      (assuming it is in your downloads folder)</li>
                             <li class="pl-2">Once in the directory, paste in the command (you must have python installed): pip install pyautogui keyboard</li>
@@ -351,6 +351,19 @@
                                     <i data-feather="external-link"></i>
                                 </div>
                             </div>
+
+							<div class="file-card glassmorphism p-4 rounded-lg flex justify-between items-center hover:bg-purple-700 transition cursor-pointer" 
+							     onclick="window.open('https://www.python.org/downloads/', '_blank')">
+							    <div>
+							        <h3 class="font-medium">Python Website</h3>
+							        <p class="text-sm text-gray-300">PY • Official Site</p>
+							    </div>
+							    <div class="download-icon transition">
+							        <i data-feather="external-link"></i>
+							    </div>
+							</div>
+
+							
 
 							<script>
 							const FILE_DOWNLOAD_PATH = "content/sigmaToilet.py"; // 
@@ -751,6 +764,7 @@
     </script>
 </body>
 </html>
+
 
 
 
