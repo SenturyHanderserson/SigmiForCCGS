@@ -9,167 +9,56 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
     <style>
-        /* Theme Variables */
-        :root {
-            --bg-primary: #1a0933;
-            --bg-secondary: #3b1d6c;
-            --bg-tertiary: #6e3b9c;
-            --text-primary: #ffffff;
-            --text-secondary: #d8d8d8;
-            --accent-primary: #8e44ad;
-            --accent-secondary: #6c5ce7;
-            --glass-bg: rgba(92, 50, 168, 0.2);
-            --glass-border: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Theme Classes */
-        .theme-dark {
-            --bg-primary: #1a0933;
-            --bg-secondary: #3b1d6c;
-            --bg-tertiary: #6e3b9c;
-            --text-primary: #ffffff;
-            --text-secondary: #d8d8d8;
-            --accent-primary: #8e44ad;
-            --accent-secondary: #6c5ce7;
-            --glass-bg: rgba(92, 50, 168, 0.2);
-            --glass-border: rgba(255, 255, 255, 0.1);
-        }
-
-        .theme-light {
-            --bg-primary: #f8f9fa;
-            --bg-secondary: #e9ecef;
-            --bg-tertiary: #dee2e6;
-            --text-primary: #212529;
-            --text-secondary: #495057;
-            --accent-primary: #6f42c1;
-            --accent-secondary: #6610f2;
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-border: rgba(0, 0, 0, 0.1);
-        }
-
-        .theme-amoled {
-            --bg-primary: #000000;
-            --bg-secondary: #111111;
-            --bg-tertiary: #222222;
-            --text-primary: #ffffff;
-            --text-secondary: #cccccc;
-            --accent-primary: #8e44ad;
-            --accent-secondary: #9b59b6;
-            --glass-bg: rgba(0, 0, 0, 0.8);
-            --glass-border: rgba(255, 255, 255, 0.05);
-        }
-
-        .theme-purple {
-            --bg-primary: #1a0933;
-            --bg-secondary: #3b1d6c;
-            --bg-tertiary: #6e3b9c;
-            --text-primary: #ffffff;
-            --text-secondary: #d8d8d8;
-            --accent-primary: #8e44ad;
-            --accent-secondary: #6c5ce7;
-            --glass-bg: rgba(92, 50, 168, 0.3);
-            --glass-border: rgba(255, 255, 255, 0.15);
-        }
-
-        /* Apply Theme Variables */
-        body {
-            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
-            color: var(--text-primary);
-            transition: background 0.5s ease, color 0.3s ease;
-        }
-
         .glass {
-            background: var(--glass-bg);
+            background: rgba(30, 58, 138, 0.2);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1e1b4b 100%);
+        }
         .btn-primary {
-            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             transition: all 0.3s ease;
         }
-
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(142, 68, 173, 0.3);
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
         }
-
         .btn-danger {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
             transition: all 0.3s ease;
         }
-
         .btn-danger:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3);
+            box-shadow: 0 10px 20px rgba(220, 38, 38, 0.3);
         }
-
         .btn-secondary {
-            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
             transition: all 0.3s ease;
         }
-
         .btn-secondary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(108, 117, 125, 0.3);
+            box-shadow: 0 10px 20px rgba(75, 85, 99, 0.3);
         }
         
-        /* Theme Preview Cards */
-        .theme-preview {
-            width: 100%;
-            height: 80px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            overflow: hidden;
-            position: relative;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
+        /* Card backgrounds */
+        .card-bg {
+            background: rgba(30, 58, 138, 0.3);
         }
-
-        .theme-preview:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        
+        /* Input styling */
+        .input-field {
+            background: rgba(30, 58, 138, 0.3);
+            border: 1px solid rgba(96, 165, 250, 0.3);
         }
-
-        .theme-preview.selected {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(142, 68, 173, 0.3);
-        }
-
-        .theme-dark-preview {
-            background: linear-gradient(135deg, #6e3b9c 0%, #3b1d6c 50%, #1a0933 100%);
-        }
-
-        .theme-light-preview {
-            background: linear-gradient(135deg, #dee2e6 0%, #e9ecef 50%, #f8f9fa 100%);
-        }
-
-        .theme-amoled-preview {
-            background: linear-gradient(135deg, #222222 0%, #111111 50%, #000000 100%);
-        }
-
-        .theme-purple-preview {
-            background: linear-gradient(135deg, #8e44ad 0%, #6c5ce7 50%, #3b1d6c 100%);
-        }
-
-        .theme-name {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 4px;
-            text-align: center;
-            font-size: 12px;
-        }
-
-        .theme-light-preview .theme-name {
-            background: rgba(255, 255, 255, 0.8);
-            color: #000;
+        .input-field:focus {
+            outline: none;
+            ring: 2px;
+            ring-color: rgba(96, 165, 250, 0.5);
         }
         
         /* Loading overlay for main content */
@@ -201,7 +90,7 @@
             width: 13px;
             height: 13px;
             border-radius: 50%;
-            background: var(--accent-primary);
+            background: #3b82f6;
             animation-timing-function: cubic-bezier(0, 1, 1, 0);
         }
         .balls-loader div:nth-child(1) {
@@ -234,7 +123,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen text-white font-sans">
+<body class="min-h-screen gradient-bg text-white font-sans">
     <!-- Loading Overlay - For auto-login verification -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="glass rounded-xl p-8 max-w-md w-full mx-4 text-center">
@@ -279,7 +168,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Account Info -->
                 <div class="lg:col-span-2">
-                    <div class="bg-purple-900 bg-opacity-50 rounded-xl p-6 mb-6">
+                    <div class="card-bg rounded-xl p-6 mb-6">
                         <h2 class="text-xl font-semibold mb-4 flex items-center">
                             <i data-feather="user" class="w-5 h-5 mr-2"></i>
                             Account Information
@@ -288,13 +177,13 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                             <div>
                                 <label class="block mb-2 text-sm">Username</label>
-                                <div class="px-4 py-2 rounded-lg bg-purple-800 bg-opacity-50">
+                                <div class="px-4 py-2 rounded-lg input-field">
                                     <span id="usernameInfo">Loading...</span>
                                 </div>
                             </div>
                             <div>
                                 <label class="block mb-2 text-sm">Member Since</label>
-                                <div class="px-4 py-2 rounded-lg bg-purple-800 bg-opacity-50">
+                                <div class="px-4 py-2 rounded-lg input-field">
                                     <span id="joinDateInfo">Loading...</span>
                                 </div>
                             </div>
@@ -302,7 +191,7 @@
                         
                         <div class="mb-4">
                             <label class="block mb-2 text-sm">Email (optional)</label>
-                            <input type="email" id="emailInput" class="w-full px-4 py-2 rounded-lg bg-purple-800 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Add your email">
+                            <input type="email" id="emailInput" class="w-full px-4 py-2 rounded-lg input-field focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Add your email">
                         </div>
                         
                         <button id="saveAccountBtn" class="btn-primary py-2 px-4 rounded-lg text-sm">
@@ -311,7 +200,7 @@
                     </div>
                     
                     <!-- Preferences -->
-                    <div class="bg-purple-900 bg-opacity-50 rounded-xl p-6">
+                    <div class="card-bg rounded-xl p-6">
                         <h2 class="text-xl font-semibold mb-4 flex items-center">
                             <i data-feather="sliders" class="w-5 h-5 mr-2"></i>
                             Preferences
@@ -319,39 +208,17 @@
                         
                         <div class="mb-6">
                             <label class="block mb-2 text-sm">Theme</label>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                                <div class="theme-option" data-theme="dark">
-                                    <div class="theme-preview theme-dark-preview selected">
-                                        <div class="theme-name">Dark</div>
-                                    </div>
-                                </div>
-                                <div class="theme-option" data-theme="light">
-                                    <div class="theme-preview theme-light-preview">
-                                        <div class="theme-name">Light</div>
-                                    </div>
-                                </div>
-                                <div class="theme-option" data-theme="amoled">
-                                    <div class="theme-preview theme-amoled-preview">
-                                        <div class="theme-name">AMOLED</div>
-                                    </div>
-                                </div>
-                                <div class="theme-option" data-theme="purple">
-                                    <div class="theme-preview theme-purple-preview">
-                                        <div class="theme-name">Purple</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <select id="themeSelect" class="w-full px-4 py-2 rounded-lg bg-purple-800 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 hidden">
+                            <select id="themeSelect" class="w-full px-4 py-2 rounded-lg input-field focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="dark">Dark (Default)</option>
                                 <option value="light">Light</option>
                                 <option value="amoled">AMOLED Black</option>
-                                <option value="purple">Purple Gradient</option>
+                                <option value="blue">Blue Gradient</option>
                             </select>
                         </div>
                         
                         <div class="mb-6">
                             <label class="block mb-2 text-sm">Dashboard Layout</label>
-                            <select id="layoutSelect" class="w-full px-4 py-2 rounded-lg bg-purple-800 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <select id="layoutSelect" class="w-full px-4 py-2 rounded-lg input-field focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="grid">Grid View</option>
                                 <option value="list">List View</option>
                                 <option value="compact">Compact View</option>
@@ -367,7 +234,7 @@
                 <!-- Danger Zone -->
                 <div>
                     <!-- Session Management -->
-                    <div class="bg-purple-900 bg-opacity-20 rounded-xl p-6 border border-purple-700 mb-6">
+                    <div class="card-bg rounded-xl p-6 border border-blue-700 mb-6">
                         <h2 class="text-xl font-semibold mb-4 flex items-center">
                             <i data-feather="log-out" class="w-5 h-5 mr-2"></i>
                             Session
@@ -420,7 +287,7 @@
                             <h3 id="confirmTitle" class="text-xl font-bold mb-4">Confirm Action</h3>
                             <p id="confirmMessage" class="mb-6 text-gray-300">Are you sure you want to perform this action?</p>
                             <div class="flex gap-4">
-                                <button id="confirmCancel" class="flex-1 py-2 px-4 rounded-lg border border-purple-700 hover:bg-purple-800 hover:bg-opacity-50">
+                                <button id="confirmCancel" class="flex-1 py-2 px-4 rounded-lg border border-blue-700 hover:bg-blue-800 hover:bg-opacity-50">
                                     Cancel
                                 </button>
                                 <button id="confirmAction" class="flex-1 py-2 px-4 rounded-lg btn-danger">
@@ -435,64 +302,23 @@
     </main>
 
     <script>
-// Cookie Functions - MOVE THESE TO THE TOP
-function getCookie(name) {
-    const cookieName = name + "=";
-    const decodedCookie = decodeURIComponent(document.cookie);
-    const cookieArray = decodedCookie.split(';');
-    
-    for(let i = 0; i < cookieArray.length; i++) {
-        let cookie = cookieArray[i];
-        while (cookie.charAt(0) === ' ') {
-            cookie = cookie.substring(1);
-        }
-        if (cookie.indexOf(cookieName) === 0) {
-            return cookie.substring(cookieName.length, cookie.length);
-        }
-    }
-    return "";
-}
-
-function setCookie(name, value, days) {
-    const date = new Date();
-    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-    const expires = "expires=" + date.toUTCString();
-    document.cookie = name + "=" + value + ";" + expires + ";path=/";
-}
-
-// Theme Management Functions - These should come AFTER the cookie functions
-function getTheme() {
-    const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
-    return preferences.theme || 'dark';
-}
-
-
-
-        function setTheme(theme) {
-            // Update the theme class on body
-            document.body.className = document.body.className.replace(/\btheme-\w+/g, '');
-            document.body.classList.add(`theme-${theme}`);
+        // Cookie Functions
+        function getCookie(name) {
+            const cookieName = name + "=";
+            const decodedCookie = decodeURIComponent(document.cookie);
+            const cookieArray = decodedCookie.split(';');
             
-            // Update the theme select dropdown
-            document.getElementById('themeSelect').value = theme;
-            
-            // Update the theme preview selection
-            document.querySelectorAll('.theme-preview').forEach(preview => {
-                preview.classList.remove('selected');
-            });
-            document.querySelector(`.theme-option[data-theme="${theme}"] .theme-preview`).classList.add('selected');
-            
-            // Save to preferences
-            const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
-            preferences.theme = theme;
-            setCookie('UserPreferences', JSON.stringify(preferences), 365);
+            for(let i = 0; i < cookieArray.length; i++) {
+                let cookie = cookieArray[i];
+                while (cookie.charAt(0) === ' ') {
+                    cookie = cookie.substring(1);
+                }
+                if (cookie.indexOf(cookieName) === 0) {
+                    return cookie.substring(cookieName.length, cookie.length);
+                }
+            }
+            return "";
         }
-
-        function applyThemeOnLoad() {
-            const theme = getTheme();
-            setTheme(theme);
-        }
-
         
         function setCookie(name, value, days) {
             const date = new Date();
@@ -591,17 +417,6 @@ function getTheme() {
         document.addEventListener('DOMContentLoaded', function() {
             feather.replace();
             AOS.init();
-            
-            // Apply theme on page load
-            applyThemeOnLoad();
-            
-            // Theme selection handlers
-            document.querySelectorAll('.theme-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    const theme = this.getAttribute('data-theme');
-                    setTheme(theme);
-                });
-            });
             
             // Check if user is already blacklisted
             if (checkBlacklisted()) {
