@@ -659,6 +659,7 @@
     </div>
 
     <script>
+const SERVER_URL = 'https://proxyforsigmi.onrender.com';
     function getCookie(name) {
         const cookieName = name + "=";
         const decodedCookie = decodeURIComponent(document.cookie);
@@ -746,6 +747,44 @@
             }
         }
 
+		// Add this function if it doesn't exist
+function showNotification(message, type = 'info', duration = 3000) {
+    const container = document.getElementById('notificationContainer');
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    
+    let icon = 'info';
+    if (type === 'success') icon = 'check-circle';
+    if (type === 'error') icon = 'alert-triangle';
+    if (type === 'warning') icon = 'alert-circle';
+    
+    notification.innerHTML = `
+        <div class="notification-icon">
+            <i data-feather="${icon}"></i>
+        </div>
+        <div class="notification-content">
+            ${message}
+        </div>
+        <div class="notification-close" onclick="this.parentElement.classList.add('hidden')">
+            <i data-feather="x"></i>
+        </div>
+    `;
+    
+    container.appendChild(notification);
+    feather.replace();
+    
+    // Auto remove after duration
+    setTimeout(() => {
+        notification.classList.add('hidden');
+        setTimeout(() => notification.remove(), 300);
+    }, duration);
+}
+
+// Add this function
+function closeWarningModal() {
+    document.getElementById('warningModal').classList.add('hidden');
+}
+		
         // Initialize AOS and Feather Icons
         document.addEventListener('DOMContentLoaded', function() {
             AOS.init();
@@ -753,7 +792,7 @@
             
             // Apply theme immediately on page load
             applyThemeOnLoad();
-            initVantaBackground();
+            setTimeout(initVantaBackground, 500);
             
             checkBlacklistCookie();
             
@@ -1059,6 +1098,38 @@
 			}
 		});
 
+		function isLoggedIn() {
+			    const token = getCookie('AuthToken');
+			    const currentUser = localStorage.getItem('currentUser');
+			    return !!(token && currentUser);
+			}
+
+			        // Page mapping for different content items
+        const PAGE_MAPPING = {
+            // Hacks pages
+           // 'roblox': 'roblox.html',
+            'minecraft': 'minecraft.html',
+            'blooket': 'blooket.html',
+           // 'mathsonline': 'mathsonline.html',
+			'autoclicker': 'Autoclicker.html',
+            
+            // Bypasses pages
+          //  'linewize': 'linewize.html',
+            //'vpn': 'vpn.html',
+            //'microsoft': 'microsoft.html',
+            //'admin': 'admin.html',
+            
+            // Games pages
+            'arcade': 'maths.html',
+            'allgames': 'mathematics.html',
+            'strategy': 'mathematics.html#strategy',
+            'multiplayer': 'mathematics.html#multiplayer',
+            
+            // External games pages
+           // 'external_roblox': 'external-roblox.html',
+         //   'external_minecraft': 'external-minecraft.html'
+        };
+			
 		// Sidebar Toggle
 		document.getElementById('sidebarToggle').addEventListener('click', function() {
 			document.getElementById('sidebar').classList.remove('-translate-x-full');
