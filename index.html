@@ -13,65 +13,66 @@
     <style>
         /* Theme Variables */
         :root {
-            --bg-primary: #1a0933;
-            --bg-secondary: #3b1d6c;
-            --bg-tertiary: #6e3b9c;
-            --text-primary: #ffffff;
-            --text-secondary: #d8d8d8;
-            --accent-primary: #8e44ad;
-            --accent-secondary: #6c5ce7;
-            --glass-bg: rgba(92, 50, 168, 0.2);
-            --glass-border: rgba(255, 255, 255, 0.1);
-        }
+    --bg-primary: #0a1931;
+    --bg-secondary: #1a3c6e;
+    --bg-tertiary: #2a5ca9;
+    --text-primary: #ffffff;
+    --text-secondary: #d8d8d8;
+    --accent-primary: #2563eb;
+    --accent-secondary: #3b82f6;
+    --glass-bg: rgba(37, 99, 235, 0.2);
+    --glass-border: rgba(255, 255, 255, 0.1);
+}
 
         /* Theme Classes */
-        .theme-dark {
-            --bg-primary: #1a0933;
-            --bg-secondary: #3b1d6c;
-            --bg-tertiary: #6e3b9c;
-            --text-primary: #ffffff;
-            --text-secondary: #d8d8d8;
-            --accent-primary: #8e44ad;
-            --accent-secondary: #6c5ce7;
-            --glass-bg: rgba(92, 50, 168, 0.2);
-            --glass-border: rgba(255, 255, 255, 0.1);
-        }
+.theme-dark {
+    --bg-primary: #0a1931;
+    --bg-secondary: #1a3c6e;
+    --bg-tertiary: #2a5ca9;
+    --text-primary: #ffffff;
+    --text-secondary: #d8d8d8;
+    --accent-primary: #2563eb;
+    --accent-secondary: #3b82f6;
+    --glass-bg: rgba(37, 99, 235, 0.2);
+    --glass-border: rgba(255, 255, 255, 0.1);
+}
+.theme-light {
+    --bg-primary: #f8f9fa;
+    --bg-secondary: #e9ecef;
+    --bg-tertiary: #dee2e6;
+    --text-primary: #212529;
+    --text-secondary: #495057;
+    --accent-primary: #2563eb;
+    --accent-secondary: #3b82f6;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(0, 0, 0, 0.1);
+}
 
-        .theme-light {
-            --bg-primary: #f8f9fa;
-            --bg-secondary: #e9ecef;
-            --bg-tertiary: #dee2e6;
-            --text-primary: #212529;
-            --text-secondary: #495057;
-            --accent-primary: #6f42c1;
-            --accent-secondary: #6610f2;
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-border: rgba(0, 0, 0, 0.1);
-        }
 
-        .theme-amoled {
-            --bg-primary: #000000;
-            --bg-secondary: #111111;
-            --bg-tertiary: #222222;
-            --text-primary: #ffffff;
-            --text-secondary: #cccccc;
-            --accent-primary: #8e44ad;
-            --accent-secondary: #9b59b6;
-            --glass-bg: rgba(0, 0, 0, 0.8);
-            --glass-border: rgba(255, 255, 255, 0.05);
-        }
+.theme-amoled {
+    --bg-primary: #000000;
+    --bg-secondary: #111111;
+    --bg-tertiary: #222222;
+    --text-primary: #ffffff;
+    --text-secondary: #cccccc;
+    --accent-primary: #2563eb;
+    --accent-secondary: #3b82f6;
+    --glass-bg: rgba(0, 0, 0, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.05);
+}
 
-        .theme-purple {
-            --bg-primary: #1a0933;
-            --bg-secondary: #3b1d6c;
-            --bg-tertiary: #6e3b9c;
-            --text-primary: #ffffff;
-            --text-secondary: #d8d8d8;
-            --accent-primary: #8e44ad;
-            --accent-secondary: #6c5ce7;
-            --glass-bg: rgba(92, 50, 168, 0.3);
-            --glass-border: rgba(255, 255, 255, 0.15);
-        }
+
+.theme-blue {
+    --bg-primary: #0a1931;
+    --bg-secondary: #1a3c6e;
+    --bg-tertiary: #2a5ca9;
+    --text-primary: #ffffff;
+    --text-secondary: #d8d8d8;
+    --accent-primary: #2563eb;
+    --accent-secondary: #3b82f6;
+    --glass-bg: rgba(37, 99, 235, 0.3);
+    --glass-border: rgba(255, 255, 255, 0.15);
+}
 
         /* Apply Theme Variables */
         body {
@@ -283,15 +284,15 @@
             border-radius: 10px;
         }
         
-        ::-webkit-scrollbar-thumb {
-            background: rgba(142, 68, 173, 0.6);
-            border-radius: 10px;
-        }
+		::-webkit-scrollbar-thumb {
+		    background: rgba(37, 99, 235, 0.6);
+		    border-radius: 10px;
+		}
         
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(142, 68, 173, 0.8);
-        }
-        
+		::-webkit-scrollbar-thumb:hover {
+		    background: rgba(37, 99, 235, 0.8);
+		}
+		        
         /* Floating action button */
         .fab {
             position: fixed;
@@ -344,7 +345,7 @@
                 </div>
                 <h2 class="text-xl font-bold">Important Announcement</h2>
             </div>
-            <button onclick="dismissBroadcast()" class="p-1 rounded-full hover:bg-purple-700">
+            <button onclick="dismissBroadcast()" class="p-1 rounded-full hover:bg-blue-700">
                 <i data-feather="x" class="w-5 h-5"></i>
             </button>
         </div>
@@ -353,7 +354,7 @@
             <span id="broadcastAuthor"></span>
             <span id="broadcastTime"></span>
         </div>
-        <button onclick="dismissBroadcast()" class="bg-purple-600 hover:bg-purple-700 py-2 px-6 rounded-lg font-medium w-full mt-4">
+        <button onclick="dismissBroadcast()" class="bg-blue-600 hover:bg-blue-700 py-2 px-6 rounded-lg font-medium w-full mt-4">
             Acknowledge
         </button>
     </div>
@@ -374,7 +375,7 @@
         </button>
     </div>
     <div class="mt-2 flex justify-end">
-        <button onclick="showBroadcastModal()" class="text-sm text-purple-300 hover:text-purple-100 mr-3">
+        <button onclick="showBroadcastModal()" class="text-sm text-blue-300 hover:text-purple-100 mr-3">
             View Details
         </button>
         <button onclick="dismissBroadcast()" class="text-sm text-gray-400 hover:text-white">
@@ -460,7 +461,7 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <!-- Hacks Section -->
-                <div class="content-card bg-purple-900 bg-opacity-50 rounded-xl p-6 cursor-pointer section-selector" data-section="hacks">
+				<div class="content-card bg-blue-900 bg-opacity-50 rounded-xl p-6 cursor-pointer section-selector" data-section="hacks">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center">
                             <i data-feather="code" class="w-6 h-6 mr-3"></i>
@@ -481,7 +482,7 @@
                 </div>
 
                 <!-- Bypasses Section -->
-                <div class="content-card bg-purple-900 bg-opacity-50 rounded-xl p-6 cursor-pointer section-selector" data-section="bypasses">
+                <div class="content-card bg-blue-900 bg-opacity-50 rounded-xl p-6 cursor-pointer section-selector" data-section="bypasses">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center">
                             <i data-feather="unlock" class="w-6 h-6 mr-3"></i>
@@ -501,7 +502,7 @@
                 </div>
 
                 <!-- Games Section -->
-                <div class="content-card bg-purple-900 bg-opacity-50 rounded-xl p-6 cursor-pointer section-selector" data-section="games">
+                <div class="content-card bg-blue-900 bg-opacity-50 rounded-xl p-6 cursor-pointer section-selector" data-section="games">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center">
                             <i data-feather="gamepad" class="w-6 h-6 mr-3"></i>
@@ -521,7 +522,7 @@
                 </div>
 
                 <!-- External Games Section -->
-                <div class="content-card bg-purple-900 bg-opacity-50 rounded-xl p-6 cursor-pointer section-selector" data-section="external">
+                <div class="content-card bg-blue-900 bg-opacity-50 rounded-xl p-6 cursor-pointer section-selector" data-section="external">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center">
                             <i data-feather="external-link" class="w-6 h-6 mr-3"></i>
@@ -556,11 +557,11 @@
             <div id="loginForm">
                 <div class="mb-4">
                     <label for="loginUsername" class="block mb-2">Username</label>
-                    <input type="text" id="loginUsername" class="w-full px-4 py-2 rounded-lg bg-purple-900 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <input type="text" id="loginUsername" class="w-full px-4 py-2 rounded-lg bg-blue-900 bg-opacity-50 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div class="mb-6">
                     <label for="loginPassword" class="block mb-2">Password</label>
-                    <input type="password" id="loginPassword" class="w-full px-4 py-2 rounded-lg bg-purple-900 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <input type="password" id="loginPassword" class="w-full px-4 py-2 rounded-lg bg-blue-900 bg-opacity-50 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div class="flex items-center mb-6">
                     <input type="checkbox" id="rememberMe" class="rounded text-purple-500">
@@ -569,30 +570,30 @@
                 <button id="loginBtn" class="btn-primary py-3 px-6 rounded-lg font-medium w-full mb-4">
                     Login
                 </button>
-                <p class="text-center text-gray-300">Don't have an account? <button id="switchToSignup" class="text-purple-300 hover:underline">Sign up</button></p>
+                <p class="text-center text-gray-300">Don't have an account? <button id="switchToSignup" class="text-blue-300 hover:underline">Sign up</button></p>
             </div>
             
             <div id="signupForm" class="hidden">
                 <div class="mb-4">
                     <label for="signupUsername" class="block mb-2">Username</label>
-                    <input type="text" id="signupUsername" class="w-full px-4 py-2 rounded-lg bg-purple-900 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <input type="text" id="signupUsername" class="w-full px-4 py-2 rounded-lg bg-blue-900 bg-opacity-50 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div class="mb-4">
                     <label for="signupEmail" class="block mb-2">Email (optional)</label>
-                    <input type="email" id="signupEmail" class="w-full px-4 py-2 rounded-lg bg-purple-900 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <input type="email" id="signupEmail" class="w-full px-4 py-2 rounded-lg bg-blue-900 bg-opacity-50 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div class="mb-4">
                     <label for="signupPassword" class="block mb-2">Password</label>
-                    <input type="password" id="signupPassword" class="w-full px-4 py-2 rounded-lg bg-purple-900 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <input type="password" id="signupPassword" class="w-full px-4 py-2 rounded-lg bg-blue-900 bg-opacity-50 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div class="mb-6">
                     <label for="confirmPassword" class="block mb-2">Confirm Password</label>
-                    <input type="password" id="confirmPassword" class="w-full px-4 py-2 rounded-lg bg-purple-900 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <input type="password" id="confirmPassword" class="w-full px-4 py-2 rounded-lg bg-blue-900 bg-opacity-50 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <button id="signupBtn" class="btn-primary py-3 px-6 rounded-lg font-medium w-full mb-4">
                     Sign Up
                 </button>
-                <p class="text-center text-gray-300">Already have an account? <button id="switchToLogin" class="text-purple-300 hover:underline">Login</button></p>
+                <p class="text-center text-gray-300">Already have an account? <button id="switchToLogin" class="text-blue-300 hover:underline">Login</button></p>
             </div>
         </div>
     </div>
@@ -613,12 +614,12 @@
                 </div>
                 <div class="flex items-center space-x-4">
                     <div class="relative hidden md:block">
-                        <input type="text" placeholder="Search..." class="px-4 py-2 rounded-full bg-purple-900 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 pl-10">
+                        <input type="text" placeholder="Search..." class="px-4 py-2 rounded-full bg-blue-900 bg-opacity-50 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 pl-10">
                         <i data-feather="search" class="absolute left-3 top-2.5 w-5 h-5 text-gray-400"></i>
                     </div>
                     <button id="settingsBtn" class="relative group">
                         <i data-feather="settings" class="w-6 h-6"></i>
-                        <span class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-purple-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <span class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-blue-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                             Settings
                         </span>
                     </button>
@@ -642,7 +643,7 @@
         <!-- Main Dashboard -->
         <main class="container mx-auto p-4 md:ml-64 mt-16">
             <div class="mb-8">
-                <h2 class="text-2xl font-bold mb-4">Welcome back, <span id="usernameDisplay" class="bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">User</span>!</h2>
+                <h2 class="text-2xl font-bold mb-4">Welcome back, <span id="usernameDisplay" class="bg-gradient-to-r from-blue-400 to-cyan-600 bg-clip-text text-transparent">User</span>
                 <p class="text-gray-300">Here's what's new since your last visit.</p>
             </div>
 
@@ -707,45 +708,44 @@ const SERVER_URL = 'https://proxyforsigmi.onrender.com';
             setTheme(theme);
         }
 
-        // Initialize Vanta.js background with theme-specific colors
-        function initVantaBackground() {
-            const theme = getTheme();
-            let color, bgColor;
-            
-            switch(theme) {
-                case 'light':
-                    color = 0x6f42c1;
-                    bgColor = 0xf8f9fa;
-                    break;
-                case 'amoled':
-                    color = 0x8e44ad;
-                    bgColor = 0x0;
-                    break;
-                case 'purple':
-                    color = 0x8e44ad;
-                    bgColor = 0x1a0933;
-                    break;
-                default: // dark
-                    color = 0x8e44ad;
-                    bgColor = 0x1a0933;
-            }
-            
-            if (window.VANTA) {
-                VANTA.GLOBE({
-                    el: "#vanta-bg",
-                    mouseControls: true,
-                    touchControls: true,
-                    gyroControls: false,
-                    minHeight: 200.00,
-                    minWidth: 200.00,
-                    scale: 1.00,
-                    scaleMobile: 1.00,
-                    color: color,
-                    backgroundColor: bgColor,
-                    size: 0.8
-                });
-            }
-        }
+	function initVantaBackground() {
+	    const theme = getTheme();
+	    let color, bgColor;
+	    
+	    switch(theme) {
+	        case 'light':
+	            color = 0x2563eb;
+	            bgColor = 0xf8f9fa;
+	            break;
+	        case 'amoled':
+	            color = 0x2563eb;
+	            bgColor = 0x0;
+	            break;
+	        case 'blue':
+	            color = 0x2563eb;
+	            bgColor = 0x0a1931;
+	            break;
+	        default: // dark
+	            color = 0x2563eb;
+	            bgColor = 0x0a1931;
+	    }
+	    
+	    if (window.VANTA) {
+	        VANTA.GLOBE({
+	            el: "#vanta-bg",
+	            mouseControls: true,
+	            touchControls: true,
+	            gyroControls: false,
+	            minHeight: 200.00,
+	            minWidth: 200.00,
+	            scale: 1.00,
+	            scaleMobile: 1.00,
+	            color: color,
+	            backgroundColor: bgColor,
+	            size: 0.8
+	        });
+	    }
+	}
 
 		// Add this function if it doesn't exist
 function showNotification(message, type = 'info', duration = 3000) {
@@ -1479,7 +1479,7 @@ window.addEventListener('beforeunload', () => {
                 card.innerHTML = `
                     <h3 class="text-xl font-semibold mb-2 capitalize">${item}</h3>
                     <p class="text-gray-300 mb-4">Click to access ${item} content</p>
-                    <div class="flex items-center text-purple-300">
+                    <div class="flex items-center text-blue-300">
                         <span>Open</span>
                         <i data-feather="arrow-right" class="w-4 h-4 ml-2"></i>
                     </div>
@@ -1578,12 +1578,12 @@ async function loadMembers() {
                         .join("")
                         .slice(0, 2);
 
-                    let color = "bg-purple-600";
+                    let color = "bg-blue-600";
                     if (user.role === "Owner") color = "bg-red-600";
                     if (user.role === "Admin") color = "bg-blue-600";
 
                     const memberDiv = document.createElement("div");
-                    memberDiv.className = "flex items-center p-3 rounded-lg hover:bg-purple-800 hover:bg-opacity-50 transition-colors duration-200";
+                    memberDiv.className = "flex items-center p-3 rounded-lg hover:bg-blue-800 hover:bg-opacity-50 transition-colors duration-200";
                     memberDiv.title = `Role: ${user.role} | Joined: ${user.joined || 'Unknown'}`;
 
                     memberDiv.innerHTML = `
@@ -1616,7 +1616,7 @@ async function loadMembers() {
                 <i data-feather="alert-triangle" class="w-12 h-12 mx-auto mb-4"></i>
                 <p class="font-medium">Failed to load members</p>
                 <p class="text-sm mt-2">${err.message}</p>
-                <button onclick="loadMembers()" class="mt-4 px-4 py-2 bg-purple-700 rounded-lg hover:bg-purple-600 transition-colors">
+                <button onclick="loadMembers()" class="mt-4 px-4 py-2 bg-blue-700 rounded-lg hover:bg-blue-600 transition-colors">
                     Try Again
                 </button>
             </div>
