@@ -37,17 +37,22 @@
 	            --glass-border: rgba(255, 255, 255, 0.1) !important;
 	        }
 	        
-	        .theme-light {
-	            --bg-primary: #f8f9fa !important;
-	            --bg-secondary: #e9ecef !important;
-	            --bg-tertiary: #dee2e6 !important;
-	            --text-primary: #212529 !important;   /* <-- dark gray (black-ish) */
-	            --text-secondary: #495057 !important; /* <-- softer gray */
-	            --accent-primary: #6f42c1 !important;
-	            --accent-secondary: #6610f2 !important;
-	            --glass-bg: rgba(255, 255, 255, 0.7) !important;
-	            --glass-border: rgba(0, 0, 0, 0.1) !important;
-	        }
+			.theme-light {
+			    --bg-primary: #f8f9fa !important;
+			    --bg-secondary: #e9ecef !important;
+			    --bg-tertiary: #dee2e6 !important;
+			    --text-primary: #212529 !important;   /* dark gray */
+			    --text-secondary: #495057 !important; /* softer gray */
+			    --accent-primary: #6f42c1 !important;
+			    --accent-secondary: #6610f2 !important;
+			    --glass-bg: rgba(255, 255, 255, 0.7) !important;
+			    --glass-border: rgba(0, 0, 0, 0.1) !important;
+			}
+			.theme-light, 
+			.theme-light * {
+			    color: var(--text-primary) !important;
+			}
+
 	        
 	        .theme-amoled {
 	            --bg-primary: #000000 !important;
