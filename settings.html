@@ -12,67 +12,89 @@
     <script src="https://cdn.jsdelivr.net/npm/feather-icons"></script>
     <style>
         /* Theme Variables */
-        /* Default theme applied to body */
-        body {
-            --bg-primary: #1a0933;
-            --bg-secondary: #3b1d6c;
-            --bg-tertiary: #6e3b9c;
-            --text-primary: #ffffff;
-            --text-secondary: #d8d8d8;
-            --accent-primary: #8e44ad;
-            --accent-secondary: #6c5ce7;
-            --glass-bg: rgba(92, 50, 168, 0.2);
-            --glass-border: rgba(255, 255, 255, 0.1);
-        }
+	        body {
+	            --bg-primary: #1a0933;
+	            --bg-secondary: #3b1d6c;
+	            --bg-tertiary: #6e3b9c;
+	            --text-primary: #ffffff;
+	            --text-secondary: #d8d8d8;
+	            --accent-primary: #8e44ad;
+	            --accent-secondary: #6c5ce7;
+	            --glass-bg: rgba(92, 50, 168, 0.2);
+	            --glass-border: rgba(255, 255, 255, 0.1);
+	        }
+	
+	                /* Theme Classes */
+	        .theme-dark {
+	            --bg-primary: #1a0933 !important;
+	            --bg-secondary: #3b1d6c !important;
+	            --bg-tertiary: #6e3b9c !important;
+	            --text-primary: #ffffff !important;
+	            --text-secondary: #d8d8d8 !important;
+	            --accent-primary: #8e44ad !important;
+	            --accent-secondary: #6c5ce7 !important;
+	            --glass-bg: rgba(92, 50, 168, 0.2) !important;
+	            --glass-border: rgba(255, 255, 255, 0.1) !important;
+	        }
+	        
+			.theme-light {
+			    --bg-primary: #f8f9fa !important;
+			    --bg-secondary: #e9ecef !important;
+			    --bg-tertiary: #dee2e6 !important;
+			
+			    --text-primary: #212529 !important;   
+			    --text-secondary: #495057 !important; 
+			
+			    --accent-primary: #6f42c1 !important;
+			    --accent-secondary: #6610f2 !important;
+			
+			    --glass-bg: rgba(255, 255, 255, 0.7) !important;
+			    --glass-border: rgba(0, 0, 0, 0.1) !important;
+			}
+			.theme-light p:not(.text-transparent),
+			.theme-light span:not(.text-transparent),
+			.theme-light h1:not(.text-transparent),
+			.theme-light h2:not(.text-transparent),
+			.theme-light h3:not(.text-transparent),
+			.theme-light h4:not(.text-transparent),
+			.theme-light h5:not(.text-transparent),
+			.theme-light h6:not(.text-transparent),
+			.theme-light li:not(.text-transparent),
+			.theme-light a:not(.text-transparent),
+			.theme-light div:not(.text-transparent) {
+			    color: var(--text-primary) !important;
+			}
+			.theme-light .text-secondary,
+			.theme-light small,
+			.theme-light .muted {
+			    color: var(--text-secondary) !important;
+			}
 
-                /* Theme Classes */
-        .theme-dark {
-            --bg-primary: #1a0933 !important;
-            --bg-secondary: #3b1d6c !important;
-            --bg-tertiary: #6e3b9c !important;
-            --text-primary: #ffffff !important;
-            --text-secondary: #d8d8d8 !important;
-            --accent-primary: #8e44ad !important;
-            --accent-secondary: #6c5ce7 !important;
-            --glass-bg: rgba(92, 50, 168, 0.2) !important;
-            --glass-border: rgba(255, 255, 255, 0.1) !important;
-        }
-        
-        .theme-light {
-            --bg-primary: #f8f9fa !important;
-            --bg-secondary: #e9ecef !important;
-            --bg-tertiary: #dee2e6 !important;
-            --text-primary: #212529 !important;   /* <-- dark gray (black-ish) */
-            --text-secondary: #495057 !important; /* <-- softer gray */
-            --accent-primary: #6f42c1 !important;
-            --accent-secondary: #6610f2 !important;
-            --glass-bg: rgba(255, 255, 255, 0.7) !important;
-            --glass-border: rgba(0, 0, 0, 0.1) !important;
-        }
-        
-        .theme-amoled {
-            --bg-primary: #000000 !important;
-            --bg-secondary: #111111 !important;
-            --bg-tertiary: #222222 !important;
-            --text-primary: #ffffff !important;
-            --text-secondary: #cccccc !important;
-            --accent-primary: #8e44ad !important;
-            --accent-secondary: #9b59b6 !important;
-            --glass-bg: rgba(0, 0, 0, 0.8) !important;
-            --glass-border: rgba(255, 255, 255, 0.05) !important;
-        }
-        
-        .theme-blue {
-            --bg-primary: #0a1931 !important;
-            --bg-secondary: #1a3c6e !important;
-            --bg-tertiary: #2a5ca9 !important;
-            --text-primary: #ffffff !important;
-            --text-secondary: #d8d8d8 !important;
-            --accent-primary: #2563eb !important;
-            --accent-secondary: #3b82f6 !important;
-            --glass-bg: rgba(37, 99, 235, 0.3) !important;
-            --glass-border: rgba(255, 255, 255, 0.15) !important;
-        }
+
+	        
+	        .theme-amoled {
+	            --bg-primary: #000000 !important;
+	            --bg-secondary: #111111 !important;
+	            --bg-tertiary: #222222 !important;
+	            --text-primary: #ffffff !important;
+	            --text-secondary: #cccccc !important;
+	            --accent-primary: #8e44ad !important;
+	            --accent-secondary: #9b59b6 !important;
+	            --glass-bg: rgba(0, 0, 0, 0.8) !important;
+	            --glass-border: rgba(255, 255, 255, 0.05) !important;
+	        }
+	        
+	        .theme-blue {
+	            --bg-primary: #0a1931 !important;
+	            --bg-secondary: #1a3c6e !important;
+	            --bg-tertiary: #2a5ca9 !important;
+	            --text-primary: #ffffff !important;
+	            --text-secondary: #d8d8d8 !important;
+	            --accent-primary: #2563eb !important;
+	            --accent-secondary: #3b82f6 !important;
+	            --glass-bg: rgba(37, 99, 235, 0.3) !important;
+	            --glass-border: rgba(255, 255, 255, 0.15) !important;
+	        }
 
         /* Apply Theme Variables */
         body {
