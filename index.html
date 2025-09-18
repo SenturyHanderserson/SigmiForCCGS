@@ -284,7 +284,16 @@
             z-index: 100;
             transition: opacity 0.3s ease;
         }
-        
+
+		.broadcast-toast {
+		    background: var(--glass-bg);
+		    backdrop-filter: blur(10px);
+		    -webkit-backdrop-filter: blur(10px);
+		    border: 1px solid var(--glass-border);
+		    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+		    max-width: 24rem;
+		}
+		        
         /* Pulse animation for new items */
         @keyframes pulse {
             0% { transform: scale(1); }
@@ -382,29 +391,6 @@
     </div>
 </div>
 
-<!-- Broadcast Toast -->
-<div id="broadcastToast" class="fixed bottom-4 right-4 glass p-4 rounded-lg max-w-md transform translate-y-20 transition-transform duration-300 z-[1000] hidden">
-    <div class="flex items-start">
-        <div class="mr-3 mt-0.5">
-            <i data-feather="megaphone" class="w-5 h-5 text-yellow-400"></i>
-        </div>
-        <div class="flex-1">
-            <h3 class="font-semibold mb-1">New Announcement</h3>
-            <p id="toastMessage" class="text-sm text-gray-300"></p>
-        </div>
-        <button onclick="hideBroadcastToast()" class="ml-3 text-gray-400 hover:text-white">
-            <i data-feather="x" class="w-4 h-4"></i>
-        </button>
-    </div>
-    <div class="mt-2 flex justify-end">
-        <button onclick="showBroadcastModal()" class="text-sm text-purple-300 hover:text-purple-100 mr-3">
-            View Details
-        </button>
-        <button onclick="dismissBroadcast()" class="text-sm text-gray-400 hover:text-white">
-            Dismiss
-        </button>
-    </div>
-</div>
 
     <!-- Loading Modal - For initial login/signup -->
     <div id="loadingModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
@@ -1201,8 +1187,7 @@ function closeWarningModal() {
             document.getElementById('loadingModal').classList.remove('hidden');
         }
 
-				// Broadcast system variables
-let currentBroadcast = null;
+let activeBroadcasts = [];
 let broadcastCheckInterval = null;
 
 // Function to check for new broadcasts
@@ -1229,26 +1214,64 @@ async function checkForBroadcasts() {
             // Get user's dismissed broadcasts from local storage
             const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
             
-            // Find the first undismissed broadcast
-            const newBroadcast = data.broadcasts.find(b => !dismissedBroadcasts.includes(b.id));
+            // Find ALL undismissed broadcasts (not just the first one)
+            const newBroadcasts = data.broadcasts.filter(b => 
+                !dismissedBroadcasts.includes(b.id) && 
+                !activeBroadcasts.some(ab => ab.id === b.id)
+            );
             
-            if (newBroadcast && newBroadcast.id !== currentBroadcast?.id) {
-                currentBroadcast = newBroadcast;
-                showBroadcastToast(newBroadcast);
-            }
+            // Add new broadcasts to active list
+            newBroadcasts.forEach(broadcast => {
+                activeBroadcasts.push(broadcast);
+                showBroadcastToast(broadcast);
+            });
         }
     } catch (error) {
         console.error('Error checking for broadcasts:', error);
     }
 }
+function createBroadcastToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'broadcastToastContainer';
+    container.className = 'fixed bottom-4 right-4 z-[1000] max-w-md';
+    document.body.appendChild(container);
+    return container;
+}
+
 
 // Function to show broadcast toast notification
 function showBroadcastToast(broadcast) {
-    const toast = document.getElementById('broadcastToast');
-    const toastMessage = document.getElementById('toastMessage');
+    const toastContainer = document.getElementById('broadcastToastContainer') || createBroadcastToastContainer();
     
-    toastMessage.textContent = truncateText(broadcast.message, 100);
-    toast.classList.remove('hidden');
+    const toast = document.createElement('div');
+    toast.className = 'broadcast-toast glass p-4 rounded-lg mb-2 transform translate-y-20 transition-transform duration-300';
+    toast.dataset.broadcastId = broadcast.id;
+    
+    toast.innerHTML = `
+        <div class="flex items-start">
+            <div class="mr-3 mt-0.5">
+                <i data-feather="megaphone" class="w-5 h-5 text-yellow-400"></i>
+            </div>
+            <div class="flex-1">
+                <h3 class="font-semibold mb-1">New Announcement</h3>
+                <p class="text-sm text-gray-300">${truncateText(broadcast.message, 100)}</p>
+            </div>
+            <button onclick="hideBroadcastToast('${broadcast.id}')" class="ml-3 text-gray-400 hover:text-white">
+                <i data-feather="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+        <div class="mt-2 flex justify-end">
+            <button onclick="showBroadcastModal('${broadcast.id}')" class="text-sm text-purple-300 hover:text-purple-100 mr-3">
+                View Details
+            </button>
+            <button onclick="dismissBroadcast('${broadcast.id}')" class="text-sm text-gray-400 hover:text-white">
+                Dismiss
+            </button>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    feather.replace();
     
     setTimeout(() => {
         toast.classList.remove('translate-y-20');
@@ -1257,46 +1280,49 @@ function showBroadcastToast(broadcast) {
     
     // Auto hide after 10 seconds
     setTimeout(() => {
-        hideBroadcastToast();
+        hideBroadcastToast(broadcast.id);
     }, 10000);
 }
-
 // Function to hide broadcast toast
-function hideBroadcastToast() {
-    const toast = document.getElementById('broadcastToast');
-    toast.classList.remove('translate-y-0');
-    toast.classList.add('translate-y-20');
-    
-    setTimeout(() => {
-        toast.classList.add('hidden');
-    }, 300);
+function hideBroadcastToast(broadcastId) {
+    const toast = document.querySelector(`.broadcast-toast[data-broadcast-id="${broadcastId}"]`);
+    if (toast) {
+        toast.classList.remove('translate-y-0');
+        toast.classList.add('translate-y-20');
+        
+        setTimeout(() => {
+            toast.remove();
+            // Remove from active broadcasts
+            activeBroadcasts = activeBroadcasts.filter(b => b.id !== broadcastId);
+        }, 300);
+    }
 }
-
 // Function to show broadcast modal
-function showBroadcastModal() {
-    if (!currentBroadcast) return;
+function showBroadcastModal(broadcastId) {
+    const broadcast = activeBroadcasts.find(b => b.id === broadcastId);
+    if (!broadcast) return;
     
     const modal = document.getElementById('broadcastModal');
     const message = document.getElementById('broadcastMessage');
     const author = document.getElementById('broadcastAuthor');
     const time = document.getElementById('broadcastTime');
     
-    message.textContent = currentBroadcast.message;
-    author.textContent = `From: ${currentBroadcast.createdBy}`;
-    time.textContent = formatTime(new Date(currentBroadcast.createdAt));
+    message.textContent = broadcast.message;
+    author.textContent = `From: ${broadcast.createdBy}`;
+    time.textContent = formatTime(new Date(broadcast.createdAt));
     
+    modal.dataset.broadcastId = broadcastId;
     modal.classList.remove('hidden');
-    hideBroadcastToast();
+    
+    // Hide the specific toast
+    hideBroadcastToast(broadcastId);
 }
 
-// Function to dismiss broadcast
-async function dismissBroadcast() {
-    if (!currentBroadcast) return;
-    
+async function dismissBroadcast(broadcastId) {
     try {
         const token = getCookie('AuthToken');
         if (token) {
-            await fetch(`${SERVER_URL}/api/broadcasts/${currentBroadcast.id}/dismiss`, {
+            await fetch(`${SERVER_URL}/api/broadcasts/${broadcastId}/dismiss`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -1307,19 +1333,70 @@ async function dismissBroadcast() {
         
         // Store dismissed broadcast in local storage
         const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
-        if (!dismissedBroadcasts.includes(currentBroadcast.id)) {
-            dismissedBroadcasts.push(currentBroadcast.id);
+        if (!dismissedBroadcasts.includes(broadcastId)) {
+            dismissedBroadcasts.push(broadcastId);
             localStorage.setItem('dismissedBroadcasts', JSON.stringify(dismissedBroadcasts));
         }
         
-        // Hide modals/toasts
-        document.getElementById('broadcastModal').classList.add('hidden');
-        hideBroadcastToast();
+        // Hide modal if it's for this broadcast
+        const modal = document.getElementById('broadcastModal');
+        if (modal.dataset.broadcastId === broadcastId) {
+            modal.classList.add('hidden');
+        }
         
-        currentBroadcast = null;
+        // Hide toast and remove from active broadcasts
+        hideBroadcastToast(broadcastId);
+        
     } catch (error) {
         console.error('Error dismissing broadcast:', error);
     }
+}
+
+
+let warningCheckInterval = null;
+
+// Function to check for warnings
+async function checkForWarnings() {
+    try {
+        const token = getCookie('AuthToken');
+        if (!token) return;
+        
+        const response = await fetch(`${SERVER_URL}/api/check-warnings`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            if (data.warning) {
+                showWarningModal(data.warning);
+            }
+        }
+    } catch (error) {
+        console.error('Error checking for warnings:', error);
+    }
+}
+
+// Function to show warning modal
+function showWarningModal(warningMessage) {
+    const modal = document.getElementById('warningModal');
+    const messageElement = document.getElementById('warningMessage');
+    
+    messageElement.textContent = warningMessage;
+    modal.classList.remove('hidden');
+}
+
+// Initialize warning system when user is authenticated
+function initWarningSystem() {
+    // Check for warnings immediately
+    checkForWarnings();
+    
+    // Set up periodic checking (every 5 minutes)
+    warningCheckInterval = setInterval(checkForWarnings, 5 * 60 * 1000);
 }
 
 // Helper function to truncate text
@@ -1346,15 +1423,18 @@ function initBroadcastSystem() {
 // After successful login, initialize the broadcast system
 if (isLoggedIn()) {
     initBroadcastSystem();
+	initWarningSystem();
 }
 
-// Clear interval when page is unloaded
+// Clear intervals when page is unloaded
 window.addEventListener('beforeunload', () => {
     if (broadcastCheckInterval) {
         clearInterval(broadcastCheckInterval);
     }
+    if (warningCheckInterval) {
+        clearInterval(warningCheckInterval);
+    }
 });
-
 			// Add this function to check for blacklist cookie
 			function checkBlacklistCookie() {
 				const blacklistCookie = getCookie('blacklist');
