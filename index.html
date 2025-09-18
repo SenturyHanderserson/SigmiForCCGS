@@ -51,30 +51,29 @@
 			    --glass-bg: rgba(255, 255, 255, 0.7) !important;
 			    --glass-border: rgba(0, 0, 0, 0.1) !important;
 			}
-			.theme-light p,
-			.theme-light span,
-			.theme-light h1,
-			.theme-light h2,
-			.theme-light h3,
-			.theme-light h4,
-			.theme-light h5,
-			.theme-light h6,
-			.theme-light li,
-			.theme-light a,
-			.theme-light div {
+			
+			/* Default text → black/grey, but NOT if it's transparent (gradient text) */
+			.theme-light p:not(.text-transparent),
+			.theme-light span:not(.text-transparent),
+			.theme-light h1:not(.text-transparent),
+			.theme-light h2:not(.text-transparent),
+			.theme-light h3:not(.text-transparent),
+			.theme-light h4:not(.text-transparent),
+			.theme-light h5:not(.text-transparent),
+			.theme-light h6:not(.text-transparent),
+			.theme-light li:not(.text-transparent),
+			.theme-light a:not(.text-transparent),
+			.theme-light div:not(.text-transparent) {
 			    color: var(--text-primary) !important;
 			}
+			
+			/* Secondary text */
 			.theme-light .text-secondary,
 			.theme-light small,
 			.theme-light .muted {
 			    color: var(--text-secondary) !important;
 			}
-			.theme-light .text-transparent,
-			.theme-light [class*="from-"],
-			.theme-light [class*="to-"],
-			.theme-light [class*="accent-"] {
-			    color: inherit !important;
-			}
+
 
 	        
 	        .theme-amoled {
