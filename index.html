@@ -42,8 +42,8 @@
 			    --bg-secondary: #e9ecef !important;
 			    --bg-tertiary: #dee2e6 !important;
 			
-			    --text-primary: #212529 !important;   /* dark gray */
-			    --text-secondary: #495057 !important; /* softer gray */
+			    --text-primary: #212529 !important;   
+			    --text-secondary: #495057 !important; 
 			
 			    --accent-primary: #6f42c1 !important;
 			    --accent-secondary: #6610f2 !important;
@@ -51,8 +51,6 @@
 			    --glass-bg: rgba(255, 255, 255, 0.7) !important;
 			    --glass-border: rgba(0, 0, 0, 0.1) !important;
 			}
-			
-			/* Default text → black/grey, but NOT if it's transparent (gradient text) */
 			.theme-light p:not(.text-transparent),
 			.theme-light span:not(.text-transparent),
 			.theme-light h1:not(.text-transparent),
@@ -66,8 +64,6 @@
 			.theme-light div:not(.text-transparent) {
 			    color: var(--text-primary) !important;
 			}
-			
-			/* Secondary text */
 			.theme-light .text-secondary,
 			.theme-light small,
 			.theme-light .muted {
@@ -101,7 +97,6 @@
 	        }
 
 
-        /* Apply Theme Variables */
         body {
             background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
             color: var(--text-primary);
