@@ -60,23 +60,18 @@
             --glass-bg: rgba(0, 0, 0, 0.8);
             --glass-border: rgba(255, 255, 255, 0.05);
         }
-
 		.theme-blue {
-		    --bg-primary: #0b1f4e;      /* deep navy blue */
-		    --bg-secondary: #1c3b7a;    /* medium dark blue */
-		    --bg-tertiary: #2a5fbf;     /* brighter blue for highlights */
-		
-		    /* Text */
-		    --text-primary: #e0e7ff;    /* very light blue, almost white */
-		    --text-secondary: #a5b8ff;  /* soft blue for secondary text */
-		
-		    /* Accents / Buttons */
-		    --accent-primary: #3b82f6;  /* bold blue for highlights */
-		    --accent-secondary: #60a5fa;/* lighter blue for secondary accents */
-		
-		    /* Glass / translucent elements */
-		    --glass-bg: rgba(59, 130, 246, 0.3);   /* soft blue glass effect */
-		    --glass-border: rgba(59, 130, 246, 0.15); /* subtle border for glass */
+		    --bg-primary: linear-gradient(135deg, #0b1f4e 0%, #1c3b7a 50%, #2a5fbf 100%);
+		    --bg-secondary: linear-gradient(135deg, #1c3b7a 0%, #2a5fbf 100%);
+		    --bg-tertiary: linear-gradient(135deg, #2a5fbf 0%, #3b82f6 100%);
+		    --text-primary: #e0e7ff;  
+		    --text-secondary: #a5b8ff; 
+		    --accent-primary: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+		    --accent-secondary: linear-gradient(135deg, #60a5fa 0%, #93c5fd 100%);
+		    --glass-bg: rgba(59, 130, 246, 0.25); 
+		    --glass-border: rgba(96, 165, 250, 0.3);
+		    --card-gradient: linear-gradient(135deg, #1c3b7a 0%, #2a5fbf 50%, #3b82f6 100%);
+		    --hover-gradient: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #60a5fa 100%);
 		}
 
 
