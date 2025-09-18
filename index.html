@@ -12,65 +12,66 @@
 	<link class="favicon" rel="icon" type="image/x-icon" href="https://quiz-50.github.io/media/drive.ico">
     <style>
         /* Theme Variables */
-        :root {
-            --bg-primary: #1a0933;
-            --bg-secondary: #3b1d6c;
-            --bg-tertiary: #6e3b9c;
-            --text-primary: #ffffff;
-            --text-secondary: #d8d8d8;
-            --accent-primary: #8e44ad;
-            --accent-secondary: #6c5ce7;
-            --glass-bg: rgba(92, 50, 168, 0.2);
-            --glass-border: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Theme Classes */
-        .theme-dark {
-            --bg-primary: #1a0933;
-            --bg-secondary: #3b1d6c;
-            --bg-tertiary: #6e3b9c;
-            --text-primary: #ffffff;
-            --text-secondary: #d8d8d8;
-            --accent-primary: #8e44ad;
-            --accent-secondary: #6c5ce7;
-            --glass-bg: rgba(92, 50, 168, 0.2);
-            --glass-border: rgba(255, 255, 255, 0.1);
-        }
-
-        .theme-light {
-            --bg-primary: #f8f9fa;
-            --bg-secondary: #e9ecef;
-            --bg-tertiary: #dee2e6;
-            --text-primary: #212529;
-            --text-secondary: #495057;
-            --accent-primary: #6f42c1;
-            --accent-secondary: #6610f2;
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-border: rgba(0, 0, 0, 0.1);
-        }
-
-        .theme-amoled {
-            --bg-primary: #000000;
-            --bg-secondary: #111111;
-            --bg-tertiary: #222222;
-            --text-primary: #ffffff;
-            --text-secondary: #cccccc;
-            --accent-primary: #8e44ad;
-            --accent-secondary: #9b59b6;
-            --glass-bg: rgba(0, 0, 0, 0.8);
-            --glass-border: rgba(255, 255, 255, 0.05);
-        }
-    .theme-blue {
-        --bg-primary: #0a1931;
-        --bg-secondary: #1a3c6e;
-        --bg-tertiary: #2a5ca9;
-        --text-primary: #ffffff;
-        --text-secondary: #d8d8d8;
-        --accent-primary: #2563eb;
-        --accent-secondary: #3b82f6;
-        --glass-bg: rgba(37, 99, 235, 0.3);
-        --glass-border: rgba(255, 255, 255, 0.15);
-    }
+	        body {
+	            --bg-primary: #1a0933;
+	            --bg-secondary: #3b1d6c;
+	            --bg-tertiary: #6e3b9c;
+	            --text-primary: #ffffff;
+	            --text-secondary: #d8d8d8;
+	            --accent-primary: #8e44ad;
+	            --accent-secondary: #6c5ce7;
+	            --glass-bg: rgba(92, 50, 168, 0.2);
+	            --glass-border: rgba(255, 255, 255, 0.1);
+	        }
+	
+	                /* Theme Classes */
+	        .theme-dark {
+	            --bg-primary: #1a0933 !important;
+	            --bg-secondary: #3b1d6c !important;
+	            --bg-tertiary: #6e3b9c !important;
+	            --text-primary: #ffffff !important;
+	            --text-secondary: #d8d8d8 !important;
+	            --accent-primary: #8e44ad !important;
+	            --accent-secondary: #6c5ce7 !important;
+	            --glass-bg: rgba(92, 50, 168, 0.2) !important;
+	            --glass-border: rgba(255, 255, 255, 0.1) !important;
+	        }
+	        
+	        .theme-light {
+	            --bg-primary: #f8f9fa !important;
+	            --bg-secondary: #e9ecef !important;
+	            --bg-tertiary: #dee2e6 !important;
+	            --text-primary: #212529 !important;   /* <-- dark gray (black-ish) */
+	            --text-secondary: #495057 !important; /* <-- softer gray */
+	            --accent-primary: #6f42c1 !important;
+	            --accent-secondary: #6610f2 !important;
+	            --glass-bg: rgba(255, 255, 255, 0.7) !important;
+	            --glass-border: rgba(0, 0, 0, 0.1) !important;
+	        }
+	        
+	        .theme-amoled {
+	            --bg-primary: #000000 !important;
+	            --bg-secondary: #111111 !important;
+	            --bg-tertiary: #222222 !important;
+	            --text-primary: #ffffff !important;
+	            --text-secondary: #cccccc !important;
+	            --accent-primary: #8e44ad !important;
+	            --accent-secondary: #9b59b6 !important;
+	            --glass-bg: rgba(0, 0, 0, 0.8) !important;
+	            --glass-border: rgba(255, 255, 255, 0.05) !important;
+	        }
+	        
+	        .theme-blue {
+	            --bg-primary: #0a1931 !important;
+	            --bg-secondary: #1a3c6e !important;
+	            --bg-tertiary: #2a5ca9 !important;
+	            --text-primary: #ffffff !important;
+	            --text-secondary: #d8d8d8 !important;
+	            --accent-primary: #2563eb !important;
+	            --accent-secondary: #3b82f6 !important;
+	            --glass-bg: rgba(37, 99, 235, 0.3) !important;
+	            --glass-border: rgba(255, 255, 255, 0.15) !important;
+	        }
 
 
         /* Apply Theme Variables */
@@ -707,45 +708,53 @@ const SERVER_URL = 'https://proxyforsigmi.onrender.com';
             setTheme(theme);
         }
 
-        // Initialize Vanta.js background with theme-specific colors
-        function initVantaBackground() {
-            const theme = getTheme();
-            let color, bgColor;
-            
-            switch(theme) {
-                case 'light':
-                    color = 0x6f42c1;
-                    bgColor = 0xf8f9fa;
-                    break;
-                case 'amoled':
-                    color = 0x8e44ad;
-                    bgColor = 0x0;
-                    break;
-                case 'purple':
-                    color = 0x8e44ad;
-                    bgColor = 0x1a0933;
-                    break;
-                default: // dark
-                    color = 0x8e44ad;
-                    bgColor = 0x1a0933;
-            }
-            
-            if (window.VANTA) {
-                VANTA.GLOBE({
-                    el: "#vanta-bg",
-                    mouseControls: true,
-                    touchControls: true,
-                    gyroControls: false,
-                    minHeight: 200.00,
-                    minWidth: 200.00,
-                    scale: 1.00,
-                    scaleMobile: 1.00,
-                    color: color,
-                    backgroundColor: bgColor,
-                    size: 0.8
-                });
-            }
-        }
+	function initVantaBackground() {
+	    const theme = getTheme();
+	    let color, bgColor;
+	    
+	    switch(theme) {
+	        case 'light':
+	            color = 0x6f42c1;
+	            bgColor = 0xf8f9fa;
+	            break;
+	        case 'amoled':
+	            color = 0x8e44ad;
+	            bgColor = 0x0;
+	            break;
+	        case 'blue':
+	            color = 0x2563eb;
+	            bgColor = 0x0a1931;
+	            break;
+	        case 'purple':
+	            color = 0x8e44ad;
+	            bgColor = 0x1a0933;
+	            break;
+	        default: // dark
+	            color = 0x8e44ad;
+	            bgColor = 0x1a0933;
+	    }
+	    
+	    if (window.VANTA) {
+	        // Destroy existing instance if any
+	        if (window.vantaEffect) {
+	            window.vantaEffect.destroy();
+	        }
+	        
+	        window.vantaEffect = VANTA.GLOBE({
+	            el: "#vanta-bg",
+	            mouseControls: true,
+	            touchControls: true,
+	            gyroControls: false,
+	            minHeight: 200.00,
+	            minWidth: 200.00,
+	            scale: 1.00,
+	            scaleMobile: 1.00,
+	            color: color,
+	            backgroundColor: bgColor,
+	            size: 0.8
+	        });
+	    }
+	}
 
 		// Add this function if it doesn't exist
 function showNotification(message, type = 'info', duration = 3000) {
