@@ -41,16 +41,39 @@
 			    --bg-primary: #f8f9fa !important;
 			    --bg-secondary: #e9ecef !important;
 			    --bg-tertiary: #dee2e6 !important;
+			
 			    --text-primary: #212529 !important;   /* dark gray */
 			    --text-secondary: #495057 !important; /* softer gray */
+			
 			    --accent-primary: #6f42c1 !important;
 			    --accent-secondary: #6610f2 !important;
+			
 			    --glass-bg: rgba(255, 255, 255, 0.7) !important;
 			    --glass-border: rgba(0, 0, 0, 0.1) !important;
 			}
-			.theme-light, 
-			.theme-light * {
+			.theme-light p,
+			.theme-light span,
+			.theme-light h1,
+			.theme-light h2,
+			.theme-light h3,
+			.theme-light h4,
+			.theme-light h5,
+			.theme-light h6,
+			.theme-light li,
+			.theme-light a,
+			.theme-light div {
 			    color: var(--text-primary) !important;
+			}
+			.theme-light .text-secondary,
+			.theme-light small,
+			.theme-light .muted {
+			    color: var(--text-secondary) !important;
+			}
+			.theme-light .text-transparent,
+			.theme-light [class*="from-"],
+			.theme-light [class*="to-"],
+			.theme-light [class*="accent-"] {
+			    color: inherit !important;
 			}
 
 	        
