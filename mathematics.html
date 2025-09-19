@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sigmi Arcade - All Games</title>
+    <title>mathsonline - Google Search</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
@@ -554,7 +554,6 @@
     </footer>
 
     <script>
-        // Theme Management Functions
         function getCookie(name) {
             const cookieName = name + "=";
             const decodedCookie = decodeURIComponent(document.cookie);
@@ -651,7 +650,7 @@
             }
         }
 
-        // Game data - Updated with accurate categories and play counts
+        // Game data (unchanged)
         const gamesData = [
             {
                 id: 1,
@@ -1145,59 +1144,27 @@
             }
         ];
 
+        // Global variables to track filtering state
+        let currentFilter = 'all';
+        let currentSort = 'popular';
+        let filteredGames = [...gamesData];
+        
         // Initialize Vanta.js background
-        function initVantaBackground() {
-            if (window.VANTA) {
-                // Destroy existing instance if any
-                if (window.vantaEffect) {
-                    window.vantaEffect.destroy();
-                }
-                
-                window.vantaEffect = VANTA.GLOBE({
-                    el: "#vanta-bg",
-                    mouseControls: true,
-                    touchControls: true,
-                    gyroControls: false,
-                    minHeight: 200.00,
-                    minWidth: 200.00,
-                    scale: 1.00,
-                    scaleMobile: 1.00,
-                    color: 0x8e44ad,
-                    backgroundColor: 0x1a0933,
-                    size: 0.8
-                });
-            } else {
-                // If VANTA is not loaded, try again after a delay
-                setTimeout(initVantaBackground, 500);
-            }
-        }
+        initVantaBackground();
         
         // Initialize AOS
-        function initAOS() {
-            if (window.AOS) {
-                AOS.init({
-                    duration: 800,
-                    easing: 'ease-in-out',
-                    once: false
-                });
-            } else {
-                setTimeout(initAOS, 500);
-            }
-        }
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: false
+        });
         
         // Initialize Feather Icons
-        function initFeatherIcons() {
-            if (window.feather) {
-                feather.replace();
-            } else {
-                setTimeout(initFeatherIcons, 500);
-            }
-        }
+        feather.replace();
         
         // Apply theme on page load
         applyThemeOnLoad();
         
-        // Create floating particles
         function createParticles() {
             const particlesContainer = document.getElementById('particles');
             const particleCount = 50;
@@ -1241,7 +1208,6 @@
             return !!(token && currentUser);
         }
 
-        // Function to verify token with server
         async function verifyToken(token) {
             try {
                 const response = await fetch('https://proxyforsigmi.onrender.com/api/verify-token', {
@@ -1266,7 +1232,7 @@
 
         // Check authentication status on page load
         document.addEventListener('DOMContentLoaded', function() {
-            const token = getCookie('AuthToken');
+                    const token = getCookie('AuthToken');
             const currentUser = localStorage.getItem('currentUser');
             
             if (token && currentUser) {
@@ -1296,15 +1262,12 @@
             // Check for hash in URL and filter accordingly
             checkUrlHash();
             
-            renderGames();
-            setupPagination();
+            // Setup all functionality
+            setupFilterChips();
             setupSearch();
             setupSorting();
-            
-            // Initialize libraries
-            initVantaBackground();
-            initAOS();
-            initFeatherIcons();
+            renderGames();
+            setupPagination();
         });
 
         // Function to check URL hash and filter games
@@ -1323,6 +1286,7 @@
                     categoryButton.classList.add('active');
                     
                     // Filter games by the category
+                    currentFilter = hash;
                     filterGames(hash);
                 }
             }
@@ -1355,20 +1319,6 @@
             return true;
         }
         
-        // Add hover effect to game cards
-        function addGameCardHoverEffect() {
-            document.querySelectorAll('.game-card').forEach(card => {
-                card.addEventListener('mousemove', (e) => {
-                    const rect = card.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    
-                    card.style.setProperty('--mouse-x', `${x}px`);
-                    card.style.setProperty('--mouse-y', `${y}px`);
-                });
-            });
-        }
-        
         // Filter chips functionality
         function setupFilterChips() {
             document.querySelectorAll('.filter-chip').forEach(chip => {
@@ -1383,6 +1333,7 @@
                     
                     // Filter games
                     const category = chip.getAttribute('data-category');
+                    currentFilter = category;
                     filterGames(category);
                     
                     // Update URL hash
@@ -1393,20 +1344,22 @@
         
         // Filter games by category
         function filterGames(category) {
-            const gamesContainer = document.getElementById('games-container');
-            const games = gamesContainer.querySelectorAll('.game-card');
+            if (category === 'all') {
+                filteredGames = [...gamesData];
+            } else {
+                filteredGames = gamesData.filter(game => 
+                    game.category.includes(category)
+                );
+            }
             
-            games.forEach(game => {
-                const gameCategory = game.getAttribute('data-category');
-                
-                if (category === 'all' || gameCategory.includes(category)) {
-                    game.classList.remove('hidden');
-                } else {
-                    game.classList.add('hidden');
-                }
-            });
+            // Apply current sorting
+            sortGames(currentSort);
             
-            // Update pagination
+            // Reset to first page
+            setCookie('currentPage', 1, 1);
+            
+            // Re-render games and pagination
+            renderGames();
             setupPagination();
         }
         
@@ -1416,21 +1369,28 @@
             
             searchInput.addEventListener('input', () => {
                 const searchTerm = searchInput.value.toLowerCase();
-                const gamesContainer = document.getElementById('games-container');
-                const games = gamesContainer.querySelectorAll('.game-card');
                 
-                games.forEach(game => {
-                    const title = game.querySelector('h3').textContent.toLowerCase();
-                    const description = game.querySelector('p').textContent.toLowerCase();
-                    
-                    if (title.includes(searchTerm) || description.includes(searchTerm)) {
-                        game.classList.remove('hidden');
-                    } else {
-                        game.classList.add('hidden');
-                    }
+                if (searchTerm === '') {
+                    // If search is empty, revert to current filter
+                    filterGames(currentFilter);
+                    return;
+                }
+                
+                // Filter games based on search term
+                filteredGames = gamesData.filter(game => {
+                    const title = game.title.toLowerCase();
+                    const description = game.description.toLowerCase();
+                    return title.includes(searchTerm) || description.includes(searchTerm);
                 });
                 
-                // Update pagination
+                // Apply current sorting
+                sortGames(currentSort);
+                
+                // Reset to first page
+                setCookie('currentPage', 1, 1);
+                
+                // Re-render games and pagination
+                renderGames();
                 setupPagination();
             });
         }
@@ -1439,8 +1399,12 @@
         function setupSorting() {
             const sortSelect = document.getElementById('sort-select');
             
+            // Set the current sort value
+            sortSelect.value = currentSort;
+            
             sortSelect.addEventListener('change', () => {
                 const sortBy = sortSelect.value;
+                currentSort = sortBy;
                 sortGames(sortBy);
                 renderGames();
                 setupPagination();
@@ -1452,23 +1416,24 @@
             switch(sortBy) {
                 case 'newest':
                     // Add a releaseDate property to games if not present
-                    gamesData.forEach(game => {
+                    filteredGames.forEach(game => {
                         if (!game.releaseDate) {
+                            // Create a random date for demonstration
                             game.releaseDate = new Date(2023, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28));
                         }
                     });
-                    gamesData.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
+                    filteredGames.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
                     break;
                 case 'highest':
-                    gamesData.sort((a, b) => b.rating - a.rating);
+                    filteredGames.sort((a, b) => b.rating - a.rating);
                     break;
                 case 'most-played':
-                    gamesData.sort((a, b) => b.playCount - a.playCount);
+                    filteredGames.sort((a, b) => b.playCount - a.playCount);
                     break;
                 case 'popular':
                 default:
                     // Default sort by popularity (combination of rating and play count)
-                    gamesData.sort((a, b) => {
+                    filteredGames.sort((a, b) => {
                         const aScore = a.rating * 0.7 + Math.min(a.playCount / 1000, 5) * 0.3;
                         const bScore = b.rating * 0.7 + Math.min(b.playCount / 1000, 5) * 0.3;
                         return bScore - aScore;
@@ -1486,7 +1451,19 @@
             const currentPage = parseInt(getCookie('currentPage') || '1');
             const startIndex = (currentPage - 1) * itemsPerPage;
             const endIndex = startIndex + itemsPerPage;
-            const gamesToShow = gamesData.slice(startIndex, endIndex);
+            const gamesToShow = filteredGames.slice(startIndex, endIndex);
+            
+            if (gamesToShow.length === 0) {
+                gamesContainer.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <i data-feather="frown" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
+                        <h3 class="text-xl font-bold">No games found</h3>
+                        <p class="text-gray-400">Try adjusting your filters or search terms</p>
+                    </div>
+                `;
+                feather.replace();
+                return;
+            }
             
             gamesToShow.forEach(game => {
                 const gameCard = document.createElement('div');
@@ -1530,9 +1507,7 @@
             });
             
             // Reinitialize feather icons for the new content
-            initFeatherIcons();
-            // Add hover effects to the new game cards
-            addGameCardHoverEffect();
+            feather.replace();
         }
         
         // Setup pagination
@@ -1541,8 +1516,12 @@
             paginationContainer.innerHTML = '';
             
             const itemsPerPage = 20;
-            const totalPages = Math.ceil(gamesData.length / itemsPerPage);
+            const totalPages = Math.ceil(filteredGames.length / itemsPerPage);
             const currentPage = parseInt(getCookie('currentPage') || '1');
+            
+            if (totalPages <= 1) {
+                return; // Don't show pagination if there's only one page
+            }
             
             // Previous button
             const prevButton = document.createElement('button');
@@ -1605,26 +1584,8 @@
             paginationContainer.appendChild(nextButton);
             
             // Reinitialize feather icons for the new content
-            initFeatherIcons();
+            feather.replace();
         }
-        
-        // Initialize everything when the page loads
-        window.onload = function() {
-            // Set up filter chips
-            setupFilterChips();
-            
-            // Set up search functionality
-            setupSearch();
-            
-            // Set up sorting functionality
-            setupSorting();
-            
-            // Render the games
-            renderGames();
-            
-            // Set up pagination
-            setupPagination();
-        };
     </script>
 </body>
 </html>
