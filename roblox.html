@@ -649,10 +649,12 @@
         }
 
         // Mobile modal functions
-        function openMobileModal() {
-            document.getElementById('mobileModal').classList.add('active');
-        }
-
+			function openMobileModal(client) {
+				currentClient = client;           // ensure it's stored
+				const mobileModal = document.getElementById('mobileModal');
+				mobileModal.dataset.client = client; // optional: store on DOM
+				mobileModal.classList.add('active');
+			}
         function closeMobileModal() {
             document.getElementById('mobileModal').classList.remove('active');
             currentClient = null;
@@ -679,29 +681,30 @@
         }
 
         // Check for updates based on client type
-        function checkForUpdates(client) {
-            currentClient = client;
-            
-            // Check if this is a mobile executor
-            if (client === 'krnl' || client === 'delta') {
-                closeModal();
-                openMobileModal();
-            } else {
-                redirectToOfficial(client);
-            }
-        }
+		function checkForUpdates(client) {
+			currentClient = client;
+			if (client === 'krnl' || client === 'delta') {
+				closeModal();
+				openMobileModal(client); // pass client explicitly
+			} else {
+				redirectToOfficial(client);
+			}
+		}
 
         // Redirect to mobile version based on platform
-        function redirectToMobile(platform) {
-            closeMobileModal();
-            
-            if (currentClient && MOBILE_URLS[platform] && MOBILE_URLS[platform][currentClient]) {
-                window.open(MOBILE_URLS[platform][currentClient], '_blank');
-            } else {
-                // Fallback to official website
-                redirectToOfficial(currentClient);
-            }
-        }
+		function redirectToMobile(platform) {
+			// try currentClient first, fallback to dataset
+			const modal = document.getElementById('mobileModal');
+			const clientFromDataset = modal ? modal.dataset.client : null;
+			const client = currentClient || clientFromDataset;
+			console.log("redirectToMobile:", platform, client);
+
+			if (client && MOBILE_URLS[platform] && MOBILE_URLS[platform][client]) {
+				window.open(MOBILE_URLS[platform][client], '_blank', 'noopener,noreferrer');
+			} else {
+				alert("No mobile download found. Please choose a client first.");
+			}
+		}
 
         // Redirect to official website for downloads
         function redirectToOfficial(client) {
