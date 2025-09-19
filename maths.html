@@ -12,6 +12,74 @@
     <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
     <style>
+        /* Theme Variables */
+        :root {
+            --bg-primary: #1a0933;
+            --bg-secondary: #3b1d6c;
+            --bg-tertiary: #6e3b9c;
+            --text-primary: #ffffff;
+            --text-secondary: #d8d8d8;
+            --accent-primary: #8e44ad;
+            --accent-secondary: #6c5ce7;
+            --glass-bg: rgba(92, 50, 168, 0.2);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Theme Classes */
+        .theme-dark {
+            --bg-primary: #1a0933;
+            --bg-secondary: #3b1d6c;
+            --bg-tertiary: #6e3b9c;
+            --text-primary: #ffffff;
+            --text-secondary: #d8d8d8;
+            --accent-primary: #8e44ad;
+            --accent-secondary: #6c5ce7;
+            --glass-bg: rgba(92, 50, 168, 0.2);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+        
+        .theme-light {
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #e9ecef;
+            --bg-tertiary: #dee2e6;
+            --text-primary: #212529;
+            --text-secondary: #495057;
+            --accent-primary: #6f42c1;
+            --accent-secondary: #6610f2;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(0, 0, 0, 0.1);
+        }
+
+        .theme-amoled {
+            --bg-primary: #000000;
+            --bg-secondary: #111111;
+            --bg-tertiary: #222222;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --accent-primary: #8e44ad;
+            --accent-secondary: #9b59b6;
+            --glass-bg: rgba(0, 0, 0, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.05);
+        }
+        
+        .theme-blue {
+            --bg-primary: #0a1931;
+            --bg-secondary: #1a3c6e;
+            --bg-tertiary: #2a5ca9;
+            --text-primary: #ffffff;
+            --text-secondary: #d8d8d8;
+            --accent-primary: #2563eb;
+            --accent-secondary: #3b82f6;
+            --glass-bg: rgba(37, 99, 235, 0.3);
+            --glass-border: rgba(255, 255, 255, 0.15);
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
+            color: var(--text-primary);
+            transition: background 0.5s ease, color 0.3s ease;
+        }
+        
         #vanta-bg {
             position: fixed;
             top: 0;
@@ -22,18 +90,14 @@
         }
         
         .glass {
-            background: rgba(92, 50, 168, 0.2);
+            background: var(--glass-bg);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .gradient-bg {
-            background: linear-gradient(135deg, #6e3b9c 0%, #3b1d6c 50%, #1a0933 100%);
+            border: 1px solid var(--glass-border);
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #8e44ad 0%, #6c5ce7 100%);
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
             transition: all 0.3s ease;
         }
         
@@ -52,7 +116,7 @@
         .game-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-            border-color: rgba(255, 255, 255, 0.2);
+            border-color: var(--glass-border);
         }
         
         .game-card::before {
@@ -83,16 +147,16 @@
         }
         
         .neon-text {
-            text-shadow: 0 0 10px #8e44ad, 0 0 20px #8e44ad, 0 0 30px #8e44ad;
+            text-shadow: 0 0 10px var(--accent-primary), 0 0 20px var(--accent-primary), 0 0 30px var(--accent-primary);
             animation: neon-pulse 2s infinite alternate;
         }
         
         @keyframes neon-pulse {
             0% {
-                text-shadow: 0 0 10px #8e44ad, 0 0 20px #8e44ad, 0 0 30px #8e44ad;
+                text-shadow: 0 0 10px var(--accent-primary), 0 0 20px var(--accent-primary), 0 0 30px var(--accent-primary);
             }
             100% {
-                text-shadow: 0 0 15px #8e44ad, 0 0 30px #8e44ad, 0 0 45px #8e44ad;
+                text-shadow: 0 0 15px var(--accent-primary), 0 0 30px var(--accent-primary), 0 0 45px var(--accent-primary);
             }
         }
         
@@ -111,7 +175,7 @@
         }
         
         .gradient-text {
-            background: linear-gradient(90deg, #8e44ad, #6c5ce7);
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -154,6 +218,54 @@
             background: rgba(142, 68, 173, 0.8);
         }
         
+        /* Theme Switcher */
+        .theme-switcher {
+            position: relative;
+        }
+        
+        .theme-options {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            min-width: 150px;
+            display: none;
+            z-index: 50;
+        }
+        
+        .theme-options.active {
+            display: block;
+        }
+        
+        .theme-option {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .theme-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .theme-option.active {
+            background: var(--accent-primary);
+        }
+        
+        .theme-preview {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        
         /* Login Modal Styles */
         .login-modal {
             position: fixed;
@@ -177,7 +289,7 @@
         }
         
         .login-content {
-            background: linear-gradient(135deg, #6e3b9c 0%, #3b1d6c 50%, #1a0933 100%);
+            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
             border-radius: 16px;
             padding: 2rem;
             max-width: 400px;
@@ -241,7 +353,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen text-white font-sans overflow-x-hidden">
+<body class="min-h-screen text-white font-sans overflow-x-hidden theme-dark">
     <!-- Vanta.js background -->
     <div id="vanta-bg"></div>
     
@@ -287,6 +399,31 @@
                 </a>
             </div>
             <div class="flex items-center space-x-4">
+                <!-- Theme Switcher -->
+                <div class="theme-switcher relative">
+                    <button id="theme-toggle" class="p-2 rounded-full glass hover:bg-purple-900/50">
+                        <i data-feather="moon" class="w-5 h-5"></i>
+                    </button>
+                    <div id="theme-options" class="theme-options">
+                        <div class="theme-option active" data-theme="dark">
+                            <div class="theme-preview bg-gradient-to-br from-purple-900 to-indigo-900"></div>
+                            <span>Dark</span>
+                        </div>
+                        <div class="theme-option" data-theme="light">
+                            <div class="theme-preview bg-gradient-to-br from-gray-100 to-gray-300"></div>
+                            <span>Light</span>
+                        </div>
+                        <div class="theme-option" data-theme="amoled">
+                            <div class="theme-preview bg-gradient-to-br from-black to-gray-800"></div>
+                            <span>AMOLED</span>
+                        </div>
+                        <div class="theme-option" data-theme="blue">
+                            <div class="theme-preview bg-gradient-to-br from-blue-900 to-indigo-800"></div>
+                            <span>Blue</span>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="relative">
                     <input type="text" placeholder="Search games..." class="px-4 py-2 rounded-full bg-purple-900 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 pl-10">
                     <i data-feather="search" class="absolute left-3 top-2.5 w-5 h-5 text-gray-400"></i>
@@ -506,7 +643,7 @@
 							<img src="images/sausageflip.png" alt="Sausage Flip" class="w-full h-40 object-cover rounded-lg">
 						</div>
 						<h3 class="text-xl font-semibold mb-2">Sausage Flip</h3>
-						<p class="text-gray-300 mb-4">Flip the sausage for as many levels as you can!</p>
+						<p class="text-gray-300 mb-4">Flip the sausage for as many levels as can be!</p>
 						<a href="#" onclick="handleGameClick('https://lnahtml.github.io/a6/sausage-flip/')" class="play-btn btn-primary py-2 px-4 rounded-lg text-sm flex items-center justify-center">
 							Play Now
 						</a>
@@ -611,20 +748,119 @@
     </footer>
 
     <script>
+        // Theme Management Functions
+        function getCookie(name) {
+            const cookieName = name + "=";
+            const decodedCookie = decodeURIComponent(document.cookie);
+            const cookieArray = decodedCookie.split(';');
+            
+            for(let i = 0; i < cookieArray.length; i++) {
+                let cookie = cookieArray[i];
+                while (cookie.charAt(0) === ' ') {
+                    cookie = cookie.substring(1);
+                }
+                if (cookie.indexOf(cookieName) === 0) {
+                    return cookie.substring(cookieName.length, cookie.length);
+                }
+            }
+            return "";
+        }
+
+        function setCookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            const expires = "expires=" + date.toUTCString();
+            document.cookie = name + "=" + value + ";" + expires + ";path=/";
+        }
+
+        function getTheme() {
+            const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
+            return preferences.theme || 'dark';
+        }
+
+        function setTheme(theme) {
+            // Update the theme class on body
+            document.body.className = document.body.className.replace(/\btheme-\w+/g, '');
+            document.body.classList.add(`theme-${theme}`);
+            
+            // Update theme icon
+            const themeIcon = document.querySelector('#theme-toggle i');
+            if (theme === 'light') {
+                themeIcon.setAttribute('data-feather', 'sun');
+            } else {
+                themeIcon.setAttribute('data-feather', 'moon');
+            }
+            feather.replace();
+            
+            // Update active theme in theme options
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.classList.remove('active');
+                if (option.getAttribute('data-theme') === theme) {
+                    option.classList.add('active');
+                }
+            });
+            
+            // Save to preferences
+            const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
+            preferences.theme = theme;
+            setCookie('UserPreferences', JSON.stringify(preferences), 365);
+            
+            // Update Vanta background to match theme
+            initVantaBackground();
+        }
+
+        function applyThemeOnLoad() {
+            const theme = getTheme();
+            setTheme(theme);
+        }
+
+        function initVantaBackground() {
+            const theme = getTheme();
+            let color, bgColor;
+            
+            switch(theme) {
+                case 'light':
+                    color = 0x6f42c1;
+                    bgColor = 0xf8f9fa;
+                    break;
+                case 'amoled':
+                    color = 0x8e44ad;
+                    bgColor = 0x0;
+                    break;
+                case 'blue':
+                    color = 0x2563eb;
+                    bgColor = 0x0a1931;
+                    break;
+                case 'dark':
+                default:
+                    color = 0x8e44ad;
+                    bgColor = 0x1a0933;
+            }
+            
+            if (window.VANTA) {
+                // Destroy existing instance if any
+                if (window.vantaEffect) {
+                    window.vantaEffect.destroy();
+                }
+                
+                window.vantaEffect = VANTA.GLOBE({
+                    el: "#vanta-bg",
+                    mouseControls: true,
+                    touchControls: true,
+                    gyroControls: false,
+                    minHeight: 200.00,
+                    minWidth: 200.00,
+                    scale: 1.00,
+                    scaleMobile: 1.00,
+                    color: color,
+                    backgroundColor: bgColor,
+                    size: 0.8
+                });
+            }
+        }
+
         // Initialize Vanta.js background
-        VANTA.GLOBE({
-            el: "#vanta-bg",
-            mouseControls: true,
-            touchControls: true,
-            gyroControls: false,
-            minHeight: 200.00,
-            minWidth: 200.00,
-            scale: 1.00,
-            scaleMobile: 1.00,
-            color: 0x8e44ad,
-            backgroundColor: 0x1a0933,
-            size: 0.8
-        });
+        initVantaBackground();
         
         // Initialize AOS
         AOS.init({
@@ -635,6 +871,9 @@
         
         // Initialize Feather Icons
         feather.replace();
+        
+        // Apply theme on page load
+        applyThemeOnLoad();
         
         // Create floating particles
         function createParticles() {
@@ -683,6 +922,31 @@
                 
                 card.style.setProperty('--mouse-x', `${x}px`);
                 card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+        
+        // Theme Switcher Functionality
+        document.getElementById('theme-toggle').addEventListener('click', function() {
+            const themeOptions = document.getElementById('theme-options');
+            themeOptions.classList.toggle('active');
+        });
+        
+        // Close theme options when clicking outside
+        document.addEventListener('click', function(event) {
+            const themeOptions = document.getElementById('theme-options');
+            const themeToggle = document.getElementById('theme-toggle');
+            
+            if (!themeToggle.contains(event.target) && !themeOptions.contains(event.target)) {
+                themeOptions.classList.remove('active');
+            }
+        });
+        
+        // Theme selection
+        document.querySelectorAll('.theme-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const theme = this.getAttribute('data-theme');
+                setTheme(theme);
+                document.getElementById('theme-options').classList.remove('active');
             });
         });
         
@@ -771,24 +1035,6 @@
             // If logged in, redirect to the game
             window.open(url, '_blank');
             return true;
-        }
-
-        // Cookie Functions
-        function getCookie(name) {
-            const cookieName = name + "=";
-            const decodedCookie = decodeURIComponent(document.cookie);
-            const cookieArray = decodedCookie.split(';');
-            
-            for(let i = 0; i < cookieArray.length; i++) {
-                let cookie = cookieArray[i];
-                while (cookie.charAt(0) === ' ') {
-                    cookie = cookie.substring(1);
-                }
-                if (cookie.indexOf(cookieName) === 0) {
-                    return cookie.substring(cookieName.length, cookie.length);
-                }
-            }
-            return "";
         }
     </script>
 </body>
