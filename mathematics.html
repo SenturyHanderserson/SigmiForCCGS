@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>mathsonline - Google Search</title>
+    <title>Sigmi Arcade - All Games</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
@@ -336,9 +336,18 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        .fallback-img {
+            background: linear-gradient(135deg, #8e44ad, #6c5ce7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
     </style>
 </head>
-<body class="min-h-screen text-white font-sans overflow-x-hidden">
+<body class="min-h-screen text-white font-sans overflow-x-hidden theme-dark">
     <!-- Vanta.js background -->
     <div id="vanta-bg"></div>
     
@@ -1090,11 +1099,11 @@
                 description: "Russian roulette card game with high stakes and luck-based chaos.",
                 rating: 4.5,
                 category: ["casino", "strategy"],
-                image: "images/buckshotRoulette.png",
+                image: "images/bucksshotRoulette.png",
                 playCount: 12300,
                 url: "https://amazingwebsitesupersigma.github.io/buckshot-roulette/"
             },
-			            {
+            {
                 id: 46,
                 title: "Crazy Cattle 3d",
                 description: "Crazy Cattle 3D is a wacky physics-based game where you wrangle, chase, and herd chaotic cows through obstacle-filled environments.",
@@ -1104,7 +1113,7 @@
                 playCount: 16000,
                 url: "https://crazycattle3d.github.io/"
             },
-			 {
+            {
                 id: 47,
                 title: "Crossy Road",
                 description: "Cross the road as a chicken, evade obstacles and get a new highscore!",
@@ -1114,7 +1123,7 @@
                 playCount: 20500,
                 url: "https://crossyroadonline.github.io/"
             },
-			 {
+            {
                 id: 48,
                 title: "Jelly truck",
                 description: "Bouce over, through and on objects as you drive further!",
@@ -1124,7 +1133,7 @@
                 playCount: 12100,
                 url: "https://amongus-game.github.io/play/jelly-truck.html"
             },
-			 {
+            {
                 id: 49,
                 title: "ShellShockers",
                 description: "FFA Shooter, connect to actual servers! Took a while to get working!",
@@ -1137,17 +1146,53 @@
         ];
 
         // Initialize Vanta.js background
-        initVantaBackground();
+        function initVantaBackground() {
+            if (window.VANTA) {
+                // Destroy existing instance if any
+                if (window.vantaEffect) {
+                    window.vantaEffect.destroy();
+                }
+                
+                window.vantaEffect = VANTA.GLOBE({
+                    el: "#vanta-bg",
+                    mouseControls: true,
+                    touchControls: true,
+                    gyroControls: false,
+                    minHeight: 200.00,
+                    minWidth: 200.00,
+                    scale: 1.00,
+                    scaleMobile: 1.00,
+                    color: 0x8e44ad,
+                    backgroundColor: 0x1a0933,
+                    size: 0.8
+                });
+            } else {
+                // If VANTA is not loaded, try again after a delay
+                setTimeout(initVantaBackground, 500);
+            }
+        }
         
         // Initialize AOS
-        AOS.init({
-            duration: 800,
-            easing: 'ease-in-out',
-            once: false
-        });
+        function initAOS() {
+            if (window.AOS) {
+                AOS.init({
+                    duration: 800,
+                    easing: 'ease-in-out',
+                    once: false
+                });
+            } else {
+                setTimeout(initAOS, 500);
+            }
+        }
         
         // Initialize Feather Icons
-        feather.replace();
+        function initFeatherIcons() {
+            if (window.feather) {
+                feather.replace();
+            } else {
+                setTimeout(initFeatherIcons, 500);
+            }
+        }
         
         // Apply theme on page load
         applyThemeOnLoad();
@@ -1245,8 +1290,6 @@
                 setTimeout(showLoginModal, 1000);
             }
             
-            // Add event listener to login button
-            
             // Initialize the rest of the page
             createParticles();
             
@@ -1257,6 +1300,11 @@
             setupPagination();
             setupSearch();
             setupSorting();
+            
+            // Initialize libraries
+            initVantaBackground();
+            initAOS();
+            initFeatherIcons();
         });
 
         // Function to check URL hash and filter games
@@ -1306,56 +1354,42 @@
             window.open(url, '_blank');
             return true;
         }
-
-        // Cookie Functions
-        function getCookie(name) {
-            const cookieName = name + "=";
-            const decodedCookie = decodeURIComponent(document.cookie);
-            const cookieArray = decodedCookie.split(';');
-            
-            for(let i = 0; i < cookieArray.length; i++) {
-                let cookie = cookieArray[i];
-                while (cookie.charAt(0) === ' ') {
-                    cookie = cookie.substring(1);
-                }
-                if (cookie.indexOf(cookieName) === 0) {
-                    return cookie.substring(cookieName.length, cookie.length);
-                }
-            }
-            return "";
-        }
         
         // Add hover effect to game cards
-        document.querySelectorAll('.game-card').forEach(card => {
-            card.addEventListener('mousemove', (e) => {
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                card.style.setProperty('--mouse-x', `${x}px`);
-                card.style.setProperty('--mouse-y', `${y}px`);
+        function addGameCardHoverEffect() {
+            document.querySelectorAll('.game-card').forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    card.style.setProperty('--mouse-x', `${x}px`);
+                    card.style.setProperty('--mouse-y', `${y}px`);
+                });
             });
-        });
+        }
         
         // Filter chips functionality
-        document.querySelectorAll('.filter-chip').forEach(chip => {
-            chip.addEventListener('click', () => {
-                // Remove active class from all chips
-                document.querySelectorAll('.filter-chip').forEach(c => {
-                    c.classList.remove('active');
+        function setupFilterChips() {
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    // Remove active class from all chips
+                    document.querySelectorAll('.filter-chip').forEach(c => {
+                        c.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked chip
+                    chip.classList.add('active');
+                    
+                    // Filter games
+                    const category = chip.getAttribute('data-category');
+                    filterGames(category);
+                    
+                    // Update URL hash
+                    window.location.hash = category;
                 });
-                
-                // Add active class to clicked chip
-                chip.classList.add('active');
-                
-                // Filter games
-                const category = chip.getAttribute('data-category');
-                filterGames(category);
-                
-                // Update URL hash
-                window.location.hash = category;
             });
-        });
+        }
         
         // Filter games by category
         function filterGames(category) {
@@ -1365,7 +1399,7 @@
             games.forEach(game => {
                 const gameCategory = game.getAttribute('data-category');
                 
-                if (category === 'all' || gameCategory === category) {
+                if (category === 'all' || gameCategory.includes(category)) {
                     game.classList.remove('hidden');
                 } else {
                     game.classList.add('hidden');
@@ -1417,6 +1451,12 @@
         function sortGames(sortBy) {
             switch(sortBy) {
                 case 'newest':
+                    // Add a releaseDate property to games if not present
+                    gamesData.forEach(game => {
+                        if (!game.releaseDate) {
+                            game.releaseDate = new Date(2023, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28));
+                        }
+                    });
                     gamesData.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
                     break;
                 case 'highest':
@@ -1451,15 +1491,18 @@
             gamesToShow.forEach(game => {
                 const gameCard = document.createElement('div');
                 gameCard.classList.add('game-card', 'glass', 'rounded-xl', 'p-4', 'relative', 'overflow-hidden');
-                gameCard.setAttribute('data-category', game.category);
+                gameCard.setAttribute('data-category', game.category.join(' '));
                 gameCard.setAttribute('data-aos', 'fade-up');
+                
+                // Use title instead of name (fixing the undefined issue)
+                const gameTitle = game.title || "Untitled Game";
                 
                 gameCard.innerHTML = `
                     <div class="relative mb-4 rounded-lg overflow-hidden">
-                        <img src="${game.image}" alt="${game.name}" class="w-full h-40 object-cover">
+                        <img src="${game.image}" alt="${gameTitle}" class="w-full h-40 object-cover fallback-img" onerror="this.onerror=null; this.classList.add('fallback-img'); this.nextElementSibling.textContent='${gameTitle.charAt(0)}'">
                         <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70"></div>
                         <div class="absolute bottom-2 left-2 flex items-center">
-                            <span class="bg-purple-700 text-white text-xs px-2 py-1 rounded-full">${game.category}</span>
+                            <span class="bg-purple-700 text-white text-xs px-2 py-1 rounded-full">${game.category[0]}</span>
                         </div>
                         <div class="absolute top-2 right-2 flex items-center">
                             <span class="bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full flex items-center">
@@ -1473,14 +1516,13 @@
                             </button>
                         </div>
                     </div>
-                    <h3 class="text-lg font-bold mb-1">${game.name}</h3>
+                    <h3 class="text-lg font-bold mb-1">${gameTitle}</h3>
                     <p class="text-sm text-gray-300 mb-4">${game.description}</p>
                     <div class="flex justify-between items-center">
                         <span class="text-xs text-gray-400 flex items-center">
                             <i data-feather="user" class="w-3 h-3 mr-1"></i>
                             ${game.playCount.toLocaleString()}
                         </span>
-                        <span class="text-xs text-gray-400">${game.size}</span>
                     </div>
                 `;
                 
@@ -1488,7 +1530,9 @@
             });
             
             // Reinitialize feather icons for the new content
-            feather.replace();
+            initFeatherIcons();
+            // Add hover effects to the new game cards
+            addGameCardHoverEffect();
         }
         
         // Setup pagination
@@ -1561,34 +1605,26 @@
             paginationContainer.appendChild(nextButton);
             
             // Reinitialize feather icons for the new content
-            feather.replace();
+            initFeatherIcons();
         }
         
-        // Set cookie function
-        function setCookie(name, value, days) {
-            const date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            const expires = "expires=" + date.toUTCString();
-            document.cookie = name + "=" + value + ";" + expires + ";path=/";
-        }
-        
-        // Get cookie function
-        function getCookie(name) {
-            const cookieName = name + "=";
-            const decodedCookie = decodeURIComponent(document.cookie);
-            const cookieArray = decodedCookie.split(';');
+        // Initialize everything when the page loads
+        window.onload = function() {
+            // Set up filter chips
+            setupFilterChips();
             
-            for(let i = 0; i < cookieArray.length; i++) {
-                let cookie = cookieArray[i];
-                while (cookie.charAt(0) === ' ') {
-                    cookie = cookie.substring(1);
-                }
-                if (cookie.indexOf(cookieName) === 0) {
-                    return cookie.substring(cookieName.length, cookie.length);
-                }
-            }
-            return "";
-        }
+            // Set up search functionality
+            setupSearch();
+            
+            // Set up sorting functionality
+            setupSorting();
+            
+            // Render the games
+            renderGames();
+            
+            // Set up pagination
+            setupPagination();
+        };
     </script>
 </body>
 </html>
