@@ -530,7 +530,7 @@
                 <div class="content-card bg-purple-900 bg-opacity-50 rounded-xl p-6 cursor-pointer section-selector" data-section="games">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center">
-                            <i data-feather="gamepad" class="w-6 h-6 mr-3"></i>
+                           <i data-feather="monitor" class="w-6 h-6 mr-3"></i>
                             <h3 class="text-xl font-semibold">Games</h3>
                         </div>
                         <div class="section-checkbox">
@@ -1755,7 +1755,12 @@ window.addEventListener('beforeunload', () => {
             return section;
         }
 
+let isLoadingMembers = false;
+
 async function loadMembers() {
+    if (isLoadingMembers) return;
+    isLoadingMembers = true;
+
     try {
         const token = getCookie('AuthToken');
         if (!token) {
@@ -1772,34 +1777,32 @@ async function loadMembers() {
         });
 
         if (!res.ok) {
-            throw new Error(`Failed to fetch members: ${res.status} ${res.statusText}`);
+            throw new Error("Failed to fetch members");
         }
 
         const contentType = res.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
-            throw new Error("Server returned non-JSON response");
+            throw new Error("Invalid server response");
         }
 
         const members = await res.json();
         const container = document.getElementById("membersList");
 
-        // Proper deduplication
+        // Deduplication
         const seen = new Set();
         const uniqueMembers = members.filter(user => {
             const identifier = user.id || user.username;
-            if (seen.has(identifier)) {
-                return false;
-            }
+            if (seen.has(identifier)) return false;
             seen.add(identifier);
             return true;
         });
 
         // Filter out deleted members
-        const activeMembers = uniqueMembers.filter(user => 
+        const activeMembers = uniqueMembers.filter(user =>
             !user.deleted && !user.isDeleted && user.status !== 'deleted'
         );
 
-        // Clear old content with a fade effect
+        // Clear with fade
         container.innerHTML = "";
         container.classList.remove("opacity-100");
         container.classList.add("opacity-0");
@@ -1846,12 +1849,9 @@ async function loadMembers() {
                 container.classList.add("opacity-100");
                 feather.replace();
             }, 50);
-
         }, 100);
 
     } catch (err) {
-        console.error("[ERROR] Failed to load members:", err);
-
         const container = document.getElementById("membersList");
         container.innerHTML = `
             <div class="text-center py-8 text-red-300">
@@ -1864,8 +1864,11 @@ async function loadMembers() {
             </div>
         `;
         feather.replace();
+    } finally {
+        isLoadingMembers = false;
     }
 }
+
 });
     </script>
 </body>
