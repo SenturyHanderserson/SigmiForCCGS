@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>camebridge maths - Google Search</title>
+    <title>Sigmi Arcade - Google Search</title>
 	<link href="//www.gstatic.com/images/branding/searchlogo/ico/favicon.ico" rel="icon">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
@@ -413,7 +413,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen text-white font-sans overflow-x-hidden theme-dark">
+<body class="min-h-screen text-white font-sans overflow-x-hidden">
     <!-- Vanta.js background -->
     <div id="vanta-bg"></div>
     
@@ -524,7 +524,7 @@
                         <i data-feather="moon" class="w-5 h-5"></i>
                     </button>
                     <div id="theme-options" class="theme-options">
-                        <div class="theme-option active" data-theme="dark">
+                        <div class="theme-option" data-theme="dark">
                             <div class="theme-preview bg-gradient-to-br from-purple-900 to-indigo-900"></div>
                             <span>Dark</span>
                         </div>
@@ -755,59 +755,42 @@
                 </a>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <!-- Game 1 -->
-                <a href="#" onclick="handleGameClick('https://amazingwebsitesupersigma.github.io/1v1lol/')" class="game-card glass rounded-xl overflow-hidden block" data-aos="fade-up" data-aos-delay="100">
-                    <img src="images/1v1lol.jpg" alt="1v1.lol" class="w-full h-40 object-cover">
-                    <div class="p-4">
-                        <h3 class="font-semibold mb-1">1v1.lol</h3>
-                        <p class="text-sm text-gray-300 mb-3">A 1v1 building and shooting game</p>
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs bg-yellow-600 px-2 py-1 rounded-full">Shooter</span>
-                            <span class="text-purple-300 hover:text-white">Play Now</span>
-                        </div>
+                <div class="glass rounded-xl p-6 relative overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+                    <div class="flex justify-center mb-4">
+                        <img src="images/sausageflip.png" alt="Sausage Flip" class="w-full h-40 object-cover rounded-lg">
                     </div>
-                </a>
+                    <h3 class="text-xl font-semibold mb-2">Sausage Flip</h3>
+                    <p class="text-gray-300 mb-4">Flip the sausage for as many levels as can be!</p>
+                    <a href="#" onclick="handleGameClick('https://lnahtml.github.io/a6/sausage-flip/')" class="play-btn btn-primary py-2 px-4 rounded-lg text-sm flex items-center justify-center">
+                        Play Now
+                    </a>
+                </div>
 
                 <!-- Game 2 -->
-                <a href="#" onclick="handleGameClick('https://amazingwebsitesupersigma.github.io/2048/')" class="game-card glass rounded-xl overflow-hidden block" data-aos="fade-up" data-aos-delay="200">
-                    <img src="images/2048.png" alt="2048" class="w-full h-40 object-cover">
-                    <div class="p-4">
-                        <h3 class="font-semibold mb-1">2048</h3>
-                        <p class="text-sm text-gray-300 mb-3">Slide the tiles to make 2048</p>
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs bg-green-600 px-2 py-1 rounded-full">Strategy</span>
-                            <span class="text-purple-300 hover:text-white">Play Now</span>
-                        </div>
+                <div class="glass rounded-xl p-6 relative overflow-hidden" data-aos="fade-up" data-aos-delay="200">
+                    <div class="flex justify-center mb-4">
+                        <img src="images/MotoX3M-Winter_OG-logo.jpg" alt="Moto X3M Winter" class="w-full h-40 object-cover rounded-lg">
                     </div>
-                </a>
+                    <h3 class="text-xl font-semibold mb-2">Moto X3m</h3>
+                    <p class="text-gray-300 mb-4">See if you can beat all levels, crazy motorcycle tricks!</p>
+                    <a href="#" onclick="handleGameClick('https://ezunblocktheopps.github.io/motox3mwinter')" class="play-btn btn-primary py-2 px-4 rounded-lg text-sm flex items-center justify-center">
+                        Play Now
+                    </a>
+                </div>
 
                 <!-- Game 3 -->
-                <a href="#" onclick="handleGameClick('https://amazingwebsitesupersigma.github.io/8ball/')" class="game-card glass rounded-xl overflow-hidden block" data-aos="fade-up" data-aos-delay="300">
-                    <img src="images/8ball.png" alt="8 Ball Pool" class="w-full h-40 object-cover">
-                    <div class="p-4">
-                        <h3 class="font-semibold mb-1">8 Ball Pool</h3>
-                        <p class="text-sm text-gray-300 mb-3">Play pool against other players</p>
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs bg-red-600 px-2 py-1 rounded-full">Multiplayer</span>
-                            <span class="text-purple-300 hover:text-white">Play Now</span>
-                        </div>
+                <div class="glass rounded-xl p-6 relative overflow-hidden" data-aos="fade-up" data-aos-delay="300">
+                    <div class="flex justify-center mb-4">
+                        <img src="images/idlebreakout.png" alt="Idle Breakout" class="w-full h-40 object-cover rounded-lg">
                     </div>
-                </a>
-
-                <!-- Game 4 -->
-                <a href="#" onclick="handleGameClick('https://amazingwebsitesupersigma.github.io/amongus/')" class="game-card glass rounded-xl overflow-hidden block" data-aos="fade-up" data-aos-delay="400">
-                    <img src="images/amongus.png" alt="Among Us" class="w-full h-40 object-cover">
-                    <div class="p-4">
-                        <h3 class="font-semibold mb-1">Among Us</h3>
-                        <p class="text-sm text-gray-300 mb-3">Find the imposter</p>
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs bg-red-600 px-2 py-1 rounded-full">Multiplayer</span>
-                            <span class="text-purple-300 hover:text-white">Play Now</span>
-                        </div>
-                    </div>
-                </a>
+                    <h3 class="text-xl font-semibold mb-2">Idle breakout</h3>
+                    <p class="text-gray-300 mb-4">Upgrade your balls until you break out!</p>
+                    <a href="#" onclick="handleGameClick('https://amazingwebsitesupersigma.github.io/idlebreakout/')" class="play-btn btn-primary py-2 px-4 rounded-lg text-sm flex items-center justify-center">
+                        Play Now
+                    </a>
+                </div>
             </div>
         </section>
 
@@ -898,6 +881,118 @@
     </footer>
 
     <script>
+        // Cookie Functions
+        function getCookie(name) {
+            const cookieName = name + "=";
+            const decodedCookie = decodeURIComponent(document.cookie);
+            const cookieArray = decodedCookie.split(';');
+            
+            for(let i = 0; i < cookieArray.length; i++) {
+                let cookie = cookieArray[i];
+                while (cookie.charAt(0) === ' ') {
+                    cookie = cookie.substring(1);
+                }
+                if (cookie.indexOf(cookieName) === 0) {
+                    return cookie.substring(cookieName.length, cookie.length);
+                }
+            }
+            return "";
+        }
+
+        function setCookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            const expires = "expires=" + date.toUTCString();
+            document.cookie = name + "=" + value + ";" + expires + ";path=/";
+        }
+
+        // Theme Management Functions
+        function getTheme() {
+            const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
+            return preferences.theme || 'dark';
+        }
+
+        function setTheme(theme) {
+            // Update the theme class on body
+            document.body.className = document.body.className.replace(/\btheme-\w+/g, '');
+            document.body.classList.add(`theme-${theme}`);
+            
+            // Update theme icon
+            const themeIcon = document.querySelector('#theme-toggle i');
+            if (theme === 'light') {
+                themeIcon.setAttribute('data-feather', 'sun');
+            } else {
+                themeIcon.setAttribute('data-feather', 'moon');
+            }
+            feather.replace();
+            
+            // Update active theme in theme options
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.classList.remove('active');
+                if (option.getAttribute('data-theme') === theme) {
+                    option.classList.add('active');
+                }
+            });
+            
+            // Save to preferences
+            const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
+            preferences.theme = theme;
+            setCookie('UserPreferences', JSON.stringify(preferences), 365);
+            
+            // Update Vanta background to match theme
+            initVantaBackground();
+        }
+
+        function applyThemeOnLoad() {
+            const theme = getTheme();
+            setTheme(theme);
+        }
+
+        function initVantaBackground() {
+            const theme = getTheme();
+            let color, bgColor;
+            
+            switch(theme) {
+                case 'light':
+                    color = 0x6f42c1;
+                    bgColor = 0xf8f9fa;
+                    break;
+                case 'amoled':
+                    color = 0x8e44ad;
+                    bgColor = 0x0;
+                    break;
+                case 'blue':
+                    color = 0x2563eb;
+                    bgColor = 0x0a1931;
+                    break;
+                case 'dark':
+                default:
+                    color = 0x8e44ad;
+                    bgColor = 0x1a0933;
+            }
+            
+            if (window.VANTA) {
+                // Destroy existing instance if any
+                if (window.vantaEffect) {
+                    window.vantaEffect.destroy();
+                }
+                
+                window.vantaEffect = VANTA.GLOBE({
+                    el: "#vanta-bg",
+                    mouseControls: true,
+                    touchControls: true,
+                    gyroControls: false,
+                    minHeight: 200.00,
+                    minWidth: 200.00,
+                    scale: 1.00,
+                    scaleMobile: 1.00,
+                    color: color,
+                    backgroundColor: bgColor,
+                    size: 0.8
+                });
+            }
+        }
+
         // Initialize AOS
         AOS.init({
             duration: 800,
@@ -908,59 +1003,8 @@
         // Initialize Feather Icons
         feather.replace();
         
-        // Initialize Vanta.js
-        VANTA.GLOBE({
-            el: "#vanta-bg",
-            mouseControls: true,
-            touchControls: true,
-            gyroControls: false,
-            minHeight: 200.00,
-            minWidth: 200.00,
-            scale: 1.00,
-            scaleMobile: 1.00,
-            color: 0x8e44ad,
-            color2: 0x6c5ce7,
-            backgroundColor: 0x0
-        });
-        
-        // Theme switching functionality
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeOptions = document.getElementById('theme-options');
-        const themeOptionsList = document.querySelectorAll('.theme-option');
-        
-        themeToggle.addEventListener('click', () => {
-            themeOptions.classList.toggle('active');
-        });
-        
-        themeOptionsList.forEach(option => {
-            option.addEventListener('click', () => {
-                const theme = option.getAttribute('data-theme');
-                document.body.className = `min-h-screen text-white font-sans overflow-x-hidden theme-${theme}`;
-                
-                // Update active theme option
-                themeOptionsList.forEach(opt => opt.classList.remove('active'));
-                option.classList.add('active');
-                
-                // Update theme icon
-                const themeIcon = themeToggle.querySelector('i');
-                if (theme === 'light') {
-                    themeIcon.setAttribute('data-feather', 'sun');
-                } else {
-                    themeIcon.setAttribute('data-feather', 'moon');
-                }
-                feather.replace();
-                
-                // Close theme options
-                themeOptions.classList.remove('active');
-            });
-        });
-        
-        // Close theme options when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!themeToggle.contains(e.target) && !themeOptions.contains(e.target)) {
-                themeOptions.classList.remove('active');
-            }
-        });
+        // Apply theme on page load
+        applyThemeOnLoad();
         
         // Create particles
         function createParticles() {
@@ -1049,6 +1093,31 @@
         function closeLoginModal() {
             document.getElementById('loginModal').classList.remove('active');
         }
+        
+        // Theme Switcher Functionality
+        document.getElementById('theme-toggle').addEventListener('click', function() {
+            const themeOptions = document.getElementById('theme-options');
+            themeOptions.classList.toggle('active');
+        });
+        
+        // Close theme options when clicking outside
+        document.addEventListener('click', function(event) {
+            const themeOptions = document.getElementById('theme-options');
+            const themeToggle = document.getElementById('theme-toggle');
+            
+            if (!themeToggle.contains(event.target) && !themeOptions.contains(event.target)) {
+                themeOptions.classList.remove('active');
+            }
+        });
+        
+        // Theme selection
+        document.querySelectorAll('.theme-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const theme = this.getAttribute('data-theme');
+                setTheme(theme);
+                document.getElementById('theme-options').classList.remove('active');
+            });
+        });
         
         // Notification system
         function showNotification(type, message, duration = 5000) {
@@ -1177,6 +1246,9 @@
         
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Vanta.js background
+            initVantaBackground();
+            
             // Show welcome notification after a short delay
             setTimeout(() => {
                 showNotification('info', 'Welcome to Sigmi Arcade! Enjoy our collection of games.');
