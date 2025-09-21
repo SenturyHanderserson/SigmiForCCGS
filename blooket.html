@@ -629,8 +629,9 @@
 
                             // Color based on role for consistency
                             let color = "bg-purple-600";
-                            if (user.role === "Owner") color = "bg-red-600";
-                            if (user.role === "Admin") color = "bg-blue-600";
+		                    if (user.role === "Owner") color = "bg-red-600";
+		                    if (user.role === "Admin") color = "bg-blue-600";
+							if (user.role === "VIP") color = "bg-yellow-600";
 
                             const memberDiv = document.createElement("div");
                             memberDiv.className = "flex items-center p-3 rounded-lg hover:bg-purple-800 hover:bg-opacity-50 transition-colors duration-200";
