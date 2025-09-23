@@ -10,6 +10,10 @@
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
 	<link class="favicon" rel="icon" type="image/x-icon" href="https://quiz-50.github.io/media/drive.ico">
+	<script type="module">
+	  import * as lucide from 'https://cdn.jsdelivr.net/npm/lucide/dist/esm/lucide.esm.js';
+	</script>
+
     <style>
         /* Theme Variables */
 	        body {
@@ -1825,56 +1829,79 @@ window.addEventListener('beforeunload', () => {
         }
         // Load Dashboard Content
 		async function loadDashboard() {
-				    // First try to get username from localStorage
-				    let username = localStorage.getItem('currentUser');
-				    
-				    // If not found in localStorage, fetch from server
-				    if (!username) {
-				        const userData = await fetchUserData();
-				        if (userData && userData.username) {
-				            username = userData.username;
-				            localStorage.setItem('currentUser', username);
-				        }
-				    }
-				    
-				    // Update the UI
-				    if (username) {
-				        document.getElementById('usernameDisplay').textContent = username;
-				    }
-				    
-				    // Rest of your existing loadDashboard code...
-				    const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
-				    const dashboard = document.getElementById('dashboardSections');
-				    
-				    // Clear existing content
-				    dashboard.innerHTML = '';
-				    
-				    // Add sections based on preferences
-				    if (preferences.hacks && preferences.hacks.length > 0) {
-				        const section = createSection('Hacks', 'code', preferences.hacks);
-				        dashboard.appendChild(section);
-				    }
-				    
-				    if (preferences.bypasses && preferences.bypasses.length > 0) {
-				        const section = createSection('Bypasses', 'unlock', preferences.bypasses);
-				        dashboard.appendChild(section);
-				    }
-				    
-				    if (preferences.games && preferences.games.length > 0) {
-				        const section = createSection('Games', 'gamepad', preferences.games);
-				        dashboard.appendChild(section);
-				        loadMembers(); // Load members after dashboard is loaded
-				    }
-				    
-				    if (preferences.external && preferences.external.length > 0) {
-				        const section = createSection('External Games', 'external-link', preferences.external);
-				        dashboard.appendChild(section);
-				    }
-				    
-				    // Refresh icons
-				    feather.replace();
-				}
-				
+		    // Get username
+		    let username = localStorage.getItem('currentUser');
+		    if (!username) {
+		        const userData = await fetchUserData();
+		        if (userData && userData.username) {
+		            username = userData.username;
+		            localStorage.setItem('currentUser', username);
+		        }
+		    }
+		
+		    if (username) {
+		        document.getElementById('usernameDisplay').textContent = username;
+		    }
+		
+		    const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
+		    const dashboard = document.getElementById('dashboardSections');
+		    dashboard.innerHTML = '';
+		
+		    // Helper to create a section
+		    function createSectionLucide(title, iconName, items) {
+		        const section = document.createElement('div');
+		        section.classList.add('section');
+		
+		        const header = document.createElement('h2');
+		
+		        // Lucide icon as inline SVG
+		        let iconSvg;
+		        try {
+		            iconSvg = lucide.icons[iconName].toSvg({ width: 20, height: 20 });
+		        } catch {
+		            iconSvg = ''; // fallback if icon not found
+		        }
+		
+		        header.innerHTML = `${iconSvg} ${title}`;
+		        section.appendChild(header);
+		
+		        const list = document.createElement('ul');
+		        items.forEach(item => {
+		            const li = document.createElement('li');
+		            li.textContent = item;
+		            list.appendChild(li);
+		        });
+		        section.appendChild(list);
+		
+		        return section;
+		    }
+		
+		    // Hacks
+		    if (preferences.hacks && preferences.hacks.length > 0) {
+		        const section = createSectionLucide('Hacks', 'code', preferences.hacks);
+		        dashboard.appendChild(section);
+		    }
+		
+		    // Bypasses
+		    if (preferences.bypasses && preferences.bypasses.length > 0) {
+		        const section = createSectionLucide('Bypasses', 'unlock', preferences.bypasses);
+		        dashboard.appendChild(section);
+		    }
+		
+		    // Games (Lucide has a gamepad icon!)
+		    if (preferences.games && preferences.games.length > 0) {
+		        const section = createSectionLucide('Games', 'gamepad', preferences.games);
+		        dashboard.appendChild(section);
+		        loadMembers();
+		    }
+		
+		    // External Games
+		    if (preferences.external && preferences.external.length > 0) {
+		        const section = createSectionLucide('External Games', 'external-link', preferences.external);
+		        dashboard.appendChild(section);
+		    }
+		}
+
 				function createSection(title, icon, items) {
 				    const section = document.createElement('div');
 				    section.classList.add('section');
