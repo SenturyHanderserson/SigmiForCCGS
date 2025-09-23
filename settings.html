@@ -769,6 +769,7 @@ function getTheme() {
 			const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
 			
 			// Set checkbox states based on current preferences
+			// Use the actual array length check to determine if section is enabled
 			document.querySelector('input[data-section="hacks"]').checked = !!(preferences.hacks && preferences.hacks.length > 0);
 			document.querySelector('input[data-section="bypasses"]').checked = !!(preferences.bypasses && preferences.bypasses.length > 0);
 			document.querySelector('input[data-section="games"]').checked = !!(preferences.games && preferences.games.length > 0);
@@ -785,7 +786,6 @@ function getTheme() {
 			});
 			
 			modal.classList.remove('hidden');
-		
 		}
         // Notification function for settings page
 		function showNotification(message, type = 'info', duration = 3000) {
@@ -794,7 +794,12 @@ function getTheme() {
 		}
 				
 		function savePreferencesFromModal() {
-			const preferences = {
+			// Get current preferences to preserve theme and other settings
+			const currentPreferences = JSON.parse(getCookie('UserPreferences') || '{}');
+			
+			// Update only the section preferences, preserve everything else
+			const updatedPreferences = {
+				...currentPreferences, // Keep existing settings (theme, layout, etc.)
 				hacks: document.querySelector('input[data-section="hacks"]').checked ? 
 					['roblox', 'minecraft', 'blooket', 'mathsonline', 'autoclicker'] : [],
 				bypasses: document.querySelector('input[data-section="bypasses"]').checked ? 
@@ -805,9 +810,9 @@ function getTheme() {
 					['roblox', 'minecraft'] : []
 			};
 			
-			setCookie('UserPreferences', JSON.stringify(preferences), 365);
+			setCookie('UserPreferences', JSON.stringify(updatedPreferences), 365);
 			document.getElementById('customizeModal').classList.add('hidden');
-			showNotification('Preferences updated successfully!', 'success');
+			showNotification('Dashboard preferences updated successfully!', 'success');
 		}
 		
         // Function to clear client-side data
