@@ -986,7 +986,7 @@ function showNotification(message, type = 'info', duration = 3000) {
 			
 			if (activeWarnings.length === 0) {
 				document.getElementById('warningModal').classList.add('hidden');
-				showNotification('Warning modal closed', 'info');
+				showNotification('Warnings successfully acknowledged', 'info');
 			} else {
 				showNotification(`You still have ${activeWarnings.length} active warning(s) to dismiss`, 'warning');
 			}
