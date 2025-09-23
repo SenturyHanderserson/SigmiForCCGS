@@ -817,18 +817,6 @@ function showNotification(message, type = 'info', duration = 3000) {
     }, duration);
 }
 
-// Add this function
-function closeWarningModal() {
-    const activeWarnings = userWarnings.filter(w => !w.dismissed);
-    
-    // Only allow closing if all warnings are dismissed
-    if (activeWarnings.length === 0) {
-        document.getElementById('warningModal').classList.add('hidden');
-    } else {
-        showNotification(`You still have ${activeWarnings.length} active warning(s) to dismiss`, 'warning');
-        // Optionally, you can show a countdown or force the modal to stay open
-    }
-}
 
 
 function showWarningHistoryModal(warnings) {
@@ -1185,6 +1173,50 @@ async function viewWarningHistory() {
 					showNotification('Please enter both username and password', 'warning');
 				}
 			});
+		async function dismissWarning(warningId) {
+			try {
+				const token = getCookie('AuthToken');
+				if (!token) return;
+				
+				const response = await fetch(`${SERVER_URL}/api/warnings/${warningId}/dismiss`, {
+					method: 'POST',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+						'Content-Type': 'application/json'
+					}
+				});
+				
+				if (response.ok) {
+					// Update local warnings array
+					const warningIndex = userWarnings.findIndex(w => w.id === warningId);
+					if (warningIndex !== -1) {
+						userWarnings[warningIndex].dismissed = true;
+						userWarnings[warningIndex].dismissedAt = new Date().toISOString();
+					}
+					
+					// Refresh the warning modal
+					showWarningModal(userWarnings);
+					showNotification('Warning dismissed', 'success');
+				} else {
+					throw new Error('Failed to dismiss warning');
+				}
+			} catch (error) {
+				console.error('Error dismissing warning:', error);
+				showNotification('Failed to dismiss warning', 'error');
+			}
+		}
+
+		// Also add this function for modal closing
+		function closeWarningModal() {
+			const activeWarnings = userWarnings.filter(w => !w.dismissed);
+			
+			// Only allow closing if all warnings are dismissed
+			if (activeWarnings.length === 0) {
+				document.getElementById('warningModal').classList.add('hidden');
+			} else {
+				showNotification(`You still have ${activeWarnings.length} active warning(s) to dismiss`, 'warning');
+			}
+		}
 			document.addEventListener('click', function(e) {
 				if (e.target.id === 'viewHistoryBtn' || e.target.closest('#viewHistoryBtn')) {
 					viewWarningHistory();
