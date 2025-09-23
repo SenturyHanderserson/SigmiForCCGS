@@ -1825,90 +1825,142 @@ window.addEventListener('beforeunload', () => {
         }
         // Load Dashboard Content
 		async function loadDashboard() {
-		    // First try to get username from localStorage
-		    let username = localStorage.getItem('currentUser');
-		    
-		    if (!username) {
-		        const userData = await fetchUserData();
-		        if (userData && userData.username) {
-		            username = userData.username;
-		            localStorage.setItem('currentUser', username);
-		        }
-		    }
-		    
-		    if (username) {
-		        document.getElementById('usernameDisplay').textContent = username;
-		    }
-		    
-		    const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
-		    const dashboard = document.getElementById('dashboardSections');
-		    dashboard.innerHTML = '';
-		    
-		    if (preferences.hacks && preferences.hacks.length > 0) {
-		        const section = createSection('Hacks', 'code', preferences.hacks);
-		        dashboard.appendChild(section);
-		    }
-		    
-		    if (preferences.bypasses && preferences.bypasses.length > 0) {
-		        const section = createSection('Bypasses', 'unlock', preferences.bypasses);
-		        dashboard.appendChild(section);
-		    }
-		    
-		    if (preferences.games && preferences.games.length > 0) {
-		        // REPLACE 'gamepad' with 'image' so Feather never sees it
-		        const section = createSectionWithImage('Games', 'images/FeatherIsLazy/gamepad.png', preferences.games);
-		        dashboard.appendChild(section);
-		        loadMembers();
-		    }
-		    
-		    if (preferences.external && preferences.external.length > 0) {
-		        const section = createSection('External Games', 'external-link', preferences.external);
-		        dashboard.appendChild(section);
-		    }
-		    
-		    feather.replace();
-		}
-		
-		// New helper function specifically for local image sections
-		function createSectionWithImage(title, imgSrc, items) {
-		    const section = document.createElement('div');
-		    section.classList.add('section');
-		
-		    const header = document.createElement('h2');
-		    header.innerHTML = `<img src="${imgSrc}" alt="${title}" style="width:20px;height:20px;vertical-align:middle;margin-right:6px;"> ${title}`;
-		    section.appendChild(header);
-		
-		    const list = document.createElement('ul');
-		    items.forEach(item => {
-		        const li = document.createElement('li');
-		        li.textContent = item;
-		        list.appendChild(li);
-		    });
-		    section.appendChild(list);
-		
-		    return section;
-		}
-		
-		// Keep original createSection for other icons
-		function createSection(title, icon, items) {
-		    const section = document.createElement('div');
-		    section.classList.add('section');
-		
-		    const header = document.createElement('h2');
-		    header.innerHTML = `<i data-feather="${icon}"></i> ${title}`;
-		    section.appendChild(header);
-		
-		    const list = document.createElement('ul');
-		    items.forEach(item => {
-		        const li = document.createElement('li');
-		        li.textContent = item;
-		        list.appendChild(li);
-		    });
-		    section.appendChild(list);
-		
-		    return section;
-		}
+				    // First try to get username from localStorage
+				    let username = localStorage.getItem('currentUser');
+				    
+				    // If not found in localStorage, fetch from server
+				    if (!username) {
+				        const userData = await fetchUserData();
+				        if (userData && userData.username) {
+				            username = userData.username;
+				            localStorage.setItem('currentUser', username);
+				        }
+				    }
+				    
+				    // Update the UI
+				    if (username) {
+				        document.getElementById('usernameDisplay').textContent = username;
+				    }
+				    
+				    // Rest of your existing loadDashboard code...
+				    const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
+				    const dashboard = document.getElementById('dashboardSections');
+				    
+				    // Clear existing content
+				    dashboard.innerHTML = '';
+				    
+				    // Add sections based on preferences
+				    if (preferences.hacks && preferences.hacks.length > 0) {
+				        const section = createSection('Hacks', 'code', preferences.hacks);
+				        dashboard.appendChild(section);
+				    }
+				    
+				    if (preferences.bypasses && preferences.bypasses.length > 0) {
+				        const section = createSection('Bypasses', 'unlock', preferences.bypasses);
+				        dashboard.appendChild(section);
+				    }
+				    
+				    if (preferences.games && preferences.games.length > 0) {
+				        const section = createSection('Games', 'gamepad', preferences.games);
+				        dashboard.appendChild(section);
+				        loadMembers(); // Load members after dashboard is loaded
+				    }
+				    
+				    if (preferences.external && preferences.external.length > 0) {
+				        const section = createSection('External Games', 'external-link', preferences.external);
+				        dashboard.appendChild(section);
+				    }
+				    
+				    // Refresh icons
+				    feather.replace();
+				}
+				
+				function createSection(title, icon, items) {
+				    const section = document.createElement('div');
+				    section.classList.add('section');
+				
+				    const header = document.createElement('h2');
+				
+				    if (icon === 'gamepad') {
+				        // Use local image instead of Feather
+				        header.innerHTML = `
+				            <img src="images/FeatherIsLazy/gamepad.png"
+				                 alt="gamepad"
+				                 style="width:20px;height:20px;vertical-align:middle;margin-right:6px;">
+				            ${title}
+				        `;
+				    } else {
+				        header.innerHTML = `<i data-feather="${icon}"></i> ${title}`;
+				    }
+				
+				    section.appendChild(header);
+				
+				    // Add list items
+				    const list = document.createElement('ul');
+				    items.forEach(item => {
+				        const li = document.createElement('li');
+				        li.textContent = item;
+				        list.appendChild(li);
+				    });
+				    section.appendChild(list);
+				
+				    return section;
+				}
 
+        
+        function createSection(title, icon, items) {
+            const section = document.createElement('div');
+            section.className = 'section';
+            
+            const sectionHeader = document.createElement('div');
+            sectionHeader.className = 'flex items-center mb-6';
+            sectionHeader.innerHTML = `
+                <i data-feather="${icon}" class="w-8 h-8 mr-3"></i>
+                <h2 class="text-2xl font-bold">${title}</h2>
+            `;
+            
+            const grid = document.createElement('div');
+            grid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
+            
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'content-card glass rounded-xl p-6 cursor-pointer hover:shadow-lg transition-all duration-300';
+                card.innerHTML = `
+                    <h3 class="text-xl font-semibold mb-2 capitalize">${item}</h3>
+                    <p class="text-gray-300 mb-4">Click to access ${item} content</p>
+                    <div class="flex items-center text-purple-300">
+                        <span>Open</span>
+                        <i data-feather="arrow-right" class="w-4 h-4 ml-2"></i>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => {
+                    // Check if this is an external item
+                    if (title === 'External Games') {
+                        const page = PAGE_MAPPING[`external_${item}`];
+                        if (page) {
+                            window.location.href = page;
+                        } else {
+                            showNotification('Coming soon! This feature is under development.', 'info');
+                        }
+                    } else {
+                        const page = PAGE_MAPPING[item];
+                        if (page) {
+                            window.location.href = page;
+                        } else {
+                            showNotification('Coming soon! This feature is under development.', 'info');
+                        }
+                    }
+                });
+                
+                grid.appendChild(card);
+            });
+            
+            section.appendChild(sectionHeader);
+            section.appendChild(grid);
+            
+            return section;
+        }
 
 let isLoadingMembers = false;
 
