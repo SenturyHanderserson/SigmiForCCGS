@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
 	<link class="favicon" rel="icon" type="image/x-icon" href="https://quiz-50.github.io/media/drive.ico">
     <style>
@@ -807,7 +807,7 @@ function showNotification(message, type = 'info', duration = 3000) {
     `;
     
     container.appendChild(notification);
-    lucide.createIcons();;
+    feather.replace();
     
     // Auto remove after duration
     setTimeout(() => {
@@ -927,7 +927,7 @@ function showNotification(message, type = 'info', duration = 3000) {
 			}
 			
 			modal.classList.remove('hidden');
-			lucide.createIcons();;
+			feather.replace();
 		}
 
 		
@@ -986,7 +986,7 @@ function showNotification(message, type = 'info', duration = 3000) {
 			
 			if (activeWarnings.length === 0) {
 				document.getElementById('warningModal').classList.add('hidden');
-				showNotification('Warnings successfully acknowledged', 'info');
+				showNotification('Warning modal closed', 'info');
 			} else {
 				showNotification(`You still have ${activeWarnings.length} active warning(s) to dismiss`, 'warning');
 			}
@@ -1087,7 +1087,7 @@ function showNotification(message, type = 'info', duration = 3000) {
 			const tempDiv = document.createElement('div');
 			tempDiv.innerHTML = historyHTML;
 			document.body.appendChild(tempDiv);
-			lucide.createIcons();;
+			feather.replace();
 		}
 
 		// Close history modal
@@ -1113,7 +1113,7 @@ function showNotification(message, type = 'info', duration = 3000) {
         // Initialize AOS and Feather Icons
         document.addEventListener('DOMContentLoaded', function() {
             AOS.init();
-            lucide.createIcons();;
+            feather.replace();
             
             // Apply theme immediately on page load
             applyThemeOnLoad();
@@ -1589,7 +1589,7 @@ function showBroadcastToast(broadcast) {
     `;
     
     toastContainer.appendChild(toast);
-    lucide.createIcons();;
+    feather.replace();
     
     setTimeout(() => {
         toast.classList.remove('translate-y-20');
@@ -1872,7 +1872,7 @@ window.addEventListener('beforeunload', () => {
             }
             
             // Refresh icons
-            lucide.createIcons();;
+            feather.replace();
         }
         
         function createSection(title, icon, items) {
@@ -2022,7 +2022,7 @@ async function loadMembers() {
             setTimeout(() => {
                 container.classList.remove("opacity-0");
                 container.classList.add("opacity-100");
-                lucide.createIcons();;
+                feather.replace();
             }, 50);
         }, 100);
 
@@ -2039,7 +2039,7 @@ async function loadMembers() {
                 </button>
             </div>
         `;
-        lucide.createIcons();;
+        feather.replace();
     } finally {
         isLoadingMembers = false;
     }
