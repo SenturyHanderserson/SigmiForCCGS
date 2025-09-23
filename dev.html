@@ -763,75 +763,74 @@
         }
 
         // Load users list
-        async function loadUsersList() {
-            try {
-                const token = getCookie('AuthToken');
-                const response = await fetch(`${SERVER_URL}/api/users`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to load users');
-                }
-                
-                const users = await response.json();
-                
-                // Store users for use in the specific message modal
-                localStorage.setItem('allUsers', JSON.stringify(users));
-                
-                const container = document.getElementById('usersList');
-                
-                if (users.length === 0) {
-                    container.innerHTML = '<p class="text-gray-400 text-center py-4">No users found</p>';
-                    return;
-                }
-                
-			container.innerHTML = users.map(user => `
-				<div class="glassmorphism p-4 rounded-lg flex justify-between items-center">
-					<div>
-						<div class="flex items-center space-x-2">
-							<span class="font-medium">${user.username}</span>
-							<span class="user-status-badge ${user.blacklisted ? 'status-blacklisted' : 'status-clean'}">
-								${user.blacklisted ? 'Blacklisted' : 'Clean'}
-							</span>
+		async function loadUsersList() {
+			try {
+				const token = getCookie('AuthToken');
+				const response = await fetch(`${SERVER_URL}/api/users`, {
+					method: 'GET',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+						'Content-Type': 'application/json'
+					}
+				});
+				
+				if (!response.ok) {
+					throw new Error('Failed to load users');
+				}
+				
+				const users = await response.json();
+				
+				// Store users for use in the specific message modal
+				localStorage.setItem('allUsers', JSON.stringify(users));
+				
+				const container = document.getElementById('usersList');
+				
+				if (users.length === 0) {
+					container.innerHTML = '<p class="text-gray-400 text-center py-4">No users found</p>';
+					return;
+				}
+				
+				container.innerHTML = users.map(user => `
+					<div class="glassmorphism p-4 rounded-lg flex justify-between items-center">
+						<div>
+							<div class="flex items-center space-x-2">
+								<span class="font-medium">${user.username}</span>
+								<span class="user-status-badge ${user.blacklisted ? 'status-blacklisted' : 'status-clean'}">
+									${user.blacklisted ? 'Blacklisted' : 'Clean'}
+								</span>
+							</div>
+							<div class="text-sm text-gray-300">
+								Role: ${user.role} • Joined: ${user.joined}
+								${user.blacklisted ? `• Reason: ${user.blacklistReason}` : ''}
+							</div>
 						</div>
-						<div class="text-sm text-gray-300">
-							Role: ${user.role} • Joined: ${user.joined}
-							${user.blacklisted ? `• Reason: ${user.blacklistReason}` : ''}
+						<div class="flex space-x-2">
+							<!-- Add warnings button -->
+							<button onclick="viewUserWarnings('${user.username}')" class="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg" title="View Warnings">
+								<i data-feather="alert-triangle" class="w-4 h-4"></i>
+							</button>
+							${user.blacklisted ? `
+								<button onclick="unblacklistUser('${user.username}')" class="p-2 bg-green-600 hover:bg-green-700 rounded-lg">
+									<i data-feather="check-circle" class="w-4 h-4"></i>
+								</button>
+							` : `
+								<button onclick="showBlacklistForm('${user.username}')" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg">
+									<i data-feather="x-circle" class="w-4 h-4"></i>
+								</button>
+							`}
 						</div>
 					</div>
-					<div class="flex space-x-2">
-						<!-- Add warnings button -->
-						<button onclick="viewUserWarnings('${user.username}')" class="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg" title="View Warnings">
-							<i data-feather="alert-triangle" class="w-4 h-4"></i>
-						</button>
-						${user.blacklisted ? `
-							<button onclick="unblacklistUser('${user.username}')" class="p-2 bg-green-600 hover:bg-green-700 rounded-lg">
-								<i data-feather="check-circle" class="w-4 h-4"></i>
-							</button>
-						` : `
-							<button onclick="showBlacklistForm('${user.username}')" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg">
-								<i data-feather="x-circle" class="w-4 h-4"></i>
-							</button>
-						`}
-					</div>
-				</div>
-			`).join('');
-			
-			feather.replace();
+				`).join('');
+				
+				feather.replace();
+				
+			} catch (error) {
+				console.error('Failed to load users:', error);
+				document.getElementById('usersList').innerHTML = `
+					<p class="text-red-300 text-center py-4">Error loading users: ${error.message}</p>
+				`;
+			}
 		}
-                
-            } catch (error) {
-                console.error('Failed to load users:', error);
-                document.getElementById('usersList').innerHTML = `
-                    <p class="text-red-300 text-center py-4">Error loading users: ${error.message}</p>
-                `;
-            }
-        }
 
         // Show blacklist form with pre-filled username
         function showBlacklistForm(username) {
