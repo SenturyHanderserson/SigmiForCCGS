@@ -352,35 +352,41 @@
     
     <!-- Notification container -->
     <div class="notification-container" id="notificationContainer"></div>
-		<div id="warningModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
-		    <div class="glass rounded-xl p-8 max-w-md w-full mx-4">
-		        <div class="flex justify-between items-center mb-4">
-		            <div class="flex items-center">
-		                <div class="medal-icon mr-3">
-		                    <i data-feather="alert-triangle" class="w-8 h-8 text-yellow-400"></i>
-		                </div>
-		                <h2 class="text-2xl font-bold">Warning</h2>
-		            </div>
-		            <button onclick="closeWarningModal()" class="p-1 rounded-full hover:bg-purple-700">
-		                <i data-feather="x" class="w-5 h-5"></i>
-		            </button>
-		        </div>
-		        <p id="warningMessage" class="text-gray-300 mb-6"></p>
-		        
-		        <div id="warningList" class="mb-6 max-h-40 overflow-y-auto hidden">
-		            <!-- Warnings will be listed here -->
-		        </div>
-		        
-		        <div class="flex flex-col gap-3">
-		            <button onclick="closeWarningModal()" class="bg-red-600 hover:bg-red-700 py-3 px-6 rounded-lg font-medium">
-		                Acknowledge All Warnings
-		            </button>
-		            <button onclick="viewWarningHistory()" class="bg-gray-600 hover:bg-gray-700 py-2 px-6 rounded-lg font-medium text-sm">
-		                View Warning History
-		            </button>
-		        </div>
-		    </div>
-		</div>
+<div id="warningModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
+    <div class="glass rounded-xl p-8 max-w-md w-full mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <div class="flex items-center">
+                <div class="medal-icon mr-3">
+                    <i data-feather="alert-triangle" class="w-8 h-8 text-yellow-400"></i>
+                </div>
+                <h2 class="text-2xl font-bold" id="warningModalTitle">Warnings</h2>
+            </div>
+            <button onclick="closeWarningModal()" class="p-1 rounded-full hover:bg-purple-700">
+                <i data-feather="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        
+        <div id="warningList" class="mb-6 max-h-60 overflow-y-auto space-y-3">
+            <!-- Warnings will be dynamically populated here -->
+        </div>
+        
+        <div class="flex justify-between items-center text-sm text-gray-400 mb-4">
+            <span id="warningCount">0 active warnings</span>
+            <button onclick="viewWarningHistory()" class="text-purple-300 hover:text-purple-100">
+                View History
+            </button>
+        </div>
+        
+        <div class="flex flex-col gap-3">
+            <button onclick="dismissAllWarnings()" class="bg-red-600 hover:bg-red-700 py-3 px-6 rounded-lg font-medium">
+                Dismiss All Warnings
+            </button>
+            <button onclick="closeWarningModal()" class="bg-gray-600 hover:bg-gray-700 py-2 px-6 rounded-lg font-medium">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
 
 	<!-- Add this to your home page, inside the <body> tag, after the notification container -->
 <!-- Broadcast Modal -->
@@ -817,11 +823,6 @@ function showNotification(message, type = 'info', duration = 3000) {
 // Add this function
 function closeWarningModal() {
     document.getElementById('warningModal').classList.add('hidden');
-    
-    // Automatically dismiss all shown warnings when modal is closed
-    userWarnings.forEach(warning => {
-        dismissWarning(warning.id);
-    });
 }
 
 
@@ -1466,15 +1467,17 @@ async function checkForWarnings() {
             const data = await response.json();
             userWarnings = data.warnings || [];
             
-            // Only show warning if there are active warnings
-            if (data.hasWarnings) {
-                showWarningModal(data.warning, data.warningCount);
+            // Show modal if there are active warnings
+            if (data.hasWarnings && userWarnings.length > 0) {
+                showWarningModal(userWarnings);
             }
         }
     } catch (error) {
         console.error('Error checking for warnings:', error);
     }
 }
+
+
 // Function to show warning modal
 function showWarningModal(warningMessage, warningCount) {
     const modal = document.getElementById('warningModal');
@@ -1487,6 +1490,69 @@ function showWarningModal(warningMessage, warningCount) {
     }
     
     modal.classList.remove('hidden');
+}
+// Function to show warning modal
+function showWarningModal(warnings) {
+    const modal = document.getElementById('warningModal');
+    const warningList = document.getElementById('warningList');
+    const warningCount = document.getElementById('warningCount');
+    const modalTitle = document.getElementById('warningModalTitle');
+    
+    // Clear previous warnings
+    warningList.innerHTML = '';
+    
+    // Update counts and title
+    const activeWarnings = warnings.filter(w => !w.dismissed);
+    warningCount.textContent = `${activeWarnings.length} active warning${activeWarnings.length !== 1 ? 's' : ''}`;
+    modalTitle.textContent = `Warnings (${activeWarnings.length})`;
+    
+    // Populate warnings list
+    activeWarnings.forEach((warning, index) => {
+        const warningElement = document.createElement('div');
+        warningElement.className = 'p-3 rounded-lg bg-red-900 bg-opacity-30 border border-red-700';
+        warningElement.innerHTML = `
+            <div class="flex justify-between items-start mb-2">
+                <span class="font-medium">Warning #${index + 1}</span>
+                <span class="text-xs px-2 py-1 bg-red-700 rounded">Active</span>
+            </div>
+            <p class="text-sm mb-2">${warning.reason}</p>
+            <div class="flex justify-between items-center text-xs text-gray-400">
+                <span>By: ${warning.issuedBy}</span>
+                <span>${new Date(warning.issuedAt).toLocaleDateString()}</span>
+            </div>
+            <button onclick="dismissWarning('${warning.id}')" class="w-full mt-2 py-1 bg-red-700 hover:bg-red-600 rounded text-xs">
+                Dismiss This Warning
+            </button>
+        `;
+        warningList.appendChild(warningElement);
+    });
+    
+    // Show message if no active warnings (shouldn't happen, but just in case)
+    if (activeWarnings.length === 0) {
+        warningList.innerHTML = '<p class="text-center text-gray-400 py-4">No active warnings</p>';
+    }
+    
+    modal.classList.remove('hidden');
+}
+
+async function dismissAllWarnings() {
+    try {
+        const token = getCookie('AuthToken');
+        if (!token) return;
+        
+        // Dismiss each active warning
+        const activeWarnings = userWarnings.filter(w => !w.dismissed);
+        for (const warning of activeWarnings) {
+            await dismissWarning(warning.id);
+        }
+        
+        closeWarningModal();
+        showNotification('All warnings dismissed', 'success');
+        
+    } catch (error) {
+        console.error('Error dismissing all warnings:', error);
+        showNotification('Failed to dismiss warnings', 'error');
+    }
 }
 
 async function dismissWarning(warningId) {
@@ -1503,16 +1569,27 @@ async function dismissWarning(warningId) {
         });
         
         if (response.ok) {
-            // Remove the dismissed warning from our local array
-            userWarnings = userWarnings.filter(w => w.id !== warningId);
+            // Update local warnings array
+            const warningIndex = userWarnings.findIndex(w => w.id === warningId);
+            if (warningIndex !== -1) {
+                userWarnings[warningIndex].dismissed = true;
+                userWarnings[warningIndex].dismissedAt = new Date().toISOString();
+            }
             
-            // If no more warnings, close the modal
-            if (userWarnings.length === 0) {
+            // Refresh the modal if it's open
+            if (!document.getElementById('warningModal').classList.contains('hidden')) {
+                showWarningModal(userWarnings);
+            }
+            
+            // Close modal if no more active warnings
+            const activeWarnings = userWarnings.filter(w => !w.dismissed);
+            if (activeWarnings.length === 0) {
                 closeWarningModal();
             }
         }
     } catch (error) {
         console.error('Error dismissing warning:', error);
+        showNotification('Failed to dismiss warning', 'error');
     }
 }
 
