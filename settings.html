@@ -788,37 +788,10 @@ function getTheme() {
 			modal.classList.remove('hidden');
 		}
         // Notification function for settings page
-function showNotification(message, type = 'info', duration = 3000) {
-    const container = document.getElementById('notificationContainer');
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    
-    let icon = 'info';
-    if (type === 'success') icon = 'check-circle';
-    if (type === 'error') icon = 'alert-triangle';
-    if (type === 'warning') icon = 'alert-circle';
-    
-    notification.innerHTML = `
-        <div class="notification-icon">
-            <i data-feather="${icon}"></i>
-        </div>
-        <div class="notification-content">
-            ${message}
-        </div>
-        <div class="notification-close" onclick="this.parentElement.classList.add('hidden')">
-            <i data-feather="x"></i>
-        </div>
-    `;
-    
-    container.appendChild(notification);
-    feather.replace();
-    
-    // Auto remove after duration
-    setTimeout(() => {
-        notification.classList.add('hidden');
-        setTimeout(() => notification.remove(), 300);
-    }, duration);
-}
+		function showNotification(message, type = 'info', duration = 3000) {
+			// Create a simple alert for now, or you can implement a proper notification system
+			alert(message);
+		}
 				
 		function savePreferencesFromModal() {
 			// Get current preferences to preserve theme and other settings
