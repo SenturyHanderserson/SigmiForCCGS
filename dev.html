@@ -139,6 +139,22 @@
         .user-checkbox:hover {
             background-color: rgba(255, 255, 255, 0.1);
         }
+		    .status-warned {
+				background-color: #f59e0b;
+				color: white;
+			}
+			
+			.warnings-badge {
+				display: inline-flex;
+				align-items: center;
+				background-color: #f59e0b;
+				color: white;
+				border-radius: 9999px;
+				padding: 0.25rem 0.5rem;
+				font-size: 0.75rem;
+				font-weight: 600;
+				margin-left: 0.5rem;
+			}
     </style>
 </head>
 <body class="min-h-screen gradient-bg text-white font-sans">
@@ -522,43 +538,170 @@
             }
         }
         
-        // Send warning to a user
-        async function sendWarning() {
-            const username = document.getElementById('warnUsername').value.trim();
-            const warning = document.getElementById('warnMessage').value.trim();
-            
-            if (!username) {
-                alert('Please enter a username to warn');
-                return;
-            }
-            
-            try {
-                const token = getCookie('AuthToken');
-                const response = await fetch(`${SERVER_URL}/api/warn-user`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ username, warning })
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to send warning');
-                }
-                
-                const result = await response.json();
-                alert(`Warning sent to ${username}: "${warning || 'You have been warned by an administrator.'}"`);
-                closeModal('warnModal');
-                document.getElementById('warnUsername').value = '';
-                document.getElementById('warnMessage').value = '';
-                
-            } catch (error) {
-                console.error('Warning error:', error);
-                alert(`Error: ${error.message}`);
-            }
-        }
+		async function sendWarning() {
+			const username = document.getElementById('warnUsername').value.trim();
+			const reason = document.getElementById('warnMessage').value.trim();
+			
+			if (!username) {
+				alert('Please enter a username to warn');
+				return;
+			}
+			
+			if (!reason) {
+				alert('Please enter a warning reason');
+				return;
+			}
+			
+			try {
+				const token = getCookie('AuthToken');
+				const response = await fetch(`${SERVER_URL}/api/warnings/issue`, {
+					method: 'POST',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ username, reason })
+				});
+				
+				if (!response.ok) {
+					const error = await response.json();
+					throw new Error(error.error || 'Failed to send warning');
+				}
+				
+				const result = await response.json();
+				alert(`Warning issued to ${username}: "${reason}"\nWarning ID: ${result.warning.id}`);
+				closeModal('warnModal');
+				document.getElementById('warnUsername').value = '';
+				document.getElementById('warnMessage').value = '';
+				
+			} catch (error) {
+				console.error('Warning error:', error);
+				alert(`Error: ${error.message}`);
+			}
+		}
+		
+		async function viewUserWarnings(username) {
+			if (!username) {
+				alert('Please enter a username');
+				return;
+			}
+			
+			try {
+				// Note: This would require a new endpoint on your server
+				// to get warnings for a specific user (admin view)
+				const token = getCookie('AuthToken');
+				const response = await fetch(`${SERVER_URL}/api/admin/warnings/${username}`, {
+					method: 'GET',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+						'Content-Type': 'application/json'
+					}
+				});
+				
+				if (!response.ok) {
+					const error = await response.json();
+					throw new Error(error.error || 'Failed to fetch warnings');
+				}
+				
+				const warnings = await response.json();
+				showWarningsModal(username, warnings);
+				
+			} catch (error) {
+				console.error('Fetch warnings error:', error);
+				alert(`Error: ${error.message}`);
+			}
+		}
+
+			function showWarningsModal(username, warnings) {
+			// Create or show a modal displaying the user's warnings
+			const modalHtml = `
+				<div class="modal-overlay active" id="warningsModal">
+					<div class="modal-content">
+						<div class="flex justify-between items-center mb-4">
+							<h2 class="text-xl font-bold">Warnings for ${username}</h2>
+							<button onclick="closeModal('warningsModal')" class="p-1 rounded-full hover:bg-purple-700">
+								<i data-feather="x" class="w-5 h-5"></i>
+							</button>
+						</div>
+						<div class="max-h-64 overflow-y-auto">
+							${warnings.length === 0 ? 
+								'<p class="text-gray-400 text-center py-4">No warnings found</p>' :
+								warnings.map(warning => `
+									<div class="glassmorphism p-3 rounded-lg mb-2">
+										<div class="flex justify-between items-start">
+											<div>
+												<p class="font-medium">${warning.reason}</p>
+												<p class="text-sm text-gray-300">
+													Issued by: ${warning.issuedBy} on ${new Date(warning.issuedAt).toLocaleDateString()}
+												</p>
+												${warning.dismissed ? 
+													`<p class="text-sm text-green-300">
+														Dismissed on ${new Date(warning.dismissedAt).toLocaleDateString()}
+													</p>` :
+													`<p class="text-sm text-yellow-300">Active warning</p>`
+												}
+											</div>
+											${!warning.dismissed ? 
+												`<button onclick="dismissWarning('${username}', '${warning.id}')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm">
+													Dismiss
+												</button>` :
+												''
+											}
+										</div>
+									</div>
+								`).join('')
+							}
+						</div>
+						<button onclick="closeModal('warningsModal')" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-medium w-full mt-4">
+							Close
+						</button>
+					</div>
+				</div>
+			`;
+			
+			// Add modal to page if it doesn't exist
+			if (!document.getElementById('warningsModal')) {
+				const modalContainer = document.createElement('div');
+				modalContainer.innerHTML = modalHtml;
+				document.body.appendChild(modalContainer);
+				feather.replace();
+			} else {
+				document.getElementById('warningsModal').innerHTML = modalHtml;
+				document.getElementById('warningsModal').classList.add('active');
+			}
+		}
+		async function dismissWarning(username, warningId) {
+			if (!confirm(`Dismiss this warning for ${username}?`)) {
+				return;
+			}
+			
+			try {
+				const token = getCookie('AuthToken');
+				const response = await fetch(`${SERVER_URL}/api/admin/warnings/${warningId}/dismiss`, {
+					method: 'POST',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ username })
+				});
+				
+				if (!response.ok) {
+					const error = await response.json();
+					throw new Error(error.error || 'Failed to dismiss warning');
+				}
+				
+				alert('Warning dismissed successfully');
+				// Refresh the warnings view
+				viewUserWarnings(username);
+				
+			} catch (error) {
+				console.error('Dismiss warning error:', error);
+				alert(`Error: ${error.message}`);
+			}
+		}
+
+
 
         // Check authentication status on page load
         document.addEventListener('DOMContentLoaded', async function() {
@@ -647,35 +790,40 @@
                     return;
                 }
                 
-                container.innerHTML = users.map(user => `
-                    <div class="glassmorphism p-4 rounded-lg flex justify-between items-center">
-                        <div>
-                            <div class="flex items-center space-x-2">
-                                <span class="font-medium">${user.username}</span>
-                                <span class="user-status-badge ${user.blacklisted ? 'status-blacklisted' : 'status-clean'}">
-                                    ${user.blacklisted ? 'Blacklisted' : 'Clean'}
-                                </span>
-                            </div>
-                            <div class="text-sm text-gray-300">
-                                Role: ${user.role} • Joined: ${user.joined}
-                                ${user.blacklisted ? `• Reason: ${user.blacklistReason}` : ''}
-                            </div>
-                        </div>
-                        <div class="flex space-x-2">
-                            ${user.blacklisted ? `
-                                <button onclick="unblacklistUser('${user.username}')" class="p-2 bg-green-600 hover:bg-green-700 rounded-lg">
-                                    <i data-feather="check-circle" class="w-4 h-4"></i>
-                                </button>
-                            ` : `
-                                <button onclick="showBlacklistForm('${user.username}')" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg">
-                                    <i data-feather="x-circle" class="w-4 h-4"></i>
-                                </button>
-                            `}
-                        </div>
-                    </div>
-                `).join('');
-                
-                feather.replace();
+			container.innerHTML = users.map(user => `
+				<div class="glassmorphism p-4 rounded-lg flex justify-between items-center">
+					<div>
+						<div class="flex items-center space-x-2">
+							<span class="font-medium">${user.username}</span>
+							<span class="user-status-badge ${user.blacklisted ? 'status-blacklisted' : 'status-clean'}">
+								${user.blacklisted ? 'Blacklisted' : 'Clean'}
+							</span>
+						</div>
+						<div class="text-sm text-gray-300">
+							Role: ${user.role} • Joined: ${user.joined}
+							${user.blacklisted ? `• Reason: ${user.blacklistReason}` : ''}
+						</div>
+					</div>
+					<div class="flex space-x-2">
+						<!-- Add warnings button -->
+						<button onclick="viewUserWarnings('${user.username}')" class="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg" title="View Warnings">
+							<i data-feather="alert-triangle" class="w-4 h-4"></i>
+						</button>
+						${user.blacklisted ? `
+							<button onclick="unblacklistUser('${user.username}')" class="p-2 bg-green-600 hover:bg-green-700 rounded-lg">
+								<i data-feather="check-circle" class="w-4 h-4"></i>
+							</button>
+						` : `
+							<button onclick="showBlacklistForm('${user.username}')" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg">
+								<i data-feather="x-circle" class="w-4 h-4"></i>
+							</button>
+						`}
+					</div>
+				</div>
+			`).join('');
+			
+			feather.replace();
+		}
                 
             } catch (error) {
                 console.error('Failed to load users:', error);
