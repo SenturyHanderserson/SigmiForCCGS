@@ -384,6 +384,65 @@
 			font-style: italic;
 		}
 
+		/* Message Animation Styles */
+		.message-container {
+			position: fixed;
+			top: 70px;
+			left: 20px;
+			z-index: 1001;
+			width: 350px;
+			max-height: 80vh;
+			overflow-y: auto;
+			opacity: 0;
+			transition: opacity 0.5s ease;
+		}
+
+		.message-alert {
+			background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+			color: white;
+			padding: 15px;
+			border-radius: 8px;
+			margin-bottom: 10px;
+			box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+			border-left: 4px solid #ff8c00;
+			border-top: 1px solid rgba(255,255,255,0.2);
+			backdrop-filter: blur(10px);
+			transform: translateX(0);
+			opacity: 1;
+			transition: all 0.5s ease;
+		}
+
+		/* Animation keyframes */
+		@keyframes slideInFromLeft {
+			from {
+				opacity: 0;
+				transform: translateX(-50px);
+			}
+			to {
+				opacity: 1;
+				transform: translateX(0);
+			}
+		}
+
+		@keyframes slideOutToLeft {
+			from {
+				opacity: 1;
+				transform: translateX(0);
+			}
+			to {
+				opacity: 0;
+				transform: translateX(-100%);
+			}
+		}
+
+		.message-slide-in {
+			animation: slideInFromLeft 0.5s ease forwards;
+		}
+
+		.message-slide-out {
+			animation: slideOutToLeft 0.5s ease forwards;
+		}
+
 		.broadcast-toast {
 			    background: var(--glass-bg);
 			    backdrop-filter: blur(10px);
@@ -1675,12 +1734,29 @@ async function checkForBroadcasts() {
 		function displayMessages(messages) {
 			const container = document.getElementById('messageContainer');
 			
+			// Clear container with fade out animation
+			if (container.children.length > 0) {
+				container.style.opacity = '0';
+				setTimeout(() => {
+					container.innerHTML = '';
+					showMessagesBasedOnContent(messages);
+				}, 300);
+			} else {
+				showMessagesBasedOnContent(messages);
+			}
+		}
+
+		function showMessagesBasedOnContent(messages) {
+			const container = document.getElementById('messageContainer');
+			
 			if (!messages || messages.length === 0) {
-				container.innerHTML = '<div class="no-messages">No new messages</div>';
+				// Don't show "no messages" - just keep container empty and hidden
+				container.style.display = 'none';
 				return;
 			}
 			
 			container.innerHTML = '';
+			container.style.display = 'block';
 			
 			// Add dismiss all button if there are multiple messages
 			if (messages.length > 1) {
@@ -1691,17 +1767,36 @@ async function checkForBroadcasts() {
 				container.appendChild(dismissAllBtn);
 			}
 			
-			messages.forEach(message => {
-				const messageElement = createMessageElement(message);
-				container.appendChild(messageElement);
+			// Add messages with staggered animation
+			messages.forEach((message, index) => {
+				setTimeout(() => {
+					const messageElement = createMessageElement(message);
+					messageElement.style.opacity = '0';
+					messageElement.style.transform = 'translateX(-50px)';
+					container.appendChild(messageElement);
+					
+					// Animate in
+					setTimeout(() => {
+						messageElement.style.opacity = '1';
+						messageElement.style.transform = 'translateX(0)';
+						messageElement.style.transition = 'all 0.5s ease';
+					}, 50);
+				}, index * 100); // Stagger animation
 			});
+			
+			// Fade in container
+			setTimeout(() => {
+				container.style.opacity = '1';
+				container.style.transition = 'opacity 0.5s ease';
+			}, 50);
 			
 			feather.replace();
 		}
 
+
 		function createMessageElement(message) {
 			const messageDiv = document.createElement('div');
-			messageDiv.className = 'message-alert';
+			messageDiv.className = 'message-alert message-slide-in';
 			messageDiv.id = `message-${message.id}`;
 			
 			const timeAgo = getTimeAgo(message.createdAt);
@@ -1739,16 +1834,25 @@ async function checkForBroadcasts() {
 				});
 				
 				if (response.ok) {
-					// Remove the message from UI
+					// Animate out the message
 					const messageElement = document.getElementById(`message-${messageId}`);
 					if (messageElement) {
 						messageElement.style.opacity = '0';
 						messageElement.style.transform = 'translateX(-100%)';
+						messageElement.style.transition = 'all 0.5s ease';
+						
 						setTimeout(() => {
 							messageElement.remove();
-							// Reload messages to update the list
-							loadMessages();
-						}, 300);
+							// Check if any messages left
+							const remainingMessages = document.querySelectorAll('.message-alert');
+							if (remainingMessages.length === 0) {
+								const container = document.getElementById('messageContainer');
+								container.style.opacity = '0';
+								setTimeout(() => {
+									container.style.display = 'none';
+								}, 500);
+							}
+						}, 500);
 					}
 					showNotification('Message dismissed', 'success');
 				} else {
@@ -1779,24 +1883,35 @@ async function checkForBroadcasts() {
 				
 				if (response.ok) {
 					const data = await response.json();
+					
 					// Animate all messages out
 					const messageElements = document.querySelectorAll('.message-alert');
+					const dismissAllBtn = document.querySelector('.message-dismiss-all');
+					
+					if (dismissAllBtn) {
+						dismissAllBtn.style.opacity = '0';
+						dismissAllBtn.style.transition = 'opacity 0.3s ease';
+					}
+					
 					messageElements.forEach((element, index) => {
 						setTimeout(() => {
-							element.style.opacity = '0';
-							element.style.transform = 'translateX(-100%)';
-							setTimeout(() => element.remove(), 300);
+							element.classList.add('message-slide-out');
+							setTimeout(() => element.remove(), 500);
 						}, index * 100);
 					});
 					
-					// Remove dismiss all button
-					const dismissAllBtn = document.querySelector('.message-dismiss-all');
-					if (dismissAllBtn) dismissAllBtn.remove();
+					// Hide container after animations
+					setTimeout(() => {
+						const container = document.getElementById('messageContainer');
+						container.style.opacity = '0';
+						setTimeout(() => {
+							container.style.display = 'none';
+							container.innerHTML = '';
+						}, 500);
+					}, (messageElements.length * 100) + 500);
 					
-					showNotification(`Dismissed ${data.dismissedCount} messages`, 'success');
+					showNotification(`✅ Dismissed ${data.dismissedCount} messages`, 'success');
 					
-					// Reload messages after animation
-					setTimeout(loadMessages, 500);
 				} else {
 					console.error('Failed to dismiss all messages');
 					showNotification('Failed to dismiss all messages', 'error');
