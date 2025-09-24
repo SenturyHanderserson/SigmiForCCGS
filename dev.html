@@ -182,65 +182,111 @@
     </div>
 
     <!-- Trolling Options Modals -->
-    <div id="broadcastModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold">Broadcast Message</h2>
-                <button onclick="closeModal('broadcastModal')" class="p-1 rounded-full hover:bg-purple-700">
-                    <i data-feather="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            <div class="mb-4">
-                <label for="broadcastMessage" class="block text-gray-300 mb-2">Message</label>
-                <textarea id="broadcastMessage" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="4" placeholder="Enter message to broadcast to all users"></textarea>
-            </div>
-            <div class="mb-4">
-                <label for="broadcastDuration" class="block text-gray-300 mb-2">Duration (hours)</label>
-                <select id="broadcastDuration" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                    <option value="1">1 hour</option>
-                    <option value="6">6 hours</option>
-                    <option value="24" selected>24 hours</option>
-                    <option value="72">72 hours</option>
-                    <option value="168">1 week</option>
-                </select>
-            </div>
-            <button onclick="sendBroadcast()" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-medium w-full">
-                Send Broadcast
-            </button>
-        </div>
-    </div>
+		<div id="broadcastModal" class="modal-overlay">
+			<div class="modal-content">
+				<div class="flex justify-between items-center mb-4">
+					<h2 class="text-xl font-bold">Broadcast Message</h2>
+					<button onclick="closeModal('broadcastModal')" class="p-1 rounded-full hover:bg-purple-700">
+						<i data-feather="x" class="w-5 h-5"></i>
+					</button>
+				</div>
+				
+				<!-- Add sender type for broadcasts too -->
+				<div class="mb-4">
+					<label class="block text-gray-300 mb-2">Send As</label>
+					<div class="flex space-x-4">
+						<label class="flex items-center">
+							<input type="radio" name="broadcastSenderType" value="user" checked class="mr-2">
+							<span>My Account</span>
+						</label>
+						<label class="flex items-center">
+							<input type="radio" name="broadcastSenderType" value="system" class="mr-2">
+							<span>System</span>
+						</label>
+						<label class="flex items-center">
+							<input type="radio" name="broadcastSenderType" value="anonymous" class="mr-2">
+							<span>Anonymous</span>
+						</label>
+					</div>
+				</div>
+				
+				<div class="mb-4">
+					<label for="broadcastMessage" class="block text-gray-300 mb-2">Message</label>
+					<textarea id="broadcastMessage" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="4" placeholder="Enter message to broadcast to all users"></textarea>
+				</div>
+				
+				<div class="mb-4">
+					<label for="broadcastDuration" class="block text-gray-300 mb-2">Duration (hours)</label>
+					<select id="broadcastDuration" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+						<option value="1">1 hour</option>
+						<option value="6">6 hours</option>
+						<option value="24" selected>24 hours</option>
+						<option value="72">72 hours</option>
+						<option value="168">1 week</option>
+					</select>
+				</div>
+				
+				<button onclick="sendBroadcast()" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-medium w-full">
+					Send Broadcast
+				</button>
+			</div>
+		</div>
 
-    <div id="specificMessageModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold">Send Specific Message</h2>
-                <button onclick="closeModal('specificMessageModal')" class="p-1 rounded-full hover:bg-purple-700">
-                    <i data-feather="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            <div class="mb-4">
-                <label for="specificMessage" class="block text-gray-300 mb-2">Message</label>
-                <textarea id="specificMessage" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="4" placeholder="Enter message to send to selected users"></textarea>
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-300 mb-2">Select Recipients</label>
-                <div class="max-h-48 overflow-y-auto bg-gray-800 bg-opacity-50 rounded-lg p-2" id="recipientsList">
-                    <!-- Users will be populated here -->
-                </div>
-            </div>
-            <div class="flex space-x-2">
-                <button onclick="selectAllUsers()" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-medium flex-1">
-                    Select All
-                </button>
-                <button onclick="deselectAllUsers()" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-medium flex-1">
-                    Deselect All
-                </button>
-            </div>
-            <button onclick="sendSpecificMessage()" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-medium w-full mt-4">
-                Send Message
-            </button>
-        </div>
-    </div>
+		<div id="specificMessageModal" class="modal-overlay">
+			<div class="modal-content">
+				<div class="flex justify-between items-center mb-4">
+					<h2 class="text-xl font-bold">Send Specific Message</h2>
+					<button onclick="closeModal('specificMessageModal')" class="p-1 rounded-full hover:bg-purple-700">
+						<i data-feather="x" class="w-5 h-5"></i>
+					</button>
+				</div>
+				
+				<!-- Add sender type selection -->
+				<div class="mb-4">
+					<label class="block text-gray-300 mb-2">Send As</label>
+					<div class="flex space-x-4">
+						<label class="flex items-center">
+							<input type="radio" name="senderType" value="user" checked class="mr-2" onchange="toggleCustomSender()">
+							<span>My Account</span>
+						</label>
+						<label class="flex items-center">
+							<input type="radio" name="senderType" value="system" class="mr-2" onchange="toggleCustomSender()">
+							<span>System</span>
+						</label>
+						<label class="flex items-center">
+							<input type="radio" name="senderType" value="anonymous" class="mr-2" onchange="toggleCustomSender()">
+							<span>Anonymous</span>
+						</label>
+					</div>
+				</div>
+				
+				<div class="mb-4">
+					<label for="specificMessage" class="block text-gray-300 mb-2">Message</label>
+					<textarea id="specificMessage" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="4" placeholder="Enter message to send to selected users"></textarea>
+				</div>
+				
+				<div class="mb-4">
+					<label class="block text-gray-300 mb-2">Select Recipients</label>
+					<div class="max-h-48 overflow-y-auto bg-gray-800 bg-opacity-50 rounded-lg p-2" id="recipientsList">
+						<!-- Users will be populated here -->
+					</div>
+				</div>
+				
+				<div class="flex space-x-2 mb-4">
+					<button onclick="selectAllUsers()" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-medium flex-1">
+						Select All
+					</button>
+					<button onclick="deselectAllUsers()" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-medium flex-1">
+						Deselect All
+					</button>
+				</div>
+				
+				<button onclick="sendSpecificMessage()" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-medium w-full">
+					Send Message
+				</button>
+			</div>
+		</div>
+
 
     <div id="warnModal" class="modal-overlay">
         <div class="modal-content">
@@ -457,48 +503,58 @@
             });
         }
         
-        // Send broadcast message
-        async function sendBroadcast() {
-            const message = document.getElementById('broadcastMessage').value.trim();
-            const duration = parseInt(document.getElementById('broadcastDuration').value);
-            
-            if (!message) {
-                alert('Please enter a message to broadcast');
-                return;
-            }
-            
-            try {
-                const token = getCookie('AuthToken');
-                const response = await fetch(`${SERVER_URL}/api/broadcast`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ message, duration })
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to send broadcast');
-                }
-                
-                const result = await response.json();
-                alert(`Broadcast sent successfully! It will be active for ${duration} hours.`);
-                closeModal('broadcastModal');
-                document.getElementById('broadcastMessage').value = '';
-                
-            } catch (error) {
-                console.error('Broadcast error:', error);
-                alert(`Error: ${error.message}`);
-            }
-        }
-        
-		// Send specific message to selected users
+		function toggleCustomSender() {
+			// This can be expanded if you need custom sender names
+		}
+
+		// Update the sendBroadcast function
+		async function sendBroadcast() {
+			const message = document.getElementById('broadcastMessage').value.trim();
+			const duration = parseInt(document.getElementById('broadcastDuration').value);
+			const senderType = document.querySelector('input[name="broadcastSenderType"]:checked').value;
+			
+			if (!message) {
+				alert('Please enter a message to broadcast');
+				return;
+			}
+			
+			try {
+				const token = getCookie('AuthToken');
+				const response = await fetch(`${SERVER_URL}/api/broadcast`, {
+					method: 'POST',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ 
+						message, 
+						duration,
+						senderType // Add sender type to request
+					})
+				});
+				
+				if (!response.ok) {
+					const error = await response.json();
+					throw new Error(error.error || 'Failed to send broadcast');
+				}
+				
+				const result = await response.json();
+				alert(`Broadcast sent successfully as ${senderType}! It will be active for ${duration} hours.`);
+				closeModal('broadcastModal');
+				document.getElementById('broadcastMessage').value = '';
+				
+			} catch (error) {
+				console.error('Broadcast error:', error);
+				alert(`Error: ${error.message}`);
+			}
+		}
+
+		// Update the sendSpecificMessage function
 		async function sendSpecificMessage() {
 			const message = document.getElementById('specificMessage').value.trim();
 			const checkboxes = document.querySelectorAll('input[name="recipients"]:checked');
 			const recipients = Array.from(checkboxes).map(cb => cb.value);
+			const senderType = document.querySelector('input[name="senderType"]:checked').value;
 			
 			if (!message) {
 				alert('Please enter a message to send');
@@ -521,7 +577,8 @@
 					body: JSON.stringify({ 
 						message, 
 						recipients,
-						duration: 168 // 1 week default
+						duration: 168, // 1 week default
+						senderType // Add sender type to request
 					})
 				});
 				
@@ -531,7 +588,7 @@
 				}
 				
 				const result = await response.json();
-				alert(`✅ Message sent to ${result.recipients.length} user(s)!`);
+				alert(`✅ Message sent as ${senderType} to ${result.recipients.length} user(s)!`);
 				closeModal('specificMessageModal');
 				document.getElementById('specificMessage').value = '';
 				deselectAllUsers();
