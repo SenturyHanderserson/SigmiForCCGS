@@ -285,6 +285,33 @@
             transition: opacity 0.3s ease;
         }
 
+		@keyframes slideInLeft {
+			from {
+				opacity: 0;	
+				transform: translateX(-20px);
+			}
+			to {
+				opacity: 1;
+				transform: translateX(0);
+			}
+		}
+
+		@keyframes slideOutLeft {
+			from {
+				opacity: 1;
+				transform: translateX(0);
+			}
+			to {
+				opacity: 0;
+				transform: translateX(-20px);
+			}
+		}
+
+		.message-entry {
+			border-left: 3px solid var(--accent-primary);
+		}
+
+
 		/* Message Styles */
 		.message-container {
 			position: fixed;
@@ -544,27 +571,37 @@
 	</div>
 	<!-- Add this to your home page, inside the <body> tag, after the notification container -->
 <!-- Messages Container -->
-<div id="messageContainer" class="message-container"></div>
+<div id="messageContainer" class="fixed top-20 left-4 z-[1001] w-80 max-h-[70vh] overflow-y-auto hidden">
+    <div class="glass rounded-xl p-4 mb-3" id="messageHeader" style="display: none;">
+        <div class="flex justify-between items-center mb-2">
+            <h3 class="font-semibold">Messages</h3>
+            <button onclick="dismissAllMessages()" class="text-xs bg-red-600 hover:bg-red-700 px-2 py-1 rounded">
+                Dismiss All
+            </button>
+        </div>
+    </div>
+    <div id="messagesList"></div>
+</div>
 <!-- Broadcast Modal -->
 <div id="broadcastModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
-    <div class="glass rounded-xl p-8 max-w-md w-full mx-4">
+    <div class="glass rounded-xl p-6 max-w-md w-full mx-4">
         <div class="flex justify-between items-center mb-4">
             <div class="flex items-center">
-                <div class="medal-icon mr-3">
-                    <i data-feather="bell" class="w-6 h-6 text-white"></i>
+                <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center mr-3">
+                    <i data-feather="bell" class="w-5 h-5 text-white"></i>
                 </div>
-                <h2 class="text-xl font-bold">Important Announcement</h2>
+                <h2 class="text-xl font-bold">Announcement</h2>
             </div>
             <button onclick="dismissBroadcast()" class="p-1 rounded-full hover:bg-purple-700">
                 <i data-feather="x" class="w-5 h-5"></i>
             </button>
         </div>
-        <p id="broadcastMessage" class="text-gray-300 mb-6"></p>
-        <div class="flex justify-between items-center text-sm text-gray-400">
+        <p id="broadcastMessage" class="text-gray-300 mb-4"></p>
+        <div class="flex justify-between items-center text-sm text-gray-400 mb-4">
             <span id="broadcastAuthor"></span>
             <span id="broadcastTime"></span>
         </div>
-        <button onclick="dismissBroadcast()" class="bg-purple-600 hover:bg-purple-700 py-2 px-6 rounded-lg font-medium w-full mt-4">
+        <button onclick="dismissBroadcast()" class="btn-primary py-2 px-6 rounded-lg font-medium w-full">
             Acknowledge
         </button>
     </div>
@@ -1268,7 +1305,96 @@ function showNotification(message, type = 'info', duration = 3000) {
 			}
 		}
 
-
+		async function dismissMessage(messageId) {
+			try {
+				const token = getCookie('AuthToken');
+				if (!token) {
+					showNotification('Authentication required', 'error');
+					return;
+				}
+				
+				const response = await fetch(`${SERVER_URL}/api/messages/${messageId}/dismiss`, {
+					method: 'POST',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+						'Content-Type': 'application/json'
+					}
+				});
+				
+				if (response.ok) {
+					// Remove message with animation
+					const messageElement = document.getElementById(`message-${messageId}`);
+					if (messageElement) {
+						messageElement.style.animation = 'slideOutLeft 0.3s ease-in';
+						setTimeout(() => {
+							messageElement.remove();
+							checkRemainingMessages();
+						}, 300);
+					}
+					showNotification('Message dismissed', 'success');
+				} else {
+					showNotification('Failed to dismiss message', 'error');
+				}
+			} catch (error) {
+				console.error('Error dismissing message:', error);
+				showNotification('Error dismissing message', 'error');
+			}
+		}
+		
+		function checkRemainingMessages() {
+			const messagesList = document.getElementById('messagesList');
+			const messageHeader = document.getElementById('messageHeader');
+			const container = document.getElementById('messageContainer');
+			
+			if (messagesList.children.length === 0) {
+				container.classList.add('hidden');
+				messageHeader.style.display = 'none';
+			}
+		}
+		
+		async function dismissAllMessages() {
+			try {
+				const token = getCookie('AuthToken');
+				if (!token) {
+					showNotification('Authentication required', 'error');
+					return;
+				}
+				
+				const response = await fetch(`${SERVER_URL}/api/messages/dismiss-all`, {
+					method: 'POST',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+						'Content-Type': 'application/json'
+					}
+				});
+				
+				if (response.ok) {
+					const data = await response.json();
+					const messagesList = document.getElementById('messagesList');
+					const messageHeader = document.getElementById('messageHeader');
+					const container = document.getElementById('messageContainer');
+					
+					// Animate out all messages
+					const messages = messagesList.querySelectorAll('.message-entry');
+					messages.forEach((message, index) => {
+						setTimeout(() => {
+							message.style.animation = 'slideOutLeft 0.3s ease-in';
+							setTimeout(() => message.remove(), 300);
+						}, index * 100);
+					});
+					
+					setTimeout(() => {
+						container.classList.add('hidden');
+						messageHeader.style.display = 'none';
+					}, (messages.length * 100) + 500);
+					
+					showNotification(`Dismissed ${data.dismissedCount} messages`, 'success');
+				}
+			} catch (error) {
+				console.error('Error dismissing all messages:', error);
+				showNotification('Error dismissing all messages', 'error');
+			}
+		}
 
         // Initialize AOS and Feather Icons
         document.addEventListener('DOMContentLoaded', function() {
@@ -1723,8 +1849,6 @@ async function checkForBroadcasts() {
 				if (response.ok) {
 					const data = await response.json();
 					displayMessages(data.messages);
-				} else {
-					console.error('Failed to load messages');
 				}
 			} catch (error) {
 				console.error('Error loading messages:', error);
@@ -1733,18 +1857,31 @@ async function checkForBroadcasts() {
 
 		function displayMessages(messages) {
 			const container = document.getElementById('messageContainer');
+			const messagesList = document.getElementById('messagesList');
+			const messageHeader = document.getElementById('messageHeader');
 			
-			// Clear container with fade out animation
-			if (container.children.length > 0) {
-				container.style.opacity = '0';
-				setTimeout(() => {
-					container.innerHTML = '';
-					showMessagesBasedOnContent(messages);
-				}, 300);
-			} else {
-				showMessagesBasedOnContent(messages);
+			messagesList.innerHTML = '';
+			
+			if (!messages || messages.length === 0) {
+				container.classList.add('hidden');
+				messageHeader.style.display = 'none';
+				return;
 			}
+			
+			// Show container and header
+			container.classList.remove('hidden');
+			messageHeader.style.display = 'block';
+			
+			messages.forEach((message, index) => {
+				setTimeout(() => {
+					const messageElement = createMessageElement(message);
+					messagesList.appendChild(messageElement);
+				}, index * 100);
+			});
+			
+			feather.replace();
 		}
+
 
 		function showMessagesBasedOnContent(messages) {
 			const container = document.getElementById('messageContainer');
@@ -1796,19 +1933,24 @@ async function checkForBroadcasts() {
 
 		function createMessageElement(message) {
 			const messageDiv = document.createElement('div');
-			messageDiv.className = 'message-alert message-slide-in';
+			messageDiv.className = 'glass rounded-lg p-4 mb-3 message-entry';
+			messageDiv.style.animation = 'slideInLeft 0.3s ease-out';
 			messageDiv.id = `message-${message.id}`;
 			
 			const timeAgo = getTimeAgo(message.createdAt);
 			
 			messageDiv.innerHTML = `
-				<div class="message-header">
-					<span class="message-sender">From: ${escapeHtml(message.from)}</span>
-					<span class="message-time">${timeAgo}</span>
+				<div class="flex justify-between items-start mb-2">
+					<div class="flex items-center">
+						<i data-feather="mail" class="w-4 h-4 mr-2 text-purple-400"></i>
+						<span class="font-medium text-sm">${escapeHtml(message.from)}</span>
+					</div>
+					<span class="text-xs text-gray-400">${timeAgo}</span>
 				</div>
-				<div class="message-content">${escapeHtml(message.message)}</div>
-				<div class="message-actions">
-					<button class="message-btn message-dismiss" onclick="dismissMessage('${message.id}')">
+				<p class="text-sm text-gray-300 mb-3">${escapeHtml(message.message)}</p>
+				<div class="flex justify-end">
+					<button onclick="dismissMessage('${message.id}')" 
+							class="text-xs bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded transition-colors">
 						Dismiss
 					</button>
 				</div>
@@ -1817,110 +1959,7 @@ async function checkForBroadcasts() {
 			return messageDiv;
 		}
 
-		async function dismissMessage(messageId) {
-			try {
-				const token = getCookie('AuthToken');
-				if (!token) {
-					showNotification('Authentication required', 'error');
-					return;
-				}
-				
-				const response = await fetch(`${SERVER_URL}/api/messages/${messageId}/dismiss`, {
-					method: 'POST',
-					headers: {
-						'Authorization': `Bearer ${token}`,
-						'Content-Type': 'application/json'
-					}
-				});
-				
-				if (response.ok) {
-					// Animate out the message
-					const messageElement = document.getElementById(`message-${messageId}`);
-					if (messageElement) {
-						messageElement.style.opacity = '0';
-						messageElement.style.transform = 'translateX(-100%)';
-						messageElement.style.transition = 'all 0.5s ease';
-						
-						setTimeout(() => {
-							messageElement.remove();
-							// Check if any messages left
-							const remainingMessages = document.querySelectorAll('.message-alert');
-							if (remainingMessages.length === 0) {
-								const container = document.getElementById('messageContainer');
-								container.style.opacity = '0';
-								setTimeout(() => {
-									container.style.display = 'none';
-								}, 500);
-							}
-						}, 500);
-					}
-					showNotification('Message dismissed', 'success');
-				} else {
-					console.error('Failed to dismiss message');
-					showNotification('Failed to dismiss message', 'error');
-				}
-			} catch (error) {
-				console.error('Error dismissing message:', error);
-				showNotification('Error dismissing message', 'error');
-			}
-		}
 
-		async function dismissAllMessages() {
-			try {
-				const token = getCookie('AuthToken');
-				if (!token) {
-					showNotification('Authentication required', 'error');
-					return;
-				}
-				
-				const response = await fetch(`${SERVER_URL}/api/messages/dismiss-all`, {
-					method: 'POST',
-					headers: {
-						'Authorization': `Bearer ${token}`,
-						'Content-Type': 'application/json'
-					}
-				});
-				
-				if (response.ok) {
-					const data = await response.json();
-					
-					// Animate all messages out
-					const messageElements = document.querySelectorAll('.message-alert');
-					const dismissAllBtn = document.querySelector('.message-dismiss-all');
-					
-					if (dismissAllBtn) {
-						dismissAllBtn.style.opacity = '0';
-						dismissAllBtn.style.transition = 'opacity 0.3s ease';
-					}
-					
-					messageElements.forEach((element, index) => {
-						setTimeout(() => {
-							element.classList.add('message-slide-out');
-							setTimeout(() => element.remove(), 500);
-						}, index * 100);
-					});
-					
-					// Hide container after animations
-					setTimeout(() => {
-						const container = document.getElementById('messageContainer');
-						container.style.opacity = '0';
-						setTimeout(() => {
-							container.style.display = 'none';
-							container.innerHTML = '';
-						}, 500);
-					}, (messageElements.length * 100) + 500);
-					
-					showNotification(`✅ Dismissed ${data.dismissedCount} messages`, 'success');
-					
-				} else {
-					console.error('Failed to dismiss all messages');
-					showNotification('Failed to dismiss all messages', 'error');
-				}
-			} catch (error) {
-				console.error('Error dismissing all messages:', error);
-				showNotification('Error dismissing all messages', 'error');
-			}
-		}
 
 		function getTimeAgo(timestamp) {
 			const now = new Date();
