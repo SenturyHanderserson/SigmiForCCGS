@@ -285,6 +285,105 @@
             transition: opacity 0.3s ease;
         }
 
+		/* Message Styles */
+		.message-container {
+			position: fixed;
+			top: 70px;
+			left: 20px;
+			z-index: 1001;
+			width: 350px;
+			max-height: 80vh;
+			overflow-y: auto;
+		}
+
+		.message-alert {
+			background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+			color: white;
+			padding: 15px;
+			border-radius: 8px;
+			margin-bottom: 10px;
+			box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+			border-left: 4px solid #ff8c00;
+			border-top: 1px solid rgba(255,255,255,0.2);
+			backdrop-filter: blur(10px);
+		}
+
+		.message-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 8px;
+		}
+
+		.message-sender {
+			font-weight: bold;
+			font-size: 0.9em;
+			color: #fff;
+			text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+		}
+
+		.message-time {
+			font-size: 0.8em;
+			opacity: 0.9;
+			color: #e0e0e0;
+		}
+
+		.message-content {
+			font-size: 0.95em;
+			line-height: 1.4;
+			margin-bottom: 10px;
+			word-wrap: break-word;
+		}
+
+		.message-actions {
+			display: flex;
+			justify-content: flex-end;
+			gap: 10px;
+		}
+
+		.message-btn {
+			padding: 5px 12px;
+			border: none;
+			border-radius: 4px;
+			font-size: 0.8em;
+			cursor: pointer;
+			transition: all 0.3s ease;
+		}
+
+		.message-dismiss {
+			background: rgba(255,255,255,0.2);
+			color: white;
+			border: 1px solid rgba(255,255,255,0.3);
+		}
+
+		.message-dismiss:hover {
+			background: rgba(255,255,255,0.3);
+			transform: translateY(-1px);
+		}
+
+		.message-dismiss-all {
+			background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+			color: white;
+			border: none;
+			padding: 8px 16px;
+			border-radius: 6px;
+			font-weight: bold;
+			margin-bottom: 10px;
+			width: 100%;
+		}
+
+		.message-dismiss-all:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 4px 12px rgba(255,107,107,0.4);
+		}
+
+		.no-messages {
+			text-align: center;
+			padding: 20px;
+			color: #666;
+			font-style: italic;
+		}
+
 		.broadcast-toast {
 			    background: var(--glass-bg);
 			    backdrop-filter: blur(10px);
@@ -385,6 +484,8 @@
 		</div>
 	</div>
 	<!-- Add this to your home page, inside the <body> tag, after the notification container -->
+<!-- Messages Container -->
+<div id="messageContainer" class="message-container"></div>
 <!-- Broadcast Modal -->
 <div id="broadcastModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
     <div class="glass rounded-xl p-8 max-w-md w-full mx-4">
@@ -1548,6 +1649,193 @@ async function checkForBroadcasts() {
         console.error('Error checking for broadcasts:', error);
     }
 }
+		// Message System Functions
+		async function loadMessages() {
+			try {
+				const token = getCookie('AuthToken');
+				if (!token) return;
+				
+				const response = await fetch(`${SERVER_URL}/api/messages`, {
+					headers: {
+						'Authorization': `Bearer ${token}`
+					}
+				});
+				
+				if (response.ok) {
+					const data = await response.json();
+					displayMessages(data.messages);
+				} else {
+					console.error('Failed to load messages');
+				}
+			} catch (error) {
+				console.error('Error loading messages:', error);
+			}
+		}
+
+		function displayMessages(messages) {
+			const container = document.getElementById('messageContainer');
+			
+			if (!messages || messages.length === 0) {
+				container.innerHTML = '<div class="no-messages">No new messages</div>';
+				return;
+			}
+			
+			container.innerHTML = '';
+			
+			// Add dismiss all button if there are multiple messages
+			if (messages.length > 1) {
+				const dismissAllBtn = document.createElement('button');
+				dismissAllBtn.className = 'message-dismiss-all';
+				dismissAllBtn.textContent = `Dismiss All (${messages.length})`;
+				dismissAllBtn.onclick = dismissAllMessages;
+				container.appendChild(dismissAllBtn);
+			}
+			
+			messages.forEach(message => {
+				const messageElement = createMessageElement(message);
+				container.appendChild(messageElement);
+			});
+			
+			feather.replace();
+		}
+
+		function createMessageElement(message) {
+			const messageDiv = document.createElement('div');
+			messageDiv.className = 'message-alert';
+			messageDiv.id = `message-${message.id}`;
+			
+			const timeAgo = getTimeAgo(message.createdAt);
+			
+			messageDiv.innerHTML = `
+				<div class="message-header">
+					<span class="message-sender">From: ${escapeHtml(message.from)}</span>
+					<span class="message-time">${timeAgo}</span>
+				</div>
+				<div class="message-content">${escapeHtml(message.message)}</div>
+				<div class="message-actions">
+					<button class="message-btn message-dismiss" onclick="dismissMessage('${message.id}')">
+						Dismiss
+					</button>
+				</div>
+			`;
+			
+			return messageDiv;
+		}
+
+		async function dismissMessage(messageId) {
+			try {
+				const token = getCookie('AuthToken');
+				if (!token) {
+					showNotification('Authentication required', 'error');
+					return;
+				}
+				
+				const response = await fetch(`${SERVER_URL}/api/messages/${messageId}/dismiss`, {
+					method: 'POST',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+						'Content-Type': 'application/json'
+					}
+				});
+				
+				if (response.ok) {
+					// Remove the message from UI
+					const messageElement = document.getElementById(`message-${messageId}`);
+					if (messageElement) {
+						messageElement.style.opacity = '0';
+						messageElement.style.transform = 'translateX(-100%)';
+						setTimeout(() => {
+							messageElement.remove();
+							// Reload messages to update the list
+							loadMessages();
+						}, 300);
+					}
+					showNotification('Message dismissed', 'success');
+				} else {
+					console.error('Failed to dismiss message');
+					showNotification('Failed to dismiss message', 'error');
+				}
+			} catch (error) {
+				console.error('Error dismissing message:', error);
+				showNotification('Error dismissing message', 'error');
+			}
+		}
+
+		async function dismissAllMessages() {
+			try {
+				const token = getCookie('AuthToken');
+				if (!token) {
+					showNotification('Authentication required', 'error');
+					return;
+				}
+				
+				const response = await fetch(`${SERVER_URL}/api/messages/dismiss-all`, {
+					method: 'POST',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+						'Content-Type': 'application/json'
+					}
+				});
+				
+				if (response.ok) {
+					const data = await response.json();
+					// Animate all messages out
+					const messageElements = document.querySelectorAll('.message-alert');
+					messageElements.forEach((element, index) => {
+						setTimeout(() => {
+							element.style.opacity = '0';
+							element.style.transform = 'translateX(-100%)';
+							setTimeout(() => element.remove(), 300);
+						}, index * 100);
+					});
+					
+					// Remove dismiss all button
+					const dismissAllBtn = document.querySelector('.message-dismiss-all');
+					if (dismissAllBtn) dismissAllBtn.remove();
+					
+					showNotification(`Dismissed ${data.dismissedCount} messages`, 'success');
+					
+					// Reload messages after animation
+					setTimeout(loadMessages, 500);
+				} else {
+					console.error('Failed to dismiss all messages');
+					showNotification('Failed to dismiss all messages', 'error');
+				}
+			} catch (error) {
+				console.error('Error dismissing all messages:', error);
+				showNotification('Error dismissing all messages', 'error');
+			}
+		}
+
+		function getTimeAgo(timestamp) {
+			const now = new Date();
+			const messageTime = new Date(timestamp);
+			const diffInSeconds = Math.floor((now - messageTime) / 1000);
+			
+			if (diffInSeconds < 60) return 'just now';
+			if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+			if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+			return `${Math.floor(diffInSeconds / 86400)}d ago`;
+		}
+
+		function escapeHtml(unsafe) {
+			return unsafe
+				.replace(/&/g, "&amp;")
+				.replace(/</g, "&lt;")
+				.replace(/>/g, "&gt;")
+				.replace(/"/g, "&quot;")
+				.replace(/'/g, "&#039;");
+		}
+
+		// Initialize message system
+		function initMessageSystem() {
+			// Check for messages after a short delay
+			setTimeout(loadMessages, 1000);
+			
+			// Set up periodic checking (every 3 minutes)
+			setInterval(loadMessages, 3 * 60 * 1000);
+		}
+
 function createBroadcastToastContainer() {
     const container = document.createElement('div');
     container.id = 'broadcastToastContainer';
@@ -1865,7 +2153,7 @@ window.addEventListener('beforeunload', () => {
 				        dashboard.appendChild(section);
 				        loadMembers(); // Load members after dashboard is loaded
 				    }
-				    
+				    initMessageSystem();
 				    if (preferences.external && preferences.external.length > 0) {
 				        const section = createSection('External Games', 'external-link', preferences.external);
 				        dashboard.appendChild(section);
