@@ -288,27 +288,47 @@
 		</div>
 
 
-    <div id="warnModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold">Warn User</h2>
-                <button onclick="closeModal('warnModal')" class="p-1 rounded-full hover:bg-purple-700">
-                    <i data-feather="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            <div class="mb-4">
-                <label for="warnUsername" class="block text-gray-300 mb-2">Username</label>
-                <input type="text" id="warnUsername" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter username to warn">
-            </div>
-            <div class="mb-4">
-                <label for="warnMessage" class="block text-gray-300 mb-2">Warning Message</label>
-                <textarea id="warnMessage" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="4" placeholder="Enter warning message"></textarea>
-            </div>
-            <button onclick="sendWarning()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-medium w-full">
-                Send Warning
-            </button>
-        </div>
-    </div>
+		<div id="warnModal" class="modal-overlay">
+			<div class="modal-content">
+				<div class="flex justify-between items-center mb-4">
+					<h2 class="text-xl font-bold">Warn User</h2>
+					<button onclick="closeModal('warnModal')" class="p-1 rounded-full hover:bg-purple-700">
+						<i data-feather="x" class="w-5 h-5"></i>
+					</button>
+				</div>
+				
+				<!-- Add sender type selection for warnings -->
+				<div class="mb-4">
+					<label class="block text-gray-300 mb-2">Send As</label>
+					<div class="flex space-x-4">
+						<label class="flex items-center">
+							<input type="radio" name="warnSenderType" value="user" checked class="mr-2">
+							<span>My Account</span>
+						</label>
+						<label class="flex items-center">
+							<input type="radio" name="warnSenderType" value="system" class="mr-2">
+							<span>System</span>
+						</label>
+						<label class="flex items-center">
+							<input type="radio" name="warnSenderType" value="anonymous" class="mr-2">
+							<span>Anonymous</span>
+						</label>
+					</div>
+				</div>
+				
+				<div class="mb-4">
+					<label for="warnUsername" class="block text-gray-300 mb-2">Username</label>
+					<input type="text" id="warnUsername" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter username to warn">
+				</div>
+				<div class="mb-4">
+					<label for="warnMessage" class="block text-gray-300 mb-2">Warning Message</label>
+					<textarea id="warnMessage" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="4" placeholder="Enter warning message"></textarea>
+				</div>
+				<button onclick="sendWarning()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-medium w-full">
+					Send Warning
+				</button>
+			</div>
+		</div>
 
     <!-- Main Container -->
     <div class="relative z-10 min-h-screen flex flex-col">
@@ -602,6 +622,7 @@
 		async function sendWarning() {
 			const username = document.getElementById('warnUsername').value.trim();
 			const reason = document.getElementById('warnMessage').value.trim();
+			const senderType = document.querySelector('input[name="warnSenderType"]:checked').value;
 			
 			if (!username) {
 				alert('Please enter a username to warn');
@@ -621,7 +642,11 @@
 						'Authorization': `Bearer ${token}`,
 						'Content-Type': 'application/json'
 					},
-					body: JSON.stringify({ username, reason })
+					body: JSON.stringify({ 
+						username, 
+						reason,
+						senderType // Add sender type to request
+					})
 				});
 				
 				if (!response.ok) {
@@ -630,14 +655,14 @@
 				}
 				
 				const result = await response.json();
-				alert(`Warning issued to ${username}: "${reason}"\nWarning ID: ${result.warning.id}`);
+				alert(`⚠️ Warning issued as ${senderType} to ${username}: "${reason}"\nWarning ID: ${result.warning.id}`);
 				closeModal('warnModal');
 				document.getElementById('warnUsername').value = '';
 				document.getElementById('warnMessage').value = '';
 				
 			} catch (error) {
 				console.error('Warning error:', error);
-				alert(`Error: ${error.message}`);
+				alert(`❌ Error: ${error.message}`);
 			}
 		}
 		
@@ -673,7 +698,7 @@
 			}
 		}
 
-			function showWarningsModal(username, warnings) {
+		function showWarningsModal(username, warnings) {
 			// Create or show a modal displaying the user's warnings
 			const modalHtml = `
 				<div class="modal-overlay active" id="warningsModal">
@@ -693,11 +718,15 @@
 											<div>
 												<p class="font-medium">${warning.reason}</p>
 												<p class="text-sm text-gray-300">
-													Issued by: ${warning.issuedBy} on ${new Date(warning.issuedAt).toLocaleDateString()}
+													Issued by: ${warning.issuedBy} 
+													${warning.senderType === 'user' ? `(${warning.originalIssuer})` : ''}
+													on ${new Date(warning.issuedAt).toLocaleDateString()}
 												</p>
+												<p class="text-xs text-gray-400">Type: ${warning.senderType || 'user'}</p>
 												${warning.dismissed ? 
 													`<p class="text-sm text-green-300">
 														Dismissed on ${new Date(warning.dismissedAt).toLocaleDateString()}
+														${warning.dismissedBy ? `by ${warning.dismissedBy}` : ''}
 													</p>` :
 													`<p class="text-sm text-yellow-300">Active warning</p>`
 												}
