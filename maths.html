@@ -1848,6 +1848,9 @@
                     if (!isValid) {
                         // Token is invalid, show login modal
                         showLoginModal();
+                    } else {
+                        // Token is valid, initialize notification systems
+                        initNotificationSystems();
                     }
                 }).catch(error => {
                     console.error('Token verification failed:', error);
@@ -1858,7 +1861,6 @@
                 // No token found, show login modal
                 setTimeout(showLoginModal, 1000);
             }
-            
         });
 
         // Show login modal function
@@ -1895,11 +1897,7 @@
             window.open(url, '_blank');
             return true;
         }
-		
-		            // Initialize notification systems if logged in
-            if (token && currentUser) {
-                initNotificationSystems();
-            }
+
 		
     </script>
 </body>
