@@ -302,7 +302,66 @@
         .login-modal.active .login-content {
             transform: scale(1);
         }
-        
+		
+		/* Notification system */
+		.notification-container {
+			position: fixed;
+			top: 1rem;
+			right: 1rem;
+			z-index: 1000;
+			width: 100%;
+			max-width: 24rem;
+		}
+
+		.notification {
+			background: var(--glass-bg);
+			backdrop-filter: blur(10px);
+			-webkit-backdrop-filter: blur(10px);
+			border: 1px solid var(--glass-border);
+			border-radius: 0.5rem;
+			padding: 1rem;
+			margin-bottom: 0.5rem;
+			display: flex;
+			align-items: center;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+			transform: translateX(0);
+			transition: all 0.3s ease;
+		}
+
+		.notification.hidden {
+			transform: translateX(100%);
+			opacity: 0;
+		}
+
+		.notification-icon {
+			margin-right: 0.75rem;
+			flex-shrink: 0;
+		}
+
+		.notification-content {
+			flex-grow: 1;
+		}
+
+		.notification-close {
+			margin-left: 0.75rem;
+			cursor: pointer;
+			opacity: 0.7;
+			transition: opacity 0.2s ease;
+		}
+
+		.notification-close:hover {
+			opacity: 1;
+		}
+
+		.broadcast-toast {
+			background: var(--glass-bg);
+			backdrop-filter: blur(10px);
+			-webkit-backdrop-filter: blur(10px);
+			border: 1px solid var(--glass-border);
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+			max-width: 24rem;
+		}
+				
         .medal-icon {
             width: 80px;
             height: 80px;
@@ -431,6 +490,70 @@
             </div>
         </div>
     </header>
+
+	<!-- Warning Modal -->
+	<div id="warningModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
+		<div class="glass rounded-xl p-8 max-w-md w-full mx-4">
+			<div class="flex justify-between items-center mb-4">
+				<div class="flex items-center">
+					<div class="medal-icon mr-3">
+						<i data-feather="alert-triangle" class="w-8 h-8 text-yellow-400"></i>
+					</div>
+					<h2 class="text-2xl font-bold" id="warningModalTitle">Warnings</h2>
+				</div>
+			</div>
+			
+			<div id="warningList" class="mb-6 max-h-60 overflow-y-auto space-y-3">
+				<!-- Warnings will be dynamically populated here -->
+			</div>
+			
+			<div class="flex justify-between items-center text-sm text-gray-400 mb-4">
+				<span id="warningCount">0 active warnings</span>
+				<button id="viewHistoryBtn" class="text-purple-300 hover:text-purple-100">
+					View History
+				</button>
+			</div>
+			
+			<div class="flex flex-col gap-3">
+				<button id="dismissAllBtn" class="bg-red-600 hover:bg-red-700 py-3 px-6 rounded-lg font-medium">
+					Dismiss All Warnings
+				</button>
+				<button id="closeWarningBtn" class="bg-gray-600 hover:bg-gray-700 py-2 px-6 rounded-lg font-medium hidden">
+					Close
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Broadcast Modal -->
+	<div id="broadcastModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
+		<div class="glass rounded-xl p-6 max-w-md w-full mx-4">
+			<div class="flex justify-between items-center mb-4">
+				<div class="flex items-center">
+					<div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center mr-3">
+						<i data-feather="bell" class="w-5 h-5 text-white"></i>
+					</div>
+					<h2 class="text-xl font-bold">Announcement</h2>
+				</div>
+				<button onclick="dismissBroadcast()" class="p-1 rounded-full hover:bg-purple-700">
+					<i data-feather="x" class="w-5 h-5"></i>
+				</button>
+			</div>
+			<p id="broadcastMessage" class="text-gray-300 mb-4"></p>
+			<div class="flex justify-between items-center text-sm text-gray-400 mb-4">
+				<span id="broadcastAuthor"></span>
+				<span id="broadcastTime"></span>
+			</div>
+			<button onclick="dismissBroadcast()" class="btn-primary py-2 px-6 rounded-lg font-medium w-full">
+				Acknowledge
+			</button>
+		</div>
+	</div>
+
+	<!-- Notification Container -->
+	<div class="notification-container" id="notificationContainer"></div>
+
+	<!-- Broadcast Toast Container (will be created dynamically) -->
 
     <!-- Main Content -->
     <main class="container mx-auto px-4 py-8">
@@ -748,10 +871,12 @@
     </footer>
 
     <script>
-	let userWarnings = [];
-	let activeBroadcasts = [];
-	let broadcastCheckInterval = null;
-	let warningCheckInterval = null;
+	// ============ GLOBAL VARIABLES ============
+		const SERVER_URL = 'https://proxyforsigmi.onrender.com';
+		let userWarnings = [];
+		let activeBroadcasts = [];
+		let broadcastCheckInterval = null;
+		let warningCheckInterval = null;
         // Theme Management Functions
         function getCookie(name) {
             const cookieName = name + "=";
@@ -776,661 +901,6 @@
             const expires = "expires=" + date.toUTCString();
             document.cookie = name + "=" + value + ";" + expires + ";path=/";
         }
-		
-		// ============ WARNING SYSTEM FUNCTIONS ============
-		async function dismissWarning(warningId) {
-			try {
-				const token = getCookie('AuthToken');
-				if (!token) {
-					showNotification('Authentication required', 'error');
-					return false;
-				}
-				
-				const response = await fetch(`${SERVER_URL}/api/warnings/${warningId}/dismiss`, {
-					method: 'POST',
-					headers: {
-						'Authorization': `Bearer ${token}`,
-						'Content-Type': 'application/json'
-					}
-				});
-				
-				if (response.ok) {
-					const data = await response.json();
-					
-					// Update the specific warning in userWarnings array
-					const warningIndex = userWarnings.findIndex(w => w.id === warningId);
-					if (warningIndex !== -1) {
-						userWarnings[warningIndex] = {
-							...userWarnings[warningIndex],
-							dismissed: true,
-							dismissedAt: data.warning.dismissedAt,
-							dismissedBy: data.warning.dismissedBy
-						};
-					}
-					
-					// Refresh the warning modal with updated warnings
-					showWarningModal(userWarnings);
-					
-					showNotification(data.message || 'Warning dismissed successfully', 'success');
-					return true;
-				} else {
-					const errorData = await response.json();
-					throw new Error(errorData.error || 'Failed to dismiss warning');
-				}
-			} catch (error) {
-				console.error('Error dismissing warning:', error);
-				showNotification(error.message || 'Failed to dismiss warning', 'error');
-				return false;
-			}
-		}
-
-		function showWarningModal(warnings) {
-			const modal = document.getElementById('warningModal');
-			const warningList = document.getElementById('warningList');
-			const warningCount = document.getElementById('warningCount');
-			const modalTitle = document.getElementById('warningModalTitle');
-			const closeWarningBtn = document.getElementById('closeWarningBtn');
-			const dismissAllBtn = document.getElementById('dismissAllBtn');
-			
-			// Clear previous warnings
-			warningList.innerHTML = '';
-			
-			// Filter active warnings (not dismissed)
-			const activeWarnings = warnings.filter(w => !w.dismissed);
-			
-			// Update counts and title
-			warningCount.textContent = `${activeWarnings.length} active warning${activeWarnings.length !== 1 ? 's' : ''}`;
-			modalTitle.textContent = `Warnings (${activeWarnings.length})`;
-			
-			// Show/hide buttons based on active warnings
-			if (activeWarnings.length === 0) {
-				dismissAllBtn.classList.add('hidden');
-				closeWarningBtn.classList.remove('hidden');
-			} else {
-				dismissAllBtn.classList.remove('hidden');
-				closeWarningBtn.classList.add('hidden');
-			}
-			
-			// Populate warnings list with ONLY active warnings
-			activeWarnings.forEach((warning, index) => {
-				const warningElement = document.createElement('div');
-				warningElement.className = 'p-3 rounded-lg bg-red-900 bg-opacity-30 border border-red-700 mb-3';
-				warningElement.innerHTML = `
-					<div class="flex justify-between items-start mb-2">
-						<span class="font-medium">Warning #${index + 1}</span>
-						<span class="text-xs px-2 py-1 bg-red-700 rounded">Active</span>
-					</div>
-					<p class="text-sm mb-2">${warning.reason}</p>
-					<div class="flex justify-between items-center text-xs text-gray-400">
-						<span>By: ${warning.issuedBy}</span>
-						<span>${new Date(warning.issuedAt).toLocaleDateString()}</span>
-					</div>
-					<button onclick="dismissWarning('${warning.id}')" class="w-full mt-2 py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-medium">
-						Dismiss This Warning
-					</button>
-				`;
-				warningList.appendChild(warningElement);
-			});
-			
-			// Show message if no active warnings
-			if (activeWarnings.length === 0) {
-				warningList.innerHTML = `
-					<div class="text-center py-4">
-						<i data-feather="check-circle" class="w-12 h-12 text-green-400 mx-auto mb-2"></i>
-						<p class="text-green-300 font-medium">All warnings have been dismissed</p>
-						<p class="text-gray-400 text-sm mt-1">You can now close this window</p>
-					</div>
-				`;
-			}
-			
-			modal.classList.remove('hidden');
-			feather.replace();
-		}
-
-		async function dismissAllWarnings() {
-			try {
-				const token = getCookie('AuthToken');
-				if (!token) {
-					showNotification('Authentication required', 'error');
-					return;
-				}
-				
-				const activeWarnings = userWarnings.filter(w => !w.dismissed);
-				if (activeWarnings.length === 0) {
-					showNotification('No active warnings to dismiss', 'info');
-					return;
-				}
-				
-				const response = await fetch(`${SERVER_URL}/api/warnings/dismiss-all`, {
-					method: 'POST',
-					headers: {
-						'Authorization': `Bearer ${token}`,
-						'Content-Type': 'application/json'
-					}
-				});
-				
-				if (response.ok) {
-					const data = await response.json();
-					
-					// Update all warnings locally
-					userWarnings.forEach(warning => {
-						if (!warning.dismissed) {
-							warning.dismissed = true;
-							warning.dismissedAt = new Date().toISOString();
-							warning.dismissedBy = localStorage.getItem('currentUser');
-						}
-					});
-					
-					// Refresh the warning modal
-					showWarningModal(userWarnings);
-					
-					showNotification(data.message || `Dismissed ${data.dismissedCount} warning(s)`, 'success');
-					
-				} else {
-					const errorData = await response.json();
-					throw new Error(errorData.error || 'Failed to dismiss warnings');
-				}
-			} catch (error) {
-				console.error('Error dismissing all warnings:', error);
-				showNotification(error.message || 'Failed to dismiss all warnings', 'error');
-			}
-		}
-
-		function closeWarningModal() {
-			const activeWarnings = userWarnings.filter(w => !w.dismissed);
-			
-			if (activeWarnings.length === 0) {
-				document.getElementById('warningModal').classList.add('hidden');
-				showNotification('Warning modal closed', 'info');
-			} else {
-				showNotification(`You still have ${activeWarnings.length} active warning(s) to dismiss`, 'warning');
-			}
-		}
-
-		async function checkForWarnings() {
-			try {
-				const token = getCookie('AuthToken');
-				if (!token) return;
-				
-				const response = await fetch(`${SERVER_URL}/api/check-warnings`, {
-					method: 'GET',
-					headers: {
-						'Authorization': `Bearer ${token}`,
-						'Content-Type': 'application/json'
-					}
-				});
-				
-				if (response.ok) {
-					const data = await response.json();
-					// Update the global userWarnings array
-					userWarnings = data.warnings || [];
-					
-					// Show modal if there are active warnings
-					if (data.hasWarnings && userWarnings.length > 0) {
-						showWarningModal(userWarnings);
-					}
-				}
-			} catch (error) {
-				console.error('Error checking for warnings:', error);
-			}
-		}
-
-		async function viewWarningHistory() {
-			try {
-				const token = getCookie('AuthToken');
-				if (!token) return;
-				
-				const response = await fetch(`${SERVER_URL}/api/warnings/history`, {
-					method: 'GET',
-					headers: {
-						'Authorization': `Bearer ${token}`,
-						'Content-Type': 'application/json'
-					}
-				});
-				
-				if (response.ok) {
-					const data = await response.json();
-					showWarningHistoryModal(data.warnings);
-				}
-			} catch (error) {
-				console.error('Error fetching warning history:', error);
-				showNotification('Failed to load warning history', 'error');
-			}
-		}
-
-		function showWarningHistoryModal(warnings) {
-			const activeWarningsBefore = userWarnings.filter(w => !w.dismissed).length;
-			
-			const historyHTML = `
-				<div id="warningHistoryModal" class="fixed inset-0 z-[2001] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm">
-					<div class="glass rounded-xl p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-						<div class="flex justify-between items-center mb-6">
-							<h2 class="text-2xl font-bold">Warning History</h2>
-							<button onclick="closeHistoryModal(${activeWarningsBefore})" class="p-1 rounded-full hover:bg-purple-700">
-								<i data-feather="x" class="w-5 h-5"></i>
-							</button>
-						</div>
-						<div class="space-y-4">
-							${warnings.length > 0 ? warnings.map(warning => `
-								<div class="p-4 rounded-lg ${warning.dismissed ? 'bg-green-900 bg-opacity-30' : 'bg-red-900 bg-opacity-30'}">
-									<div class="flex justify-between items-start">
-										<div>
-											<p class="font-medium">${warning.reason}</p>
-											<p class="text-sm text-gray-400 mt-1">
-												Issued by ${warning.issuedBy} on ${new Date(warning.issuedAt).toLocaleDateString()}
-												${warning.dismissedAt ? `<br>Dismissed on ${new Date(warning.dismissedAt).toLocaleDateString()} by ${warning.dismissedBy}` : ''}
-											</p>
-										</div>
-										<span class="px-2 py-1 rounded text-xs ${warning.dismissed ? 'bg-green-700' : 'bg-red-700'}">
-											${warning.dismissed ? 'Dismissed' : 'Active'}
-										</span>
-									</div>
-									${!warning.dismissed ? `
-										<button onclick="dismissWarning('${warning.id}')" class="w-full mt-2 py-2 bg-red-700 hover:bg-red-600 rounded text-sm">
-											Dismiss This Warning
-										</button>
-									` : ''}
-								</div>
-							`).join('') : '<p class="text-gray-400 text-center py-8">No warning history found</p>'}
-						</div>
-					</div>
-				</div>
-			`;
-			
-			const tempDiv = document.createElement('div');
-			tempDiv.innerHTML = historyHTML;
-			document.body.appendChild(tempDiv);
-			feather.replace();
-		}
-
-		function closeHistoryModal(activeWarningsBefore) {
-			const historyModal = document.getElementById('warningHistoryModal');
-			if (historyModal) {
-				historyModal.remove();
-			}
-			
-			// Check if there are still active warnings
-			const activeWarningsNow = userWarnings.filter(w => !w.dismissed).length;
-			
-			// If warnings still exist and the count hasn't changed, reopen the main warning modal
-			if (activeWarningsNow > 0 && activeWarningsNow === activeWarningsBefore) {
-				setTimeout(() => {
-					showWarningModal(userWarnings);
-				}, 300);
-			}
-		}
-
-		// ============ BROADCAST SYSTEM FUNCTIONS ============
-		async function checkForBroadcasts() {
-			try {
-				const token = getCookie('AuthToken');
-				if (!token) return;
-				
-				const response = await fetch(`${SERVER_URL}/api/broadcasts`, {
-					method: 'GET',
-					headers: {
-						'Authorization': `Bearer ${token}`,
-						'Content-Type': 'application/json'
-					}
-				});
-				
-				if (!response.ok) {
-					throw new Error('Failed to fetch broadcasts');
-				}
-				
-				const data = await response.json();
-				
-				if (data.success && data.broadcasts.length > 0) {
-					// Get user's dismissed broadcasts from local storage
-					const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
-					
-					// Process all broadcasts, not just the first one
-					data.broadcasts.forEach(broadcast => {
-						if (!dismissedBroadcasts.includes(broadcast.id) && 
-							!activeBroadcasts.some(ab => ab.id === broadcast.id)) {
-							activeBroadcasts.push(broadcast);
-							showBroadcastToast(broadcast);
-						}
-					});
-				}
-			} catch (error) {
-				console.error('Error checking for broadcasts:', error);
-			}
-		}
-
-		function createBroadcastToastContainer() {
-			const container = document.createElement('div');
-			container.id = 'broadcastToastContainer';
-			container.className = 'fixed bottom-4 right-4 z-[1000] max-w-md';
-			document.body.appendChild(container);
-			return container;
-		}
-
-		function showBroadcastToast(broadcast) {
-			const toastContainer = document.getElementById('broadcastToastContainer') || createBroadcastToastContainer();
-			
-			const toast = document.createElement('div');
-			toast.className = 'broadcast-toast glass p-4 rounded-lg mb-2 transform translate-y-20 transition-transform duration-300';
-			toast.dataset.broadcastId = broadcast.id;
-			
-			toast.innerHTML = `
-				<div class="flex items-start">
-					<div class="mr-3 mt-0.5">
-						<i data-feather="bell" class="w-5 h-5 text-yellow-400"></i>
-					</div>
-					<div class="flex-1">
-						<h3 class="font-semibold mb-1">New Announcement</h3>
-						<p class="text-sm text-gray-300">${truncateText(broadcast.message, 100)}</p>
-					</div>
-					<button onclick="hideBroadcastToast('${broadcast.id}')" class="ml-3 text-gray-400 hover:text-white">
-						<i data-feather="x" class="w-4 h-4"></i>
-					</button>
-				</div>
-				<div class="mt-2 flex justify-end">
-					<button onclick="showBroadcastModal('${broadcast.id}')" class="text-sm text-purple-300 hover:text-purple-100 mr-3">
-						View Details
-					</button>
-					<button onclick="dismissBroadcast('${broadcast.id}')" class="text-sm text-gray-400 hover:text-white">
-						Dismiss
-					</button>
-				</div>
-			`;
-			
-			toastContainer.appendChild(toast);
-			feather.replace();
-			
-			setTimeout(() => {
-				toast.classList.remove('translate-y-20');
-				toast.classList.add('translate-y-0');
-			}, 100);
-			
-			// Auto hide after 15 seconds
-			setTimeout(() => {
-				hideBroadcastToast(broadcast.id);
-			}, 15000);
-		}
-
-		function hideBroadcastToast(broadcastId) {
-			const toast = document.querySelector(`.broadcast-toast[data-broadcast-id="${broadcastId}"]`);
-			if (toast) {
-				toast.classList.remove('translate-y-0');
-				toast.classList.add('translate-y-20');
-				
-				setTimeout(() => {
-					toast.remove();
-					// Remove from active broadcasts
-					activeBroadcasts = activeBroadcasts.filter(b => b.id !== broadcastId);
-				}, 300);
-			}
-		}
-
-		function showBroadcastModal(broadcastId) {
-			const broadcast = activeBroadcasts.find(b => b.id === broadcastId);
-			if (!broadcast) return;
-			
-			const modal = document.getElementById('broadcastModal');
-			const message = document.getElementById('broadcastMessage');
-			const author = document.getElementById('broadcastAuthor');
-			const time = document.getElementById('broadcastTime');
-			
-			message.textContent = broadcast.message;
-			author.textContent = `From: ${broadcast.createdBy}`;
-			time.textContent = formatTime(new Date(broadcast.createdAt));
-			
-			modal.dataset.broadcastId = broadcastId;
-			modal.classList.remove('hidden');
-			
-			// Hide the specific toast
-			hideBroadcastToast(broadcastId);
-		}
-
-		async function dismissBroadcast(broadcastId) {
-			try {
-				const token = getCookie('AuthToken');
-				if (token) {
-					await fetch(`${SERVER_URL}/api/broadcasts/${broadcastId}/dismiss`, {
-						method: 'POST',
-						headers: {
-							'Authorization': `Bearer ${token}`,
-							'Content-Type': 'application/json'
-						}
-					});
-				}
-				
-				// Store dismissed broadcast in local storage
-				const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
-				if (!dismissedBroadcasts.includes(broadcastId)) {
-					dismissedBroadcasts.push(broadcastId);
-					localStorage.setItem('dismissedBroadcasts', JSON.stringify(dismissedBroadcasts));
-				}
-				
-				// Hide modal if it's for this broadcast
-				const modal = document.getElementById('broadcastModal');
-				if (modal.dataset.broadcastId === broadcastId) {
-					modal.classList.add('hidden');
-				}
-				
-				// Hide toast and remove from active broadcasts
-				hideBroadcastToast(broadcastId);
-				
-			} catch (error) {
-				console.error('Error dismissing broadcast:', error);
-			}
-		}
-
-		function dismissBroadcast() {
-			const modal = document.getElementById('broadcastModal');
-			const broadcastId = modal.dataset.broadcastId;
-			
-			if (broadcastId) {
-				dismissBroadcast(broadcastId);
-			} else {
-				modal.classList.add('hidden');
-			}
-		}
-		
-		// ============ MESSAGE SYSTEM FUNCTIONS ============
-		async function loadMessages() {
-			try {
-				const token = getCookie('AuthToken');
-				if (!token) return;
-				
-				const response = await fetch(`${SERVER_URL}/api/messages`, {
-					headers: {
-						'Authorization': `Bearer ${token}`
-					}
-				});
-				
-				if (response.ok) {
-					const data = await response.json();
-					displayMessages(data.messages);
-				}
-			} catch (error) {
-				console.error('Error loading messages:', error);
-			}
-		}
-
-		function displayMessages(messages) {
-			const container = document.getElementById('messageContainer');
-			const messagesList = document.getElementById('messagesList');
-			const messageHeader = document.getElementById('messageHeader');
-			
-			messagesList.innerHTML = '';
-			
-			if (!messages || messages.length === 0) {
-				container.classList.add('hidden');
-				messageHeader.style.display = 'none';
-				return;
-			}
-			
-			// Show container and header
-			container.classList.remove('hidden');
-			messageHeader.style.display = 'block';
-			
-			messages.forEach((message, index) => {
-				setTimeout(() => {
-					const messageElement = createMessageElement(message);
-					messagesList.appendChild(messageElement);
-				}, index * 100);
-			});
-			
-			feather.replace();
-		}
-
-		function createMessageElement(message) {
-			const messageDiv = document.createElement('div');
-			messageDiv.className = 'glass rounded-lg p-4 mb-3 message-entry';
-			messageDiv.style.animation = 'slideInLeft 0.3s ease-out';
-			messageDiv.id = `message-${message.id}`;
-			
-			const timeAgo = getTimeAgo(message.createdAt);
-			
-			messageDiv.innerHTML = `
-				<div class="flex justify-between items-start mb-2">
-					<div class="flex items-center">
-						<i data-feather="mail" class="w-4 h-4 mr-2 text-purple-400"></i>
-						<span class="font-medium text-sm">${escapeHtml(message.from)}</span>
-					</div>
-					<span class="text-xs text-gray-400">${timeAgo}</span>
-				</div>
-				<p class="text-sm text-gray-300 mb-3">${escapeHtml(message.message)}</p>
-				<div class="flex justify-end">
-					<button onclick="dismissMessage('${message.id}')" 
-							class="text-xs bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded transition-colors">
-						Dismiss
-					</button>
-				</div>
-			`;
-			
-			return messageDiv;
-		}
-
-		async function dismissMessage(messageId) {
-			try {
-				const token = getCookie('AuthToken');
-				if (!token) {
-					showNotification('Authentication required', 'error');
-					return;
-				}
-				
-				const response = await fetch(`${SERVER_URL}/api/messages/${messageId}/dismiss`, {
-					method: 'POST',
-					headers: {
-						'Authorization': `Bearer ${token}`,
-						'Content-Type': 'application/json'
-					}
-				});
-				
-				if (response.ok) {
-					// Remove message with animation
-					const messageElement = document.getElementById(`message-${messageId}`);
-					if (messageElement) {
-						messageElement.style.animation = 'slideOutLeft 0.3s ease-in';
-						setTimeout(() => {
-							messageElement.remove();
-							checkRemainingMessages();
-						}, 300);
-					}
-					showNotification('Message dismissed', 'success');
-				} else {
-					showNotification('Failed to dismiss message', 'error');
-				}
-			} catch (error) {
-				console.error('Error dismissing message:', error);
-				showNotification('Error dismissing message', 'error');
-			}
-		}
-
-		function checkRemainingMessages() {
-			const messagesList = document.getElementById('messagesList');
-			const messageHeader = document.getElementById('messageHeader');
-			const container = document.getElementById('messageContainer');
-			
-			if (messagesList.children.length === 0) {
-				container.classList.add('hidden');
-				messageHeader.style.display = 'none';
-			}
-		}
-
-		function getTimeAgo(timestamp) {
-			const now = new Date();
-			const messageTime = new Date(timestamp);
-			const diffInSeconds = Math.floor((now - messageTime) / 1000);
-			
-			if (diffInSeconds < 60) return 'just now';
-			if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-			if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-			return `${Math.floor(diffInSeconds / 86400)}d ago`;
-		}
-
-		function escapeHtml(unsafe) {
-			return unsafe
-				.replace(/&/g, "&amp;")
-				.replace(/</g, "&lt;")
-				.replace(/>/g, "&gt;")
-				.replace(/"/g, "&quot;")
-				.replace(/'/g, "&#039;");
-		}
-
-		// Initialize message system
-		function initMessageSystem() {
-			// Check for messages after a short delay
-			setTimeout(loadMessages, 1000);
-			
-			// Set up periodic checking (every 3 minutes)
-			setInterval(loadMessages, 3 * 60 * 1000);
-		}
-
-		// ============ HELPER FUNCTIONS ============
-		function truncateText(text, maxLength) {
-			if (text.length <= maxLength) return text;
-			return text.substr(0, maxLength) + '...';
-		}
-
-		function formatTime(date) {
-			return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-		}
-
-		function showNotification(message, type = 'info', duration = 3000) {
-			// Create notification container if it doesn't exist
-			let container = document.getElementById('notificationContainer');
-			if (!container) {
-				container = document.createElement('div');
-				container.id = 'notificationContainer';
-				container.className = 'fixed top-4 right-4 z-[1000] max-w-sm';
-				document.body.appendChild(container);
-			}
-			
-			const notification = document.createElement('div');
-			notification.className = `notification glass p-4 rounded-lg mb-2 ${type}`;
-			
-			let icon = 'info';
-			if (type === 'success') icon = 'check-circle';
-			if (type === 'error') icon = 'alert-triangle';
-			if (type === 'warning') icon = 'alert-circle';
-			
-			notification.innerHTML = `
-				<div class="flex items-center">
-					<div class="notification-icon mr-3">
-						<i data-feather="${icon}"></i>
-					</div>
-					<div class="notification-content flex-1">
-						${message}
-					</div>
-					<div class="notification-close ml-3 cursor-pointer" onclick="this.parentElement.parentElement.remove()">
-						<i data-feather="x" class="w-4 h-4"></i>
-					</div>
-				</div>
-			`;
-			
-			container.appendChild(notification);
-			feather.replace();
-			
-			// Auto remove after duration
-			setTimeout(() => {
-				notification.remove();
-			}, duration);
-		}
 
         function getTheme() {
             const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
@@ -1572,27 +1042,6 @@
         // Create particles on load
         document.addEventListener('DOMContentLoaded', createParticles);
         
-		// Initialize message system
-		initMessageSystem();
-
-		// Initialize warning system
-		setTimeout(checkForWarnings, 2000);
-		warningCheckInterval = setInterval(checkForWarnings, 5 * 60 * 1000);
-
-		// Initialize broadcast system
-		checkForBroadcasts();
-		broadcastCheckInterval = setInterval(checkForBroadcasts, 2 * 60 * 1000);
-
-		// Clear intervals when page is unloaded
-		window.addEventListener('beforeunload', () => {
-			if (broadcastCheckInterval) {
-				clearInterval(broadcastCheckInterval);
-			}
-			if (warningCheckInterval) {
-				clearInterval(warningCheckInterval);
-			}
-		});
-		
         // Add hover effect to game cards
         document.querySelectorAll('.game-card').forEach(card => {
             card.addEventListener('mousemove', (e) => {
@@ -1621,21 +1070,6 @@
             }
         });
         
-		// Add event listeners for warning buttons
-		document.addEventListener('click', function(e) {
-			if (e.target.id === 'viewHistoryBtn' || e.target.closest('#viewHistoryBtn')) {
-				viewWarningHistory();
-			}
-			
-			if (e.target.id === 'dismissAllBtn' || e.target.closest('#dismissAllBtn')) {
-				dismissAllWarnings();
-			}
-			
-			if (e.target.id === 'closeWarningBtn' || e.target.closest('#closeWarningBtn')) {
-				closeWarningModal();
-			}
-		});
-		
         // Theme selection
         document.querySelectorAll('.theme-option').forEach(option => {
             option.addEventListener('click', function() {
@@ -1655,9 +1089,191 @@
         }
 
         // Function to verify token with server
-		async function verifyToken(token) {
+        async function verifyToken(token) {
+            try {
+                const response = await fetch('https://proxyforsigmi.onrender.com/api/verify-token', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    return false;
+                }
+                
+                const data = await response.json();
+                return data.valid === true;
+            } catch (error) {
+                console.error('Token verification error:', error);
+                return false;
+            }
+        }
+		
+		// ============ NOTIFICATION SYSTEM ============
+		function showNotification(message, type = 'info', duration = 3000) {
+			const container = document.getElementById('notificationContainer');
+			if (!container) return;
+			
+			const notification = document.createElement('div');
+			notification.className = `notification ${type}`;
+			
+			let icon = 'info';
+			if (type === 'success') icon = 'check-circle';
+			if (type === 'error') icon = 'alert-triangle';
+			if (type === 'warning') icon = 'alert-circle';
+			
+			notification.innerHTML = `
+				<div class="notification-icon">
+					<i data-feather="${icon}"></i>
+				</div>
+				<div class="notification-content">
+					${message}
+				</div>
+				<div class="notification-close" onclick="this.parentElement.classList.add('hidden')">
+					<i data-feather="x"></i>
+				</div>
+			`;
+			
+			container.appendChild(notification);
+			feather.replace();
+			
+			setTimeout(() => {
+				notification.classList.add('hidden');
+				setTimeout(() => notification.remove(), 300);
+			}, duration);
+		}
+
+		function truncateText(text, maxLength) {
+			if (text.length <= maxLength) return text;
+			return text.substr(0, maxLength) + '...';
+		}
+
+		function formatTime(date) {
+			return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+		}
+		
+		// ============ BROADCAST SYSTEM ============
+		function createBroadcastToastContainer() {
+			const container = document.createElement('div');
+			container.id = 'broadcastToastContainer';
+			container.className = 'fixed bottom-4 right-4 z-[1000] max-w-md';
+			document.body.appendChild(container);
+			return container;
+		}
+
+		function showBroadcastToast(broadcast) {
+			const toastContainer = document.getElementById('broadcastToastContainer') || createBroadcastToastContainer();
+			
+			const toast = document.createElement('div');
+			toast.className = 'broadcast-toast glass p-4 rounded-lg mb-2 transform translate-y-20 transition-transform duration-300';
+			toast.dataset.broadcastId = broadcast.id;
+			
+			toast.innerHTML = `
+				<div class="flex items-start">
+					<div class="mr-3 mt-0.5">
+						<i data-feather="bell" class="w-5 h-5 text-yellow-400"></i>
+					</div>
+					<div class="flex-1">
+						<h3 class="font-semibold mb-1">New Announcement</h3>
+						<p class="text-sm text-gray-300">${truncateText(broadcast.message, 100)}</p>
+					</div>
+					<button onclick="hideBroadcastToast('${broadcast.id}')" class="ml-3 text-gray-400 hover:text-white">
+						<i data-feather="x" class="w-4 h-4"></i>
+					</button>
+				</div>
+				<div class="mt-2 flex justify-end">
+					<button onclick="showBroadcastModal('${broadcast.id}')" class="text-sm text-purple-300 hover:text-purple-100 mr-3">
+						View Details
+					</button>
+					<button onclick="dismissBroadcast('${broadcast.id}')" class="text-sm text-gray-400 hover:text-white">
+						Dismiss
+					</button>
+				</div>
+			`;
+			
+			toastContainer.appendChild(toast);
+			feather.replace();
+			
+			setTimeout(() => {
+				toast.classList.remove('translate-y-20');
+				toast.classList.add('translate-y-0');
+			}, 100);
+			
+			setTimeout(() => {
+				hideBroadcastToast(broadcast.id);
+			}, 15000);
+		}
+
+		function hideBroadcastToast(broadcastId) {
+			const toast = document.querySelector(`.broadcast-toast[data-broadcast-id="${broadcastId}"]`);
+			if (toast) {
+				toast.classList.remove('translate-y-0');
+				toast.classList.add('translate-y-20');
+				
+				setTimeout(() => {
+					toast.remove();
+					activeBroadcasts = activeBroadcasts.filter(b => b.id !== broadcastId);
+				}, 300);
+			}
+		}
+
+		function showBroadcastModal(broadcastId) {
+			const broadcast = activeBroadcasts.find(b => b.id === broadcastId);
+			if (!broadcast) return;
+			
+			const modal = document.getElementById('broadcastModal');
+			const message = document.getElementById('broadcastMessage');
+			const author = document.getElementById('broadcastAuthor');
+			const time = document.getElementById('broadcastTime');
+			
+			message.textContent = broadcast.message;
+			author.textContent = `From: ${broadcast.createdBy}`;
+			time.textContent = formatTime(new Date(broadcast.createdAt));
+			
+			modal.dataset.broadcastId = broadcastId;
+			modal.classList.remove('hidden');
+			hideBroadcastToast(broadcastId);
+		}
+
+		async function dismissBroadcast(broadcastId) {
 			try {
-				const response = await fetch('https://proxyforsigmi.onrender.com/api/verify-token', {
+				const token = getCookie('AuthToken');
+				if (token) {
+					await fetch(`${SERVER_URL}/api/broadcasts/${broadcastId}/dismiss`, {
+						method: 'POST',
+						headers: {
+							'Authorization': `Bearer ${token}`,
+							'Content-Type': 'application/json'
+						}
+					});
+				}
+				
+				const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
+				if (!dismissedBroadcasts.includes(broadcastId)) {
+					dismissedBroadcasts.push(broadcastId);
+					localStorage.setItem('dismissedBroadcasts', JSON.stringify(dismissedBroadcasts));
+				}
+				
+				const modal = document.getElementById('broadcastModal');
+				if (modal.dataset.broadcastId === broadcastId) {
+					modal.classList.add('hidden');
+				}
+				
+				hideBroadcastToast(broadcastId);
+				
+			} catch (error) {
+				console.error('Error dismissing broadcast:', error);
+			}
+		}
+
+		async function checkForBroadcasts() {
+			try {
+				const token = getCookie('AuthToken');
+				if (!token) return;
+				
+				const response = await fetch(`${SERVER_URL}/api/broadcasts`, {
 					method: 'GET',
 					headers: {
 						'Authorization': `Bearer ${token}`,
@@ -1665,20 +1281,306 @@
 					}
 				});
 				
-				if (!response.ok) {
+				if (!response.ok) throw new Error('Failed to fetch broadcasts');
+				
+				const data = await response.json();
+				
+				if (data.success && data.broadcasts.length > 0) {
+					const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
+					
+					data.broadcasts.forEach(broadcast => {
+						if (!dismissedBroadcasts.includes(broadcast.id) && 
+							!activeBroadcasts.some(ab => ab.id === broadcast.id)) {
+							activeBroadcasts.push(broadcast);
+							showBroadcastToast(broadcast);
+						}
+					});
+				}
+			} catch (error) {
+				console.error('Error checking for broadcasts:', error);
+			}
+		}
+
+		function initBroadcastSystem() {
+			checkForBroadcasts();
+			broadcastCheckInterval = setInterval(checkForBroadcasts, 2 * 60 * 1000);
+		}
+		
+		// ============ WARNING SYSTEM ============
+		async function dismissWarning(warningId) {
+			try {
+				const token = getCookie('AuthToken');
+				if (!token) {
+					showNotification('Authentication required', 'error');
 					return false;
 				}
 				
-				const data = await response.json();
-				return data.valid === true;
+				const response = await fetch(`${SERVER_URL}/api/warnings/${warningId}/dismiss`, {
+					method: 'POST',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+						'Content-Type': 'application/json'
+					}
+				});
+				
+				if (response.ok) {
+					const data = await response.json();
+					
+					const warningIndex = userWarnings.findIndex(w => w.id === warningId);
+					if (warningIndex !== -1) {
+						userWarnings[warningIndex] = {
+							...userWarnings[warningIndex],
+							dismissed: true,
+							dismissedAt: data.warning.dismissedAt,
+							dismissedBy: data.warning.dismissedBy
+						};
+					}
+					
+					showWarningModal(userWarnings);
+					showNotification(data.message || 'Warning dismissed successfully', 'success');
+					return true;
+				} else {
+					const errorData = await response.json();
+					throw new Error(errorData.error || 'Failed to dismiss warning');
+				}
 			} catch (error) {
-				console.error('Token verification error:', error);
+				console.error('Error dismissing warning:', error);
+				showNotification(error.message || 'Failed to dismiss warning', 'error');
 				return false;
 			}
 		}
 
+		function showWarningModal(warnings) {
+			const modal = document.getElementById('warningModal');
+			const warningList = document.getElementById('warningList');
+			const warningCount = document.getElementById('warningCount');
+			const modalTitle = document.getElementById('warningModalTitle');
+			const closeWarningBtn = document.getElementById('closeWarningBtn');
+			const dismissAllBtn = document.getElementById('dismissAllBtn');
+			
+			warningList.innerHTML = '';
+			
+			const activeWarnings = warnings.filter(w => !w.dismissed);
+			
+			warningCount.textContent = `${activeWarnings.length} active warning${activeWarnings.length !== 1 ? 's' : ''}`;
+			modalTitle.textContent = `Warnings (${activeWarnings.length})`;
+			
+			if (activeWarnings.length === 0) {
+				dismissAllBtn.classList.add('hidden');
+				closeWarningBtn.classList.remove('hidden');
+			} else {
+				dismissAllBtn.classList.remove('hidden');
+				closeWarningBtn.classList.add('hidden');
+			}
+			
+			activeWarnings.forEach((warning, index) => {
+				const warningElement = document.createElement('div');
+				warningElement.className = 'p-3 rounded-lg bg-red-900 bg-opacity-30 border border-red-700 mb-3';
+				warningElement.innerHTML = `
+					<div class="flex justify-between items-start mb-2">
+						<span class="font-medium">Warning #${index + 1}</span>
+						<span class="text-xs px-2 py-1 bg-red-700 rounded">Active</span>
+					</div>
+					<p class="text-sm mb-2">${warning.reason}</p>
+					<div class="flex justify-between items-center text-xs text-gray-400">
+						<span>By: ${warning.issuedBy}</span>
+						<span>${new Date(warning.issuedAt).toLocaleDateString()}</span>
+					</div>
+					<button onclick="dismissWarning('${warning.id}')" class="w-full mt-2 py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-medium">
+						Dismiss This Warning
+					</button>
+				`;
+				warningList.appendChild(warningElement);
+			});
+			
+			if (activeWarnings.length === 0) {
+				warningList.innerHTML = `
+					<div class="text-center py-4">
+						<i data-feather="check-circle" class="w-12 h-12 text-green-400 mx-auto mb-2"></i>
+						<p class="text-green-300 font-medium">All warnings have been dismissed</p>
+						<p class="text-gray-400 text-sm mt-1">You can now close this window</p>
+					</div>
+				`;
+			}
+			
+			modal.classList.remove('hidden');
+			feather.replace();
+		}
+
+		async function dismissAllWarnings() {
+			try {
+				const token = getCookie('AuthToken');
+				if (!token) {
+					showNotification('Authentication required', 'error');
+					return;
+				}
+				
+				const activeWarnings = userWarnings.filter(w => !w.dismissed);
+				if (activeWarnings.length === 0) {
+					showNotification('No active warnings to dismiss', 'info');
+					return;
+				}
+				
+				const response = await fetch(`${SERVER_URL}/api/warnings/dismiss-all`, {
+					method: 'POST',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+						'Content-Type': 'application/json'
+					}
+				});
+				
+				if (response.ok) {
+					const data = await response.json();
+					
+					userWarnings.forEach(warning => {
+						if (!warning.dismissed) {
+							warning.dismissed = true;
+							warning.dismissedAt = new Date().toISOString();
+							warning.dismissedBy = localStorage.getItem('currentUser');
+						}
+					});
+					
+					showWarningModal(userWarnings);
+					showNotification(data.message || `Dismissed ${data.dismissedCount} warning(s)`, 'success');
+					
+				} else {
+					const errorData = await response.json();
+					throw new Error(errorData.error || 'Failed to dismiss warnings');
+				}
+			} catch (error) {
+				console.error('Error dismissing all warnings:', error);
+				showNotification(error.message || 'Failed to dismiss all warnings', 'error');
+			}
+		}
+
+		function closeWarningModal() {
+			const activeWarnings = userWarnings.filter(w => !w.dismissed);
+			
+			if (activeWarnings.length === 0) {
+				document.getElementById('warningModal').classList.add('hidden');
+				showNotification('Warning modal closed', 'info');
+			} else {
+				showNotification(`You still have ${activeWarnings.length} active warning(s) to dismiss`, 'warning');
+			}
+		}
+
+		async function checkForWarnings() {
+			try {
+				const token = getCookie('AuthToken');
+				if (!token) return;
+				
+				const response = await fetch(`${SERVER_URL}/api/check-warnings`, {
+					method: 'GET',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+						'Content-Type': 'application/json'
+					}
+				});
+				
+				if (response.ok) {
+					const data = await response.json();
+					userWarnings = data.warnings || [];
+					
+					if (data.hasWarnings && userWarnings.length > 0) {
+						showWarningModal(userWarnings);
+					}
+				}
+			} catch (error) {
+				console.error('Error checking for warnings:', error);
+			}
+		}
+
+		async function viewWarningHistory() {
+			try {
+				const token = getCookie('AuthToken');
+				if (!token) return;
+				
+				const response = await fetch(`${SERVER_URL}/api/warnings/history`, {
+					method: 'GET',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+						'Content-Type': 'application/json'
+					}
+				});
+				
+				if (response.ok) {
+					const data = await response.json();
+					showWarningHistoryModal(data.warnings);
+				}
+			} catch (error) {
+				console.error('Error fetching warning history:', error);
+				showNotification('Failed to load warning history', 'error');
+			}
+		}
+
+		function showWarningHistoryModal(warnings) {
+			const activeWarningsBefore = userWarnings.filter(w => !w.dismissed).length;
+			
+			const historyHTML = `
+				<div id="warningHistoryModal" class="fixed inset-0 z-[2001] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm">
+					<div class="glass rounded-xl p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+						<div class="flex justify-between items-center mb-6">
+							<h2 class="text-2xl font-bold">Warning History</h2>
+							<button onclick="closeHistoryModal(${activeWarningsBefore})" class="p-1 rounded-full hover:bg-purple-700">
+								<i data-feather="x" class="w-5 h-5"></i>
+							</button>
+						</div>
+						<div class="space-y-4">
+							${warnings.length > 0 ? warnings.map(warning => `
+								<div class="p-4 rounded-lg ${warning.dismissed ? 'bg-green-900 bg-opacity-30' : 'bg-red-900 bg-opacity-30'}">
+									<div class="flex justify-between items-start">
+										<div>
+											<p class="font-medium">${warning.reason}</p>
+											<p class="text-sm text-gray-400 mt-1">
+												Issued by ${warning.issuedBy} on ${new Date(warning.issuedAt).toLocaleDateString()}
+												${warning.dismissedAt ? `<br>Dismissed on ${new Date(warning.dismissedAt).toLocaleDateString()} by ${warning.dismissedBy}` : ''}
+											</p>
+										</div>
+										<span class="px-2 py-1 rounded text-xs ${warning.dismissed ? 'bg-green-700' : 'bg-red-700'}">
+											${warning.dismissed ? 'Dismissed' : 'Active'}
+										</span>
+									</div>
+									${!warning.dismissed ? `
+										<button onclick="dismissWarning('${warning.id}')" class="w-full mt-2 py-2 bg-red-700 hover:bg-red-600 rounded text-sm">
+											Dismiss This Warning
+										</button>
+									` : ''}
+								</div>
+							`).join('') : '<p class="text-gray-400 text-center py-8">No warning history found</p>'}
+						</div>
+					</div>
+				</div>
+			`;
+			
+			const tempDiv = document.createElement('div');
+			tempDiv.innerHTML = historyHTML;
+			document.body.appendChild(tempDiv);
+			feather.replace();
+		}
+
+		function closeHistoryModal(activeWarningsBefore) {
+			const historyModal = document.getElementById('warningHistoryModal');
+			if (historyModal) {
+				historyModal.remove();
+			}
+			
+			const activeWarningsNow = userWarnings.filter(w => !w.dismissed).length;
+			
+			if (activeWarningsNow > 0 && activeWarningsNow === activeWarningsBefore) {
+				setTimeout(() => {
+					showWarningModal(userWarnings);
+				}, 300);
+			}
+		}
+
+		function initWarningSystem() {
+			setTimeout(checkForWarnings, 2000);
+			warningCheckInterval = setInterval(checkForWarnings, 5 * 60 * 1000);
+		}
+		
+		
         // Check authentication status on page load
-        document.addEventListener('DOMContentLoaded', function() {	
+        document.addEventListener('DOMContentLoaded', function() {
             const token = getCookie('AuthToken');
             const currentUser = localStorage.getItem('currentUser');
             
@@ -1692,6 +1594,18 @@
                     if (!isValid) {
                         // Token is invalid, show login modal
                         showLoginModal();
+						initBroadcastSystem();
+						initWarningSystem();
+
+						// Clear intervals when page is unloaded
+						window.addEventListener('beforeunload', () => {
+							if (broadcastCheckInterval) {
+								clearInterval(broadcastCheckInterval);
+							}
+							if (warningCheckInterval) {
+								clearInterval(warningCheckInterval);
+							}
+						});
                     }
                 }).catch(error => {
                     console.error('Token verification failed:', error);
@@ -1704,6 +1618,24 @@
             }
             
         });
+
+		
+
+		// Add this INSIDE the DOMContentLoaded event listener, after the existing event listeners:
+
+		document.addEventListener('click', function(e) {
+			if (e.target.id === 'viewHistoryBtn' || e.target.closest('#viewHistoryBtn')) {
+				viewWarningHistory();
+			}
+			
+			if (e.target.id === 'dismissAllBtn' || e.target.closest('#dismissAllBtn')) {
+				dismissAllWarnings();
+			}
+			
+			if (e.target.id === 'closeWarningBtn' || e.target.closest('#closeWarningBtn')) {
+				closeWarningModal();
+			}
+		});
 
         // Show login modal function
         function showLoginModal() {
@@ -1731,74 +1663,6 @@
             window.open(url, '_blank');
             return true;
         }
-    </script>'
-	<!-- Warning Modal -->
-	<div id="warningModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
-		<div class="glass rounded-xl p-8 max-w-md w-full mx-4">
-			<div class="flex justify-between items-center mb-4">
-				<div class="flex items-center">
-					<div class="medal-icon mr-3">
-						<i data-feather="alert-triangle" class="w-8 h-8 text-yellow-400"></i>
-					</div>
-					<h2 class="text-2xl font-bold" id="warningModalTitle">Warnings</h2>
-				</div>
-			</div>
-			
-			<div id="warningList" class="mb-6 max-h-60 overflow-y-auto space-y-3">
-				<!-- Warnings will be dynamically populated here -->
-			</div>
-			
-			<div class="flex justify-between items-center text-sm text-gray-400 mb-4">
-				<span id="warningCount">0 active warnings</span>
-				<button id="viewHistoryBtn" class="text-purple-300 hover:text-purple-100">
-					View History
-				</button>
-			</div>
-			
-			<div class="flex flex-col gap-3">
-				<button id="dismissAllBtn" class="bg-red-600 hover:bg-red-700 py-3 px-6 rounded-lg font-medium">
-					Dismiss All Warnings
-				</button>
-				<button id="closeWarningBtn" class="bg-gray-600 hover:bg-gray-700 py-2 px-6 rounded-lg font-medium hidden">
-					Close
-				</button>
-			</div>
-		</div>
-	</div>
-
-	<!-- Messages Container -->
-	<div id="messageContainer" class="fixed top-20 left-4 z-[1001] w-80 max-h-[70vh] overflow-y-auto hidden">
-		<div class="glass rounded-xl p-4 mb-3" id="messageHeader" style="display: none;">
-			<div class="flex justify-between items-center mb-2">
-				<h3 class="font-semibold">Messages</h3>
-			</div>
-		</div>
-		<div id="messagesList"></div>
-	</div>
-
-	<!-- Broadcast Modal -->
-	<div id="broadcastModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
-		<div class="glass rounded-xl p-6 max-w-md w-full mx-4">
-			<div class="flex justify-between items-center mb-4">
-				<div class="flex items-center">
-					<div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center mr-3">
-						<i data-feather="bell" class="w-5 h-5 text-white"></i>
-					</div>
-					<h2 class="text-xl font-bold">Announcement</h2>
-				</div>
-				<button onclick="dismissBroadcast()" class="p-1 rounded-full hover:bg-purple-700">
-					<i data-feather="x" class="w-5 h-5"></i>
-				</button>
-			</div>
-			<p id="broadcastMessage" class="text-gray-300 mb-4"></p>
-			<div class="flex justify-between items-center text-sm text-gray-400 mb-4">
-				<span id="broadcastAuthor"></span>
-				<span id="broadcastTime"></span>
-			</div>
-			<button onclick="dismissBroadcast()" class="btn-primary py-2 px-6 rounded-lg font-medium w-full">
-				Acknowledge
-			</button>
-		</div>
-	</div>
+    </script>
 </body>
 </html>
