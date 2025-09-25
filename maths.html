@@ -1785,20 +1785,18 @@
         });
 
         // Add event listeners for warning modal buttons
-        document.addEventListener('DOMContentLoaded', function() {
-            document.addEventListener('click', function(e) {
-                if (e.target.id === 'viewHistoryBtn' || e.target.closest('#viewHistoryBtn')) {
-                    viewWarningHistory();
-                }
-                
-                if (e.target.id === 'dismissAllBtn' || e.target.closest('#dismissAllBtn')) {
-                    dismissAllWarnings();
-                }
-                
-                if (e.target.id === 'closeWarningBtn' || e.target.closest('#closeWarningBtn')) {
-                    closeWarningModal();
-                }
-            });
+        document.addEventListener('click', function(e) {
+            if (e.target.id === 'viewHistoryBtn' || e.target.closest('#viewHistoryBtn')) {
+                viewWarningHistory();
+            }
+            
+            if (e.target.id === 'dismissAllBtn' || e.target.closest('#dismissAllBtn')) {
+                dismissAllWarnings();
+            }
+            
+            if (e.target.id === 'closeWarningBtn' || e.target.closest('#closeWarningBtn')) {
+                closeWarningModal();
+            }
         });
 		
         // ============ VERIFICATION LOGIC ============
@@ -1833,8 +1831,60 @@
             }
         }
 
-        // Check authentication status on page load
+        // Show login modal function
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.add('active');
+        }
+
+        // Close login modal function
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.remove('active');
+        }
+
+        // Redirect to login page
+        function redirectToLogin() {
+            window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
+        }
+
+        // Notification function
+        function showNotification(message, type = 'info', duration = 3000) {
+            // You can implement a simple toast notification here
+            console.log(`[${type.toUpperCase()}] ${message}`);
+            // For now, we'll use a simple alert-style notification
+            alert(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        // Handle game click - check if user is logged in first
+        function handleGameClick(url) {
+            if (!isLoggedIn()) {
+                showLoginModal();
+                return false;
+            }
+            
+            // If logged in, redirect to the game
+            window.open(url, '_blank');
+            return true;
+        }
+
+        // Create particles on load and check authentication
         document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+
+			 document.addEventListener('click', function(e) {
+                if (e.target.id === 'viewHistoryBtn' || e.target.closest('#viewHistoryBtn')) {
+                    viewWarningHistory();
+                }
+                
+                if (e.target.id === 'dismissAllBtn' || e.target.closest('#dismissAllBtn')) {
+                    dismissAllWarnings();
+                }
+                
+                if (e.target.id === 'closeWarningBtn' || e.target.closest('#closeWarningBtn')) {
+                    closeWarningModal();
+                }
+            });
+            
+            // Check authentication status
             const token = getCookie('AuthToken');
             const currentUser = localStorage.getItem('currentUser');
             
@@ -1858,11 +1908,10 @@
                     showLoginModal();
                 });
             } else {
-                // No token found, show login modal
+                // No token found, show login modal after delay
                 setTimeout(showLoginModal, 1000);
             }
         });
-
         // Show login modal function
         function showLoginModal() {
             document.getElementById('loginModal').classList.add('active');
