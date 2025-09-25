@@ -38,17 +38,38 @@
             --glass-border: rgba(255, 255, 255, 0.1);
         }
         
-        .theme-light {
-            --bg-primary: #f8f9fa;
-            --bg-secondary: #e9ecef;
-            --bg-tertiary: #dee2e6;
-            --text-primary: #212529;
-            --text-secondary: #495057;
-            --accent-primary: #6f42c1;
-            --accent-secondary: #6610f2;
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-border: rgba(0, 0, 0, 0.1);
-        }
+			.theme-light {
+			    --bg-primary: #f8f9fa !important;
+			    --bg-secondary: #e9ecef !important;
+			    --bg-tertiary: #dee2e6 !important;
+			
+			    --text-primary: #212529 !important;   
+			    --text-secondary: #495057 !important; 
+			
+			    --accent-primary: #6f42c1 !important;
+			    --accent-secondary: #6610f2 !important;
+			
+			    --glass-bg: rgba(255, 255, 255, 0.7) !important;
+			    --glass-border: rgba(0, 0, 0, 0.1) !important;
+			}
+			.theme-light p:not(.text-transparent),
+			.theme-light span:not(.text-transparent),
+			.theme-light h1:not(.text-transparent),
+			.theme-light h2:not(.text-transparent),
+			.theme-light h3:not(.text-transparent),
+			.theme-light h4:not(.text-transparent),
+			.theme-light h5:not(.text-transparent),
+			.theme-light h6:not(.text-transparent),
+			.theme-light li:not(.text-transparent),
+			.theme-light a:not(.text-transparent),
+			.theme-light div:not(.text-transparent) {
+			    color: var(--text-primary) !important;
+			}
+			.theme-light .text-secondary,
+			.theme-light small,
+			.theme-light .muted {
+			    color: var(--text-secondary) !important;
+			}
 
         .theme-amoled {
             --bg-primary: #000000;
