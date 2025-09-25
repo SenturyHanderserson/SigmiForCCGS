@@ -907,36 +907,41 @@
             return preferences.theme || 'dark';
         }
 
-        function setTheme(theme) {
-            // Update the theme class on body
-            document.body.className = document.body.className.replace(/\btheme-\w+/g, '');
-            document.body.classList.add(`theme-${theme}`);
-            
-            // Update theme icon
-            const themeIcon = document.querySelector('#theme-toggle i');
-            if (theme === 'light') {
-                themeIcon.setAttribute('data-feather', 'sun');
-            } else {
-                themeIcon.setAttribute('data-feather', 'moon');
-            }
-            feather.replace();
-            
-            // Update active theme in theme options
-            document.querySelectorAll('.theme-option').forEach(option => {
-                option.classList.remove('active');
-                if (option.getAttribute('data-theme') === theme) {
-                    option.classList.add('active');
-                }
-            });
-            
-            // Save to preferences
-            const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
-            preferences.theme = theme;
-            setCookie('UserPreferences', JSON.stringify(preferences), 365);
-            
-            // Update Vanta background to match theme
-            initVantaBackground();
-        }
+		function setTheme(theme) {
+			// Update the theme class on body
+			document.body.className = document.body.className.replace(/\btheme-\w+/g, '');
+			document.body.classList.add(`theme-${theme}`);
+			
+			// Only update theme icon if it exists (for arcade.html)
+			const themeIcon = document.querySelector('#theme-toggle i');
+			if (themeIcon) {
+				if (theme === 'light') {
+					themeIcon.setAttribute('data-feather', 'sun');
+				} else {
+					themeIcon.setAttribute('data-feather', 'moon');
+				}
+				feather.replace();
+			}
+			
+			// Update active theme in theme options if they exist
+			const themeOptions = document.querySelectorAll('.theme-option');
+			if (themeOptions.length > 0) {
+				themeOptions.forEach(option => {
+					option.classList.remove('active');
+					if (option.getAttribute('data-theme') === theme) {
+						option.classList.add('active');
+					}
+				});
+			}
+			
+			// Save to preferences
+			const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
+			preferences.theme = theme;
+			setCookie('UserPreferences', JSON.stringify(preferences), 365);
+			
+			// Update Vanta background to match theme
+			initVantaBackground();
+		}
 
         function applyThemeOnLoad() {
             const theme = getTheme();
