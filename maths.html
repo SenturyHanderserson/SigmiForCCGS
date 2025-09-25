@@ -1594,14 +1594,14 @@
             return `${Math.floor(diffInSeconds / 86400)}d ago`;
         }
 
-        function escapeHtml(unsafe) {
-            return unsafe
-                .replace(/&/g, "&amp;")
-                ..replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                ..replace(/'/g, "&#039;");
-        }
+		function escapeHtml(unsafe) {
+			return unsafe
+				.replace(/&/g, "&amp;")
+				.replace(/</g, "&lt;")   // ← Fixed: single dot
+				.replace(/>/g, "&gt;")
+				.replace(/"/g, "&quot;")
+				.replace(/'/g, "&#039;"); // ← Fixed: single dot
+		}
 
         // Broadcast System Functions
         async function checkForBroadcasts() {
