@@ -473,23 +473,6 @@
 				</div>
 			</div>
 		</div>
-		
-		<!-- Warning History Modal -->
-		<div id="warningHistoryModal" class="hidden">
-			<div class="glassmorphism rounded-xl p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-				<div class="flex justify-between items-center mb-6">
-					<h2 class="text-2xl font-bold">Warning History</h2>
-					<button onclick="closeHistoryModal()" class="p-1 rounded-full hover:bg-purple-700">
-						<i data-feather="x" class="w-5 h-5"></i>
-					</button>
-				</div>
-				<div id="warningHistoryList" class="space-y-4">
-					<!-- Warning history will be populated here -->
-				</div>
-			</div>
-		</div>
-		
-		
 
 		<!-- Messages Container -->
 		<div id="messageContainer" class="message-container hidden">
@@ -1022,11 +1005,21 @@
 				
 				if (response.ok) {
 					const data = await response.json();
+					
+					// Update the global userWarnings array with user-specific warnings
 					userWarnings = data.warnings || [];
 					
-					// Show modal if there are active warnings
-					if (userWarnings.length > 0) {
-						showWarningModal(userWarnings);
+					// Show modal if there are active warnings for this specific user
+					if (data.hasWarnings && userWarnings.length > 0) {
+						// Check if the warnings are for the current user
+						const currentUser = localStorage.getItem('currentUser');
+						const userSpecificWarnings = userWarnings.filter(w => 
+							w.targetUser === currentUser || w.targetUsername === currentUser
+						);
+						
+						if (userSpecificWarnings.length > 0) {
+							showWarningModal(userSpecificWarnings);
+						}
 					}
 				}
 			} catch (error) {
@@ -1141,54 +1134,81 @@
 			const modal = document.getElementById('warningModal');
 			const warningList = document.getElementById('warningList');
 			const warningCount = document.getElementById('warningCount');
-			
-			// Always show the modal when called
-			modal.classList.remove('hidden');
+			const modalTitle = document.getElementById('warningModalTitle');
+			const closeWarningBtn = document.getElementById('closeWarningBtn');
+			const dismissAllBtn = document.getElementById('dismissAllBtn');
 			
 			warningList.innerHTML = '';
 			
-			// Filter active warnings (not dismissed)
-			const activeWarnings = warnings.filter(w => !w.dismissed);
+			// Filter active warnings (not dismissed) for the current user
+			const currentUser = localStorage.getItem('currentUser');
+			const userSpecificWarnings = warnings.filter(w => 
+				!w.dismissed && (w.targetUser === currentUser || w.targetUsername === currentUser)
+			);
 			
-			// Update count
-			warningCount.textContent = `${activeWarnings.length} active warning${activeWarnings.length !== 1 ? 's' : ''}`;
+			// Update counts and title
+			warningCount.textContent = `${userSpecificWarnings.length} active warning${userSpecificWarnings.length !== 1 ? 's' : ''}`;
+			modalTitle.textContent = `Warnings (${userSpecificWarnings.length})`;
 			
-			if (activeWarnings.length === 0) {
+			// Show/hide buttons based on active warnings
+			if (userSpecificWarnings.length === 0) {
+				dismissAllBtn.classList.add('hidden');
+				closeWarningBtn.classList.remove('hidden');
+			} else {
+				dismissAllBtn.classList.remove('hidden');
+				closeWarningBtn.classList.add('hidden');
+			}
+			
+			// Populate warnings list with ONLY active warnings for this user
+			userSpecificWarnings.forEach((warning, index) => {
+				const warningElement = document.createElement('div');
+				warningElement.className = 'p-3 rounded-lg bg-red-900 bg-opacity-30 border border-red-700 mb-3';
+				warningElement.innerHTML = `
+					<div class="flex justify-between items-start mb-2">
+						<span class="font-medium">Warning #${index + 1}</span>
+						<span class="text-xs px-2 py-1 bg-red-700 rounded">Active</span>
+					</div>
+					<p class="text-sm mb-2">${warning.reason}</p>
+					<div class="flex justify-between items-center text-xs text-gray-400">
+						<span>By: ${warning.issuedBy}</span>
+						<span>${new Date(warning.issuedAt).toLocaleDateString()}</span>
+					</div>
+					<button onclick="dismissWarning('${warning.id}')" class="w-full mt-2 py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-medium">
+						Dismiss This Warning
+					</button>
+				`;
+				warningList.appendChild(warningElement);
+			});
+			
+			// Show message if no active warnings for this user
+			if (userSpecificWarnings.length === 0) {
 				warningList.innerHTML = `
 					<div class="text-center py-4">
 						<i data-feather="check-circle" class="w-12 h-12 text-green-400 mx-auto mb-2"></i>
-						<p class="text-green-300 font-medium">No active warnings</p>
+						<p class="text-green-300 font-medium">No active warnings for your account</p>
+						<p class="text-gray-400 text-sm mt-1">You can view your warning history below</p>
+						<button onclick="viewWarningHistory()" class="mt-3 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded text-sm font-medium">
+							View Warning History
+						</button>
 					</div>
 				`;
-			} else {
-				activeWarnings.forEach((warning, index) => {
-					const warningElement = document.createElement('div');
-					warningElement.className = 'p-3 rounded-lg bg-red-900 bg-opacity-30 border border-red-700 mb-3';
-					warningElement.innerHTML = `
-						<div class="flex justify-between items-start mb-2">
-							<span class="font-medium">Warning #${index + 1}</span>
-							<span class="text-xs px-2 py-1 bg-red-700 rounded">Active</span>
-						</div>
-						<p class="text-sm mb-2">${warning.reason || 'No reason provided'}</p>
-						<div class="flex justify-between items-center text-xs text-gray-400">
-							<span>By: ${warning.issuedBy || 'System'}</span>
-							<span>${new Date(warning.issuedAt || Date.now()).toLocaleDateString()}</span>
-						</div>
-						<button onclick="dismissWarning('${warning.id}')" class="w-full mt-2 py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-medium">
-							Dismiss This Warning
-						</button>
-					`;
-					warningList.appendChild(warningElement);
-				});
 			}
 			
+			modal.classList.remove('hidden');
 			feather.replace();
 		}
 
-	function closeWarningModal() {
-		document.getElementById('warningModal').classList.add('hidden');
-	}
+		function closeWarningModal() {
+			const activeWarnings = userWarnings.filter(w => !w.dismissed);
 			
+			if (activeWarnings.length === 0) {
+				document.getElementById('warningModal').classList.add('hidden');
+				showNotification('Warning modal closed', 'info');
+			} else {
+				showNotification(`You still have ${activeWarnings.length} active warning(s) to dismiss`, 'warning');
+			}
+		}
+		
 		// View warning history
 		async function viewWarningHistory() {
 			try {
@@ -1656,18 +1676,6 @@
 					this.classList.remove('active');
 				}
 			});
-			
-			    document.getElementById('dismissAllBtn').addEventListener('click', dismissAllWarnings);
-				document.getElementById('closeWarningBtn').addEventListener('click', closeWarningModal);
-				document.getElementById('viewHistoryBtn').addEventListener('click', viewWarningHistory);
-				
-				// Close modal when clicking outside
-				document.getElementById('warningModal').addEventListener('click', function(e) {
-					if (e.target === this) {
-						closeWarningModal();
-					}
-				});
-			
 
 			// Clear intervals when page is unloaded
 			window.addEventListener('beforeunload', () => {
