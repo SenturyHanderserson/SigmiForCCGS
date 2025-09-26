@@ -107,7 +107,7 @@
 			position: fixed;
 			inset: 0;
 			z-index: 2000;
-			display: flex;
+			display: flex; /* This line is crucial */
 			align-items: center;
 			justify-content: center;
 			background: rgba(0, 0, 0, 0.8);
@@ -834,6 +834,16 @@
         // Initialize animations and icons
         AOS.init();
         feather.replace();
+        const token = getCookie('AuthToken');
+        const currentUser = localStorage.getItem('currentUser');
+        
+        if (token && currentUser) {
+            // Initialize all systems if user is authenticated
+            initMessageSystem();
+            initWarningSystem();
+            initBroadcastSystem();
+        }
+		
 
         // Vanta.js background
         VANTA.GLOBE({
@@ -1138,20 +1148,21 @@
 			const closeWarningBtn = document.getElementById('closeWarningBtn');
 			const dismissAllBtn = document.getElementById('dismissAllBtn');
 			
+			// Ensure modal is properly accessible
+			modal.classList.remove('hidden');
+			modal.style.display = 'flex';
+			
 			warningList.innerHTML = '';
 			
-			// Filter active warnings (not dismissed) for the current user
-			const currentUser = localStorage.getItem('currentUser');
-			const userSpecificWarnings = warnings.filter(w => 
-				!w.dismissed && (w.targetUser === currentUser || w.targetUsername === currentUser)
-			);
+			// Filter active warnings (not dismissed)
+			const activeWarnings = warnings.filter(w => !w.dismissed);
 			
 			// Update counts and title
-			warningCount.textContent = `${userSpecificWarnings.length} active warning${userSpecificWarnings.length !== 1 ? 's' : ''}`;
-			modalTitle.textContent = `Warnings (${userSpecificWarnings.length})`;
+			warningCount.textContent = `${activeWarnings.length} active warning${activeWarnings.length !== 1 ? 's' : ''}`;
+			modalTitle.textContent = `Warnings (${activeWarnings.length})`;
 			
 			// Show/hide buttons based on active warnings
-			if (userSpecificWarnings.length === 0) {
+			if (activeWarnings.length === 0) {
 				dismissAllBtn.classList.add('hidden');
 				closeWarningBtn.classList.remove('hidden');
 			} else {
@@ -1159,8 +1170,8 @@
 				closeWarningBtn.classList.add('hidden');
 			}
 			
-			// Populate warnings list with ONLY active warnings for this user
-			userSpecificWarnings.forEach((warning, index) => {
+			// Populate warnings list with ONLY active warnings
+			activeWarnings.forEach((warning, index) => {
 				const warningElement = document.createElement('div');
 				warningElement.className = 'p-3 rounded-lg bg-red-900 bg-opacity-30 border border-red-700 mb-3';
 				warningElement.innerHTML = `
@@ -1180,21 +1191,17 @@
 				warningList.appendChild(warningElement);
 			});
 			
-			// Show message if no active warnings for this user
-			if (userSpecificWarnings.length === 0) {
+			// Show message if no active warnings
+			if (activeWarnings.length === 0) {
 				warningList.innerHTML = `
 					<div class="text-center py-4">
 						<i data-feather="check-circle" class="w-12 h-12 text-green-400 mx-auto mb-2"></i>
-						<p class="text-green-300 font-medium">No active warnings for your account</p>
-						<p class="text-gray-400 text-sm mt-1">You can view your warning history below</p>
-						<button onclick="viewWarningHistory()" class="mt-3 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded text-sm font-medium">
-							View Warning History
-						</button>
+						<p class="text-green-300 font-medium">No active warnings</p>
+						<p class="text-gray-400 text-sm mt-1">All warnings have been addressed</p>
 					</div>
 				`;
 			}
 			
-			modal.classList.remove('hidden');
 			feather.replace();
 		}
 
@@ -1656,19 +1663,34 @@
 			}
 
 			// Add event listeners for warning system
-		document.addEventListener('click', function(e) {
-			if (e.target.id === 'viewHistoryBtn' || e.target.closest('#viewHistoryBtn')) {
-				viewWarningHistory();
-			}
-			
-			if (e.target.id === 'dismissAllBtn' || e.target.closest('#dismissAllBtn')) {
-				dismissAllWarnings();
-			}
-			
-			if (e.target.id === 'closeWarningBtn' || e.target.closest('#closeWarningBtn')) {
-				closeWarningModal();
-			}
-		});
+			document.addEventListener('click', function(e) {
+				if (e.target.id === 'viewHistoryBtn' || e.target.closest('#viewHistoryBtn')) {
+					viewWarningHistory();
+				}
+				
+				if (e.target.id === 'dismissAllBtn' || e.target.closest('#dismissAllBtn')) {
+					dismissAllWarnings();
+				}
+				
+				if (e.target.id === 'closeWarningBtn' || e.target.closest('#closeWarningBtn')) {
+					closeWarningModal();
+				}
+			});
+
+			// Delegate events for dynamically created warning elements
+			document.addEventListener('click', function(e) {
+				// Handle dismiss warning buttons
+				if (e.target.closest('button') && e.target.closest('button').textContent.includes('Dismiss This Warning')) {
+					const warningElement = e.target.closest('.p-3.rounded-lg'); // Match warning item class
+					if (warningElement) {
+						// Extract warning ID - you may need to adjust this based on your HTML structure
+						const warningId = warningElement.querySelector('button')?.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+						if (warningId) {
+							dismissWarning(warningId);
+						}
+					}
+				}
+			});
 
 			// Close broadcast modal when clicking outside
 			document.getElementById('broadcastModal').addEventListener('click', function(e) {
