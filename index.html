@@ -884,12 +884,12 @@ const SERVER_URL = 'https://proxyforsigmi.onrender.com';
         return "";
     }
 
-    function setCookie(name, value, days) {
-        const date = new Date();
-        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-        const expires = "expires=" + date.toUTCString();
-        document.cookie = name + "=" + value + ";" + expires + ";path=/";
-    }
+	function setCookie(name, value) {
+		// 10 years in seconds
+		const maxAge = 10 * 365 * 24 * 60 * 60;
+		document.cookie = `${name}=${value}; Max-Age=${maxAge}; path=/; SameSite=Strict`;
+	}
+
 
     // Theme Management Functions
     function getTheme() {
@@ -2173,13 +2173,6 @@ window.addEventListener('beforeunload', () => {
             }
         }
 
-        // Cookie Functions
-        function setCookie(name, value, days) {
-            const date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            const expires = "expires=" + date.toUTCString();
-            document.cookie = name + "=" + value + ";" + expires + ";path=/";
-        }
         
         async function fetchUserData() {
             try {
