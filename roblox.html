@@ -235,6 +235,31 @@
 			animation: slideOutToLeft 0.5s ease forwards;
 		}
 		
+		#warningHistoryModal {
+			position: fixed;
+			inset: 0;
+			z-index: 2001;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: rgba(0, 0, 0, 0.8);
+			backdrop-filter: blur(10px);
+		}
+
+		#warningHistoryModal .glassmorphism {
+			max-height: 80vh;
+			overflow-y: auto;
+		}
+
+		.warning-history-item {
+			transition: all 0.3s ease;
+		}
+
+		.warning-history-item:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+		}
+		
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -980,10 +1005,21 @@
 				
 				if (response.ok) {
 					const data = await response.json();
+					
+					// Update the global userWarnings array with user-specific warnings
 					userWarnings = data.warnings || [];
 					
+					// Show modal if there are active warnings for this specific user
 					if (data.hasWarnings && userWarnings.length > 0) {
-						showWarningModal(userWarnings);
+						// Check if the warnings are for the current user
+						const currentUser = localStorage.getItem('currentUser');
+						const userSpecificWarnings = userWarnings.filter(w => 
+							w.targetUser === currentUser || w.targetUsername === currentUser
+						);
+						
+						if (userSpecificWarnings.length > 0) {
+							showWarningModal(userSpecificWarnings);
+						}
 					}
 				}
 			} catch (error) {
@@ -1010,6 +1046,7 @@
 				if (response.ok) {
 					const data = await response.json();
 					
+					// Update the specific warning in userWarnings array
 					const warningIndex = userWarnings.findIndex(w => w.id === warningId);
 					if (warningIndex !== -1) {
 						userWarnings[warningIndex] = {
@@ -1020,7 +1057,13 @@
 						};
 					}
 					
-					showWarningModal(userWarnings);
+					// Refresh the warning modal with updated warnings for current user
+					const currentUser = localStorage.getItem('currentUser');
+					const userSpecificWarnings = userWarnings.filter(w => 
+						w.targetUser === currentUser || w.targetUsername === currentUser
+					);
+					showWarningModal(userSpecificWarnings);
+					
 					showNotification(data.message || 'Warning dismissed successfully', 'success');
 					return true;
 				} else {
@@ -1042,9 +1085,13 @@
 					return;
 				}
 				
-				const activeWarnings = userWarnings.filter(w => !w.dismissed);
-				if (activeWarnings.length === 0) {
-					showNotification('No active warnings to dismiss', 'info');
+				const currentUser = localStorage.getItem('currentUser');
+				const userSpecificWarnings = userWarnings.filter(w => 
+					!w.dismissed && (w.targetUser === currentUser || w.targetUsername === currentUser)
+				);
+				
+				if (userSpecificWarnings.length === 0) {
+					showNotification('No active warnings to dismiss for your account', 'info');
 					return;
 				}
 				
@@ -1059,16 +1106,19 @@
 				if (response.ok) {
 					const data = await response.json();
 					
+					// Update all warnings for current user locally
 					userWarnings.forEach(warning => {
-						if (!warning.dismissed) {
+						if (!warning.dismissed && (warning.targetUser === currentUser || warning.targetUsername === currentUser)) {
 							warning.dismissed = true;
 							warning.dismissedAt = new Date().toISOString();
-							warning.dismissedBy = localStorage.getItem('currentUser');
+							warning.dismissedBy = currentUser;
 						}
 					});
 					
+					// Refresh the warning modal
 					showWarningModal(userWarnings);
-					showNotification(data.message || `Dismissed ${data.dismissedCount} warning(s)`, 'success');
+					
+					showNotification(data.message || `Dismissed ${data.dismissedCount} warning(s) for your account`, 'success');
 					
 				} else {
 					const errorData = await response.json();
@@ -1090,12 +1140,18 @@
 			
 			warningList.innerHTML = '';
 			
-			const activeWarnings = warnings.filter(w => !w.dismissed);
+			// Filter active warnings (not dismissed) for the current user
+			const currentUser = localStorage.getItem('currentUser');
+			const userSpecificWarnings = warnings.filter(w => 
+				!w.dismissed && (w.targetUser === currentUser || w.targetUsername === currentUser)
+			);
 			
-			warningCount.textContent = `${activeWarnings.length} active warning${activeWarnings.length !== 1 ? 's' : ''}`;
-			modalTitle.textContent = `Warnings (${activeWarnings.length})`;
+			// Update counts and title
+			warningCount.textContent = `${userSpecificWarnings.length} active warning${userSpecificWarnings.length !== 1 ? 's' : ''}`;
+			modalTitle.textContent = `Warnings (${userSpecificWarnings.length})`;
 			
-			if (activeWarnings.length === 0) {
+			// Show/hide buttons based on active warnings
+			if (userSpecificWarnings.length === 0) {
 				dismissAllBtn.classList.add('hidden');
 				closeWarningBtn.classList.remove('hidden');
 			} else {
@@ -1103,7 +1159,8 @@
 				closeWarningBtn.classList.add('hidden');
 			}
 			
-			activeWarnings.forEach((warning, index) => {
+			// Populate warnings list with ONLY active warnings for this user
+			userSpecificWarnings.forEach((warning, index) => {
 				const warningElement = document.createElement('div');
 				warningElement.className = 'p-3 rounded-lg bg-red-900 bg-opacity-30 border border-red-700 mb-3';
 				warningElement.innerHTML = `
@@ -1123,12 +1180,16 @@
 				warningList.appendChild(warningElement);
 			});
 			
-			if (activeWarnings.length === 0) {
+			// Show message if no active warnings for this user
+			if (userSpecificWarnings.length === 0) {
 				warningList.innerHTML = `
 					<div class="text-center py-4">
 						<i data-feather="check-circle" class="w-12 h-12 text-green-400 mx-auto mb-2"></i>
-						<p class="text-green-300 font-medium">All warnings have been dismissed</p>
-						<p class="text-gray-400 text-sm mt-1">You can now close this window</p>
+						<p class="text-green-300 font-medium">No active warnings for your account</p>
+						<p class="text-gray-400 text-sm mt-1">You can view your warning history below</p>
+						<button onclick="viewWarningHistory()" class="mt-3 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded text-sm font-medium">
+							View Warning History
+						</button>
 					</div>
 				`;
 			}
@@ -1147,6 +1208,108 @@
 				showNotification(`You still have ${activeWarnings.length} active warning(s) to dismiss`, 'warning');
 			}
 		}
+		
+		// View warning history
+		async function viewWarningHistory() {
+			try {
+				const token = getCookie('AuthToken');
+				if (!token) {
+					showNotification('Authentication required', 'error');
+					return;
+				}
+				
+				const response = await fetch(`${SERVER_URL}/api/warnings/history`, {
+					method: 'GET',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+						'Content-Type': 'application/json'
+					}
+				});
+				
+				if (response.ok) {
+					const data = await response.json();
+					showWarningHistoryModal(data.warnings);
+				} else {
+					showNotification('Failed to load warning history', 'error');
+				}
+			} catch (error) {
+				console.error('Error fetching warning history:', error);
+				showNotification('Failed to load warning history', 'error');
+			}
+		}
+
+		// Show warning history modal
+		function showWarningHistoryModal(warnings) {
+			const activeWarningsBefore = userWarnings.filter(w => !w.dismissed).length;
+			
+			// Create history modal HTML
+			const historyHTML = `
+				<div id="warningHistoryModal" class="fixed inset-0 z-[2001] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm">
+					<div class="glassmorphism rounded-xl p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+						<div class="flex justify-between items-center mb-6">
+							<h2 class="text-2xl font-bold">Warning History</h2>
+							<button onclick="closeHistoryModal(${activeWarningsBefore})" class="p-1 rounded-full hover:bg-purple-700">
+								<i data-feather="x" class="w-5 h-5"></i>
+							</button>
+						</div>
+						<div class="space-y-4">
+							${warnings.length > 0 ? warnings.map(warning => `
+								<div class="p-4 rounded-lg ${warning.dismissed ? 'bg-green-900 bg-opacity-30 border border-green-700' : 'bg-red-900 bg-opacity-30 border border-red-700'}">
+									<div class="flex justify-between items-start">
+										<div>
+											<p class="font-medium">${warning.reason}</p>
+											<p class="text-sm text-gray-400 mt-1">
+												Issued by ${warning.issuedBy} on ${new Date(warning.issuedAt).toLocaleDateString()}
+												${warning.dismissedAt ? `<br>Dismissed on ${new Date(warning.dismissedAt).toLocaleDateString()} by ${warning.dismissedBy}` : ''}
+											</p>
+										</div>
+										<span class="px-2 py-1 rounded text-xs ${warning.dismissed ? 'bg-green-700' : 'bg-red-700'}">
+											${warning.dismissed ? 'Dismissed' : 'Active'}
+										</span>
+									</div>
+									${!warning.dismissed ? `
+										<button onclick="dismissWarning('${warning.id}')" class="w-full mt-2 py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-medium">
+											Dismiss This Warning
+										</button>
+									` : ''}
+								</div>
+							`).join('') : '<p class="text-gray-400 text-center py-8">No warning history found</p>'}
+						</div>
+					</div>
+				</div>
+			`;
+			
+			// Remove existing history modal if any
+			const existingModal = document.getElementById('warningHistoryModal');
+			if (existingModal) {
+				existingModal.remove();
+			}
+			
+			// Create and append new modal
+			const tempDiv = document.createElement('div');
+			tempDiv.innerHTML = historyHTML;
+			document.body.appendChild(tempDiv);
+			feather.replace();
+		}
+
+		// Close history modal
+		function closeHistoryModal(activeWarningsBefore) {
+			const historyModal = document.getElementById('warningHistoryModal');
+			if (historyModal) {
+				historyModal.remove();
+			}
+			
+			// Check if there are still active warnings
+			const activeWarningsNow = userWarnings.filter(w => !w.dismissed).length;
+			
+			// If warnings still exist and the count hasn't changed, reopen the main warning modal
+			if (activeWarningsNow > 0 && activeWarningsNow === activeWarningsBefore) {
+				setTimeout(() => {
+					showWarningModal(userWarnings);
+				}, 300);
+			}
+		}
+		
 		
 		// Message System Functions
 		async function loadMessages() {
@@ -1493,20 +1656,19 @@
 			}
 
 			// Add event listeners for warning system
-			document.addEventListener('click', function(e) {
-				if (e.target.id === 'viewHistoryBtn' || e.target.closest('#viewHistoryBtn')) {
-					// viewWarningHistory function would need to be implemented if needed
-					showNotification('Warning history feature coming soon', 'info');
-				}
-				
-				if (e.target.id === 'dismissAllBtn' || e.target.closest('#dismissAllBtn')) {
-					dismissAllWarnings();
-				}
-				
-				if (e.target.id === 'closeWarningBtn' || e.target.closest('#closeWarningBtn')) {
-					closeWarningModal();
-				}
-			});
+		document.addEventListener('click', function(e) {
+			if (e.target.id === 'viewHistoryBtn' || e.target.closest('#viewHistoryBtn')) {
+				viewWarningHistory();
+			}
+			
+			if (e.target.id === 'dismissAllBtn' || e.target.closest('#dismissAllBtn')) {
+				dismissAllWarnings();
+			}
+			
+			if (e.target.id === 'closeWarningBtn' || e.target.closest('#closeWarningBtn')) {
+				closeWarningModal();
+			}
+		});
 
 			// Close broadcast modal when clicking outside
 			document.getElementById('broadcastModal').addEventListener('click', function(e) {
