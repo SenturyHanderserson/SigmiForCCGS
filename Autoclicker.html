@@ -313,17 +313,57 @@
                     </div>
 
                     <!-- Instructions Card -->
-                    <div class="glassmorphism rounded-xl p-6 shadow-lg hover-scale" data-aos="fade-right" data-aos-delay="100">
-                        <h2 class="text-xl font-semibold mb-4">Installation Instructions</h2>
-                        <ol class="list-decimal list-inside space-y-3 text-gray-200">
-                            <li class="pl-2">Visit the official website using the download buttons on the right (download the .py or python file)</li>
-                            <li class="pl-2">Download the python from the official source (run the installer and press install now and finish the install)</li>
-                            <li class="pl-2">In the file directory, you'd want to open cmd prompt which can be done by right clicking on the background inside the folder where it is downloaded</li>
-                            <li class="pl-2">Another way of doing this open command prompt and type: cd downloads      (assuming it is in your downloads folder)</li>
-                            <li class="pl-2">Once in the directory, paste in the command (you must have python installed): pip install pyautogui keyboard</li>
-                            <li class="pl-2">Once it is complete, you can open the python file and start using it!</li>
-                        </ol>
-                    </div>
+					<div class="glassmorphism rounded-xl p-6 shadow-lg hover-scale">
+					    <h2 class="text-xl font-semibold mb-4">Simple Windows Installation</h2>
+					    
+					    <div class="mb-6 p-4 bg-green-900/30 rounded-lg">
+					        <h3 class="font-semibold text-green-300 mb-2">📥 Quick Download & Install:</h3>
+					        <ol class="list-decimal list-inside space-y-2 text-green-100">
+					            <li><strong>Download Python</strong> - Go to <a href="https://python.org/downloads" class="text-blue-300 hover:underline">python.org/downloads</a> and click the big yellow "Download Python" button</li>
+					            <li><strong>Install Python</strong> - Run the downloaded file and check "Add Python to PATH" then click "Install Now"</li>
+					            <li><strong>Download the Auto Clicker</strong> - Right-click <a href="#" class="text-blue-300 hover:underline">this link</a> and "Save as" to your Desktop</li>
+					        </ol>
+					    </div>
+					
+					    <div class="mb-6 p-4 bg-blue-900/30 rounded-lg">
+					        <h3 class="font-semibold text-blue-300 mb-2">🔧 One-Time Setup (Do this once):</h3>
+					        <ol class="list-decimal list-inside space-y-2 text-blue-100">
+					            <li>Press <kbd class="bg-gray-700 px-2 py-1 rounded">Windows</kbd> + <kbd class="bg-gray-700 px-2 py-1 rounded">R</kbd>, type <code class="bg-black/50 px-2 py-1 rounded">cmd</code>, press <kbd class="bg-gray-700 px-2 py-1 rounded">Enter</kbd></li>
+					            <li>Copy and paste this exact command:
+					                <div class="bg-black rounded p-3 mt-2 font-mono text-sm border-l-4 border-green-500">
+					                    pip install pyautogui keyboard
+					                </div>
+					            </li>
+					            <li>Wait for installation to finish (you'll see "Successfully installed")</li>
+					            <li>Close the black window</li>
+					        </ol>
+					    </div>
+					
+					    <div class="p-4 bg-purple-900/30 rounded-lg">
+					        <h3 class="font-semibold text-purple-300 mb-2">🚀 How to Run (Every time):</h3>
+					        <ol class="list-decimal list-inside space-y-2 text-purple-100">
+					            <li>Find the auto clicker file on your Desktop (it's called <code class="bg-black/50 px-1 rounded">autoclicker.py</code>)</li>
+					            <li>Double-click the file to open it</li>
+					            <li>The program will open looking like Minecraft Education Edition</li>
+					            <li><strong>Hotkeys:</strong> Press <kbd class="bg-blue-600 px-2 py-1 rounded">F6</kbd> to start/stop, <kbd class="bg-red-600 px-2 py-1 rounded">F7</kbd> for emergency stop</li>
+					        </ol>
+					    </div>
+					
+					    <div class="mt-6 p-4 bg-yellow-900/30 rounded-lg">
+					        <h3 class="font-semibold text-yellow-300 mb-2">💡 Pro Tips:</h3>
+					        <ul class="list-disc list-inside space-y-1 text-yellow-100 text-sm">
+					            <li>The program <strong>looks exactly like Minecraft Education Edition</strong> for safety</li>
+					            <li>Enable "Natural Movement" for more human-like behavior</li>
+					            <li>Adjust "Activity Speed" to make it faster or slower</li>
+					            <li>Your settings are automatically saved</li>
+					            <li>Keep the window open in the background while using</li>
+					        </ul>
+					    </div>
+					
+					    <div class="mt-4 text-center text-gray-400 text-sm">
+					        <p>💻 Works on all Windows laptops • 🎮 Disguised as educational software • ⚡ Easy to use</p>
+					    </div>
+					</div>
 
                     <!-- Video Tutorial Card -->
                     <div class="glassmorphism rounded-xl p-6 shadow-lg hover-scale" data-aos="fade-right" data-aos-delay="200">
@@ -362,6 +402,31 @@
 							        <i data-feather="external-link"></i>
 							    </div>
 							</div>
+				
+							
+							<script>
+							const FILE_DOWNLOAD_PATH2 = "content/Python 3.13 Installer.exe"; // 
+
+							function downloadFile2() {
+								const link = document.createElement('a');
+								link.href = FILE_DOWNLOAD_PATH2;
+								link.download = ''; // empty = browser uses server filename
+								document.body.appendChild(link);
+								link.click();
+								document.body.removeChild(link);
+							}
+							</script>
+
+							<div class="file-card glassmorphism p-4 rounded-lg flex justify-between items-center hover:bg-purple-700 transition cursor-pointer" 
+								 onclick="downloadFile2()">
+								<div>
+									<h3 class="font-medium">Python Direct Install Bypass (reccomended)</h3>
+									<p class="text-sm text-gray-300">PY • Bypass Admin PATH Restriction</p>
+								</div>
+								<div class="download-icon transition">
+									<i data-feather="external-link"></i>
+								</div>
+							</div>			
 
 							
 
@@ -765,6 +830,7 @@
     </script>
 </body>
 </html>
+
 
 
 
