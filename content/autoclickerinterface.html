@@ -457,123 +457,76 @@
         </div>
     </div>
 
-  <script>
-    let isConnected = false;
-    let currentStatus = {
-        running: false,
-        mode: 'click',
-        interval: 0.05,
-        actions: 0,
-        session_time: 0,
-        jitter_enabled: true,
-        human_like: true
-    };
+<script>
+let isConnected = false;
+let currentStatus = {};
 
-    async function checkBackendConnection() {
-        try {
-            const response = await fetch('http://localhost:8080/status.json', { method: 'GET' });
-            if (response.ok) {
-                const data = await response.json();
-                currentStatus = data;
-                if (!isConnected) {
-                    showConnectedUI();
-                    showNotification('success', 'Auto Clicker Connected', 'Background service is now connected and ready!');
-                }
-                updateUI();
-                return true;
-            }
-        } catch (error) {
-            if (isConnected) {
-                showDisconnectedUI();
-                showNotification('error', 'Connection Lost', 'Lost connection to Auto Clicker service.');
-            }
+async function checkBackendConnection() {
+    try {
+        const res = await fetch("http://localhost:8080/status.json");
+        if (!res.ok) throw new Error(res.status);
+        currentStatus = await res.json();
+        console.log("✅ Status fetched:", currentStatus);
+        if (!isConnected) {
+            showConnectedUI();
         }
-        return false;
+        updateUI();
+        isConnected = true;
+    } catch (err) {
+        if (isConnected) console.warn("❌ Lost connection", err);
+        showDisconnectedUI();
+        isConnected = false;
     }
+}
 
-    async function updateStatus() {
-        if (isConnected) {
-            try {
-                const response = await fetch('http://localhost:8080/status.json', { method: 'GET' });
-                if (response.ok) {
-                    currentStatus = await response.json();
-                    updateUI();
-                }
-            } catch (error) {
-                console.log('Connection lost to auto clicker backend');
-                showDisconnectedUI();
-            }
-        }
-    }
+function updateUI() {
+    console.log("🔄 Updating UI with:", currentStatus);
 
-    function updateUI() {
-        if (!isConnected) return;
+    document.getElementById("intervalValue").textContent = Number(currentStatus.interval).toFixed(2);
 
-        const statusIndicator = document.getElementById('statusIndicator');
-        const statusText = document.getElementById('statusText');
-        const startStopBtn = document.getElementById('startStopBtn');
+    document.getElementById("statusText").textContent = currentStatus.running ? "RUNNING" : "STOPPED";
+    document.getElementById("actionCount").textContent = currentStatus.actions;
+    document.getElementById("sessionTime").textContent = currentStatus.session_time + "s";
 
-        if (currentStatus.running) {
-            statusIndicator.className = 'w-5 h-5 bg-green-500 rounded-full mx-auto mb-4 pulse-glow border-2 border-white/30';
-            statusText.textContent = 'RUNNING';
-            startStopBtn.innerHTML = '<i class="fas fa-stop mr-3"></i>STOP AUTO CLICKER (F6)';
-        } else {
-            statusIndicator.className = 'w-5 h-5 bg-red-500 rounded-full mx-auto mb-4 border-2 border-white/30';
-            statusText.textContent = 'STOPPED';
-            startStopBtn.innerHTML = '<i class="fas fa-play mr-3"></i>START AUTO CLICKER (F6)';
-        }
+    document.getElementById("jitterToggle").checked = currentStatus.jitter_enabled;
+    document.getElementById("humanLikeToggle").checked = currentStatus.human_like;
 
-        document.getElementById('actionCount').textContent = currentStatus.actions;
-        document.getElementById('sessionTime').textContent = currentStatus.session_time + 's';
-        document.getElementById('intervalValue').textContent = currentStatus.interval.toFixed(2);
+    document.querySelectorAll(".mode-btn").forEach(btn => {
+        btn.classList.remove("mode-active");
+        if (btn.dataset.mode === currentStatus.mode) btn.classList.add("mode-active");
+    });
+}
 
-        document.getElementById('jitterToggle').checked = currentStatus.jitter_enabled;
-        document.getElementById('humanLikeToggle').checked = currentStatus.human_like;
-
-        document.querySelectorAll('.mode-btn').forEach(btn => {
-            btn.classList.remove('mode-active');
-            if (btn.getAttribute('data-mode') === currentStatus.mode) {
-                btn.classList.add('mode-active');
-            }
+async function sendCommand(command, extra = {}) {
+    if (!isConnected) { console.warn("⚠️ Not connected, skipping command"); return; }
+    console.log("📤 Sending command:", command, extra);
+    try {
+        const res = await fetch("http://localhost:8080/command", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ command, ...extra })
         });
+        const data = await res.json();
+        console.log("📥 Response:", data);
+        return data;
+    } catch (err) {
+        console.error("❌ Command failed", err);
     }
+}
 
-    async function sendCommand(command, data = {}) {
-        if (!isConnected) return;
-        try {
-            const response = await fetch('http://localhost:8080/command', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ command, ...data })
-            });
-            return await response.json();
-        } catch (err) {
-            console.log('Failed to send command', err);
-            showDisconnectedUI();
-        }
-    }
+function toggleRunning() { sendCommand("start_stop"); }
+function panicStop() { sendCommand("panic_stop"); }
+function setMode(m) { sendCommand("set_mode", { mode: m }); }
+function setInterval(v) { sendCommand("set_interval", { interval: v }); }
+function setJitter(e) { sendCommand("set_jitter", { enabled: e }); }
+function setHumanLike(e) { sendCommand("set_human_like", { enabled: e }); }
+function setCustomKey() {
+    const k = prompt("Enter custom key:");
+    if (k) sendCommand("set_custom_key", { key: k });
+}
 
-    function toggleRunning() { sendCommand('start_stop'); }
-    function panicStop() { sendCommand('panic_stop'); }
-    function setMode(mode) { sendCommand('set_mode', { mode }); }
-    function setInterval(value) { sendCommand('set_interval', { interval: Math.max(0.01, value) }); }
-    function setJitter(enabled) { sendCommand('set_jitter', { enabled }); }
-    function setHumanLike(enabled) { sendCommand('set_human_like', { enabled }); }
-    function setCustomKey() {
-        const key = prompt('Enter custom key:');
-        if (key) sendCommand('set_custom_key', { key });
-    }
-    async function restartBackend() { await sendCommand('restart_backend'); }
-    async function shutdownBackend() { await fetch('http://localhost:8080/shutdown'); }
-
-    async function initialize() {
-        const connected = await checkBackendConnection();
-        if (!connected) showDisconnectedUI();
-        setInterval(checkBackendConnection, 2000);
-        setInterval(updateStatus, 500);
-    }
-
-    initialize();
+setInterval(checkBackendConnection, 1500);
+setInterval(() => { if (isConnected) updateUI(); }, 1000);
 </script>
 
 </body>
