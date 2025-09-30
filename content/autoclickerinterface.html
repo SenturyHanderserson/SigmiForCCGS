@@ -461,6 +461,25 @@
 let isConnected = false;
 let currentStatus = {};
 
+function showNotification(msg, type="info") {
+    console.log(`🔔 Notification [${type}]:`, msg);
+
+    // If you want visual popups, inject a floating div
+    let div = document.createElement("div");
+    div.textContent = msg;
+    div.style.position = "fixed";
+    div.style.bottom = "20px";
+    div.style.right = "20px";
+    div.style.background = (type === "error") ? "#ff4d4d" : "#4dff88";
+    div.style.color = "#000";
+    div.style.padding = "10px 20px";
+    div.style.borderRadius = "8px";
+    div.style.zIndex = "9999";
+    document.body.appendChild(div);
+    setTimeout(() => div.remove(), 3000);
+}
+
+    
 async function checkBackendConnection() {
     try {
         const res = await fetch("http://localhost:8080/status.json");
