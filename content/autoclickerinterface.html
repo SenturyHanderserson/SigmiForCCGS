@@ -468,13 +468,19 @@ async function checkBackendConnection() {
         currentStatus = await res.json();
         console.log("✅ Status fetched:", currentStatus);
         if (!isConnected) {
-            showConnectedUI();
+            function showConnectedUI() {
+                console.log("✅ Connected to backend");
+                // Optional: add UI changes here (like enabling buttons, changing color)
+            }
         }
         updateUI();
         isConnected = true;
     } catch (err) {
         if (isConnected) console.warn("❌ Lost connection", err);
-        showDisconnectedUI();
+        function showDisconnectedUI() {
+            console.log("❌ Disconnected from backend");
+            // Optional: add UI changes here (like greying out buttons)
+        }
         isConnected = false;
     }
 }
