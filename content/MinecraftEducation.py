@@ -46,61 +46,72 @@ class AutoClickerBackend:
         try:
             class AutoClickerHandler(BaseHTTPRequestHandler):
                 def __init__(self, *args, **kwargs):
-                    self.app = None
                     super().__init__(*args, **kwargs)
                 
                 def do_OPTIONS(self):
-                    # Handle preflight requests
+                    """Handle preflight CORS requests"""
                     self.send_response(200)
                     self.send_header('Access-Control-Allow-Origin', '*')
-                    self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-                    self.send_header('Access-Control-Allow-Headers', 'Content-Type, Accept, Origin')
+                    self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+                    self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin')
                     self.send_header('Access-Control-Max-Age', '86400')
                     self.end_headers()
                 
+                def _set_cors_headers(self):
+                    """Set CORS headers for all responses"""
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+                    self.send_header('Access-Control-Allow-Headers', 'Content-Type, Accept, Origin')
+                
                 def do_GET(self):
-                    if self.path == '/status.json':
-                        # Serve status JSON
-                        try:
+                    """Handle GET requests"""
+                    try:
+                        if self.path == '/status.json':
+                            # Serve status JSON
                             status_data = {
-                                "running": self.app.running,
-                                "mode": self.app.mode,
-                                "interval": self.app.click_interval,
-                                "actions": self.app.action_count,
-                                "session_time": int(time.time() - self.app.session_start_time) if self.app.running else 0,
-                                "jitter_enabled": self.app.jitter_enabled,
-                                "human_like": self.app.human_like
+                                "running": self.server.backend_app.running,
+                                "mode": self.server.backend_app.mode,
+                                "interval": self.server.backend_app.click_interval,
+                                "actions": self.server.backend_app.action_count,
+                                "session_time": int(time.time() - self.server.backend_app.session_start_time) if self.server.backend_app.running else 0,
+                                "jitter_enabled": self.server.backend_app.jitter_enabled,
+                                "human_like": self.server.backend_app.human_like
                             }
                             
                             self.send_response(200)
                             self.send_header('Content-type', 'application/json')
-                            self.send_header('Access-Control-Allow-Origin', '*')
+                            self._set_cors_headers()
                             self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
                             self.send_header('Pragma', 'no-cache')
                             self.send_header('Expires', '0')
                             self.end_headers()
                             self.wfile.write(json.dumps(status_data).encode('utf-8'))
-                        except Exception as e:
-                            print(f"❌ Error serving status: {e}")
-                            self.send_error(500, "Internal Server Error")
-                    elif self.path == '/shutdown':
-                        # Emergency shutdown endpoint
-                        try:
-                            self.app.emergency_shutdown()
+                            
+                        elif self.path == '/shutdown':
+                            # Emergency shutdown endpoint
+                            self.server.backend_app.emergency_shutdown()
                             self.send_response(200)
                             self.send_header('Content-type', 'application/json')
-                            self.send_header('Access-Control-Allow-Origin', '*')
+                            self._set_cors_headers()
                             self.end_headers()
                             self.wfile.write(json.dumps({"status": "shutting_down"}).encode('utf-8'))
-                        except Exception as e:
-                            self.send_error(500, "Shutdown error")
-                    else:
-                        self.send_response(404)
+                            
+                        else:
+                            self.send_response(404)
+                            self._set_cors_headers()
+                            self.end_headers()
+                            
+                    except Exception as e:
+                        print(f"❌ Error in GET handler: {e}")
+                        self.send_response(500)
+                        self._set_cors_headers()
                         self.end_headers()
+                        self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
                 
                 def do_POST(self):
-                    if self.path == '/command':
-                        try:
+                    """Handle POST requests"""
+                    try:
+                        if self.path == '/command':
                             content_length = int(self.headers.get('Content-Length', 0))
                             if content_length == 0:
                                 self.send_error(400, "No data received")
@@ -112,61 +123,72 @@ class AutoClickerBackend:
                             
                             # Handle different commands
                             command = data.get('command')
+                            response_data = {"status": "success", "command": command}
+                            
                             if command == 'start_stop':
-                                self.app.toggle_running()
+                                self.server.backend_app.toggle_running()
                             elif command == 'set_mode':
-                                self.app.mode = data.get('mode', 'click')
-                                print(f"📝 Mode set to: {self.app.mode}")
+                                self.server.backend_app.mode = data.get('mode', 'click')
+                                print(f"📝 Mode set to: {self.server.backend_app.mode}")
                             elif command == 'set_interval':
                                 interval = data.get('interval')
                                 if interval is not None:
-                                    self.app.click_interval = max(0.01, float(interval))
-                                    print(f"⚡ Interval set to: {self.app.click_interval:.2f}s")
+                                    self.server.backend_app.click_interval = max(0.01, float(interval))
+                                    print(f"⚡ Interval set to: {self.server.backend_app.click_interval:.2f}s")
                             elif command == 'set_jitter':
-                                self.app.jitter_enabled = bool(data.get('enabled', True))
-                                print(f"🎯 Jitter {'enabled' if self.app.jitter_enabled else 'disabled'}")
+                                self.server.backend_app.jitter_enabled = bool(data.get('enabled', True))
+                                print(f"🎯 Jitter {'enabled' if self.server.backend_app.jitter_enabled else 'disabled'}")
                             elif command == 'set_human_like':
-                                self.app.human_like = bool(data.get('enabled', True))
-                                print(f"🤖 Human-like behavior {'enabled' if self.app.human_like else 'disabled'}")
+                                self.server.backend_app.human_like = bool(data.get('enabled', True))
+                                print(f"🤖 Human-like behavior {'enabled' if self.server.backend_app.human_like else 'disabled'}")
                             elif command == 'set_custom_key':
-                                self.app.custom_key = data.get('key')
-                                self.app.mode = "custom"
-                                print(f"🔑 Custom key set to: {self.app.custom_key}")
+                                self.server.backend_app.custom_key = data.get('key')
+                                self.server.backend_app.mode = "custom"
+                                print(f"🔑 Custom key set to: {self.server.backend_app.custom_key}")
                             elif command == 'panic_stop':
-                                self.app.panic_stop()
+                                self.server.backend_app.panic_stop()
                             elif command == 'restart_backend':
-                                self.app.restart_backend()
+                                self.server.backend_app.restart_backend()
+                            else:
+                                response_data = {"status": "error", "message": "Unknown command"}
                             
                             self.send_response(200)
                             self.send_header('Content-type', 'application/json')
-                            self.send_header('Access-Control-Allow-Origin', '*')
+                            self._set_cors_headers()
                             self.end_headers()
-                            response_data = json.dumps({"status": "success", "command": command})
-                            self.wfile.write(response_data.encode('utf-8'))
+                            self.wfile.write(json.dumps(response_data).encode('utf-8'))
                             
-                        except json.JSONDecodeError as e:
-                            print(f"❌ JSON decode error: {e}")
-                            self.send_error(400, "Invalid JSON")
-                        except Exception as e:
-                            print(f"❌ Error handling command: {e}")
-                            self.send_error(500, "Internal Server Error")
-                    else:
-                        self.send_response(404)
+                        else:
+                            self.send_response(404)
+                            self._set_cors_headers()
+                            self.end_headers()
+                            
+                    except json.JSONDecodeError as e:
+                        print(f"❌ JSON decode error: {e}")
+                        self.send_response(400)
+                        self._set_cors_headers()
                         self.end_headers()
+                        self.wfile.write(json.dumps({"error": "Invalid JSON"}).encode('utf-8'))
+                    except Exception as e:
+                        print(f"❌ Error in POST handler: {e}")
+                        self.send_response(500)
+                        self._set_cors_headers()
+                        self.end_headers()
+                        self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
                 
                 def log_message(self, format, *args):
                     # Suppress normal HTTP logging
                     pass
             
-            # Create the server with reference to this app instance
-            def handler(*args, **kwargs):
-                h = AutoClickerHandler(*args, **kwargs)
-                h.app = self
-                return h
+            # Create custom server class that stores backend reference
+            class BackendServer(socketserver.TCPServer):
+                def __init__(self, server_address, handler_class, backend_app):
+                    self.backend_app = backend_app
+                    self.allow_reuse_address = True
+                    super().__init__(server_address, handler_class)
             
             # Start server in a separate thread
-            self.web_server = socketserver.TCPServer(("", self.web_port), handler)
-            self.web_server.allow_reuse_address = True
+            self.web_server = BackendServer(("", self.web_port), AutoClickerHandler, self)
             self.web_thread = threading.Thread(target=self.web_server.serve_forever)
             self.web_thread.daemon = True
             self.web_thread.start()
