@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Key System</title>
+    <title>Key Generation System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Theme Variables */
+        /* ============ THEME VARIABLES ============ */
         :root {
             --bg-primary: #1a0933;
             --bg-secondary: #3b1d6c;
@@ -26,7 +26,7 @@
             --error-glow: rgba(239, 68, 68, 0.4);
         }
 
-        /* Theme Classes */
+        /* ============ THEME CLASSES ============ */
         .theme-dark {
             --bg-primary: #1a0933 !important;
             --bg-secondary: #3b1d6c !important;
@@ -95,6 +95,7 @@
             --glass-border: rgba(255, 255, 255, 0.15) !important;
         }
 
+        /* ============ BASE STYLES ============ */
         * {
             margin: 0;
             padding: 0;
@@ -186,6 +187,7 @@
             font-size: 1.2rem;
         }
 
+        /* ============ TASK SYSTEM STYLES ============ */
         .task-card {
             display: flex;
             align-items: center;
@@ -394,6 +396,7 @@
             font-size: 0.95rem;
         }
 
+        /* ============ KEY SYSTEM STYLES ============ */
         .key-container {
             text-align: center;
             padding: 30px;
@@ -497,13 +500,14 @@
             gap: 5px;
         }
 
-        /* Server Logic UI Elements */
+        /* ============ SERVER SYSTEMS STYLES ============ */
         .notification-container {
             position: fixed;
             top: 20px;
             right: 20px;
             z-index: 1000;
             max-width: 400px;
+            width: 100%;
         }
 
         .notification {
@@ -518,6 +522,7 @@
             align-items: center;
             gap: 12px;
             animation: slideInRight 0.3s ease-out;
+            transition: all 0.3s ease;
         }
 
         .notification.success {
@@ -538,6 +543,7 @@
 
         .notification-icon {
             font-size: 1.2rem;
+            flex-shrink: 0;
         }
 
         .notification.success .notification-icon {
@@ -559,16 +565,21 @@
         .notification-content {
             flex: 1;
             font-size: 0.95rem;
+            line-height: 1.4;
         }
 
         .notification-close {
             cursor: pointer;
             opacity: 0.7;
             transition: opacity 0.2s;
+            flex-shrink: 0;
+            padding: 4px;
+            border-radius: 4px;
         }
 
         .notification-close:hover {
             opacity: 1;
+            background: rgba(255, 255, 255, 0.1);
         }
 
         @keyframes slideInRight {
@@ -582,7 +593,490 @@
             }
         }
 
-        /* Warning Modal */
+        /* Warning System Styles */
+        .warning-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .warning-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .warning-modal-content {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .warning-modal.active .warning-modal-content {
+            transform: scale(1);
+        }
+
+        .warning-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .warning-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .warning-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--warning-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .warning-list {
+            margin-bottom: 1.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .warning-item {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .warning-item.dismissed {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            opacity: 0.7;
+        }
+
+        .warning-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .warning-item-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .warning-item-status {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .warning-item-status.active {
+            background: var(--error-color);
+            color: white;
+        }
+
+        .warning-item-status.dismissed {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .warning-item-reason {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .warning-item-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .warning-item-actions {
+            margin-top: 10px;
+        }
+
+        .warning-dismiss-btn {
+            width: 100%;
+            padding: 8px 16px;
+            background: var(--error-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .warning-dismiss-btn:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        .warning-dismiss-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .warning-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .warning-count {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .warning-history-btn {
+            background: none;
+            border: none;
+            color: var(--accent-primary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .warning-history-btn:hover {
+            color: var(--accent-secondary);
+        }
+
+        .warning-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .warning-action-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .warning-dismiss-all {
+            background: var(--error-color);
+            color: white;
+        }
+
+        .warning-dismiss-all:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        .warning-close {
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+        }
+
+        .warning-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Message System Styles */
+        .messages-container {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            z-index: 1001;
+            width: 350px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .message-header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 12px 12px 0 0;
+            padding: 15px;
+            border: 1px solid var(--glass-border);
+            border-bottom: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .message-header h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .message-clear-all {
+            background: none;
+            border: none;
+            color: var(--accent-primary);
+            font-size: 0.8rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        .message-clear-all:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .messages-list {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 0 0 12px 12px;
+            border: 1px solid var(--glass-border);
+            border-top: none;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .message-item {
+            padding: 15px;
+            border-bottom: 1px solid var(--glass-border);
+            animation: slideInLeft 0.3s ease-out;
+            transition: all 0.3s ease;
+        }
+
+        .message-item:last-child {
+            border-bottom: none;
+        }
+
+        .message-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .message-header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .message-sender {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .message-content {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+        }
+
+        .message-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .message-dismiss-btn {
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .message-dismiss-btn:hover {
+            background: var(--accent-secondary);
+            transform: translateY(-1px);
+        }
+
+        .messages-empty {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-secondary);
+        }
+
+        .messages-empty-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.5;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Broadcast System Styles */
+        .broadcast-toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .broadcast-toast {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .broadcast-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .broadcast-toast.warning {
+            border-left: 4px solid var(--warning-color);
+        }
+
+        .broadcast-toast.info {
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .broadcast-toast-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .broadcast-toast-icon {
+            width: 20px;
+            height: 20px;
+            background: var(--warning-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .broadcast-toast.info .broadcast-toast-icon {
+            background: var(--accent-primary);
+        }
+
+        .broadcast-toast-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .broadcast-toast-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .broadcast-toast-close:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .broadcast-toast-message {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+
+        .broadcast-toast-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .broadcast-toast-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .broadcast-toast-action {
+            background: none;
+            border: none;
+            color: var(--accent-primary);
+            font-size: 0.8rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        .broadcast-toast-action:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Modal Overlay Styles */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -622,84 +1116,23 @@
             transform: scale(1);
         }
 
-        .warning-item {
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
+        /* Loading Spinner */
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #fff;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
         }
 
-        .warning-item.dismissed {
-            background: rgba(34, 197, 94, 0.1);
-            border: 1px solid rgba(34, 197, 94, 0.3);
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        /* Broadcast Toast */
-        .broadcast-toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(15px);
-            border-radius: 12px;
-            padding: 15px;
-            max-width: 350px;
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--glass-shadow);
-            z-index: 1000;
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.3s ease;
-        }
-
-        .broadcast-toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        .broadcast-toast.warning {
-            border-left: 4px solid var(--warning-color);
-        }
-
-        .broadcast-toast.info {
-            border-left: 4px solid var(--accent-primary);
-        }
-
-        /* Messages Container */
-        .messages-container {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            max-width: 350px;
-            max-height: 70vh;
-            overflow-y: auto;
-            z-index: 1000;
-        }
-
-        .message-item {
-            background: var(--glass-bg);
-            backdrop-filter: blur(15px);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 10px;
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--glass-shadow);
-            animation: slideInLeft 0.3s ease-out;
-            border-left: 4px solid var(--accent-primary);
-        }
-
-        @keyframes slideInLeft {
-            from {
-                transform: translateX(-100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
+        /* Particles */
         .particles {
             position: fixed;
             top: 0;
@@ -729,22 +1162,6 @@
             }
         }
 
-        /* Loading Spinner */
-        .loading-spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top: 4px solid #fff;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         /* Theme Selector */
         .theme-selector {
             position: fixed;
@@ -764,6 +1181,7 @@
             cursor: pointer;
         }
 
+        /* Responsive Design */
         @media (max-width: 968px) {
             .container {
                 flex-direction: column;
@@ -782,6 +1200,30 @@
             .theme-selector {
                 top: 10px;
                 right: 10px;
+            }
+            
+            .messages-container {
+                width: calc(100% - 40px);
+                max-width: none;
+                left: 20px;
+                right: 20px;
+            }
+            
+            .broadcast-toast-container {
+                width: calc(100% - 40px);
+                max-width: none;
+                left: 20px;
+                right: 20px;
+            }
+            
+            .warning-modal-content,
+            .modal-content {
+                width: 95%;
+                padding: 1.5rem;
+            }
+            
+            .warning-actions {
+                flex-direction: column;
             }
         }
     </style>
@@ -802,29 +1244,21 @@
     <!-- Server Logic UI Elements -->
     <div class="notification-container" id="notificationContainer"></div>
     
-    <div class="messages-container" id="messagesContainer"></div>
-    
-    <div class="modal-overlay" id="warningModal">
-        <div class="modal-content">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold">Active Warnings</h2>
-                <button onclick="closeWarningModal()" class="p-2 rounded-full hover:bg-purple-700">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div id="warningList" class="mb-4">
-                <!-- Warnings will be populated here -->
-            </div>
-            <div class="flex justify-between">
-                <button onclick="dismissAllWarnings()" class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg">
-                    Dismiss All
-                </button>
-                <button onclick="closeWarningModal()" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg">
-                    Close
-                </button>
-            </div>
+    <div class="messages-container" id="messagesContainer" style="display: none;">
+        <div class="message-header" id="messageHeader" style="display: none;">
+            <h3>Messages</h3>
+            <button class="message-clear-all" onclick="dismissAllMessages()">
+                Clear All
+            </button>
         </div>
+        <div class="messages-list" id="messagesList"></div>
     </div>
+    
+    <!-- Warning Modal (will be created dynamically) -->
+    
+    <!-- Broadcast Toast Container (will be created dynamically) -->
+    
+    <!-- Broadcast Modal (will be created dynamically) -->
 
     <div class="modal-overlay" id="loginModal">
         <div class="modal-content">
@@ -949,10 +1383,10 @@
     </div>
 
     <script>
-        // Server Configuration
+        // ============ CONFIGURATION ============
         const SERVER_URL = 'https://proxyforsigmi.onrender.com';
         
-        // Global State
+        // ============ GLOBAL STATE ============
         const state = {
             tasks: [
                 { id: 1, completed: false, name: "Task 1" },
@@ -966,13 +1400,15 @@
             keyCheckInterval: null,
             userWarnings: [],
             activeBroadcasts: [],
+            userMessages: [],
             broadcastCheckInterval: null,
             warningCheckInterval: null,
+            messageCheckInterval: null,
             isBlacklisted: false,
             existingKey: null
         };
 
-        // DOM Elements
+        // ============ DOM ELEMENTS ============
         const taskElements = [
             document.getElementById('task1'),
             document.getElementById('task2'),
@@ -994,23 +1430,19 @@
         const deviceWarningElement = document.getElementById('device-warning');
 
         // ============ THEME MANAGEMENT ============
-        
         function getTheme() {
             const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
             return preferences.theme || 'dark';
         }
 
         function setTheme(theme) {
-            // Update the theme class on body
             document.body.className = document.body.className.replace(/\btheme-\w+/g, '');
             document.body.classList.add(`theme-${theme}`);
             
-            // Save to preferences
             const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
             preferences.theme = theme;
             setCookie('UserPreferences', JSON.stringify(preferences), 365);
             
-            // Update particles for the new theme
             updateParticlesForTheme();
         }
 
@@ -1018,7 +1450,6 @@
             const theme = getTheme();
             setTheme(theme);
             
-            // Set the theme selector to the current theme
             const themeSelect = document.getElementById('themeSelect');
             if (themeSelect) {
                 themeSelect.value = theme;
@@ -1040,7 +1471,7 @@
                     case 'blue':
                         particle.style.background = 'rgba(59, 130, 246, 0.5)';
                         break;
-                    default: // dark
+                    default:
                         particle.style.background = 'rgba(255, 255, 255, 0.5)';
                 }
             });
@@ -1049,10 +1480,7 @@
         function initThemeSelector() {
             const themeSelect = document.getElementById('themeSelect');
             if (themeSelect) {
-                // Set current theme
                 themeSelect.value = getTheme();
-                
-                // Add change event listener
                 themeSelect.addEventListener('change', (e) => {
                     setTheme(e.target.value);
                 });
@@ -1060,7 +1488,6 @@
         }
 
         // ============ UTILITY FUNCTIONS ============
-        
         function getCookie(name) {
             const cookieName = name + "=";
             const decodedCookie = decodeURIComponent(document.cookie);
@@ -1091,8 +1518,10 @@
             return !!(token && currentUser);
         }
 
-        function showNotification(message, type = 'info', duration = 3000) {
+        function showNotification(message, type = 'info', duration = 5000) {
             const container = document.getElementById('notificationContainer');
+            if (!container) return;
+
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
             
@@ -1100,7 +1529,7 @@
             if (type === 'success') icon = 'check-circle';
             if (type === 'error') icon = 'exclamation-triangle';
             if (type === 'warning') icon = 'exclamation-circle';
-            
+
             notification.innerHTML = `
                 <div class="notification-icon">
                     <i class="fas fa-${icon}"></i>
@@ -1112,9 +1541,9 @@
                     <i class="fas fa-times"></i>
                 </div>
             `;
-            
+
             container.appendChild(notification);
-            
+
             setTimeout(() => {
                 if (notification.parentElement) {
                     notification.remove();
@@ -1131,8 +1560,110 @@
             document.getElementById('loadingMessage').textContent = message;
         }
 
-        // ============ KEY MANAGEMENT FUNCTIONS ============
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
 
+        function truncateText(text, maxLength) {
+            if (text.length <= maxLength) return text;
+            return text.substr(0, maxLength) + '...';
+        }
+
+        function formatTime(date) {
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        }
+
+        function getTimeAgo(timestamp) {
+            const now = new Date();
+            const messageTime = new Date(timestamp);
+            const diffInSeconds = Math.floor((now - messageTime) / 1000);
+            
+            if (diffInSeconds < 60) return 'just now';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+            return `${Math.floor(diffInSeconds / 86400)}d ago`;
+        }
+
+        // ============ TASK SYSTEM ============
+        function updateProgress() {
+            const completedTasks = state.tasks.filter(task => task.completed).length;
+            const progress = (completedTasks / state.tasks.length) * 100;
+            
+            progressFill.style.width = `${progress}%`;
+            progressPercentage.textContent = `${Math.round(progress)}%`;
+            
+            if (completedTasks === state.tasks.length && !state.key) {
+                generateKey();
+            }
+            
+            if (completedTasks > 0 && completedTasks < state.tasks.length) {
+                const nextTask = taskElements[completedTasks];
+                const nextTaskStatus = taskStatusElements[completedTasks];
+                
+                nextTask.classList.remove('locked');
+                nextTaskStatus.textContent = 'Click to Complete';
+            }
+        }
+
+        function updateTaskStatesForActiveKey() {
+            const hasActiveKey = state.key || state.existingKey;
+            
+            taskElements.forEach((taskElement, index) => {
+                if (hasActiveKey) {
+                    taskElement.classList.add('greyed-out');
+                    taskElement.classList.add('locked');
+                    
+                    const taskStatus = taskStatusElements[index];
+                    if (!state.tasks[index].completed) {
+                        taskStatus.textContent = 'Key Active';
+                    }
+                } else {
+                    taskElement.classList.remove('greyed-out');
+                    if (index === 0 || state.tasks[index - 1].completed) {
+                        taskElement.classList.remove('locked');
+                    }
+                }
+            });
+        }
+
+        async function completeTask(taskId) {
+            if (taskId < 1 || taskId > state.tasks.length) return;
+            
+            const task = state.tasks[taskId - 1];
+            if (task.completed) return;
+            
+            if (taskId > 1 && !state.tasks[taskId - 2].completed) return;
+            
+            if (state.key || state.existingKey) {
+                showNotification('Tasks are disabled while you have an active key!', 'warning');
+                return;
+            }
+            
+            setTimeout(() => {
+                task.completed = true;
+                taskStatusElements[taskId - 1].textContent = 'Completed';
+                taskStatusElements[taskId - 1].classList.add('completed');
+                taskElements[taskId - 1].classList.add('completed');
+                
+                taskElements[taskId - 1].style.animation = 'none';
+                setTimeout(() => {
+                    taskElements[taskId - 1].style.animation = 'pulse 0.5s ease';
+                }, 10);
+                
+                updateProgress();
+                showNotification(`Task ${taskId}: ${task.name} completed!`, 'success');
+            }, 800);
+        }
+
+        // ============ KEY MANAGEMENT ============
         async function checkExistingKey() {
             try {
                 const token = getCookie('AuthToken');
@@ -1149,7 +1680,6 @@
                 if (response.ok) {
                     const data = await response.json();
                     if (data.hasActiveKey) {
-                        // Update the UI immediately with the existing key
                         updateKeyDisplay(data.key, data.expiresAt, data.device, data.usedOnOtherDevice);
                         return data;
                     }
@@ -1194,114 +1724,6 @@
             }
         }
 
-        async function validateKey(key) {
-            try {
-                const token = getCookie('AuthToken');
-                if (!token) {
-                    showNotification('Authentication required', 'error');
-                    return false;
-                }
-
-                const response = await fetch(`${SERVER_URL}/api/keys/validate`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ key })
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    return data.valid;
-                } else {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Key validation failed');
-                }
-            } catch (error) {
-                console.error('Error validating key:', error);
-                showNotification(error.message, 'error');
-                return false;
-            }
-        }
-
-        async function updateKeyStatus() {
-            try {
-                const token = getCookie('AuthToken');
-                if (!token) return;
-
-                const response = await fetch(`${SERVER_URL}/api/keys/status`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.active) {
-                        updateKeyDisplay(data.key, data.expiresAt, data.device, data.usedOnOtherDevice);
-                        if (data.usedOnOtherDevice) {
-                            showNotification('Key has been used on another device!', 'warning');
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Error updating key status:', error);
-            }
-        }
-
-        // ============ TASK SYSTEM ============
-        
-        function updateProgress() {
-            const completedTasks = state.tasks.filter(task => task.completed).length;
-            const progress = (completedTasks / state.tasks.length) * 100;
-            
-            progressFill.style.width = `${progress}%`;
-            progressPercentage.textContent = `${Math.round(progress)}%`;
-            
-            // Generate key if all tasks are completed
-            if (completedTasks === state.tasks.length && !state.key) {
-                generateKey();
-            }
-            
-            // Unlock next task if current one is completed
-            if (completedTasks > 0 && completedTasks < state.tasks.length) {
-                const nextTask = taskElements[completedTasks];
-                const nextTaskStatus = taskStatusElements[completedTasks];
-                
-                nextTask.classList.remove('locked');
-                nextTaskStatus.textContent = 'Click to Complete';
-            }
-        }
-
-        // Add this function to grey out tasks when there's an active key
-        function updateTaskStatesForActiveKey() {
-            const hasActiveKey = state.key || state.existingKey;
-            
-            taskElements.forEach((taskElement, index) => {
-                if (hasActiveKey) {
-                    taskElement.classList.add('greyed-out');
-                    // Also add locked class to prevent interactions
-                    taskElement.classList.add('locked');
-                    
-                    // Update status text
-                    const taskStatus = taskStatusElements[index];
-                    if (!state.tasks[index].completed) {
-                        taskStatus.textContent = 'Key Active';
-                    }
-                } else {
-                    taskElement.classList.remove('greyed-out');
-                    // Only keep locked if it's not the first task or previous isn't completed
-                    if (index === 0 || state.tasks[index - 1].completed) {
-                        taskElement.classList.remove('locked');
-                    }
-                }
-            });
-        }
-
-        // Modify the updateKeyDisplay function to call the grey out function
         function updateKeyDisplay(key, expiresAt, device, usedOnOtherDevice = false) {
             state.key = key;
             state.expirationDate = new Date(expiresAt);
@@ -1318,53 +1740,11 @@
             keyStatusElement.style.color = usedOnOtherDevice ? '#ef4444' : '#4ade80';
 
             deviceWarningElement.style.display = usedOnOtherDevice ? 'flex' : 'none';
-
-            // Grey out tasks when key is active
             updateTaskStatesForActiveKey();
-
             startCountdown();
         }
 
-        // Modify the completeTask function to check for active key
-        async function completeTask(taskId) {
-            if (taskId < 1 || taskId > state.tasks.length) return;
-            
-            const task = state.tasks[taskId - 1];
-            if (task.completed) return;
-            
-            // Check if previous task is completed (except for first task)
-            if (taskId > 1 && !state.tasks[taskId - 2].completed) return;
-            
-            // Check for existing key first - if there's an active key, prevent task completion
-            if (state.key || state.existingKey) {
-                showNotification('Tasks are disabled while you have an active key!', 'warning');
-                return;
-            }
-            
-            // Simulate server request delay
-            setTimeout(() => {
-                task.completed = true;
-                taskStatusElements[taskId - 1].textContent = 'Completed';
-                taskStatusElements[taskId - 1].classList.add('completed');
-                taskElements[taskId - 1].classList.add('completed');
-                
-                // Add completion animation
-                taskElements[taskId - 1].style.animation = 'none';
-                setTimeout(() => {
-                    taskElements[taskId - 1].style.animation = 'pulse 0.5s ease';
-                }, 10);
-                
-                updateProgress();
-                
-                // Show notification
-                showNotification(`Task ${taskId}: ${task.name} completed!`, 'success');
-            }, 800);
-        }
-
-        // ============ KEY GENERATION ============
-        
         async function generateKey() {
-            // Check for existing key first
             const existingKey = await checkExistingKey();
             if (existingKey) {
                 state.existingKey = existingKey;
@@ -1378,7 +1758,6 @@
                 return;
             }
 
-            // Generate new key on server
             showNotification('Generating new key...', 'info');
             const keyData = await generateKeyOnServer();
             
@@ -1412,8 +1791,6 @@
                 const seconds = Math.floor((distance % (1000 * 60)) / 1000);
                 
                 timeRemainingElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                
-                // Remove expired class if it was added
                 timeRemainingElement.classList.remove('expired');
             }, 1000);
         }
@@ -1431,8 +1808,7 @@
             }
         }
 
-        // ============ AUTHENTICATION & VERIFICATION ============
-        
+        // ============ AUTHENTICATION ============
         async function verifyToken(token) {
             try {
                 const response = await fetch(`${SERVER_URL}/api/verify-token`, {
@@ -1493,132 +1869,13 @@
             document.getElementById('blacklistModal').classList.add('active');
         }
 
-        // ============ SERVER LOGIC SYSTEMS ============
-        
-        // Broadcast System
-        async function checkForBroadcasts() {
-            try {
-                const token = getCookie('AuthToken');
-                if (!token) return;
-                
-                const response = await fetch(`${SERVER_URL}/api/broadcasts`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to fetch broadcasts');
-                }
-                
-                const data = await response.json();
-                
-                if (data.success && data.broadcasts.length > 0) {
-                    const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
-                    
-                    data.broadcasts.forEach(broadcast => {
-                        if (!dismissedBroadcasts.includes(broadcast.id) && 
-                            !state.activeBroadcasts.some(ab => ab.id === broadcast.id)) {
-                            state.activeBroadcasts.push(broadcast);
-                            showBroadcastToast(broadcast);
-                        }
-                    });
-                }
-            } catch (error) {
-                console.error('Error checking for broadcasts:', error);
-            }
-        }
-
-        function showBroadcastToast(broadcast) {
-            const toast = document.createElement('div');
-            toast.className = 'broadcast-toast info';
-            toast.dataset.broadcastId = broadcast.id;
-            
-            toast.innerHTML = `
-                <div class="flex items-start mb-2">
-                    <i class="fas fa-bell text-yellow-400 mr-2 mt-1"></i>
-                    <div>
-                        <h4 class="font-semibold">New Announcement</h4>
-                        <p class="text-sm">${truncateText(broadcast.message, 80)}</p>
-                    </div>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-xs text-gray-400">From: ${broadcast.createdBy}</span>
-                    <div>
-                        <button onclick="showBroadcastDetails('${broadcast.id}')" class="text-xs text-purple-300 hover:text-purple-100 mr-2">
-                            Details
-                        </button>
-                        <button onclick="dismissBroadcast('${broadcast.id}')" class="text-xs text-gray-400 hover:text-white">
-                            Dismiss
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.classList.add('show');
-            }, 100);
-            
-            setTimeout(() => {
-                dismissBroadcastToast(broadcast.id);
-            }, 10000);
-        }
-
-        function dismissBroadcastToast(broadcastId) {
-            const toast = document.querySelector(`.broadcast-toast[data-broadcast-id="${broadcastId}"]`);
-            if (toast) {
-                toast.classList.remove('show');
-                setTimeout(() => {
-                    toast.remove();
-                    state.activeBroadcasts = state.activeBroadcasts.filter(b => b.id !== broadcastId);
-                }, 300);
-            }
-        }
-
-        function showBroadcastDetails(broadcastId) {
-            const broadcast = state.activeBroadcasts.find(b => b.id === broadcastId);
-            if (broadcast) {
-                showNotification(broadcast.message, 'info', 5000);
-                dismissBroadcastToast(broadcastId);
-            }
-        }
-
-        async function dismissBroadcast(broadcastId) {
-            try {
-                const token = getCookie('AuthToken');
-                if (token) {
-                    await fetch(`${SERVER_URL}/api/broadcasts/${broadcastId}/dismiss`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                }
-                
-                const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
-                if (!dismissedBroadcasts.includes(broadcastId)) {
-                    dismissedBroadcasts.push(broadcastId);
-                    localStorage.setItem('dismissedBroadcasts', JSON.stringify(dismissedBroadcasts));
-                }
-                
-                dismissBroadcastToast(broadcastId);
-                
-            } catch (error) {
-                console.error('Error dismissing broadcast:', error);
-            }
-        }
-
+        // ============ SERVER SYSTEMS ============
         // Warning System
         async function checkForWarnings() {
             try {
                 const token = getCookie('AuthToken');
                 if (!token) return;
-                
+
                 const response = await fetch(`${SERVER_URL}/api/check-warnings`, {
                     method: 'GET',
                     headers: {
@@ -1626,7 +1883,7 @@
                         'Content-Type': 'application/json'
                     }
                 });
-                
+
                 if (response.ok) {
                     const data = await response.json();
                     state.userWarnings = data.warnings || [];
@@ -1641,32 +1898,84 @@
         }
 
         function showWarningModal() {
-            const modal = document.getElementById('warningModal');
+            let modal = document.getElementById('warningModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'warningModal';
+                modal.className = 'warning-modal';
+                modal.innerHTML = `
+                    <div class="warning-modal-content">
+                        <div class="warning-header">
+                            <div class="warning-title">
+                                <div class="warning-icon">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <span>Warnings</span>
+                            </div>
+                            <button class="warning-modal-close" onclick="closeWarningModal()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="warning-list" id="warningList"></div>
+                        
+                        <div class="warning-footer">
+                            <div class="warning-count" id="warningCount">0 active warnings</div>
+                            <button class="warning-history-btn" onclick="showWarningHistory()">
+                                View History
+                            </button>
+                        </div>
+                        
+                        <div class="warning-actions">
+                            <button class="warning-action-btn warning-dismiss-all" onclick="dismissAllWarnings()">
+                                Dismiss All Warnings
+                            </button>
+                            <button class="warning-action-btn warning-close" onclick="closeWarningModal()">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+
             const warningList = document.getElementById('warningList');
+            const warningCount = document.getElementById('warningCount');
             
             warningList.innerHTML = '';
             
             const activeWarnings = state.userWarnings.filter(w => !w.dismissed);
+            const totalWarnings = state.userWarnings.length;
+            
+            warningCount.textContent = `${activeWarnings.length} active warning${activeWarnings.length !== 1 ? 's' : ''} (${totalWarnings} total)`;
             
             if (activeWarnings.length === 0) {
-                warningList.innerHTML = '<p class="text-center text-gray-400 py-4">No active warnings</p>';
+                warningList.innerHTML = `
+                    <div class="text-center py-8 text-gray-400">
+                        <i class="fas fa-check-circle fa-3x mb-4 opacity-50"></i>
+                        <p class="text-lg font-medium">All warnings have been dismissed</p>
+                        <p class="text-sm mt-2">You're all caught up!</p>
+                    </div>
+                `;
             } else {
                 activeWarnings.forEach((warning, index) => {
                     const warningElement = document.createElement('div');
                     warningElement.className = 'warning-item';
                     warningElement.innerHTML = `
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="font-medium">Warning #${index + 1}</span>
-                            <span class="text-xs px-2 py-1 bg-red-700 rounded">Active</span>
+                        <div class="warning-item-header">
+                            <div class="warning-item-title">Warning #${index + 1}</div>
+                            <div class="warning-item-status active">Active</div>
                         </div>
-                        <p class="text-sm mb-2">${warning.reason}</p>
-                        <div class="flex justify-between items-center text-xs text-gray-400">
-                            <span>By: ${warning.issuedBy}</span>
+                        <div class="warning-item-reason">${escapeHtml(warning.reason)}</div>
+                        <div class="warning-item-meta">
+                            <span>By: ${escapeHtml(warning.issuedBy)}</span>
                             <span>${new Date(warning.issuedAt).toLocaleDateString()}</span>
                         </div>
-                        <button onclick="dismissWarning('${warning.id}')" class="w-full mt-2 py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-medium">
-                            Dismiss This Warning
-                        </button>
+                        <div class="warning-item-actions">
+                            <button class="warning-dismiss-btn" onclick="dismissWarning('${warning.id}')">
+                                Dismiss This Warning
+                            </button>
+                        </div>
                     `;
                     warningList.appendChild(warningElement);
                 });
@@ -1682,7 +1991,7 @@
                     showNotification('Authentication required', 'error');
                     return false;
                 }
-                
+
                 const response = await fetch(`${SERVER_URL}/api/warnings/${warningId}/dismiss`, {
                     method: 'POST',
                     headers: {
@@ -1690,13 +1999,15 @@
                         'Content-Type': 'application/json'
                     }
                 });
-                
+
                 if (response.ok) {
                     const data = await response.json();
                     
                     const warningIndex = state.userWarnings.findIndex(w => w.id === warningId);
                     if (warningIndex !== -1) {
                         state.userWarnings[warningIndex].dismissed = true;
+                        state.userWarnings[warningIndex].dismissedAt = data.warning.dismissedAt;
+                        state.userWarnings[warningIndex].dismissedBy = data.warning.dismissedBy;
                     }
                     
                     showWarningModal();
@@ -1719,13 +2030,13 @@
                     showNotification('Authentication required', 'error');
                     return;
                 }
-                
+
                 const activeWarnings = state.userWarnings.filter(w => !w.dismissed);
                 if (activeWarnings.length === 0) {
                     showNotification('No active warnings to dismiss', 'info');
                     return;
                 }
-                
+
                 const response = await fetch(`${SERVER_URL}/api/warnings/dismiss-all`, {
                     method: 'POST',
                     headers: {
@@ -1733,17 +2044,20 @@
                         'Content-Type': 'application/json'
                     }
                 });
-                
+
                 if (response.ok) {
+                    const data = await response.json();
+                    
                     state.userWarnings.forEach(warning => {
                         if (!warning.dismissed) {
                             warning.dismissed = true;
+                            warning.dismissedAt = new Date().toISOString();
+                            warning.dismissedBy = localStorage.getItem('currentUser');
                         }
                     });
                     
                     showWarningModal();
-                    showNotification(`Dismissed ${activeWarnings.length} warning(s)`, 'success');
-                    
+                    showNotification(`Dismissed ${data.dismissedCount} warning(s)`, 'success');
                 } else {
                     throw new Error('Failed to dismiss warnings');
                 }
@@ -1754,7 +2068,102 @@
         }
 
         function closeWarningModal() {
-            document.getElementById('warningModal').classList.remove('active');
+            const modal = document.getElementById('warningModal');
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        }
+
+        async function showWarningHistory() {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) return;
+
+                const response = await fetch(`${SERVER_URL}/api/warnings/history`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showWarningHistoryModal(data.warnings);
+                }
+            } catch (error) {
+                console.error('Error fetching warning history:', error);
+                showNotification('Failed to load warning history', 'error');
+            }
+        }
+
+        function showWarningHistoryModal(warnings) {
+            let modal = document.getElementById('warningHistoryModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'warningHistoryModal';
+                modal.className = 'warning-history-modal';
+                modal.innerHTML = `
+                    <div class="warning-history-content">
+                        <div class="warning-history-header">
+                            <h2 class="warning-history-title">Warning History</h2>
+                            <button class="warning-modal-close" onclick="closeWarningHistoryModal()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="warning-history-list" id="warningHistoryList"></div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+
+            const historyList = document.getElementById('warningHistoryList');
+            
+            if (!warnings || warnings.length === 0) {
+                historyList.innerHTML = `
+                    <div class="warning-history-empty">
+                        <i class="fas fa-history warning-history-empty-icon"></i>
+                        <p>No warning history found</p>
+                    </div>
+                `;
+            } else {
+                historyList.innerHTML = warnings.map(warning => `
+                    <div class="warning-item ${warning.dismissed ? 'dismissed' : ''}">
+                        <div class="warning-item-header">
+                            <div class="warning-item-title">${escapeHtml(warning.reason)}</div>
+                            <div class="warning-item-status ${warning.dismissed ? 'dismissed' : 'active'}">
+                                ${warning.dismissed ? 'Dismissed' : 'Active'}
+                            </div>
+                        </div>
+                        <div class="warning-item-meta">
+                            <span>Issued by: ${escapeHtml(warning.issuedBy)}</span>
+                            <span>${new Date(warning.issuedAt).toLocaleDateString()}</span>
+                        </div>
+                        ${warning.dismissedAt ? `
+                            <div class="warning-item-meta">
+                                <span>Dismissed by: ${escapeHtml(warning.dismissedBy)}</span>
+                                <span>${new Date(warning.dismissedAt).toLocaleDateString()}</span>
+                            </div>
+                        ` : ''}
+                        ${!warning.dismissed ? `
+                            <div class="warning-item-actions">
+                                <button class="warning-dismiss-btn" onclick="dismissWarning('${warning.id}')">
+                                    Dismiss This Warning
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('');
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function closeWarningHistoryModal() {
+            const modal = document.getElementById('warningHistoryModal');
+            if (modal) {
+                modal.classList.remove('active');
+            }
         }
 
         // Message System
@@ -1762,34 +2171,45 @@
             try {
                 const token = getCookie('AuthToken');
                 if (!token) return;
-                
+
                 const response = await fetch(`${SERVER_URL}/api/messages`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
                 });
-                
+
                 if (response.ok) {
                     const data = await response.json();
-                    displayMessages(data.messages);
+                    state.userMessages = data.messages || [];
+                    displayMessages();
                 }
             } catch (error) {
                 console.error('Error loading messages:', error);
             }
         }
 
-        function displayMessages(messages) {
+        function displayMessages() {
             const container = document.getElementById('messagesContainer');
-            container.innerHTML = '';
+            const messagesList = document.getElementById('messagesList');
+            const messageHeader = document.getElementById('messageHeader');
             
-            if (!messages || messages.length === 0) {
+            if (!container || !messagesList) return;
+            
+            messagesList.innerHTML = '';
+            
+            if (!state.userMessages || state.userMessages.length === 0) {
+                container.style.display = 'none';
+                if (messageHeader) messageHeader.style.display = 'none';
                 return;
             }
             
-            messages.forEach((message, index) => {
+            container.style.display = 'block';
+            if (messageHeader) messageHeader.style.display = 'block';
+            
+            state.userMessages.forEach((message, index) => {
                 setTimeout(() => {
                     const messageElement = createMessageElement(message);
-                    container.appendChild(messageElement);
+                    messagesList.appendChild(messageElement);
                 }, index * 100);
             });
         }
@@ -1802,17 +2222,16 @@
             const timeAgo = getTimeAgo(message.createdAt);
             
             messageDiv.innerHTML = `
-                <div class="flex justify-between items-start mb-2">
-                    <div class="flex items-center">
-                        <i class="fas fa-envelope text-purple-400 mr-2"></i>
-                        <span class="font-medium text-sm">${escapeHtml(message.from)}</span>
+                <div class="message-header-info">
+                    <div class="message-sender">
+                        <i class="fas fa-envelope text-purple-400"></i>
+                        <span>${escapeHtml(message.from)}</span>
                     </div>
-                    <span class="text-xs text-gray-400">${timeAgo}</span>
+                    <span class="message-time">${timeAgo}</span>
                 </div>
-                <p class="text-sm text-gray-300 mb-3">${escapeHtml(message.message)}</p>
-                <div class="flex justify-end">
-                    <button onclick="dismissMessage('${message.id}')" 
-                            class="text-xs bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded transition-colors">
+                <div class="message-content">${escapeHtml(message.message)}</div>
+                <div class="message-actions">
+                    <button class="message-dismiss-btn" onclick="dismissMessage('${message.id}')">
                         Dismiss
                     </button>
                 </div>
@@ -1828,7 +2247,7 @@
                     showNotification('Authentication required', 'error');
                     return;
                 }
-                
+
                 const response = await fetch(`${SERVER_URL}/api/messages/${messageId}/dismiss`, {
                     method: 'POST',
                     headers: {
@@ -1836,15 +2255,19 @@
                         'Content-Type': 'application/json'
                     }
                 });
-                
+
                 if (response.ok) {
+                    state.userMessages = state.userMessages.filter(m => m.id !== messageId);
+                    
                     const messageElement = document.getElementById(`message-${messageId}`);
                     if (messageElement) {
                         messageElement.style.animation = 'slideOutLeft 0.3s ease-in';
                         setTimeout(() => {
                             messageElement.remove();
+                            checkRemainingMessages();
                         }, 300);
                     }
+                    
                     showNotification('Message dismissed', 'success');
                 } else {
                     showNotification('Failed to dismiss message', 'error');
@@ -1855,33 +2278,233 @@
             }
         }
 
-        function getTimeAgo(timestamp) {
-            const now = new Date();
-            const messageTime = new Date(timestamp);
-            const diffInSeconds = Math.floor((now - messageTime) / 1000);
+        async function dismissAllMessages() {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) {
+                    showNotification('Authentication required', 'error');
+                    return;
+                }
+
+                const response = await fetch(`${SERVER_URL}/api/messages/dismiss-all`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    state.userMessages = [];
+                    
+                    const messagesList = document.getElementById('messagesList');
+                    if (messagesList) {
+                        messagesList.innerHTML = '';
+                    }
+                    
+                    checkRemainingMessages();
+                    showNotification('All messages dismissed', 'success');
+                } else {
+                    showNotification('Failed to dismiss all messages', 'error');
+                }
+            } catch (error) {
+                console.error('Error dismissing all messages:', error);
+                showNotification('Error dismissing all messages', 'error');
+            }
+        }
+
+        function checkRemainingMessages() {
+            const messagesList = document.getElementById('messagesList');
+            const messageHeader = document.getElementById('messageHeader');
+            const container = document.getElementById('messageContainer');
             
-            if (diffInSeconds < 60) return 'just now';
-            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-            return `${Math.floor(diffInSeconds / 86400)}d ago`;
+            if (!messagesList || !container) return;
+            
+            if (messagesList.children.length === 0) {
+                container.style.display = 'none';
+                if (messageHeader) messageHeader.style.display = 'none';
+            }
         }
 
-        function escapeHtml(unsafe) {
-            return unsafe
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+        // Broadcast System
+        async function checkForBroadcasts() {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) return;
+
+                const response = await fetch(`${SERVER_URL}/api/broadcasts`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.success && data.broadcasts.length > 0) {
+                        const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
+                        
+                        data.broadcasts.forEach(broadcast => {
+                            if (!dismissedBroadcasts.includes(broadcast.id) && 
+                                !state.activeBroadcasts.some(ab => ab.id === broadcast.id)) {
+                                state.activeBroadcasts.push(broadcast);
+                                showBroadcastToast(broadcast);
+                            }
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking for broadcasts:', error);
+            }
         }
 
-        function truncateText(text, maxLength) {
-            if (text.length <= maxLength) return text;
-            return text.substr(0, maxLength) + '...';
+        function showBroadcastToast(broadcast) {
+            let container = document.getElementById('broadcastToastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'broadcastToastContainer';
+                container.className = 'broadcast-toast-container';
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'broadcast-toast info';
+            toast.dataset.broadcastId = broadcast.id;
+            
+            toast.innerHTML = `
+                <div class="broadcast-toast-header">
+                    <div class="broadcast-toast-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div class="broadcast-toast-title">New Announcement</div>
+                    <button class="broadcast-toast-close" onclick="hideBroadcastToast('${broadcast.id}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="broadcast-toast-message">${truncateText(broadcast.message, 120)}</div>
+                <div class="broadcast-toast-footer">
+                    <span>From: ${escapeHtml(broadcast.createdBy)}</span>
+                    <div class="broadcast-toast-actions">
+                        <button class="broadcast-toast-action" onclick="showBroadcastModal('${broadcast.id}')">
+                            View Details
+                        </button>
+                        <button class="broadcast-toast-action" onclick="dismissBroadcast('${broadcast.id}')">
+                            Dismiss
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+            
+            setTimeout(() => {
+                hideBroadcastToast(broadcast.id);
+            }, 15000);
+        }
+
+        function hideBroadcastToast(broadcastId) {
+            const toast = document.querySelector(`.broadcast-toast[data-broadcast-id="${broadcastId}"]`);
+            if (toast) {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                    state.activeBroadcasts = state.activeBroadcasts.filter(b => b.id !== broadcastId);
+                }, 300);
+            }
+        }
+
+        function showBroadcastModal(broadcastId) {
+            const broadcast = state.activeBroadcasts.find(b => b.id === broadcastId);
+            if (!broadcast) return;
+
+            let modal = document.getElementById('broadcastModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'broadcastModal';
+                modal.className = 'broadcast-modal';
+                modal.innerHTML = `
+                    <div class="broadcast-modal-content">
+                        <div class="broadcast-modal-header">
+                            <div class="broadcast-modal-icon">
+                                <i class="fas fa-bell"></i>
+                            </div>
+                            <div class="broadcast-modal-title">Announcement</div>
+                            <button class="broadcast-modal-close" onclick="closeBroadcastModal()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="broadcast-modal-message" id="broadcastMessage"></div>
+                        <div class="broadcast-modal-footer">
+                            <span id="broadcastAuthor"></span>
+                            <span id="broadcastTime"></span>
+                        </div>
+                        <div class="broadcast-modal-actions">
+                            <button class="broadcast-modal-action broadcast-modal-acknowledge" onclick="dismissBroadcast('${broadcastId}')">
+                                Acknowledge
+                            </button>
+                            <button class="broadcast-modal-action broadcast-modal-dismiss" onclick="closeBroadcastModal()">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+
+            document.getElementById('broadcastMessage').textContent = broadcast.message;
+            document.getElementById('broadcastAuthor').textContent = `From: ${broadcast.createdBy}`;
+            document.getElementById('broadcastTime').textContent = formatTime(new Date(broadcast.createdAt));
+            
+            modal.dataset.broadcastId = broadcastId;
+            modal.classList.add('active');
+            hideBroadcastToast(broadcastId);
+        }
+
+        async function dismissBroadcast(broadcastId) {
+            try {
+                const token = getCookie('AuthToken');
+                if (token) {
+                    await fetch(`${SERVER_URL}/api/broadcasts/${broadcastId}/dismiss`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                }
+                
+                const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
+                if (!dismissedBroadcasts.includes(broadcastId)) {
+                    dismissedBroadcasts.push(broadcastId);
+                    localStorage.setItem('dismissedBroadcasts', JSON.stringify(dismissedBroadcasts));
+                }
+                
+                const modal = document.getElementById('broadcastModal');
+                if (modal && modal.dataset.broadcastId === broadcastId) {
+                    closeBroadcastModal();
+                }
+                
+                hideBroadcastToast(broadcastId);
+                
+            } catch (error) {
+                console.error('Error dismissing broadcast:', error);
+            }
+        }
+
+        function closeBroadcastModal() {
+            const modal = document.getElementById('broadcastModal');
+            if (modal) {
+                modal.classList.remove('active');
+            }
         }
 
         // ============ INITIALIZATION ============
-        
         function createParticles() {
             const particlesContainer = document.getElementById('particles');
             const particleCount = 30;
@@ -1906,19 +2529,42 @@
         }
 
         function initServerSystems() {
-            // Initialize all server systems
             loadMessages();
             checkForBroadcasts();
             checkForWarnings();
-            updateKeyStatus(); // Check for existing key
+            updateKeyStatus();
             
-            // Set up periodic checking
             state.broadcastCheckInterval = setInterval(checkForBroadcasts, 2 * 60 * 1000);
             state.warningCheckInterval = setInterval(checkForWarnings, 5 * 60 * 1000);
-            state.keyCheckInterval = setInterval(updateKeyStatus, 30 * 1000); // Check key status every 30 seconds
-            
-            // Set up message refresh
-            setInterval(loadMessages, 3 * 60 * 1000);
+            state.messageCheckInterval = setInterval(loadMessages, 3 * 60 * 1000);
+            state.keyCheckInterval = setInterval(updateKeyStatus, 30 * 1000);
+        }
+
+        async function updateKeyStatus() {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) return;
+
+                const response = await fetch(`${SERVER_URL}/api/keys/status`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.active) {
+                        updateKeyDisplay(data.key, data.expiresAt, data.device, data.usedOnOtherDevice);
+                        if (data.usedOnOtherDevice) {
+                            showNotification('Key has been used on another device!', 'warning');
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating key status:', error);
+            }
         }
 
         // Event listeners for task cards
@@ -1928,23 +2574,19 @@
             });
         });
 
-        // Main initialization with comprehensive authentication checks
+        // Main initialization
         document.addEventListener('DOMContentLoaded', async function() {
             const token = getCookie('AuthToken');
             const currentUser = localStorage.getItem('currentUser');
             
-            // Apply theme immediately
             applyThemeOnLoad();
             initThemeSelector();
-            
             createParticles();
             updateProgress();
             
-            // Show loading screen immediately
             document.getElementById('loadingOverlay').classList.add('active');
             
             if (!token || !currentUser) {
-                // No token or user data - redirect to index
                 updateLoadingScreen('Redirecting...', 'No valid session found');
                 setTimeout(() => {
                     redirectToIndex();
@@ -1953,12 +2595,10 @@
             }
             
             try {
-                // Step 1: Verify token validity
                 updateLoadingScreen('Verifying session...', 'Checking authentication status');
                 const verification = await verifyToken(token);
                 
                 if (!verification.valid) {
-                    // Invalid token - redirect to index
                     updateLoadingScreen('Session expired', 'Redirecting to home page');
                     setTimeout(() => {
                         redirectToIndex();
@@ -1967,36 +2607,30 @@
                 }
                 
                 if (verification.blacklisted) {
-                    // User is blacklisted - show blacklist modal
                     state.isBlacklisted = true;
                     document.getElementById('loadingOverlay').classList.remove('active');
                     showBlacklistModal();
                     return;
                 }
                 
-                // Step 2: Additional blacklist check (redundant for security)
                 updateLoadingScreen('Security check...', 'Verifying account status');
                 const isBlacklisted = await checkBlacklistStatus(token);
                 
                 if (isBlacklisted) {
-                    // User is blacklisted - show blacklist modal
                     state.isBlacklisted = true;
                     document.getElementById('loadingOverlay').classList.remove('active');
                     showBlacklistModal();
                     return;
                 }
                 
-                // Step 3: Check for existing key
                 updateLoadingScreen('Checking keys...', 'Looking for existing active keys');
                 const existingKey = await checkExistingKey();
                 if (existingKey) {
                     state.existingKey = existingKey;
                     showNotification('Existing active key found!', 'info');
-                    // Grey out tasks immediately if key exists
                     updateTaskStatesForActiveKey();
                 }
                 
-                // Step 4: All checks passed - initialize systems
                 updateLoadingScreen('Loading systems...', 'Initializing server features');
                 document.getElementById('loadingOverlay').classList.remove('active');
                 initServerSystems();
@@ -2010,20 +2644,13 @@
             }
         });
 
-        // Cleanup intervals when page is unloaded
+        // Cleanup intervals
         window.addEventListener('beforeunload', () => {
-            if (state.broadcastCheckInterval) {
-                clearInterval(state.broadcastCheckInterval);
-            }
-            if (state.warningCheckInterval) {
-                clearInterval(state.warningCheckInterval);
-            }
-            if (state.countdownInterval) {
-                clearInterval(state.countdownInterval);
-            }
-            if (state.keyCheckInterval) {
-                clearInterval(state.keyCheckInterval);
-            }
+            if (state.broadcastCheckInterval) clearInterval(state.broadcastCheckInterval);
+            if (state.warningCheckInterval) clearInterval(state.warningCheckInterval);
+            if (state.messageCheckInterval) clearInterval(state.messageCheckInterval);
+            if (state.countdownInterval) clearInterval(state.countdownInterval);
+            if (state.keyCheckInterval) clearInterval(state.keyCheckInterval);
         });
     </script>
 </body>
