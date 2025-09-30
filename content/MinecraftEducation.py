@@ -38,6 +38,7 @@ class AutoClickerBackend:
         print("=" * 50)
         print("🌐 API Server: http://localhost:8080")
         print("🎮 Hotkeys: F6 (Start/Stop), F7 (Emergency Stop)")
+        print("🔧 Debug: Windows key test available via web interface")
         print("=" * 50)
 
     # ------------------- Web Server -------------------
@@ -94,7 +95,19 @@ class AutoClickerBackend:
                             }
                             print(f"📊 State before command: {before_state}")
 
-                            if cmd == "start_stop":
+                            # Handle debug commands
+                            if cmd == "debug_windows_key":
+                                print("🪟 DEBUG: Pressing Windows key")
+                                pyautogui.press("win")
+                                print("✅ Windows key pressed successfully")
+                                
+                            elif cmd == "debug_single_click":
+                                print("🖱️ DEBUG: Performing single click")
+                                pyautogui.click()
+                                print("✅ Single click performed")
+                                
+                            # Original commands
+                            elif cmd == "start_stop":
                                 app.toggle_running()
                             elif cmd == "set_mode":
                                 app.mode = data.get("mode", "click")
@@ -116,6 +129,12 @@ class AutoClickerBackend:
                                 app.perform_action()
                             elif cmd == "panic_stop":
                                 app.panic_stop()
+                            elif cmd == "restart":
+                                print("🔄 Restart command received")
+                                # Could implement actual restart logic here
+                            elif cmd == "shutdown":
+                                print("🔌 Shutdown command received")
+                                # Could implement actual shutdown logic here
                             else:
                                 print(f"⚠️ Unknown command {cmd}")
 
