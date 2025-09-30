@@ -1671,11 +1671,11 @@ function showNotification(message, type = 'info', duration = 3000) {
 			        // Page mapping for different content items
         const PAGE_MAPPING = {
             // Hacks pages
-            'roblox': 'roblox.html',
-            'minecraft': 'minecraft.html',
+            'roblox': 'roblox',
+            'minecraft': 'minecraft',
             'blooket': 'blooket.html',
            // 'mathsonline': 'mathsonline.html',
-			'autoclicker': 'Autoclicker.html',
+			'autoclicker': 'Autoclicker',
             
             // Bypasses pages
           //  'linewize': 'linewize.html',
@@ -1684,10 +1684,10 @@ function showNotification(message, type = 'info', duration = 3000) {
             //'admin': 'admin.html',
             
             // Games pages
-            'arcade': 'maths.html',
-            'allgames': 'mathematics.html',
-            'strategy': 'mathematics.html#strategy',
-            'multiplayer': 'mathematics.html#multiplayer',
+            'arcade': 'maths',
+            'allgames': 'mathematics',
+            'strategy': 'mathematics#strategy',
+            'multiplayer': 'mathematics#multiplayer',
             
             // External games pages
            // 'external_roblox': 'external-roblox.html',
@@ -1705,7 +1705,7 @@ function showNotification(message, type = 'info', duration = 3000) {
 
 		// Settings Button
 		document.getElementById('settingsBtn').addEventListener('click', function() {
-			window.location.href = 'settings.html';
+			window.location.href = 'settings';
 		});
 
 		// Floating Action Button
@@ -1715,9 +1715,9 @@ function showNotification(message, type = 'info', duration = 3000) {
 
 		// Handle 404 redirects
 		window.addEventListener('load', function() {
-			if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
+			if (window.location.pathname !== '/' && window.location.pathname !== '/index') {
 				const path = window.location.pathname.split('/').pop();
-				if (!Object.values(PAGE_MAPPING).includes(path) && path !== 'settings.html') {
+				if (!Object.values(PAGE_MAPPING).includes(path) && path !== 'settings') {
 					showNotification('This website is currently in beta, so expect issues.', 'info');
 				}
 			}
