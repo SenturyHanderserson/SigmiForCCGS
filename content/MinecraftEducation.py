@@ -53,7 +53,8 @@ class AutoClickerBackend:
                     self.send_response(200)
                     self.send_header('Access-Control-Allow-Origin', '*')
                     self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-                    self.send_header('Access-Control-Allow-Headers', 'Content-Type, Accept')
+                    self.send_header('Access-Control-Allow-Headers', 'Content-Type, Accept, Origin')
+                    self.send_header('Access-Control-Max-Age', '86400')
                     self.end_headers()
                 
                 def do_GET(self):
@@ -61,25 +62,26 @@ class AutoClickerBackend:
                         # Serve status JSON
                         try:
                             status_data = {
-                                "running": self.app.running if self.app else False,
-                                "mode": self.app.mode if self.app else "click",
-                                "interval": self.app.click_interval if self.app else 0.05,
-                                "actions": self.app.action_count if self.app else 0,
-                                "session_time": int(time.time() - self.app.session_start_time) if self.app and self.app.running else 0,
-                                "jitter_enabled": self.app.jitter_enabled if self.app else True,
-                                "human_like": self.app.human_like if self.app else True
+                                "running": self.app.running,
+                                "mode": self.app.mode,
+                                "interval": self.app.click_interval,
+                                "actions": self.app.action_count,
+                                "session_time": int(time.time() - self.app.session_start_time) if self.app.running else 0,
+                                "jitter_enabled": self.app.jitter_enabled,
+                                "human_like": self.app.human_like
                             }
                             
                             self.send_response(200)
                             self.send_header('Content-type', 'application/json')
                             self.send_header('Access-Control-Allow-Origin', '*')
-                            self.send_header('Cache-Control', 'no-cache')
+                            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+                            self.send_header('Pragma', 'no-cache')
+                            self.send_header('Expires', '0')
                             self.end_headers()
-                            self.wfile.write(json.dumps(status_data).encode())
+                            self.wfile.write(json.dumps(status_data).encode('utf-8'))
                         except Exception as e:
                             print(f"❌ Error serving status: {e}")
-                            self.send_response(500)
-                            self.end_headers()
+                            self.send_error(500, "Internal Server Error")
                     else:
                         self.send_response(404)
                         self.end_headers()
@@ -87,45 +89,51 @@ class AutoClickerBackend:
                 def do_POST(self):
                     if self.path == '/command':
                         try:
-                            content_length = int(self.headers['Content-Length'])
+                            content_length = int(self.headers.get('Content-Length', 0))
+                            if content_length == 0:
+                                self.send_error(400, "No data received")
+                                return
+                                
                             post_data = self.rfile.read(content_length)
-                            data = json.loads(post_data.decode())
+                            data = json.loads(post_data.decode('utf-8'))
                             print(f"🔧 Received command: {data}")
                             
                             # Handle different commands
-                            if hasattr(self, 'app') and self.app:
-                                command = data.get('command')
-                                if command == 'start_stop':
-                                    self.app.toggle_running()
-                                elif command == 'set_mode':
-                                    self.app.mode = data.get('mode', 'click')
-                                    print(f"📝 Mode set to: {self.app.mode}")
-                                elif command == 'set_interval':
-                                    interval = data.get('interval')
-                                    if interval is not None:
-                                        self.app.click_interval = max(0.01, float(interval))
-                                        print(f"⚡ Interval set to: {self.app.click_interval:.2f}s")
-                                elif command == 'set_jitter':
-                                    self.app.jitter_enabled = bool(data.get('enabled', True))
-                                    print(f"🎯 Jitter {'enabled' if self.app.jitter_enabled else 'disabled'}")
-                                elif command == 'set_human_like':
-                                    self.app.human_like = bool(data.get('enabled', True))
-                                    print(f"🤖 Human-like behavior {'enabled' if self.app.human_like else 'disabled'}")
-                                elif command == 'set_custom_key':
-                                    self.app.custom_key = data.get('key')
-                                    self.app.mode = "custom"
-                                    print(f"🔑 Custom key set to: {self.app.custom_key}")
+                            command = data.get('command')
+                            if command == 'start_stop':
+                                self.app.toggle_running()
+                            elif command == 'set_mode':
+                                self.app.mode = data.get('mode', 'click')
+                                print(f"📝 Mode set to: {self.app.mode}")
+                            elif command == 'set_interval':
+                                interval = data.get('interval')
+                                if interval is not None:
+                                    self.app.click_interval = max(0.01, float(interval))
+                                    print(f"⚡ Interval set to: {self.app.click_interval:.2f}s")
+                            elif command == 'set_jitter':
+                                self.app.jitter_enabled = bool(data.get('enabled', True))
+                                print(f"🎯 Jitter {'enabled' if self.app.jitter_enabled else 'disabled'}")
+                            elif command == 'set_human_like':
+                                self.app.human_like = bool(data.get('enabled', True))
+                                print(f"🤖 Human-like behavior {'enabled' if self.app.human_like else 'disabled'}")
+                            elif command == 'set_custom_key':
+                                self.app.custom_key = data.get('key')
+                                self.app.mode = "custom"
+                                print(f"🔑 Custom key set to: {self.app.custom_key}")
                             
                             self.send_response(200)
                             self.send_header('Content-type', 'application/json')
                             self.send_header('Access-Control-Allow-Origin', '*')
                             self.end_headers()
-                            self.wfile.write(json.dumps({"status": "success"}).encode())
+                            response_data = json.dumps({"status": "success", "command": command})
+                            self.wfile.write(response_data.encode('utf-8'))
+                            
+                        except json.JSONDecodeError as e:
+                            print(f"❌ JSON decode error: {e}")
+                            self.send_error(400, "Invalid JSON")
                         except Exception as e:
                             print(f"❌ Error handling command: {e}")
-                            self.send_response(500)
-                            self.send_header('Access-Control-Allow-Origin', '*')
-                            self.end_headers()
+                            self.send_error(500, "Internal Server Error")
                     else:
                         self.send_response(404)
                         self.end_headers()
@@ -172,7 +180,9 @@ class AutoClickerBackend:
             print("🚀 AUTO CLICKER STARTED - Clicking at lightning speed!")
             self.session_start_time = time.time()
             self.action_count = 0
-            threading.Thread(target=self.auto_clicker, daemon=True).start()
+            # Start auto clicker in a separate thread
+            self.clicker_thread = threading.Thread(target=self.auto_clicker, daemon=True)
+            self.clicker_thread.start()
         else:
             print("🛑 AUTO CLICKER STOPPED")
 
@@ -238,6 +248,7 @@ class AutoClickerBackend:
         self.running = False
         if self.web_server:
             self.web_server.shutdown()
+            self.web_server.server_close()
             print("✅ Web server stopped")
         print("✅ Auto Clicker closed successfully")
         sys.exit(0)
