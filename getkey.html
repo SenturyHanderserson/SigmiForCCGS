@@ -99,6 +99,42 @@
             animation: glow 3s ease-in-out infinite alternate;
         }
 
+        /* Add this to the existing CSS */
+    .task-card.greyed-out {
+        opacity: 0.5;
+        filter: grayscale(0.8);
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    .task-card.greyed-out:hover {
+        transform: none !important;
+        box-shadow: var(--glass-shadow) !important;
+        border-color: var(--glass-border) !important;
+    }
+
+    .task-card.greyed-out .task-icon {
+        background: rgba(100, 100, 100, 0.15) !important;
+        color: #666 !important;
+        border-color: #666 !important;
+        box-shadow: none !important;
+    }
+
+    .task-card.greyed-out .task-title {
+        color: #999 !important;
+    }
+
+    .task-card.greyed-out .task-description {
+        color: #777 !important;
+    }
+
+    .task-card.greyed-out .task-status {
+        background: rgba(100, 100, 100, 0.2) !important;
+        color: #666 !important;
+        border-color: #666 !important;
+    }
+
+
         @keyframes glow {
             from {
                 text-shadow: 0 0 10px rgba(167, 139, 250, 0.5);
@@ -941,7 +977,11 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    return data.hasActiveKey ? data : null;
+                    if (data.hasActiveKey) {
+                        // Update the UI immediately with the existing key
+                        updateKeyDisplay(data.key, data.expiresAt, data.device, data.usedOnOtherDevice);
+                        return data;
+                    }
                 }
                 return null;
             } catch (error) {
@@ -1184,6 +1224,171 @@
 
         // ============ KEY GENERATION ============
         
+        // Add this function to grey out tasks when there's an active key
+        function updateTaskStatesForActiveKey() {
+            const hasActiveKey = state.key || state.existingKey;
+            
+            taskElements.forEach((taskElement, index) => {
+                if (hasActiveKey) {
+                    taskElement.classList.add('greyed-out');
+                    // Also add locked class to prevent interactions
+                    taskElement.classList.add('locked');
+                    
+                    // Update status text
+                    const taskStatus = taskStatusElements[index];
+                    if (!state.tasks[index].completed) {
+                        taskStatus.textContent = 'Key Active';
+                    }
+                } else {
+                    taskElement.classList.remove('greyed-out');
+                    // Only keep locked if it's not the first task or previous isn't completed
+                    if (index === 0 || state.tasks[index - 1].completed) {
+                        taskElement.classList.remove('locked');
+                    }
+                }
+            });
+        }
+
+        // Modify the updateKeyDisplay function to call the grey out function
+        function updateKeyDisplay(key, expiresAt, device, usedOnOtherDevice = false) {
+            state.key = key;
+            state.expirationDate = new Date(expiresAt);
+            state.authorizedDevice = device;
+
+            keyDisplay.innerHTML = key;
+            keyDisplay.classList.add('generated');
+            if (usedOnOtherDevice) {
+                keyDisplay.classList.add('used');
+            }
+
+            authorizedDeviceElement.textContent = device;
+            keyStatusElement.textContent = usedOnOtherDevice ? 'Used on other device' : 'Active';
+            keyStatusElement.style.color = usedOnOtherDevice ? '#ef4444' : '#4ade80';
+
+            deviceWarningElement.style.display = usedOnOtherDevice ? 'flex' : 'none';
+
+            // Grey out tasks when key is active
+            updateTaskStatesForActiveKey();
+
+            startCountdown();
+        }
+
+        // Modify the completeTask function to check for active key
+        async function completeTask(taskId) {
+            if (taskId < 1 || taskId > state.tasks.length) return;
+            
+            const task = state.tasks[taskId - 1];
+            if (task.completed) return;
+            
+            // Check if previous task is completed (except for first task)
+            if (taskId > 1 && !state.tasks[taskId - 2].completed) return;
+            
+            // Check for existing key first - if there's an active key, prevent task completion
+            if (state.key || state.existingKey) {
+                showNotification('Tasks are disabled while you have an active key!', 'warning');
+                return;
+            }
+            
+            // Simulate server request delay
+            setTimeout(() => {
+                task.completed = true;
+                taskStatusElements[taskId - 1].textContent = 'Completed';
+                taskStatusElements[taskId - 1].classList.add('completed');
+                taskElements[taskId - 1].classList.add('completed');
+                
+                // Add completion animation
+                taskElements[taskId - 1].style.animation = 'none';
+                setTimeout(() => {
+                    taskElements[taskId - 1].style.animation = 'pulse 0.5s ease';
+                }, 10);
+                
+                updateProgress();
+                
+                // Show notification
+                showNotification(`Task ${taskId}: ${task.name} completed!`, 'success');
+            }, 800);
+        }
+
+        // Also update the initialization to check for existing key on load
+        // Add this to the main initialization after checking for existing key
+        document.addEventListener('DOMContentLoaded', async function() {
+            const token = getCookie('AuthToken');
+            const currentUser = localStorage.getItem('currentUser');
+            
+            createParticles();
+            updateProgress();
+            
+            // Show loading screen immediately
+            document.getElementById('loadingOverlay').classList.add('active');
+            
+            if (!token || !currentUser) {
+                // No token or user data - redirect to index
+                updateLoadingScreen('Redirecting...', 'No valid session found');
+                setTimeout(() => {
+                    redirectToIndex();
+                }, 2000);
+                return;
+            }
+            
+            try {
+                // Step 1: Verify token validity
+                updateLoadingScreen('Verifying session...', 'Checking authentication status');
+                const verification = await verifyToken(token);
+                
+                if (!verification.valid) {
+                    // Invalid token - redirect to index
+                    updateLoadingScreen('Session expired', 'Redirecting to home page');
+                    setTimeout(() => {
+                        redirectToIndex();
+                    }, 2000);
+                    return;
+                }
+                
+                if (verification.blacklisted) {
+                    // User is blacklisted - show blacklist modal
+                    state.isBlacklisted = true;
+                    document.getElementById('loadingOverlay').classList.remove('active');
+                    showBlacklistModal();
+                    return;
+                }
+                
+                // Step 2: Additional blacklist check (redundant for security)
+                updateLoadingScreen('Security check...', 'Verifying account status');
+                const isBlacklisted = await checkBlacklistStatus(token);
+                
+                if (isBlacklisted) {
+                    // User is blacklisted - show blacklist modal
+                    state.isBlacklisted = true;
+                    document.getElementById('loadingOverlay').classList.remove('active');
+                    showBlacklistModal();
+                    return;
+                }
+                
+                // Step 3: Check for existing key
+                updateLoadingScreen('Checking keys...', 'Looking for existing active keys');
+                const existingKey = await checkExistingKey();
+                if (existingKey) {
+                    state.existingKey = existingKey;
+                    showNotification('Existing active key found!', 'info');
+                    // Grey out tasks immediately if key exists
+                    updateTaskStatesForActiveKey();
+                }
+                
+                // Step 4: All checks passed - initialize systems
+                updateLoadingScreen('Loading systems...', 'Initializing server features');
+                document.getElementById('loadingOverlay').classList.remove('active');
+                initServerSystems();
+                
+            } catch (error) {
+                console.error('Authentication process failed:', error);
+                updateLoadingScreen('Connection error', 'Redirecting to home page');
+                setTimeout(() => {
+                    redirectToIndex();
+                }, 2000);
+            }
+        });
+
+
         async function generateKey() {
             // Check for existing key first
             const existingKey = await checkExistingKey();
@@ -1686,6 +1891,8 @@
                 completeTask(index + 1);
             });
         });
+
+        
 
         // Main initialization with comprehensive authentication checks
         document.addEventListener('DOMContentLoaded', async function() {
