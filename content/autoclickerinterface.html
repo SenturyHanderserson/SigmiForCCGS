@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Clicker Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .purple-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .dark-purple {
+            background: #1a1a2e;
+        }
+        .hover-glow:hover {
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="min-h-screen purple-gradient text-white font-sans">
+    <!-- Background Animation -->
+    <div class="fixed inset-0 opacity-10">
+        <div class="absolute top-10 left-10 w-20 h-20 bg-white rounded-full animate-pulse"></div>
+        <div class="absolute top-40 right-20 w-16 h-16 bg-purple-300 rounded-full animate-pulse" style="animation-delay: 0.5s;"></div>
+        <div class="absolute bottom-20 left-1/4 w-24 h-24 bg-pink-300 rounded-full animate-pulse" style="animation-delay: 1s;"></div>
+    </div>
+
+    <div class="relative z-10 min-h-screen flex items-center justify-center p-4">
+        <div class="glassmorphism rounded-3xl p-8 max-w-4xl w-full shadow-2xl slide-in">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <div class="flex items-center justify-center mb-4">
+                    <i class="fas fa-mouse-pointer text-4xl text-purple-300 mr-4"></i>
+                    <h1 class="text-4xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
+                        Auto Clicker Pro
+                    </h1>
+                </div>
+                <p class="text-gray-300">Advanced clicking automation with purple glassmorphism interface</p>
+            </div>
+
+            <!-- Status Display -->
+            <div id="statusPanel" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="glassmorphism rounded-2xl p-6 text-center hover-glow transition-all duration-300">
+                    <div id="statusIndicator" class="w-4 h-4 bg-red-500 rounded-full mx-auto mb-3 pulse-animation"></div>
+                    <p class="text-sm text-gray-300">Status</p>
+                    <p id="statusText" class="text-xl font-bold">STOPPED</p>
+                </div>
+                <div class="glassmorphism rounded-2xl p-6 text-center hover-glow transition-all duration-300">
+                    <i class="fas fa-bolt text-2xl text-yellow-400 mb-3"></i>
+                    <p class="text-sm text-gray-300">Actions</p>
+                    <p id="actionCount" class="text-xl font-bold">0</p>
+                </div>
+                <div class="glassmorphism rounded-2xl p-6 text-center hover-glow transition-all duration-300">
+                    <i class="fas fa-clock text-2xl text-blue-400 mb-3"></i>
+                    <p class="text-sm text-gray-300">Session Time</p>
+                    <p id="sessionTime" class="text-xl font-bold">0s</p>
+                </div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Left Column - Controls -->
+                <div class="space-y-6">
+                    <!-- Mode Selection -->
+                    <div class="glassmorphism rounded-2xl p-6 hover-glow transition-all duration-300">
+                        <h2 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-cog mr-2 text-purple-300"></i>
+                            Click Mode
+                        </h2>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="setMode('click')" class="mode-btn bg-purple-600 hover:bg-purple-700 py-3 px-4 rounded-lg transition-all duration-300">
+                                Left Click
+                            </button>
+                            <button onclick="setMode('right_click')" class="mode-btn bg-purple-600 hover:bg-purple-700 py-3 px-4 rounded-lg transition-all duration-300">
+                                Right Click
+                            </button>
+                            <button onclick="setMode('space')" class="mode-btn bg-purple-600 hover:bg-purple-700 py-3 px-4 rounded-lg transition-all duration-300">
+                                Space Bar
+                            </button>
+                            <button onclick="setCustomKey()" class="mode-btn bg-purple-600 hover:bg-purple-700 py-3 px-4 rounded-lg transition-all duration-300">
+                                Custom Key
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Speed Control -->
+                    <div class="glassmorphism rounded-2xl p-6 hover-glow transition-all duration-300">
+                        <h2 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-tachometer-alt mr-2 text-green-400"></i>
+                            Speed Control
+                        </h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm text-gray-300 mb-2">Click Interval: <span id="intervalValue">0.05</span>s</label>
+                                <input type="range" min="1" max="100" value="5" onchange="setInterval(this.value/100)" 
+                                       class="w-full h-2 bg-purple-600 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            <div class="text-xs text-gray-400">
+                                Faster ← [0.01s - 1.0s] → Slower
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Settings -->
+                <div class="space-y-6">
+                    <!-- Behavior Settings -->
+                    <div class="glassmorphism rounded-2xl p-6 hover-glow transition-all duration-300">
+                        <h2 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-brain mr-2 text-blue-400"></i>
+                            Human Behavior
+                        </h2>
+                        <div class="space-y-4">
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input type="checkbox" checked onchange="setJitter(this.checked)" 
+                                       class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500">
+                                <span class="text-gray-300">Enable Mouse Jitter</span>
+                            </label>
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input type="checkbox" checked onchange="setHumanLike(this.checked)"
+                                       class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500">
+                                <span class="text-gray-300">Random Timing Variations</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Main Control -->
+                    <div class="glassmorphism rounded-2xl p-6 hover-glow transition-all duration-300">
+                        <h2 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-play-circle mr-2 text-green-400"></i>
+                            Quick Control
+                        </h2>
+                        <div class="space-y-4">
+                            <button onclick="toggleRunning()" 
+                                    class="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 py-4 px-6 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 pulse-animation">
+                                <i class="fas fa-play mr-2"></i>
+                                START (F6)
+                            </button>
+                            <button onclick="emergencyStop()"
+                                    class="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 py-3 px-6 rounded-2xl font-bold transition-all duration-300 transform hover:scale-105">
+                                <i class="fas fa-stop mr-2"></i>
+                                EMERGENCY STOP (F7)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Hotkeys Info -->
+                    <div class="glassmorphism rounded-2xl p-6 hover-glow transition-all duration-300">
+                        <h2 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-keyboard mr-2 text-yellow-400"></i>
+                            Hotkeys
+                        </h2>
+                        <div class="space-y-2 text-sm text-gray-300">
+                            <div class="flex justify-between">
+                                <span>Start/Stop Auto Clicker:</span>
+                                <kbd class="px-2 py-1 bg-purple-600 rounded">F6</kbd>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Emergency Stop:</span>
+                                <kbd class="px-2 py-1 bg-red-600 rounded">F7</kbd>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="mt-8 text-center text-gray-400 text-sm">
+                <p>Auto Clicker Pro - Disguised as Minecraft Education Edition</p>
+                <p class="mt-2">Running on http://localhost:8080</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStatus = {
+            running: false,
+            mode: 'click',
+            interval: 0.05,
+            actions: 0,
+            session_time: 0,
+            jitter_enabled: true,
+            human_like: true
+        };
+
+        // Update status from backend
+        async function updateStatus() {
+            try {
+                const response = await fetch('/status.json');
+                const data = await response.json();
+                currentStatus = data;
+                updateUI();
+            } catch (error) {
+                console.log('Waiting for auto clicker to start...');
+            }
+        }
+
+        // Update UI based on current status
+        function updateUI() {
+            // Update status indicator
+            const statusIndicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            
+            if (currentStatus.running) {
+                statusIndicator.className = 'w-4 h-4 bg-green-500 rounded-full mx-auto mb-3 pulse-animation';
+                statusText.textContent = 'RUNNING';
+                statusText.className = 'text-xl font-bold text-green-400';
+            } else {
+                statusIndicator.className = 'w-4 h-4 bg-red-500 rounded-full mx-auto mb-3';
+                statusText.textContent = 'STOPPED';
+                statusText.className = 'text-xl font-bold text-red-400';
+            }
+
+            // Update counters
+            document.getElementById('actionCount').textContent = currentStatus.actions.toLocaleString();
+            document.getElementById('sessionTime').textContent = currentStatus.session_time + 's';
+
+            // Update mode buttons
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('bg-purple-700', 'ring-2', 'ring-purple-400');
+                btn.classList.add('bg-purple-600');
+            });
+
+            // Update interval display
+            document.getElementById('intervalValue').textContent = currentStatus.interval.toFixed(2);
+        }
+
+        // Control functions
+        function toggleRunning() {
+            fetch('/command', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: 'start_stop' })
+            });
+        }
+
+        function setMode(mode) {
+            fetch('/command', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: 'set_mode', mode: mode })
+            });
+            
+            // Visual feedback
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('bg-purple-700', 'ring-2', 'ring-purple-400');
+                btn.classList.add('bg-purple-600');
+            });
+            event.target.classList.add('bg-purple-700', 'ring-2', 'ring-purple-400');
+        }
+
+        function setInterval(value) {
+            const interval = Math.max(0.01, value);
+            fetch('/command', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: 'set_interval', interval: interval })
+            });
+        }
+
+        function setJitter(enabled) {
+            fetch('/command', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: 'set_jitter', enabled: enabled })
+            });
+        }
+
+        function setHumanLike(enabled) {
+            fetch('/command', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: 'set_human_like', enabled: enabled })
+            });
+        }
+
+        function emergencyStop() {
+            fetch('/command', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: 'start_stop' }) // This will stop it
+            });
+        }
+
+        function setCustomKey() {
+            const key = prompt('Enter custom key (e.g., "a", "ctrl", "shift"):');
+            if (key) {
+                fetch('/command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: 'set_custom_key', key: key })
+                });
+            }
+        }
+
+        // Initialize
+        setInterval(updateStatus, 500); // Update every 500ms
+    </script>
+</body>
+</html>
