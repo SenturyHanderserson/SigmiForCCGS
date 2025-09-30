@@ -457,277 +457,124 @@
         </div>
     </div>
 
-    <script>
-        let isConnected = false;
-        let currentStatus = {
-            running: false,
-            mode: 'click',
-            interval: 0.05,
-            actions: 0,
-            session_time: 0,
-            jitter_enabled: true,
-            human_like: true
-        };
+  <script>
+    let isConnected = false;
+    let currentStatus = {
+        running: false,
+        mode: 'click',
+        interval: 0.05,
+        actions: 0,
+        session_time: 0,
+        jitter_enabled: true,
+        human_like: true
+    };
 
-        // Notification system
-        function showNotification(type, title, message, duration = 5000) {
-            const toast = document.getElementById('notificationToast');
-            const icon = document.getElementById('notificationIcon');
-            const notificationTitle = document.getElementById('notificationTitle');
-            const notificationMessage = document.getElementById('notificationMessage');
-            
-            // Set icon based on type
-            const icons = {
-                success: 'fas fa-check-circle text-green-400',
-                error: 'fas fa-exclamation-circle text-red-400',
-                warning: 'fas fa-exclamation-triangle text-yellow-400',
-                info: 'fas fa-info-circle text-blue-400'
-            };
-            
-            icon.className = icons[type] || icons.info;
-            notificationTitle.textContent = title;
-            notificationMessage.textContent = message;
-            
-            // Show toast with animation
-            toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('show'), 100);
-            
-            // Auto dismiss
-            if (duration > 0) {
-                setTimeout(() => {
-                    dismissNotification();
-                }, duration);
-            }
-        }
-
-        function dismissNotification() {
-            const toast = document.getElementById('notificationToast');
-            toast.classList.remove('show');
-            setTimeout(() => toast.classList.add('hidden'), 500);
-        }
-
-        // Check if backend is available
-        async function checkBackendConnection() {
-            try {
-                const response = await fetch('http://localhost:8080/status.json', {
-                    method: 'GET',
-                    mode: 'cors',
-                    cache: 'no-cache',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    currentStatus = data;
-                    if (!isConnected) {
-                        showConnectedUI();
-                        showNotification('success', 'Auto Clicker Connected', 'Background service is now connected and ready!');
-                    }
-                    updateUI();
-                    return true;
+    async function checkBackendConnection() {
+        try {
+            const response = await fetch('http://localhost:8080/status.json', { method: 'GET' });
+            if (response.ok) {
+                const data = await response.json();
+                currentStatus = data;
+                if (!isConnected) {
+                    showConnectedUI();
+                    showNotification('success', 'Auto Clicker Connected', 'Background service is now connected and ready!');
                 }
-            } catch (error) {
-                // Backend not available
-                if (isConnected) {
-                    showDisconnectedUI();
-                    showNotification('error', 'Connection Lost', 'Lost connection to Auto Clicker service.');
-                }
+                updateUI();
+                return true;
             }
-            return false;
-        }
-
-        function showConnectedUI() {
-            isConnected = true;
-            document.getElementById('connectionDot').className = 'w-3 h-3 bg-green-500 rounded-full pulse-glow';
-            document.getElementById('connectionText').textContent = 'Connected to Auto Clicker Backend';
-            document.getElementById('connectionInfo').textContent = 'Connected to http://localhost:8080';
-            document.getElementById('downloadSection').classList.add('hidden');
-            document.getElementById('controlPanel').classList.remove('hidden');
-            document.getElementById('serviceStatus').className = 'w-2 h-2 bg-green-500 rounded-full pulse-glow';
-        }
-
-        function showDisconnectedUI() {
-            isConnected = false;
-            document.getElementById('connectionDot').className = 'w-3 h-3 bg-red-500 rounded-full pulse-glow';
-            document.getElementById('connectionText').textContent = 'Auto Clicker Backend Not Found';
-            document.getElementById('connectionInfo').textContent = 'Run the application to connect';
-            document.getElementById('downloadSection').classList.remove('hidden');
-            document.getElementById('controlPanel').classList.add('hidden');
-            document.getElementById('serviceStatus').className = 'w-2 h-2 bg-red-500 rounded-full';
-        }
-
-        // Update status from backend
-        async function updateStatus() {
+        } catch (error) {
             if (isConnected) {
-                try {
-                    const response = await fetch('http://localhost:8080/status.json', {
-                        method: 'GET',
-                        mode: 'cors',
-                        cache: 'no-cache',
-                        headers: {
-                            'Accept': 'application/json'
-                        }
-                    });
-                    const data = await response.json();
-                    currentStatus = data;
-                    updateUI();
-                } catch (error) {
-                    console.log('Connection lost to auto clicker backend');
-                    showDisconnectedUI();
-                }
+                showDisconnectedUI();
+                showNotification('error', 'Connection Lost', 'Lost connection to Auto Clicker service.');
             }
         }
+        return false;
+    }
 
-        // Update UI based on current status
-        function updateUI() {
-            if (!isConnected) return;
-
-            // Update status indicator
-            const statusIndicator = document.getElementById('statusIndicator');
-            const statusText = document.getElementById('statusText');
-            const startStopBtn = document.getElementById('startStopBtn');
-            
-            if (currentStatus.running) {
-                statusIndicator.className = 'w-5 h-5 bg-green-500 rounded-full mx-auto mb-4 pulse-glow border-2 border-white/30';
-                statusText.textContent = 'RUNNING';
-                statusText.className = 'text-2xl font-bold font-[\'Orbitron\'] text-green-400';
-                startStopBtn.innerHTML = '<i class="fas fa-stop mr-3"></i>STOP AUTO CLICKER (F6)';
-                startStopBtn.className = startStopBtn.className.replace('liquid-fill', 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600');
-            } else {
-                statusIndicator.className = 'w-5 h-5 bg-red-500 rounded-full mx-auto mb-4 border-2 border-white/30';
-                statusText.textContent = 'STOPPED';
-                statusText.className = 'text-2xl font-bold font-[\'Orbitron\'] text-red-400';
-                startStopBtn.innerHTML = '<i class="fas fa-play mr-3"></i>START AUTO CLICKER (F6)';
-                startStopBtn.className = startStopBtn.className.replace('bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600', 'liquid-fill');
-            }
-
-            // Update counters
-            document.getElementById('actionCount').textContent = currentStatus.actions.toLocaleString();
-            document.getElementById('sessionTime').textContent = currentStatus.session_time + 's';
-
-            // Update mode buttons
-            document.querySelectorAll('.mode-btn').forEach(btn => {
-                btn.classList.remove('mode-active');
-                if (btn.getAttribute('data-mode') === currentStatus.mode) {
-                    btn.classList.add('mode-active');
-                }
-            });
-
-            // Update interval display and slider
-            document.getElementById('intervalValue').textContent = currentStatus.interval.toFixed(2);
-            const slider = document.querySelector('.slider');
-            slider.value = Math.max(1, Math.min(100, currentStatus.interval * 100));
-
-            // Update toggles
-            document.getElementById('jitterToggle').checked = currentStatus.jitter_enabled;
-            document.getElementById('humanLikeToggle').checked = currentStatus.human_like;
-        }
-
-        // Control functions
-        async function sendCommand(command, data = {}) {
-            if (!isConnected) return;
-            
+    async function updateStatus() {
+        if (isConnected) {
             try {
-                const response = await fetch('http://localhost:8080/command', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ command, ...data })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                const response = await fetch('http://localhost:8080/status.json', { method: 'GET' });
+                if (response.ok) {
+                    currentStatus = await response.json();
+                    updateUI();
                 }
-                
-                const result = await response.json();
-                console.log('Command sent successfully:', result);
-                return result;
             } catch (error) {
-                console.log('Failed to send command:', error);
-                showDisconnectedUI();
-                showNotification('error', 'Command Failed', 'Could not send command to service.');
-                return null;
-            }
-        }
-
-        function toggleRunning() {
-            sendCommand('start_stop');
-        }
-
-        function panicStop() {
-            showNotification('warning', '🚨 PANIC STOP', 'Emergency stop activated!');
-            sendCommand('panic_stop');
-        }
-
-        function setMode(mode) {
-            sendCommand('set_mode', { mode: mode });
-        }
-
-        function setInterval(value) {
-            const interval = Math.max(0.01, value);
-            sendCommand('set_interval', { interval: interval });
-        }
-
-        function setJitter(enabled) {
-            sendCommand('set_jitter', { enabled: enabled });
-        }
-
-        function setHumanLike(enabled) {
-            sendCommand('set_human_like', { enabled: enabled });
-        }
-
-        async function restartBackend() {
-            showNotification('info', 'Restarting Service', 'Please wait...');
-            const result = await sendCommand('restart_backend');
-            if (result) {
-                showNotification('success', 'Service Restarted', 'Backend service has been restarted.');
-            }
-        }
-
-        async function shutdownBackend() {
-            if (confirm('Are you sure you want to shutdown the Auto Clicker service?')) {
-                showNotification('warning', 'Shutting Down', 'Service is shutting down...');
-                try {
-                    const response = await fetch('http://localhost:8080/shutdown');
-                    showNotification('info', 'Service Stopped', 'Auto Clicker service has been stopped.');
-                    setTimeout(() => showDisconnectedUI(), 2000);
-                } catch (error) {
-                    showNotification('error', 'Shutdown Failed', 'Could not stop the service.');
-                }
-            }
-        }
-
-        function setCustomKey() {
-            if (!isConnected) return;
-            
-            const key = prompt('Enter custom key (e.g., "a", "ctrl", "shift"):');
-            if (key) {
-                sendCommand('set_custom_key', { key: key });
-            }
-        }
-
-        // Initialize
-        async function initialize() {
-            // First check if we're running locally with backend
-            const connected = await checkBackendConnection();
-            
-            if (!connected) {
+                console.log('Connection lost to auto clicker backend');
                 showDisconnectedUI();
             }
-            
-            // Continue checking for backend connection
-            setInterval(checkBackendConnection, 2000);
-            
-            // Update status regularly when connected
-            setInterval(updateStatus, 500);
+        }
+    }
+
+    function updateUI() {
+        if (!isConnected) return;
+
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const startStopBtn = document.getElementById('startStopBtn');
+
+        if (currentStatus.running) {
+            statusIndicator.className = 'w-5 h-5 bg-green-500 rounded-full mx-auto mb-4 pulse-glow border-2 border-white/30';
+            statusText.textContent = 'RUNNING';
+            startStopBtn.innerHTML = '<i class="fas fa-stop mr-3"></i>STOP AUTO CLICKER (F6)';
+        } else {
+            statusIndicator.className = 'w-5 h-5 bg-red-500 rounded-full mx-auto mb-4 border-2 border-white/30';
+            statusText.textContent = 'STOPPED';
+            startStopBtn.innerHTML = '<i class="fas fa-play mr-3"></i>START AUTO CLICKER (F6)';
         }
 
-        // Start the application
-        initialize();
-    </script>
+        document.getElementById('actionCount').textContent = currentStatus.actions;
+        document.getElementById('sessionTime').textContent = currentStatus.session_time + 's';
+        document.getElementById('intervalValue').textContent = currentStatus.interval.toFixed(2);
+
+        document.getElementById('jitterToggle').checked = currentStatus.jitter_enabled;
+        document.getElementById('humanLikeToggle').checked = currentStatus.human_like;
+
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.classList.remove('mode-active');
+            if (btn.getAttribute('data-mode') === currentStatus.mode) {
+                btn.classList.add('mode-active');
+            }
+        });
+    }
+
+    async function sendCommand(command, data = {}) {
+        if (!isConnected) return;
+        try {
+            const response = await fetch('http://localhost:8080/command', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command, ...data })
+            });
+            return await response.json();
+        } catch (err) {
+            console.log('Failed to send command', err);
+            showDisconnectedUI();
+        }
+    }
+
+    function toggleRunning() { sendCommand('start_stop'); }
+    function panicStop() { sendCommand('panic_stop'); }
+    function setMode(mode) { sendCommand('set_mode', { mode }); }
+    function setInterval(value) { sendCommand('set_interval', { interval: Math.max(0.01, value) }); }
+    function setJitter(enabled) { sendCommand('set_jitter', { enabled }); }
+    function setHumanLike(enabled) { sendCommand('set_human_like', { enabled }); }
+    function setCustomKey() {
+        const key = prompt('Enter custom key:');
+        if (key) sendCommand('set_custom_key', { key });
+    }
+    async function restartBackend() { await sendCommand('restart_backend'); }
+    async function shutdownBackend() { await fetch('http://localhost:8080/shutdown'); }
+
+    async function initialize() {
+        const connected = await checkBackendConnection();
+        if (!connected) showDisconnectedUI();
+        setInterval(checkBackendConnection, 2000);
+        setInterval(updateStatus, 500);
+    }
+
+    initialize();
+</script>
+
 </body>
 </html>
