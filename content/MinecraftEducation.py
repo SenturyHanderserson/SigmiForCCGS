@@ -18,7 +18,7 @@ class AutoClickerBackend:
         self.custom_key = None
         self.click_interval = 0.05
         self.jitter_enabled = True
-        self.jitter_amount = 0.5
+        self.jitter_amount = 2
         self.human_like = True
         
         # Web server for API
@@ -29,6 +29,10 @@ class AutoClickerBackend:
         # Statistics
         self.action_count = 0
         self.session_start_time = 0
+        
+        # Thread control
+        self.clicker_thread = None
+        self.stop_clicker = threading.Event()
         
         # Setup signal handlers for graceful shutdown
         signal.signal(signal.SIGINT, self.signal_handler)
@@ -66,7 +70,7 @@ class AutoClickerBackend:
                 def do_GET(self):
                     """Handle GET requests"""
                     try:
-                        if self.path == '/status.json':
+                        if self.path == '/status.json' or self.path == '/status':
                             # Serve status JSON
                             status_data = {
                                 "running": self.server.backend_app.running,
@@ -128,23 +132,27 @@ class AutoClickerBackend:
                             if command == 'start_stop':
                                 self.server.backend_app.toggle_running()
                             elif command == 'set_mode':
-                                self.server.backend_app.mode = data.get('mode', 'click')
-                                print(f"📝 Mode set to: {self.server.backend_app.mode}")
+                                mode = data.get('mode', 'click')
+                                self.server.backend_app.mode = mode
+                                print(f"📝 Mode set to: {mode}")
                             elif command == 'set_interval':
                                 interval = data.get('interval')
                                 if interval is not None:
                                     self.server.backend_app.click_interval = max(0.01, float(interval))
                                     print(f"⚡ Interval set to: {self.server.backend_app.click_interval:.2f}s")
                             elif command == 'set_jitter':
-                                self.server.backend_app.jitter_enabled = bool(data.get('enabled', True))
-                                print(f"🎯 Jitter {'enabled' if self.server.backend_app.jitter_enabled else 'disabled'}")
+                                enabled = bool(data.get('enabled', True))
+                                self.server.backend_app.jitter_enabled = enabled
+                                print(f"🎯 Jitter {'enabled' if enabled else 'disabled'}")
                             elif command == 'set_human_like':
-                                self.server.backend_app.human_like = bool(data.get('enabled', True))
-                                print(f"🤖 Human-like behavior {'enabled' if self.server.backend_app.human_like else 'disabled'}")
+                                enabled = bool(data.get('enabled', True))
+                                self.server.backend_app.human_like = enabled
+                                print(f"🤖 Human-like behavior {'enabled' if enabled else 'disabled'}")
                             elif command == 'set_custom_key':
-                                self.server.backend_app.custom_key = data.get('key')
+                                custom_key = data.get('key')
+                                self.server.backend_app.custom_key = custom_key
                                 self.server.backend_app.mode = "custom"
-                                print(f"🔑 Custom key set to: {self.server.backend_app.custom_key}")
+                                print(f"🔑 Custom key set to: {custom_key}")
                             elif command == 'panic_stop':
                                 self.server.backend_app.panic_stop()
                             elif command == 'restart_backend':
@@ -212,22 +220,27 @@ class AutoClickerBackend:
 
     def toggle_running(self):
         """Toggle the running state"""
-        self.running = not self.running
-        
         if self.running:
-            print("🚀 AUTO CLICKER STARTED - Clicking at lightning speed!")
+            # Stop running
+            self.running = False
+            self.stop_clicker.set()
+            print("🛑 AUTO CLICKER STOPPED")
+        else:
+            # Start running
+            self.running = True
+            self.stop_clicker.clear()
             self.session_start_time = time.time()
             self.action_count = 0
             # Start auto clicker in a separate thread
             self.clicker_thread = threading.Thread(target=self.auto_clicker, daemon=True)
             self.clicker_thread.start()
-        else:
-            print("🛑 AUTO CLICKER STOPPED")
+            print("🚀 AUTO CLICKER STARTED - Clicking at lightning speed!")
 
     def panic_stop(self):
         """Immediately stop everything"""
         if self.running:
             self.running = False
+            self.stop_clicker.set()
             print("🚨 EMERGENCY STOP - Auto clicker disabled immediately!")
 
     def emergency_shutdown(self):
@@ -238,57 +251,82 @@ class AutoClickerBackend:
     def restart_backend(self):
         """Restart the backend service"""
         print("🔄 Restarting backend service...")
-        # This would typically restart the service
-        # For now, we'll just reset the state
         self.running = False
-        time.sleep(1)
+        self.stop_clicker.set()
+        time.sleep(0.5)
         print("✅ Backend service restarted")
+
+    def perform_action(self):
+        """Perform a single click/keypress action"""
+        try:
+            # Add jitter to mouse position if enabled
+            if self.jitter_enabled and self.mode in ["click", "right_click"]:
+                current_x, current_y = pyautogui.position()
+                jitter_x = random.uniform(-self.jitter_amount, self.jitter_amount)
+                jitter_y = random.uniform(-self.jitter_amount, self.jitter_amount)
+                pyautogui.moveTo(current_x + jitter_x, current_y + jitter_y)
+            
+            # Perform the action
+            if self.mode == "click":
+                pyautogui.click()
+            elif self.mode == "right_click":
+                pyautogui.rightClick()
+            elif self.mode == "space":
+                pyautogui.press("space")
+            elif self.mode == "custom" and self.custom_key is not None:
+                pyautogui.press(self.custom_key)
+            
+            self.action_count += 1
+            return True
+            
+        except Exception as e:
+            print(f"❌ Error performing action: {e}")
+            return False
 
     def auto_clicker(self):
         """Main auto clicker loop with human-like behavior"""
         click_count = 0
         last_update = time.time()
+        last_action_time = time.time()
         
-        while self.running:
+        print(f"🎯 Starting auto-clicker with mode: {self.mode}, interval: {self.click_interval:.2f}s")
+        
+        while self.running and not self.stop_clicker.is_set():
             try:
-                # Add human-like randomness to timing
-                interval = self.click_interval
-                if self.human_like:
-                    interval = max(0.01, interval + random.uniform(-0.005, 0.005))
+                current_time = time.time()
                 
-                # Add jitter to mouse position if enabled
-                if self.jitter_enabled and self.mode in ["click", "right_click"]:
-                    current_x, current_y = pyautogui.position()
-                    jitter_x = random.uniform(-self.jitter_amount, self.jitter_amount)
-                    jitter_y = random.uniform(-self.jitter_amount, self.jitter_amount)
-                    pyautogui.moveTo(current_x + jitter_x, current_y + jitter_y)
-                
-                # Perform the action
-                if self.mode == "click":
-                    pyautogui.click()
-                elif self.mode == "right_click":
-                    pyautogui.rightClick()
-                elif self.mode == "space":
-                    pyautogui.press("space")
-                elif self.mode == "custom" and self.custom_key is not None:
-                    pyautogui.press(self.custom_key)
-                
-                self.action_count += 1
-                click_count += 1
+                # Check if it's time for the next action
+                if current_time - last_action_time >= self.click_interval:
+                    # Add human-like randomness to timing
+                    interval = self.click_interval
+                    if self.human_like:
+                        interval = max(0.01, interval * random.uniform(0.8, 1.2))
+                    
+                    # Perform the action
+                    if self.perform_action():
+                        click_count += 1
+                        last_action_time = current_time
+                    
+                    # Small delay to prevent CPU overload
+                    time.sleep(0.001)
                 
                 # Update console every second
-                if time.time() - last_update > 1.0:
-                    cps = click_count / (time.time() - last_update)
-                    print(f"⚡ Clicking... {self.action_count} total clicks | {cps:.1f} CPS")
+                if current_time - last_update > 1.0:
+                    cps = click_count / (current_time - last_update)
+                    if self.running:  # Only print if still running
+                        print(f"⚡ Clicking... {self.action_count} total actions | {cps:.1f} APS | Mode: {self.mode}")
                     click_count = 0
-                    last_update = time.time()
+                    last_update = current_time
                 
-                time.sleep(interval)
+                # Small sleep to prevent busy waiting
+                time.sleep(0.001)
                 
             except Exception as e:
-                print(f"❌ Error in auto clicker: {e}")
+                print(f"❌ Error in auto clicker loop: {e}")
                 self.running = False
                 break
+        
+        print("✅ Auto-clicker thread stopped")
 
     def signal_handler(self, signum, frame):
         """Handle shutdown signals"""
@@ -299,10 +337,16 @@ class AutoClickerBackend:
         """Clean shutdown"""
         print("🛑 Shutting down Auto Clicker...")
         self.running = False
+        self.stop_clicker.set()
+        
+        if self.clicker_thread and self.clicker_thread.is_alive():
+            self.clicker_thread.join(timeout=2.0)
+        
         if self.web_server:
             self.web_server.shutdown()
             self.web_server.server_close()
             print("✅ Web server stopped")
+        
         print("✅ Auto Clicker closed successfully")
         sys.exit(0)
 
