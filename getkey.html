@@ -605,7 +605,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 2000;
+            z-index: 2001; /* Increased z-index */
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
@@ -816,6 +816,81 @@
         .warning-close:hover {
             background: rgba(255, 255, 255, 0.1);
             transform: translateY(-2px);
+        }
+
+        .warning-close:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Warning History Modal Styles */
+        .warning-history-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2002; /* Higher than warning modal */
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .warning-history-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .warning-history-content {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .warning-history-modal.active .warning-history-content {
+            transform: scale(1);
+        }
+
+        .warning-history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .warning-history-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .warning-history-empty {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-secondary);
+        }
+
+        .warning-history-empty-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.5;
         }
 
         /* Message System Styles */
@@ -1244,8 +1319,8 @@
     <!-- Server Logic UI Elements -->
     <div class="notification-container" id="notificationContainer"></div>
     
-    <div class="messages-container" id="messagesContainer" style="display: none;">
-        <div class="message-header" id="messageHeader" style="display: none;">
+    <div class="messages-container" id="messagesContainer">
+        <div class="message-header" id="messageHeader">
             <h3>Messages</h3>
             <button class="message-clear-all" onclick="dismissAllMessages()">
                 Clear All
@@ -1930,7 +2005,7 @@
                             <button class="warning-action-btn warning-dismiss-all" onclick="dismissAllWarnings()">
                                 Dismiss All Warnings
                             </button>
-                            <button class="warning-action-btn warning-close" onclick="closeWarningModal()">
+                            <button class="warning-action-btn warning-close" id="warningCloseBtn" onclick="closeWarningModal()">
                                 Close
                             </button>
                         </div>
@@ -1939,8 +2014,16 @@
                 document.body.appendChild(modal);
             }
 
+            updateWarningModal();
+            modal.classList.add('active');
+        }
+
+        function updateWarningModal() {
             const warningList = document.getElementById('warningList');
             const warningCount = document.getElementById('warningCount');
+            const warningCloseBtn = document.getElementById('warningCloseBtn');
+            
+            if (!warningList || !warningCount || !warningCloseBtn) return;
             
             warningList.innerHTML = '';
             
@@ -1948,6 +2031,17 @@
             const totalWarnings = state.userWarnings.length;
             
             warningCount.textContent = `${activeWarnings.length} active warning${activeWarnings.length !== 1 ? 's' : ''} (${totalWarnings} total)`;
+            
+            // Disable close button if there are active warnings
+            if (activeWarnings.length > 0) {
+                warningCloseBtn.disabled = true;
+                warningCloseBtn.style.opacity = '0.5';
+                warningCloseBtn.style.cursor = 'not-allowed';
+            } else {
+                warningCloseBtn.disabled = false;
+                warningCloseBtn.style.opacity = '1';
+                warningCloseBtn.style.cursor = 'pointer';
+            }
             
             if (activeWarnings.length === 0) {
                 warningList.innerHTML = `
@@ -1980,8 +2074,6 @@
                     warningList.appendChild(warningElement);
                 });
             }
-            
-            modal.classList.add('active');
         }
 
         async function dismissWarning(warningId) {
@@ -2010,7 +2102,7 @@
                         state.userWarnings[warningIndex].dismissedBy = data.warning.dismissedBy;
                     }
                     
-                    showWarningModal();
+                    updateWarningModal();
                     showNotification('Warning dismissed successfully', 'success');
                     return true;
                 } else {
@@ -2056,7 +2148,7 @@
                         }
                     });
                     
-                    showWarningModal();
+                    updateWarningModal();
                     showNotification(`Dismissed ${data.dismissedCount} warning(s)`, 'success');
                 } else {
                     throw new Error('Failed to dismiss warnings');
@@ -2199,12 +2291,10 @@
             
             if (!state.userMessages || state.userMessages.length === 0) {
                 container.style.display = 'none';
-                if (messageHeader) messageHeader.style.display = 'none';
                 return;
             }
             
             container.style.display = 'block';
-            if (messageHeader) messageHeader.style.display = 'block';
             
             state.userMessages.forEach((message, index) => {
                 setTimeout(() => {
@@ -2315,14 +2405,12 @@
 
         function checkRemainingMessages() {
             const messagesList = document.getElementById('messagesList');
-            const messageHeader = document.getElementById('messageHeader');
-            const container = document.getElementById('messageContainer');
+            const container = document.getElementById('messagesContainer');
             
             if (!messagesList || !container) return;
             
             if (messagesList.children.length === 0) {
                 container.style.display = 'none';
-                if (messageHeader) messageHeader.style.display = 'none';
             }
         }
 
