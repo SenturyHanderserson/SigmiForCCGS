@@ -6,76 +6,229 @@
     <title>Auto Clicker Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'glass-purple': 'rgba(139, 92, 246, 0.1)',
+                        'glass-purple-dark': 'rgba(88, 28, 135, 0.2)',
+                        'liquid-purple': '#7e22ce',
+                        'deep-purple': '#4c1d95',
+                        'neon-purple': '#c084fc',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        .glassmorphism {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a0b2e 50%, #2d1b69 100%);
+            overflow-x: hidden;
         }
-        .purple-gradient {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        
+        .glass-liquid {
+            background: linear-gradient(135deg, 
+                rgba(139, 92, 246, 0.15) 0%, 
+                rgba(124, 58, 237, 0.2) 50%, 
+                rgba(109, 40, 217, 0.15) 100%);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid rgba(192, 132, 252, 0.3);
+            border-bottom: 2px solid rgba(192, 132, 252, 0.5);
+            box-shadow: 
+                0 8px 32px rgba(109, 40, 217, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
         }
-        .dark-purple {
-            background: #1a1a2e;
+        
+        .glass-card {
+            background: linear-gradient(135deg, 
+                rgba(139, 92, 246, 0.12) 0%, 
+                rgba(124, 58, 237, 0.18) 100%);
+            backdrop-filter: blur(20px) saturate(200%);
+            -webkit-backdrop-filter: blur(20px) saturate(200%);
+            border: 1px solid rgba(192, 132, 252, 0.25);
+            box-shadow: 
+                0 8px 32px rgba(109, 40, 217, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
         }
-        .hover-glow:hover {
-            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+        
+        .liquid-glow {
+            box-shadow: 
+                0 0 25px rgba(192, 132, 252, 0.4),
+                0 0 50px rgba(139, 92, 246, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
-        .pulse-animation {
-            animation: pulse 2s infinite;
+        
+        .neon-text {
+            text-shadow: 0 0 10px rgba(192, 132, 252, 0.8),
+                        0 0 20px rgba(192, 132, 252, 0.6),
+                        0 0 30px rgba(192, 132, 252, 0.4);
         }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+        
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 15px 40px rgba(139, 92, 246, 0.4),
+                0 0 30px rgba(192, 132, 252, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
+        
+        .pulse-glow {
+            animation: pulseGlow 3s ease-in-out infinite;
+        }
+        
+        @keyframes pulseGlow {
+            0%, 100% { 
+                box-shadow: 
+                    0 0 20px rgba(192, 132, 252, 0.3),
+                    0 0 40px rgba(139, 92, 246, 0.2);
+            }
+            50% { 
+                box-shadow: 
+                    0 0 30px rgba(192, 132, 252, 0.6),
+                    0 0 60px rgba(139, 92, 246, 0.3);
+            }
+        }
+        
         .slide-in {
-            animation: slideIn 0.5s ease-out;
+            animation: slideIn 0.6s ease-out;
         }
+        
         @keyframes slideIn {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            from { 
+                transform: translateY(-30px); 
+                opacity: 0; 
+            }
+            to { 
+                transform: translateY(0); 
+                opacity: 1; 
+            }
+        }
+        
+        .float {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        .liquid-fill {
+            background: linear-gradient(135deg, #7e22ce 0%, #c084fc 50%, #a855f7 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .liquid-fill::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.1), 
+                transparent);
+            transform: rotate(45deg);
+            animation: shimmer 3s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+        
+        .cyber-grid {
+            background-image: 
+                linear-gradient(rgba(192, 132, 252, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(192, 132, 252, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+        
+        .glow-border {
+            position: relative;
+        }
+        
+        .glow-border::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #7e22ce, #c084fc, #a855f7, #7e22ce);
+            border-radius: inherit;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .glow-border:hover::after {
+            opacity: 1;
+            animation: rotateGradient 3s linear infinite;
+        }
+        
+        @keyframes rotateGradient {
+            0% { filter: hue-rotate(0deg) blur(10px); }
+            100% { filter: hue-rotate(360deg) blur(10px); }
         }
     </style>
 </head>
-<body class="min-h-screen purple-gradient text-white font-sans">
-    <!-- Background Animation -->
-    <div class="fixed inset-0 opacity-10">
-        <div class="absolute top-10 left-10 w-20 h-20 bg-white rounded-full animate-pulse"></div>
-        <div class="absolute top-40 right-20 w-16 h-16 bg-purple-300 rounded-full animate-pulse" style="animation-delay: 0.5s;"></div>
-        <div class="absolute bottom-20 left-1/4 w-24 h-24 bg-pink-300 rounded-full animate-pulse" style="animation-delay: 1s;"></div>
+<body class="min-h-screen text-white cyber-grid">
+    <!-- Animated Background Elements -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl float"></div>
+        <div class="absolute top-3/4 right-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl float" style="animation-delay: 2s;"></div>
+        <div class="absolute bottom-1/4 left-1/2 w-80 h-80 bg-violet-500/10 rounded-full blur-3xl float" style="animation-delay: 4s;"></div>
     </div>
 
     <div class="relative z-10 min-h-screen flex items-center justify-center p-4">
-        <div class="glassmorphism rounded-3xl p-8 max-w-4xl w-full shadow-2xl slide-in">
+        <div class="glass-liquid rounded-3xl p-8 max-w-4xl w-full liquid-glow slide-in">
             <!-- Header -->
-            <div class="text-center mb-8">
-                <div class="flex items-center justify-center mb-4">
-                    <i class="fas fa-mouse-pointer text-4xl text-purple-300 mr-4"></i>
-                    <h1 class="text-4xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
-                        Auto Clicker Pro
+            <div class="text-center mb-12">
+                <div class="flex items-center justify-center mb-6">
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-purple-500/30 rounded-full blur-lg"></div>
+                        <i class="fas fa-mouse-pointer text-5xl text-neon-purple relative z-10 mr-6 neon-text"></i>
+                    </div>
+                    <h1 class="text-5xl font-bold font-['Orbitron']">
+                        <span class="bg-gradient-to-r from-purple-300 via-neon-purple to-pink-300 bg-clip-text text-transparent neon-text">
+                            AUTO CLICKER PRO
+                        </span>
                     </h1>
                 </div>
-                <p class="text-gray-300">Advanced clicking automation with purple glassmorphism interface</p>
+                <p class="text-purple-200 text-lg font-light">Liquid Glass Interface • Advanced Automation</p>
             </div>
 
             <!-- Status Display -->
-            <div id="statusPanel" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="glassmorphism rounded-2xl p-6 text-center hover-glow transition-all duration-300">
-                    <div id="statusIndicator" class="w-4 h-4 bg-red-500 rounded-full mx-auto mb-3 pulse-animation"></div>
-                    <p class="text-sm text-gray-300">Status</p>
-                    <p id="statusText" class="text-xl font-bold">STOPPED</p>
+            <div id="statusPanel" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="glass-card rounded-2xl p-6 text-center hover-lift transition-all duration-500 glow-border">
+                    <div id="statusIndicator" class="w-5 h-5 bg-red-500 rounded-full mx-auto mb-4 pulse-glow border-2 border-white/30"></div>
+                    <p class="text-sm text-purple-300 font-semibold">STATUS</p>
+                    <p id="statusText" class="text-2xl font-bold font-['Orbitron'] text-red-400">STOPPED</p>
                 </div>
-                <div class="glassmorphism rounded-2xl p-6 text-center hover-glow transition-all duration-300">
-                    <i class="fas fa-bolt text-2xl text-yellow-400 mb-3"></i>
-                    <p class="text-sm text-gray-300">Actions</p>
-                    <p id="actionCount" class="text-xl font-bold">0</p>
+                <div class="glass-card rounded-2xl p-6 text-center hover-lift transition-all duration-500 glow-border">
+                    <div class="relative inline-block mb-4">
+                        <div class="absolute inset-0 bg-yellow-400/20 rounded-full blur"></div>
+                        <i class="fas fa-bolt text-2xl text-yellow-300 relative z-10"></i>
+                    </div>
+                    <p class="text-sm text-purple-300 font-semibold">ACTIONS</p>
+                    <p id="actionCount" class="text-2xl font-bold font-['Orbitron'] text-yellow-300">0</p>
                 </div>
-                <div class="glassmorphism rounded-2xl p-6 text-center hover-glow transition-all duration-300">
-                    <i class="fas fa-clock text-2xl text-blue-400 mb-3"></i>
-                    <p class="text-sm text-gray-300">Session Time</p>
-                    <p id="sessionTime" class="text-xl font-bold">0s</p>
+                <div class="glass-card rounded-2xl p-6 text-center hover-lift transition-all duration-500 glow-border">
+                    <div class="relative inline-block mb-4">
+                        <div class="absolute inset-0 bg-blue-400/20 rounded-full blur"></div>
+                        <i class="fas fa-clock text-2xl text-cyan-300 relative z-10"></i>
+                    </div>
+                    <p class="text-sm text-purple-300 font-semibold">SESSION TIME</p>
+                    <p id="sessionTime" class="text-2xl font-bold font-['Orbitron'] text-cyan-300">0s</p>
                 </div>
             </div>
 
@@ -84,41 +237,61 @@
                 <!-- Left Column - Controls -->
                 <div class="space-y-6">
                     <!-- Mode Selection -->
-                    <div class="glassmorphism rounded-2xl p-6 hover-glow transition-all duration-300">
-                        <h2 class="text-xl font-bold mb-4 flex items-center">
-                            <i class="fas fa-cog mr-2 text-purple-300"></i>
-                            Click Mode
+                    <div class="glass-card rounded-2xl p-6 hover-lift transition-all duration-500 glow-border">
+                        <h2 class="text-xl font-bold mb-4 flex items-center font-['Orbitron']">
+                            <div class="relative mr-3">
+                                <div class="absolute inset-0 bg-purple-500/20 rounded-full blur"></div>
+                                <i class="fas fa-cog text-purple-300 relative z-10"></i>
+                            </div>
+                            CLICK MODE
                         </h2>
                         <div class="grid grid-cols-2 gap-3">
-                            <button onclick="setMode('click')" class="mode-btn bg-purple-600 hover:bg-purple-700 py-3 px-4 rounded-lg transition-all duration-300">
-                                Left Click
+                            <button onclick="setMode('click')" class="mode-btn liquid-fill hover:brightness-110 py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 border border-purple-400/30">
+                                LEFT CLICK
                             </button>
-                            <button onclick="setMode('right_click')" class="mode-btn bg-purple-600 hover:bg-purple-700 py-3 px-4 rounded-lg transition-all duration-300">
-                                Right Click
+                            <button onclick="setMode('right_click')" class="mode-btn liquid-fill hover:brightness-110 py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 border border-purple-400/30">
+                                RIGHT CLICK
                             </button>
-                            <button onclick="setMode('space')" class="mode-btn bg-purple-600 hover:bg-purple-700 py-3 px-4 rounded-lg transition-all duration-300">
-                                Space Bar
+                            <button onclick="setMode('space')" class="mode-btn liquid-fill hover:brightness-110 py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 border border-purple-400/30">
+                                SPACE BAR
                             </button>
-                            <button onclick="setCustomKey()" class="mode-btn bg-purple-600 hover:bg-purple-700 py-3 px-4 rounded-lg transition-all duration-300">
-                                Custom Key
+                            <button onclick="setCustomKey()" class="mode-btn liquid-fill hover:brightness-110 py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 border border-purple-400/30">
+                                CUSTOM KEY
                             </button>
                         </div>
                     </div>
 
                     <!-- Speed Control -->
-                    <div class="glassmorphism rounded-2xl p-6 hover-glow transition-all duration-300">
-                        <h2 class="text-xl font-bold mb-4 flex items-center">
-                            <i class="fas fa-tachometer-alt mr-2 text-green-400"></i>
-                            Speed Control
+                    <div class="glass-card rounded-2xl p-6 hover-lift transition-all duration-500 glow-border">
+                        <h2 class="text-xl font-bold mb-4 flex items-center font-['Orbitron']">
+                            <div class="relative mr-3">
+                                <div class="absolute inset-0 bg-green-500/20 rounded-full blur"></div>
+                                <i class="fas fa-tachometer-alt text-green-300 relative z-10"></i>
+                            </div>
+                            SPEED CONTROL
                         </h2>
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-sm text-gray-300 mb-2">Click Interval: <span id="intervalValue">0.05</span>s</label>
+                                <label class="block text-sm text-purple-300 mb-3 font-semibold">CLICK INTERVAL: <span id="intervalValue" class="text-cyan-300">0.05</span>s</label>
                                 <input type="range" min="1" max="100" value="5" onchange="setInterval(this.value/100)" 
-                                       class="w-full h-2 bg-purple-600 rounded-lg appearance-none cursor-pointer">
+                                       class="w-full h-3 bg-purple-900/50 rounded-2xl appearance-none cursor-pointer slider">
+                                <style>
+                                    .slider::-webkit-slider-thumb {
+                                        appearance: none;
+                                        height: 25px;
+                                        width: 25px;
+                                        border-radius: 50%;
+                                        background: linear-gradient(135deg, #c084fc, #7e22ce);
+                                        border: 2px solid white;
+                                        cursor: pointer;
+                                        box-shadow: 0 0 10px rgba(192, 132, 252, 0.8);
+                                    }
+                                </style>
                             </div>
-                            <div class="text-xs text-gray-400">
-                                Faster ← [0.01s - 1.0s] → Slower
+                            <div class="flex justify-between text-xs text-purple-400 font-semibold">
+                                <span>FASTER ←</span>
+                                <span>[0.01s - 1.0s]</span>
+                                <span>→ SLOWER</span>
                             </div>
                         </div>
                     </div>
@@ -127,59 +300,76 @@
                 <!-- Right Column - Settings -->
                 <div class="space-y-6">
                     <!-- Behavior Settings -->
-                    <div class="glassmorphism rounded-2xl p-6 hover-glow transition-all duration-300">
-                        <h2 class="text-xl font-bold mb-4 flex items-center">
-                            <i class="fas fa-brain mr-2 text-blue-400"></i>
-                            Human Behavior
+                    <div class="glass-card rounded-2xl p-6 hover-lift transition-all duration-500 glow-border">
+                        <h2 class="text-xl font-bold mb-4 flex items-center font-['Orbitron']">
+                            <div class="relative mr-3">
+                                <div class="absolute inset-0 bg-blue-500/20 rounded-full blur"></div>
+                                <i class="fas fa-brain text-blue-300 relative z-10"></i>
+                            </div>
+                            HUMAN BEHAVIOR
                         </h2>
                         <div class="space-y-4">
-                            <label class="flex items-center space-x-3 cursor-pointer">
-                                <input type="checkbox" checked onchange="setJitter(this.checked)" 
-                                       class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500">
-                                <span class="text-gray-300">Enable Mouse Jitter</span>
+                            <label class="flex items-center space-x-4 cursor-pointer group">
+                                <div class="relative">
+                                    <input type="checkbox" checked onchange="setJitter(this.checked)" 
+                                           class="sr-only peer">
+                                    <div class="w-12 h-6 bg-purple-900/50 rounded-full peer-checked:bg-purple-600 transition-all duration-300"></div>
+                                    <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-6"></div>
+                                </div>
+                                <span class="text-purple-200 font-semibold group-hover:text-white transition-colors">MOUSE JITTER</span>
                             </label>
-                            <label class="flex items-center space-x-3 cursor-pointer">
-                                <input type="checkbox" checked onchange="setHumanLike(this.checked)"
-                                       class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500">
-                                <span class="text-gray-300">Random Timing Variations</span>
+                            <label class="flex items-center space-x-4 cursor-pointer group">
+                                <div class="relative">
+                                    <input type="checkbox" checked onchange="setHumanLike(this.checked)"
+                                           class="sr-only peer">
+                                    <div class="w-12 h-6 bg-purple-900/50 rounded-full peer-checked:bg-purple-600 transition-all duration-300"></div>
+                                    <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-6"></div>
+                                </div>
+                                <span class="text-purple-200 font-semibold group-hover:text-white transition-colors">RANDOM TIMING</span>
                             </label>
                         </div>
                     </div>
 
                     <!-- Main Control -->
-                    <div class="glassmorphism rounded-2xl p-6 hover-glow transition-all duration-300">
-                        <h2 class="text-xl font-bold mb-4 flex items-center">
-                            <i class="fas fa-play-circle mr-2 text-green-400"></i>
-                            Quick Control
+                    <div class="glass-card rounded-2xl p-6 hover-lift transition-all duration-500 glow-border">
+                        <h2 class="text-xl font-bold mb-4 flex items-center font-['Orbitron']">
+                            <div class="relative mr-3">
+                                <div class="absolute inset-0 bg-green-500/20 rounded-full blur"></div>
+                                <i class="fas fa-play-circle text-green-300 relative z-10"></i>
+                            </div>
+                            QUICK CONTROL
                         </h2>
                         <div class="space-y-4">
                             <button onclick="toggleRunning()" 
-                                    class="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 py-4 px-6 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 pulse-animation">
-                                <i class="fas fa-play mr-2"></i>
-                                START (F6)
+                                    class="w-full liquid-fill hover:brightness-110 py-4 px-6 rounded-2xl font-bold text-lg font-['Orbitron'] transition-all duration-300 transform hover:scale-105 pulse-glow border border-green-400/30">
+                                <i class="fas fa-play mr-3"></i>
+                                START AUTO CLICKER (F6)
                             </button>
                             <button onclick="emergencyStop()"
-                                    class="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 py-3 px-6 rounded-2xl font-bold transition-all duration-300 transform hover:scale-105">
-                                <i class="fas fa-stop mr-2"></i>
+                                    class="w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 py-3 px-6 rounded-2xl font-bold font-['Orbitron'] transition-all duration-300 transform hover:scale-105 border border-red-400/30">
+                                <i class="fas fa-stop-circle mr-3"></i>
                                 EMERGENCY STOP (F7)
                             </button>
                         </div>
                     </div>
 
                     <!-- Hotkeys Info -->
-                    <div class="glassmorphism rounded-2xl p-6 hover-glow transition-all duration-300">
-                        <h2 class="text-xl font-bold mb-4 flex items-center">
-                            <i class="fas fa-keyboard mr-2 text-yellow-400"></i>
-                            Hotkeys
-                        </h2>
-                        <div class="space-y-2 text-sm text-gray-300">
-                            <div class="flex justify-between">
-                                <span>Start/Stop Auto Clicker:</span>
-                                <kbd class="px-2 py-1 bg-purple-600 rounded">F6</kbd>
+                    <div class="glass-card rounded-2xl p-6 hover-lift transition-all duration-500 glow-border">
+                        <h2 class="text-xl font-bold mb-4 flex items-center font-['Orbitron']">
+                            <div class="relative mr-3">
+                                <div class="absolute inset-0 bg-yellow-500/20 rounded-full blur"></div>
+                                <i class="fas fa-keyboard text-yellow-300 relative z-10"></i>
                             </div>
-                            <div class="flex justify-between">
-                                <span>Emergency Stop:</span>
-                                <kbd class="px-2 py-1 bg-red-600 rounded">F7</kbd>
+                            HOTKEYS
+                        </h2>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between items-center">
+                                <span class="text-purple-200 font-semibold">Start/Stop:</span>
+                                <kbd class="px-3 py-1 bg-purple-600 rounded-lg font-mono font-bold border border-purple-400/30">F6</kbd>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-purple-200 font-semibold">Emergency Stop:</span>
+                                <kbd class="px-3 py-1 bg-red-600 rounded-lg font-mono font-bold border border-red-400/30">F7</kbd>
                             </div>
                         </div>
                     </div>
@@ -187,9 +377,11 @@
             </div>
 
             <!-- Footer -->
-            <div class="mt-8 text-center text-gray-400 text-sm">
-                <p>Auto Clicker Pro - Disguised as Minecraft Education Edition</p>
-                <p class="mt-2">Running on http://localhost:8080</p>
+            <div class="mt-12 text-center">
+                <div class="glass-card rounded-2xl p-4 inline-block">
+                    <p class="text-purple-300 font-semibold">Auto Clicker Pro • Liquid Glass Interface</p>
+                    <p class="text-purple-400 text-sm mt-1">Running on http://localhost:8080</p>
+                </div>
             </div>
         </div>
     </div>
@@ -224,13 +416,13 @@
             const statusText = document.getElementById('statusText');
             
             if (currentStatus.running) {
-                statusIndicator.className = 'w-4 h-4 bg-green-500 rounded-full mx-auto mb-3 pulse-animation';
+                statusIndicator.className = 'w-5 h-5 bg-green-500 rounded-full mx-auto mb-4 pulse-glow border-2 border-white/30';
                 statusText.textContent = 'RUNNING';
-                statusText.className = 'text-xl font-bold text-green-400';
+                statusText.className = 'text-2xl font-bold font-[\'Orbitron\'] text-green-400 neon-text';
             } else {
-                statusIndicator.className = 'w-4 h-4 bg-red-500 rounded-full mx-auto mb-3';
+                statusIndicator.className = 'w-5 h-5 bg-red-500 rounded-full mx-auto mb-4 border-2 border-white/30';
                 statusText.textContent = 'STOPPED';
-                statusText.className = 'text-xl font-bold text-red-400';
+                statusText.className = 'text-2xl font-bold font-[\'Orbitron\'] text-red-400';
             }
 
             // Update counters
@@ -239,8 +431,7 @@
 
             // Update mode buttons
             document.querySelectorAll('.mode-btn').forEach(btn => {
-                btn.classList.remove('bg-purple-700', 'ring-2', 'ring-purple-400');
-                btn.classList.add('bg-purple-600');
+                btn.classList.remove('ring-4', 'ring-purple-400', 'ring-opacity-50');
             });
 
             // Update interval display
@@ -265,10 +456,9 @@
             
             // Visual feedback
             document.querySelectorAll('.mode-btn').forEach(btn => {
-                btn.classList.remove('bg-purple-700', 'ring-2', 'ring-purple-400');
-                btn.classList.add('bg-purple-600');
+                btn.classList.remove('ring-4', 'ring-purple-400', 'ring-opacity-50');
             });
-            event.target.classList.add('bg-purple-700', 'ring-2', 'ring-purple-400');
+            event.target.classList.add('ring-4', 'ring-purple-400', 'ring-opacity-50');
         }
 
         function setInterval(value) {
