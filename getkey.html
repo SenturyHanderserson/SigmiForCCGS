@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Key System | Glass Morphism</title>
+    <title>Key System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Previous CSS styles remain exactly the same */
         :root {
             --primary-color: #8b5cf6;
             --primary-light: #a78bfa;
@@ -321,6 +322,12 @@
             box-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
         }
 
+        .key-display.used {
+            border-color: var(--error-color) !important;
+            box-shadow: 0 0 20px var(--error-glow) !important;
+            color: var(--error-color) !important;
+        }
+
         @keyframes pulse {
             0% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.5); }
             50% { box-shadow: 0 0 30px rgba(139, 92, 246, 0.8); }
@@ -367,6 +374,20 @@
             color: var(--success-color);
             text-shadow: 0 0 10px var(--success-glow);
             margin: 10px 0;
+        }
+
+        .countdown.expired {
+            color: var(--error-color);
+            text-shadow: 0 0 10px var(--error-glow);
+        }
+
+        .device-warning {
+            color: var(--warning-color);
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         /* Server Logic UI Elements */
@@ -778,6 +799,10 @@
                         <span class="info-value" id="key-status">Not Generated</span>
                     </div>
                 </div>
+                <div id="device-warning" class="device-warning" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Key used on another device!</span>
+                </div>
             </div>
         </div>
     </div>
@@ -797,11 +822,13 @@
             expirationDate: null,
             authorizedDevice: null,
             countdownInterval: null,
+            keyCheckInterval: null,
             userWarnings: [],
             activeBroadcasts: [],
             broadcastCheckInterval: null,
             warningCheckInterval: null,
-            isBlacklisted: false
+            isBlacklisted: false,
+            existingKey: null
         };
 
         // DOM Elements
@@ -823,6 +850,7 @@
         const timeRemainingElement = document.getElementById('time-remaining');
         const authorizedDeviceElement = document.getElementById('authorized-device');
         const keyStatusElement = document.getElementById('key-status');
+        const deviceWarningElement = document.getElementById('device-warning');
 
         // ============ UTILITY FUNCTIONS ============
         
@@ -894,6 +922,143 @@
         function updateLoadingScreen(title, message) {
             document.getElementById('loadingTitle').textContent = title;
             document.getElementById('loadingMessage').textContent = message;
+        }
+
+        // ============ KEY MANAGEMENT FUNCTIONS ============
+
+        async function checkExistingKey() {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) return null;
+
+                const response = await fetch(`${SERVER_URL}/api/keys/check`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.hasActiveKey ? data : null;
+                }
+                return null;
+            } catch (error) {
+                console.error('Error checking existing key:', error);
+                return null;
+            }
+        }
+
+        async function generateKeyOnServer() {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) {
+                    showNotification('Authentication required', 'error');
+                    return null;
+                }
+
+                const completedTasks = state.tasks.filter(task => task.completed).map(task => task.id);
+                
+                const response = await fetch(`${SERVER_URL}/api/keys/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ completedTasks })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    return data;
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to generate key');
+                }
+            } catch (error) {
+                console.error('Error generating key:', error);
+                showNotification(error.message, 'error');
+                return null;
+            }
+        }
+
+        async function validateKey(key) {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) {
+                    showNotification('Authentication required', 'error');
+                    return false;
+                }
+
+                const response = await fetch(`${SERVER_URL}/api/keys/validate`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ key })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.valid;
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Key validation failed');
+                }
+            } catch (error) {
+                console.error('Error validating key:', error);
+                showNotification(error.message, 'error');
+                return false;
+            }
+        }
+
+        async function updateKeyStatus() {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) return;
+
+                const response = await fetch(`${SERVER_URL}/api/keys/status`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.active) {
+                        updateKeyDisplay(data.key, data.expiresAt, data.device, data.usedOnOtherDevice);
+                        if (data.usedOnOtherDevice) {
+                            showNotification('Key has been used on another device!', 'warning');
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating key status:', error);
+            }
+        }
+
+        function updateKeyDisplay(key, expiresAt, device, usedOnOtherDevice = false) {
+            state.key = key;
+            state.expirationDate = new Date(expiresAt);
+            state.authorizedDevice = device;
+
+            keyDisplay.innerHTML = key;
+            keyDisplay.classList.add('generated');
+            if (usedOnOtherDevice) {
+                keyDisplay.classList.add('used');
+            }
+
+            authorizedDeviceElement.textContent = device;
+            keyStatusElement.textContent = usedOnOtherDevice ? 'Used on other device' : 'Active';
+            keyStatusElement.style.color = usedOnOtherDevice ? '#ef4444' : '#4ade80';
+
+            deviceWarningElement.style.display = usedOnOtherDevice ? 'flex' : 'none';
+
+            startCountdown();
         }
 
         // ============ AUTHENTICATION & VERIFICATION ============
@@ -982,7 +1147,7 @@
             }
         }
 
-        function completeTask(taskId) {
+        async function completeTask(taskId) {
             if (taskId < 1 || taskId > state.tasks.length) return;
             
             const task = state.tasks[taskId - 1];
@@ -990,6 +1155,12 @@
             
             // Check if previous task is completed (except for first task)
             if (taskId > 1 && !state.tasks[taskId - 2].completed) return;
+            
+            // Check for existing key first
+            if (state.existingKey) {
+                showNotification('You already have an active key!', 'warning');
+                return;
+            }
             
             // Simulate server request delay
             setTimeout(() => {
@@ -1013,39 +1184,29 @@
 
         // ============ KEY GENERATION ============
         
-        function generateKey() {
-            // Simulate server request delay
-            setTimeout(() => {
-                // Generate a random key (in a real app, this would come from the server)
-                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-                let key = '';
-                for (let i = 0; i < 20; i++) {
-                    if (i > 0 && i % 4 === 0) key += '-';
-                    key += chars.charAt(Math.floor(Math.random() * chars.length));
-                }
-                
-                state.key = key;
-                
-                // Set expiration date (24 hours from now)
-                const expiration = new Date();
-                expiration.setHours(expiration.getHours() + 24);
-                state.expirationDate = expiration;
-                
-                // Detect current device
-                state.authorizedDevice = detectDevice();
-                
-                // Update UI
-                keyDisplay.innerHTML = key;
-                keyDisplay.classList.add('generated');
-                authorizedDeviceElement.textContent = state.authorizedDevice;
-                keyStatusElement.textContent = 'Active';
-                keyStatusElement.style.color = '#4ade80';
-                
-                // Start countdown
-                startCountdown();
-                
+        async function generateKey() {
+            // Check for existing key first
+            const existingKey = await checkExistingKey();
+            if (existingKey) {
+                state.existingKey = existingKey;
+                showNotification('Existing key found! Loading key data...', 'info');
+                updateKeyDisplay(
+                    existingKey.key, 
+                    existingKey.expiresAt, 
+                    existingKey.device, 
+                    existingKey.usedOnOtherDevice
+                );
+                return;
+            }
+
+            // Generate new key on server
+            showNotification('Generating new key...', 'info');
+            const keyData = await generateKeyOnServer();
+            
+            if (keyData) {
+                updateKeyDisplay(keyData.key, keyData.expiresAt, detectDevice());
                 showNotification('Access key generated successfully! Valid for 24 hours.', 'success');
-            }, 1000);
+            }
         }
 
         function startCountdown() {
@@ -1060,6 +1221,7 @@
                 if (distance < 0) {
                     clearInterval(state.countdownInterval);
                     timeRemainingElement.textContent = 'EXPIRED';
+                    timeRemainingElement.classList.add('expired');
                     keyStatusElement.textContent = 'Expired';
                     keyStatusElement.style.color = '#ef4444';
                     keyDisplay.style.boxShadow = '0 0 20px rgba(239, 68, 68, 0.5)';
@@ -1071,6 +1233,9 @@
                 const seconds = Math.floor((distance % (1000 * 60)) / 1000);
                 
                 timeRemainingElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Remove expired class if it was added
+                timeRemainingElement.classList.remove('expired');
             }, 1000);
         }
 
@@ -1504,10 +1669,12 @@
             loadMessages();
             checkForBroadcasts();
             checkForWarnings();
+            updateKeyStatus(); // Check for existing key
             
             // Set up periodic checking
             state.broadcastCheckInterval = setInterval(checkForBroadcasts, 2 * 60 * 1000);
             state.warningCheckInterval = setInterval(checkForWarnings, 5 * 60 * 1000);
+            state.keyCheckInterval = setInterval(updateKeyStatus, 30 * 1000); // Check key status every 30 seconds
             
             // Set up message refresh
             setInterval(loadMessages, 3 * 60 * 1000);
@@ -1574,7 +1741,15 @@
                     return;
                 }
                 
-                // Step 3: All checks passed - initialize systems
+                // Step 3: Check for existing key
+                updateLoadingScreen('Checking keys...', 'Looking for existing active keys');
+                const existingKey = await checkExistingKey();
+                if (existingKey) {
+                    state.existingKey = existingKey;
+                    showNotification('Existing active key found!', 'info');
+                }
+                
+                // Step 4: All checks passed - initialize systems
                 updateLoadingScreen('Loading systems...', 'Initializing server features');
                 document.getElementById('loadingOverlay').classList.remove('active');
                 initServerSystems();
@@ -1598,6 +1773,9 @@
             }
             if (state.countdownInterval) {
                 clearInterval(state.countdownInterval);
+            }
+            if (state.keyCheckInterval) {
+                clearInterval(state.keyCheckInterval);
             }
         });
     </script>
