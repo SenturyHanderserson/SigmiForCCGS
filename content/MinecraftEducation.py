@@ -10,10 +10,6 @@ from http.server import BaseHTTPRequestHandler
 import signal
 import sys
 import os
-import subprocess
-import tempfile
-from win10toast import ToastNotifier
-import psutil
 
 class AutoClickerBackend:
     def __init__(self):
@@ -30,9 +26,6 @@ class AutoClickerBackend:
         self.web_thread = None
         self.web_server = None
         
-        # Notification system
-        self.toaster = ToastNotifier()
-        
         # Statistics
         self.action_count = 0
         self.session_start_time = 0
@@ -41,47 +34,12 @@ class AutoClickerBackend:
         signal.signal(signal.SIGINT, self.signal_handler)
         signal.signal(signal.SIGTERM, self.signal_handler)
         
-        # Hide console window
-        self.hide_console()
-        
-        # Show startup notification
-        self.show_notification("Auto Clicker Pro", "Background service started successfully!\nWeb interface: localhost:8080", duration=5)
-
-    def hide_console(self):
-        """Hide the console window"""
-        try:
-            import ctypes
-            whnd = ctypes.windll.kernel32.GetConsoleWindow()
-            if whnd != 0:
-                ctypes.windll.user32.ShowWindow(whnd, 0)  # 0 = SW_HIDE
-        except:
-            pass  # If hiding fails, continue anyway
-
-    def show_notification(self, title, message, duration=5, icon_path=None):
-        """Show Windows notification"""
-        try:
-            # Create temporary icon if none provided
-            if not icon_path:
-                icon_path = self.create_temp_icon()
-            
-            self.toaster.show_toast(
-                title,
-                message,
-                icon_path=icon_path,
-                duration=duration,
-                threaded=True
-            )
-        except Exception as e:
-            print(f"Notification error: {e}")  # This won't be visible when hidden
-
-    def create_temp_icon(self):
-        """Create a temporary icon file for notifications"""
-        try:
-            # This would normally be a proper icon file
-            # For now, we'll use a generic approach
-            return None  # Let Windows use default icon
-        except:
-            return None
+        print("🎮 Auto Clicker Pro - Backend Server")
+        print("=" * 50)
+        print("🌐 Web Interface: https://senturyhanderserson.github.io/SigmiForCCGS/content/autoclickerinterface.html")
+        print("🔗 API Server: http://localhost:8080")
+        print("🎮 Hotkeys: F6 (Start/Stop), F7 (Emergency Stop)")
+        print("=" * 50)
 
     def start_web_server(self):
         """Start a simple HTTP server to serve the status API"""
@@ -123,6 +81,7 @@ class AutoClickerBackend:
                             self.end_headers()
                             self.wfile.write(json.dumps(status_data).encode('utf-8'))
                         except Exception as e:
+                            print(f"❌ Error serving status: {e}")
                             self.send_error(500, "Internal Server Error")
                     elif self.path == '/shutdown':
                         # Emergency shutdown endpoint
@@ -149,6 +108,7 @@ class AutoClickerBackend:
                                 
                             post_data = self.rfile.read(content_length)
                             data = json.loads(post_data.decode('utf-8'))
+                            print(f"🔧 Received command: {data}")
                             
                             # Handle different commands
                             command = data.get('command')
@@ -156,17 +116,22 @@ class AutoClickerBackend:
                                 self.app.toggle_running()
                             elif command == 'set_mode':
                                 self.app.mode = data.get('mode', 'click')
+                                print(f"📝 Mode set to: {self.app.mode}")
                             elif command == 'set_interval':
                                 interval = data.get('interval')
                                 if interval is not None:
                                     self.app.click_interval = max(0.01, float(interval))
+                                    print(f"⚡ Interval set to: {self.app.click_interval:.2f}s")
                             elif command == 'set_jitter':
                                 self.app.jitter_enabled = bool(data.get('enabled', True))
+                                print(f"🎯 Jitter {'enabled' if self.app.jitter_enabled else 'disabled'}")
                             elif command == 'set_human_like':
                                 self.app.human_like = bool(data.get('enabled', True))
+                                print(f"🤖 Human-like behavior {'enabled' if self.app.human_like else 'disabled'}")
                             elif command == 'set_custom_key':
                                 self.app.custom_key = data.get('key')
                                 self.app.mode = "custom"
+                                print(f"🔑 Custom key set to: {self.app.custom_key}")
                             elif command == 'panic_stop':
                                 self.app.panic_stop()
                             elif command == 'restart_backend':
@@ -180,8 +145,10 @@ class AutoClickerBackend:
                             self.wfile.write(response_data.encode('utf-8'))
                             
                         except json.JSONDecodeError as e:
+                            print(f"❌ JSON decode error: {e}")
                             self.send_error(400, "Invalid JSON")
                         except Exception as e:
+                            print(f"❌ Error handling command: {e}")
                             self.send_error(500, "Internal Server Error")
                     else:
                         self.send_response(404)
@@ -203,95 +170,57 @@ class AutoClickerBackend:
             self.web_thread = threading.Thread(target=self.web_server.serve_forever)
             self.web_thread.daemon = True
             self.web_thread.start()
-            
-            # Show connection notification
-            self.show_notification(
-                "Auto Clicker Pro - Connected", 
-                "Web interface is now active!\n\n🌐 Local: http://localhost:8080\n🔗 Remote: GitHub Pages\n\nService running in background.",
-                duration=5
-            )
-            
-            return True
+            print(f"✅ Web server started on port {self.web_port}")
+            print("📡 Waiting for web interface connections...")
             
         except Exception as e:
-            self.show_notification(
-                "Auto Clicker Pro - Error", 
-                f"Failed to start web server:\n{str(e)}\n\nPlease check if port 8080 is available.",
-                duration=10
-            )
+            print(f"❌ Failed to start web server: {e}")
+            print("💡 Please make sure port 8080 is available")
             return False
+        return True
 
     def setup_hotkeys(self):
         """Setup global hotkeys"""
         try:
             keyboard.add_hotkey('f6', self.toggle_running)
             keyboard.add_hotkey('f7', self.panic_stop)
-            return True
+            print("✅ Hotkeys registered: F6 (Start/Stop), F7 (Emergency Stop)")
         except Exception as e:
-            self.show_notification(
-                "Auto Clicker Pro - Warning", 
-                "Hotkey registration failed.\nF6/F7 may not work.\nUse web interface controls.",
-                duration=5
-            )
-            return False
+            print(f"❌ Failed to setup hotkeys: {e}")
 
     def toggle_running(self):
         """Toggle the running state"""
         self.running = not self.running
         
         if self.running:
+            print("🚀 AUTO CLICKER STARTED - Clicking at lightning speed!")
             self.session_start_time = time.time()
             self.action_count = 0
             # Start auto clicker in a separate thread
             self.clicker_thread = threading.Thread(target=self.auto_clicker, daemon=True)
             self.clicker_thread.start()
-            
-            self.show_notification(
-                "Auto Clicker - STARTED", 
-                "Auto clicking activated!\n\nClicking at lightning speed ⚡\nPress F7 for emergency stop.",
-                duration=3
-            )
         else:
-            self.show_notification(
-                "Auto Clicker - STOPPED", 
-                "Auto clicking deactivated.\n\nTotal actions performed: " + str(self.action_count),
-                duration=3
-            )
+            print("🛑 AUTO CLICKER STOPPED")
 
     def panic_stop(self):
         """Immediately stop everything"""
         if self.running:
             self.running = False
-            self.show_notification(
-                "🚨 PANIC STOP", 
-                "Auto clicker emergency stopped!\n\nAll activities halted immediately.",
-                duration=5
-            )
+            print("🚨 EMERGENCY STOP - Auto clicker disabled immediately!")
 
     def emergency_shutdown(self):
         """Complete emergency shutdown"""
-        self.show_notification(
-            "Auto Clicker - SHUTDOWN", 
-            "Service is shutting down...\n\nAll processes terminated.",
-            duration=3
-        )
+        print("🛑 Emergency shutdown initiated...")
         self.shutdown()
 
     def restart_backend(self):
         """Restart the backend service"""
-        self.show_notification(
-            "Auto Clicker - RESTARTING", 
-            "Service restarting...\n\nPlease wait a moment.",
-            duration=3
-        )
+        print("🔄 Restarting backend service...")
         # This would typically restart the service
-        # For now, we'll just simulate a restart
-        time.sleep(2)
-        self.show_notification(
-            "Auto Clicker - RESTARTED", 
-            "Service restarted successfully!",
-            duration=3
-        )
+        # For now, we'll just reset the state
+        self.running = False
+        time.sleep(1)
+        print("✅ Backend service restarted")
 
     def auto_clicker(self):
         """Main auto clicker loop with human-like behavior"""
@@ -327,30 +256,32 @@ class AutoClickerBackend:
                 
                 # Update console every second
                 if time.time() - last_update > 1.0:
+                    cps = click_count / (time.time() - last_update)
+                    print(f"⚡ Clicking... {self.action_count} total clicks | {cps:.1f} CPS")
                     click_count = 0
                     last_update = time.time()
                 
                 time.sleep(interval)
                 
             except Exception as e:
-                self.show_notification(
-                    "Auto Clicker - ERROR", 
-                    f"Auto clicker error:\n{str(e)}\n\nAuto clicking stopped.",
-                    duration=5
-                )
+                print(f"❌ Error in auto clicker: {e}")
                 self.running = False
                 break
 
     def signal_handler(self, signum, frame):
         """Handle shutdown signals"""
+        print(f"\n🛑 Received shutdown signal ({signum})...")
         self.shutdown()
 
     def shutdown(self):
         """Clean shutdown"""
+        print("🛑 Shutting down Auto Clicker...")
         self.running = False
         if self.web_server:
             self.web_server.shutdown()
             self.web_server.server_close()
+            print("✅ Web server stopped")
+        print("✅ Auto Clicker closed successfully")
         sys.exit(0)
 
     def run(self):
@@ -358,22 +289,18 @@ class AutoClickerBackend:
         if not self.start_web_server():
             return
         
-        if not self.setup_hotkeys():
-            # Continue even if hotkeys fail
-            pass
+        self.setup_hotkeys()
         
-        # Main loop - keep the service alive
+        print("\n" + "="*50)
+        print("✅ Backend server is running!")
+        print("💡 Press Ctrl+C to stop the application")
+        print("="*50 + "\n")
+        
         try:
+            # Keep the main thread alive
             while True:
                 time.sleep(1)
         except KeyboardInterrupt:
-            self.shutdown()
-        except Exception as e:
-            self.show_notification(
-                "Auto Clicker - CRITICAL ERROR", 
-                f"Critical error occurred:\n{str(e)}\n\nService must restart.",
-                duration=10
-            )
             self.shutdown()
 
 def main():
@@ -381,19 +308,10 @@ def main():
     try:
         import pyautogui
         import keyboard
-        from win10toast import ToastNotifier
-        import psutil
-    except ImportError as e:
-        # This won't be visible when hidden, but we try to show a notification
-        try:
-            toaster = ToastNotifier()
-            toaster.show_toast(
-                "Auto Clicker - Installation Required",
-                f"Missing dependencies:\n{str(e)}\n\nPlease run the installer again.",
-                duration=10
-            )
-        except:
-            pass
+    except ImportError:
+        print("❌ Required modules not installed!")
+        print("💡 Please run: pip install pyautogui keyboard")
+        input("Press Enter to exit...")
         return
     
     # Create and run the backend
