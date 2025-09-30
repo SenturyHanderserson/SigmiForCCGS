@@ -41,13 +41,16 @@ class ModernAutoClicker:
         self.action_count = 0
         self.session_start_time = 0
         
-        print("Auto Clicker Pro - Purple Glassmorphism Edition")
+        print("🎮 Auto Clicker Pro - Web Edition")
+        print("=" * 50)
+        print("🌐 Web Interface: https://senturyhanderserson.github.io/SigmiForCCGS/content/autoclickerinterface.html")
+        print("🔗 Local Interface: http://localhost:8080")
         print("=" * 50)
 
     def setup_gui(self):
         """Setup the main GUI with embedded browser"""
-        self.root.title("Minecraft: Education Edition - Classroom Tools")
-        self.root.geometry("1200x800")
+        self.root.title("Auto Clicker Pro - Backend Server")
+        self.root.geometry("1000x700")
         self.root.configure(bg='#1a1a2e')
         
         # Create main frame
@@ -55,13 +58,13 @@ class ModernAutoClicker:
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
         # Header
-        header_frame = tk.Frame(main_frame, bg='#16213e', height=60)
+        header_frame = tk.Frame(main_frame, bg='#16213e', height=80)
         header_frame.pack(fill=tk.X, pady=(0, 10))
         header_frame.pack_propagate(False)
         
         title_label = tk.Label(
             header_frame, 
-            text="Minecraft: Education Edition - Classroom Tools", 
+            text="Auto Clicker Pro - Backend Server", 
             font=('Arial', 16, 'bold'), 
             bg='#16213e', 
             fg='#4cc9f0'
@@ -78,6 +81,27 @@ class ModernAutoClicker:
         status_label.pack(side=tk.RIGHT, padx=20, pady=15)
         self.status_label = status_label
         
+        # Info panel
+        info_frame = tk.Frame(main_frame, bg='#2d3748', height=100)
+        info_frame.pack(fill=tk.X, pady=(0, 10))
+        info_frame.pack_propagate(False)
+        
+        info_text = tk.Text(
+            info_frame,
+            bg='#2d3748',
+            fg='white',
+            font=('Arial', 10),
+            wrap=tk.WORD,
+            height=4
+        )
+        info_text.pack(fill=tk.BOTH, padx=10, pady=10)
+        info_text.insert(tk.END, "🚀 Auto Clicker Pro is running!\n\n")
+        info_text.insert(tk.END, "🌐 Web Interface: https://senturyhanderserson.github.io/SigmiForCCGS/content/autoclickerinterface.html\n")
+        info_text.insert(tk.END, "🔗 Local URL: http://localhost:8080\n")
+        info_text.insert(tk.END, "🎮 Hotkeys: F6 (Start/Stop), F7 (Emergency Stop)\n\n")
+        info_text.insert(tk.END, "💡 The web interface will automatically connect to this backend.")
+        info_text.config(state=tk.DISABLED)
+        
         # Create embedded browser frame
         browser_frame = tk.Frame(main_frame, bg='#2d3748')
         browser_frame.pack(fill=tk.BOTH, expand=True)
@@ -86,11 +110,11 @@ class ModernAutoClicker:
             # Try to use tkinterweb for embedded browser
             self.browser = HtmlFrame(browser_frame)
             self.browser.pack(fill=tk.BOTH, expand=True)
-            # Load the HTML interface
-            self.root.after(1000, self.load_html_interface)
+            # Load the web interface
+            self.root.after(1000, self.load_web_interface)
         except Exception as e:
             print(f"❌ Could not load embedded browser: {e}")
-            print("💡 Install tkinterweb: pip install tkinterweb")
+            print("💡 The web interface is available at the URL above")
             
             # Fallback: Simple status display
             fallback_frame = tk.Frame(browser_frame, bg='#2d3748')
@@ -104,48 +128,62 @@ class ModernAutoClicker:
                 wrap=tk.WORD
             )
             status_text.pack(fill=tk.BOTH, expand=True)
-            status_text.insert(tk.END, "Auto Clicker Pro is running!\n\n")
-            status_text.insert(tk.END, "Hotkeys:\n")
-            status_text.insert(tk.END, "• F6 - Start/Stop Auto Clicker\n")
-            status_text.insert(tk.END, "• F7 - Emergency Stop\n\n")
-            status_text.insert(tk.END, "Status: READY\n")
+            status_text.insert(tk.END, "✅ Backend Server Running\n\n")
+            status_text.insert(tk.END, "Open your web browser and visit:\n")
+            status_text.insert(tk.END, "https://senturyhanderserson.github.io/SigmiForCCGS/content/autoclickerinterface.html\n\n")
+            status_text.insert(tk.END, "The web interface will automatically detect this backend.\n\n")
+            status_text.insert(tk.END, "Status: READY - Waiting for web interface connection...")
             status_text.config(state=tk.DISABLED)
             self.status_text = status_text
 
-    def load_html_interface(self):
-        """Load the HTML interface into the embedded browser"""
+    def load_web_interface(self):
+        """Load the web interface into the embedded browser"""
         try:
-            # First try to load via the web server to ensure all assets load
-            self.browser.load_url(f"http://localhost:{self.web_port}/")
-            print("✅ HTML interface loaded from web server")
+            # Load the GitHub Pages interface
+            self.browser.load_url("https://senturyhanderserson.github.io/SigmiForCCGS/content/autoclickerinterface.html")
+            print("✅ Web interface loaded in embedded browser")
         except Exception as e:
-            print(f"❌ Could not load HTML interface: {e}")
+            print(f"❌ Could not load web interface: {e}")
+            # Fallback to local server
+            try:
+                self.browser.load_url(f"http://localhost:{self.web_port}/")
+            except:
+                print("💡 Please visit the web interface manually using the URL above")
 
     def start_web_server(self):
-        """Start a simple HTTP server to serve the HTML interface"""
+        """Start a simple HTTP server to serve the status API"""
         try:
-            # Create a custom handler to serve our files and handle commands
+            # Create a custom handler for API endpoints
             class AutoClickerHandler(http.server.SimpleHTTPRequestHandler):
                 def __init__(self, *args, **kwargs):
                     self.app = None
                     super().__init__(*args, **kwargs)
                 
                 def do_GET(self):
-                    # Serve files from current directory
-                    if self.path == '/':
-                        self.path = '/interface.html'
-                    
-                    # Set proper MIME types for CSS and JS
-                    if self.path.endswith('.css'):
-                        self.send_header('Content-Type', 'text/css')
-                    elif self.path.endswith('.js'):
-                        self.send_header('Content-Type', 'application/javascript')
-                    
-                    # Serve the file
-                    try:
+                    if self.path == '/status.json':
+                        # Serve status JSON
+                        try:
+                            status_data = {
+                                "running": self.app.running if self.app else False,
+                                "mode": self.app.mode if self.app else "click",
+                                "interval": self.app.click_interval if self.app else 0.05,
+                                "actions": self.app.action_count if self.app else 0,
+                                "session_time": int(time.time() - self.app.session_start_time) if self.app and self.app.running else 0,
+                                "jitter_enabled": self.app.jitter_enabled if self.app else True,
+                                "human_like": self.app.human_like if self.app else True
+                            }
+                            
+                            self.send_response(200)
+                            self.send_header('Content-type', 'application/json')
+                            self.send_header('Access-Control-Allow-Origin', '*')
+                            self.end_headers()
+                            self.wfile.write(json.dumps(status_data).encode())
+                        except Exception as e:
+                            self.send_response(500)
+                            self.end_headers()
+                    else:
+                        # Serve other files normally
                         super().do_GET()
-                    except Exception as e:
-                        print(f"Error serving {self.path}: {e}")
                 
                 def do_POST(self):
                     if self.path == '/command':
@@ -153,7 +191,7 @@ class ModernAutoClicker:
                         post_data = self.rfile.read(content_length)
                         try:
                             data = json.loads(post_data.decode())
-                            print(f"Received command: {data}")
+                            print(f"🔧 Received command: {data}")
                             
                             # Handle different commands
                             if hasattr(self, 'app') and self.app:
@@ -161,14 +199,22 @@ class ModernAutoClicker:
                                     self.app.toggle_running()
                                 elif data.get('command') == 'set_mode':
                                     self.app.mode = data.get('mode', 'click')
+                                    print(f"📝 Mode set to: {self.app.mode}")
                                 elif data.get('command') == 'set_interval':
                                     interval = data.get('interval')
                                     if interval is not None:
                                         self.app.click_interval = max(0.01, float(interval))
+                                        print(f"⚡ Interval set to: {self.app.click_interval:.2f}s")
                                 elif data.get('command') == 'set_jitter':
                                     self.app.jitter_enabled = bool(data.get('enabled', True))
+                                    print(f"🎯 Jitter {'enabled' if self.app.jitter_enabled else 'disabled'}")
                                 elif data.get('command') == 'set_human_like':
                                     self.app.human_like = bool(data.get('enabled', True))
+                                    print(f"🤖 Human-like behavior {'enabled' if self.app.human_like else 'disabled'}")
+                                elif data.get('command') == 'set_custom_key':
+                                    self.app.custom_key = data.get('key')
+                                    self.app.mode = "custom"
+                                    print(f"🔑 Custom key set to: {self.app.custom_key}")
                             
                             self.send_response(200)
                             self.send_header('Content-type', 'application/json')
@@ -176,7 +222,7 @@ class ModernAutoClicker:
                             self.end_headers()
                             self.wfile.write(json.dumps({"status": "success"}).encode())
                         except Exception as e:
-                            print(f"Error handling command: {e}")
+                            print(f"❌ Error handling command: {e}")
                             self.send_response(500)
                             self.end_headers()
                     else:
@@ -198,10 +244,11 @@ class ModernAutoClicker:
             self.web_thread.daemon = True
             self.web_thread.start()
             print(f"✅ Web server started on port {self.web_port}")
+            print("📡 Waiting for web interface connections...")
             
         except Exception as e:
             print(f"❌ Failed to start web server: {e}")
-            print("💡 Running without web interface")
+            print("💡 Please make sure port 8080 is available")
 
     def setup_hotkeys(self):
         """Setup global hotkeys"""
@@ -223,7 +270,6 @@ class ModernAutoClicker:
             self.session_start_time = time.time()
             self.action_count = 0
             threading.Thread(target=self.auto_clicker, daemon=True).start()
-            threading.Thread(target=self.update_web_interface, daemon=True).start()
         else:
             print("🛑 AUTO CLICKER STOPPED")
             if hasattr(self, 'status_label'):
@@ -238,7 +284,7 @@ class ModernAutoClicker:
             print("🚨 EMERGENCY STOP - Auto clicker disabled immediately!")
 
     def auto_clicker(self):
-        """Main auto clicker loop with human-like behavior - SUPER FAST"""
+        """Main auto clicker loop with human-like behavior"""
         click_count = 0
         last_update = time.time()
         
@@ -281,29 +327,6 @@ class ModernAutoClicker:
             except Exception as e:
                 print(f"❌ Error in auto clicker: {e}")
                 break
-
-    def update_web_interface(self):
-        """Update status file for web interface"""
-        while self.running:
-            try:
-                status_data = {
-                    "running": self.running,
-                    "mode": self.mode,
-                    "interval": self.click_interval,
-                    "actions": self.action_count,
-                    "session_time": int(time.time() - self.session_start_time) if self.running else 0,
-                    "jitter_enabled": self.jitter_enabled,
-                    "human_like": self.human_like
-                }
-                
-                # Write status to a file that the HTML can read
-                with open("status.json", "w") as f:
-                    json.dump(status_data, f)
-                    
-            except Exception as e:
-                print(f"⚠️ Error updating web interface: {e}")
-            
-            time.sleep(0.1)
 
     def on_closing(self):
         """Handle application closing"""
@@ -354,11 +377,10 @@ def main():
         print("   F6 - Start/Stop Auto Clicker")
         print("   F7 - Emergency Stop")
         print("="*50)
-        print("💡 Features:")
-        print("   • Embedded purple glassmorphism interface")
-        print("   • Ultra-fast clicking (0.01s - 1.0s)")
-        print("   • Human-like behavior options")
-        print("   • Live click counter & session timer")
+        print("🌐 WEB INTERFACE:")
+        print("   https://senturyhanderserson.github.io/SigmiForCCGS/content/autoclickerinterface.html")
+        print("="*50)
+        print("💡 The web interface will automatically connect to this backend")
         print("="*50 + "\n")
         
         # Start the GUI
