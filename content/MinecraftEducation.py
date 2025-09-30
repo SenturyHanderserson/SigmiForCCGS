@@ -115,30 +115,15 @@ class ModernAutoClicker:
     def load_html_interface(self):
         """Load the HTML interface into the embedded browser"""
         try:
-            # Load the local HTML file directly
-            html_file = os.path.join(os.getcwd(), 'autoclickerinterface.html')
-            if os.path.exists(html_file):
-                self.browser.load_file(html_file)
-                print("✅ HTML interface loaded in embedded browser")
-            else:
-                # Fallback to web server
-                self.browser.load_url(f"http://localhost:{self.web_port}/autoclickerinterface.html")
-                print("✅ HTML interface loaded from web server")
+            # First try to load via the web server to ensure all assets load
+            self.browser.load_url(f"http://localhost:{self.web_port}/")
+            print("✅ HTML interface loaded from web server")
         except Exception as e:
             print(f"❌ Could not load HTML interface: {e}")
 
     def start_web_server(self):
         """Start a simple HTTP server to serve the HTML interface"""
         try:
-            # Check if we're already in the autoclicker directory
-            current_dir = os.getcwd()
-            if not current_dir.endswith('autoclicker'):
-                # Try to change to autoclicker directory if it exists
-                if os.path.exists('autoclicker'):
-                    os.chdir('autoclicker')
-                else:
-                    print("AutoClicker directory not found. Starting in current directory.")
-            
             # Create a custom handler to serve our files and handle commands
             class AutoClickerHandler(http.server.SimpleHTTPRequestHandler):
                 def __init__(self, *args, **kwargs):
@@ -146,10 +131,21 @@ class ModernAutoClicker:
                     super().__init__(*args, **kwargs)
                 
                 def do_GET(self):
-                    # Redirect root to autoclickerinterface.html
+                    # Serve files from current directory
                     if self.path == '/':
-                        self.path = '/autoclickerinterface.html'
-                    super().do_GET()
+                        self.path = '/interface.html'
+                    
+                    # Set proper MIME types for CSS and JS
+                    if self.path.endswith('.css'):
+                        self.send_header('Content-Type', 'text/css')
+                    elif self.path.endswith('.js'):
+                        self.send_header('Content-Type', 'application/javascript')
+                    
+                    # Serve the file
+                    try:
+                        super().do_GET()
+                    except Exception as e:
+                        print(f"Error serving {self.path}: {e}")
                 
                 def do_POST(self):
                     if self.path == '/command':
@@ -185,6 +181,10 @@ class ModernAutoClicker:
                             self.end_headers()
                     else:
                         super().do_POST()
+                
+                def log_message(self, format, *args):
+                    # Suppress normal HTTP logging
+                    pass
             
             # Create the server with reference to this app instance
             def handler(*args, **kwargs):
