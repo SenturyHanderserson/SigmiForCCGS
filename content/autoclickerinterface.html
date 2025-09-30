@@ -15,6 +15,19 @@
             min-height: 100vh;
         }
         
+        .notification-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .notification-toast.show {
+            transform: translateX(0);
+        }
+        
         .glass-liquid {
             background: linear-gradient(135deg, 
                 rgba(139, 92, 246, 0.15) 0%, 
@@ -135,9 +148,66 @@
             background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%) !important;
             box-shadow: 0 0 20px rgba(139, 92, 246, 0.6) !important;
         }
+        
+        .panic-btn {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 50%, #991b1b 100%);
+            animation: panicPulse 1s ease-in-out infinite;
+        }
+        
+        @keyframes panicPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .top-bar {
+            background: linear-gradient(135deg, rgba(30, 30, 60, 0.9) 0%, rgba(20, 20, 40, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(192, 132, 252, 0.3);
+        }
     </style>
 </head>
 <body class="text-white cyber-grid">
+    <!-- Notification Toast -->
+    <div id="notificationToast" class="notification-toast glass-card rounded-2xl p-4 max-w-sm hidden">
+        <div class="flex items-start space-x-3">
+            <div id="notificationIcon" class="text-2xl mt-1"></div>
+            <div class="flex-1">
+                <h3 id="notificationTitle" class="font-bold text-lg"></h3>
+                <p id="notificationMessage" class="text-purple-200 text-sm mt-1"></p>
+            </div>
+            <button onclick="dismissNotification()" class="text-purple-300 hover:text-white transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Top Bar -->
+    <div class="top-bar fixed top-0 left-0 right-0 z-50">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div id="serviceStatus" class="w-2 h-2 bg-red-500 rounded-full"></div>
+                        <span class="text-sm font-semibold">Auto Clicker Pro</span>
+                    </div>
+                    <div class="text-xs text-purple-300 opacity-75">
+                        Hidden Background Service
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="showNotification('info', 'Service Info', 'Background service is running smoothly.')" 
+                            class="px-3 py-1 glass-card rounded-lg text-xs hover:bg-purple-600 transition-colors">
+                        <i class="fas fa-info-circle mr-1"></i>Status
+                    </button>
+                    <button onclick="restartBackend()" 
+                            class="px-3 py-1 glass-card rounded-lg text-xs hover:bg-green-600 transition-colors">
+                        <i class="fas fa-redo mr-1"></i>Restart
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Animated Background Elements -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none">
         <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl float"></div>
@@ -145,7 +215,7 @@
         <div class="absolute bottom-1/4 left-1/2 w-80 h-80 bg-violet-500/10 rounded-full blur-3xl float" style="animation-delay: 4s;"></div>
     </div>
 
-    <div class="relative z-10 min-h-screen flex items-center justify-center p-4">
+    <div class="relative z-10 min-h-screen flex items-center justify-center p-4 pt-20">
         <div class="glass-liquid rounded-3xl p-8 max-w-4xl w-full liquid-glow">
             <!-- Connection Status -->
             <div id="connectionStatus" class="mb-6 p-4 rounded-2xl glass-card text-center">
@@ -168,7 +238,7 @@
                         </span>
                     </h1>
                 </div>
-                <p class="text-purple-200 text-lg font-light">Web Interface • Advanced Automation</p>
+                <p class="text-purple-200 text-lg font-light">Hidden Service • Web Interface • Advanced Automation</p>
             </div>
 
             <!-- Download Section (Shows when backend not found) -->
@@ -324,10 +394,31 @@
                                     <i class="fas fa-play mr-3"></i>
                                     START AUTO CLICKER (F6)
                                 </button>
-                                <button onclick="emergencyStop()"
-                                        class="w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 py-3 px-6 rounded-2xl font-bold font-['Orbitron'] transition-all duration-300 transform hover:scale-105 border border-red-400/30">
-                                    <i class="fas fa-stop-circle mr-3"></i>
-                                    EMERGENCY STOP (F7)
+                                <button onclick="panicStop()"
+                                        class="w-full panic-btn py-3 px-6 rounded-2xl font-bold font-['Orbitron'] transition-all duration-300 transform hover:scale-105 border border-red-400/30">
+                                    <i class="fas fa-skull-crossbones mr-3"></i>
+                                    PANIC STOP (F7)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- System Control -->
+                        <div class="glass-card rounded-2xl p-6 hover-lift transition-all duration-500">
+                            <h2 class="text-xl font-bold mb-4 flex items-center font-['Orbitron']">
+                                <div class="relative mr-3">
+                                    <div class="absolute inset-0 bg-orange-500/20 rounded-full blur"></div>
+                                    <i class="fas fa-cogs text-orange-300 relative z-10"></i>
+                                </div>
+                                SYSTEM CONTROL
+                            </h2>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button onclick="restartBackend()" 
+                                        class="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105">
+                                    <i class="fas fa-redo mr-2"></i>RESTART
+                                </button>
+                                <button onclick="shutdownBackend()" 
+                                        class="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105">
+                                    <i class="fas fa-power-off mr-2"></i>SHUTDOWN
                                 </button>
                             </div>
                         </div>
@@ -347,7 +438,7 @@
                                     <kbd class="px-3 py-1 bg-purple-600 rounded-lg font-mono font-bold border border-purple-400/30">F6</kbd>
                                 </div>
                                 <div class="flex justify-between items-center">
-                                    <span class="text-purple-200 font-semibold">Emergency Stop:</span>
+                                    <span class="text-purple-200 font-semibold">Panic Stop:</span>
                                     <kbd class="px-3 py-1 bg-red-600 rounded-lg font-mono font-bold border border-red-400/30">F7</kbd>
                                 </div>
                             </div>
@@ -359,7 +450,7 @@
             <!-- Footer -->
             <div class="mt-8 text-center">
                 <div class="glass-card rounded-2xl p-4 inline-block">
-                    <p class="text-purple-300 font-semibold">Auto Clicker Pro • Web Interface</p>
+                    <p class="text-purple-300 font-semibold">Auto Clicker Pro • Hidden Service • Web Interface</p>
                     <p class="text-purple-400 text-sm mt-1" id="connectionInfo">Checking connection...</p>
                 </div>
             </div>
@@ -378,6 +469,43 @@
             human_like: true
         };
 
+        // Notification system
+        function showNotification(type, title, message, duration = 5000) {
+            const toast = document.getElementById('notificationToast');
+            const icon = document.getElementById('notificationIcon');
+            const notificationTitle = document.getElementById('notificationTitle');
+            const notificationMessage = document.getElementById('notificationMessage');
+            
+            // Set icon based on type
+            const icons = {
+                success: 'fas fa-check-circle text-green-400',
+                error: 'fas fa-exclamation-circle text-red-400',
+                warning: 'fas fa-exclamation-triangle text-yellow-400',
+                info: 'fas fa-info-circle text-blue-400'
+            };
+            
+            icon.className = icons[type] || icons.info;
+            notificationTitle.textContent = title;
+            notificationMessage.textContent = message;
+            
+            // Show toast with animation
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('show'), 100);
+            
+            // Auto dismiss
+            if (duration > 0) {
+                setTimeout(() => {
+                    dismissNotification();
+                }, duration);
+            }
+        }
+
+        function dismissNotification() {
+            const toast = document.getElementById('notificationToast');
+            toast.classList.remove('show');
+            setTimeout(() => toast.classList.add('hidden'), 500);
+        }
+
         // Check if backend is available
         async function checkBackendConnection() {
             try {
@@ -395,6 +523,7 @@
                     currentStatus = data;
                     if (!isConnected) {
                         showConnectedUI();
+                        showNotification('success', 'Auto Clicker Connected', 'Background service is now connected and ready!');
                     }
                     updateUI();
                     return true;
@@ -403,6 +532,7 @@
                 // Backend not available
                 if (isConnected) {
                     showDisconnectedUI();
+                    showNotification('error', 'Connection Lost', 'Lost connection to Auto Clicker service.');
                 }
             }
             return false;
@@ -415,6 +545,7 @@
             document.getElementById('connectionInfo').textContent = 'Connected to http://localhost:8080';
             document.getElementById('downloadSection').classList.add('hidden');
             document.getElementById('controlPanel').classList.remove('hidden');
+            document.getElementById('serviceStatus').className = 'w-2 h-2 bg-green-500 rounded-full pulse-glow';
         }
 
         function showDisconnectedUI() {
@@ -424,6 +555,7 @@
             document.getElementById('connectionInfo').textContent = 'Run the application to connect';
             document.getElementById('downloadSection').classList.remove('hidden');
             document.getElementById('controlPanel').classList.add('hidden');
+            document.getElementById('serviceStatus').className = 'w-2 h-2 bg-red-500 rounded-full';
         }
 
         // Update status from backend
@@ -517,12 +649,18 @@
             } catch (error) {
                 console.log('Failed to send command:', error);
                 showDisconnectedUI();
+                showNotification('error', 'Command Failed', 'Could not send command to service.');
                 return null;
             }
         }
 
         function toggleRunning() {
             sendCommand('start_stop');
+        }
+
+        function panicStop() {
+            showNotification('warning', '🚨 PANIC STOP', 'Emergency stop activated!');
+            sendCommand('panic_stop');
         }
 
         function setMode(mode) {
@@ -542,8 +680,25 @@
             sendCommand('set_human_like', { enabled: enabled });
         }
 
-        function emergencyStop() {
-            sendCommand('start_stop');
+        async function restartBackend() {
+            showNotification('info', 'Restarting Service', 'Please wait...');
+            const result = await sendCommand('restart_backend');
+            if (result) {
+                showNotification('success', 'Service Restarted', 'Backend service has been restarted.');
+            }
+        }
+
+        async function shutdownBackend() {
+            if (confirm('Are you sure you want to shutdown the Auto Clicker service?')) {
+                showNotification('warning', 'Shutting Down', 'Service is shutting down...');
+                try {
+                    const response = await fetch('http://localhost:8080/shutdown');
+                    showNotification('info', 'Service Stopped', 'Auto Clicker service has been stopped.');
+                    setTimeout(() => showDisconnectedUI(), 2000);
+                } catch (error) {
+                    showNotification('error', 'Shutdown Failed', 'Could not stop the service.');
+                }
+            }
         }
 
         function setCustomKey() {
