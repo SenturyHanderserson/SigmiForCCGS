@@ -329,13 +329,13 @@
     <header class="glass p-4 sticky top-0 z-40">
         <div class="container mx-auto flex justify-between items-center">
             <div class="flex items-center space-x-4">
-                <a href="index.html" class="flex items-center">
+                <a href="index" class="flex items-center">
                     <i data-feather="hexagon" class="w-6 h-6 mr-2"></i>
                     <span class="text-xl font-bold">Sigmi Team</span>
                 </a>
             </div>
             <div class="flex items-center space-x-4">
-                <a href="index.html" class="btn-primary px-4 py-2 rounded-lg text-sm">
+                <a href="index" class="btn-primary px-4 py-2 rounded-lg text-sm">
                     Back to Dashboard
                 </a>
             </div>
@@ -547,7 +547,7 @@
 			        <p class="text-sm text-gray-300 mb-3">
 			            Access management features (admins only).
 			        </p>
-			        <a href="dev.html" 
+			        <a href="dev" 
 			           class="block w-full text-center py-2 px-4 rounded-lg text-sm 
 			                  bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-600
 			                  hover:from-blue-600 hover:via-purple-600 hover:to-indigo-700
@@ -696,38 +696,43 @@ function getTheme() {
             document.cookie = name + "=" + value + ";" + expires + ";path=/";
         }
         
-        // Function to check for blacklist status
-        function checkBlacklisted() {
-            const blacklistCookie = getCookie('blacklist');
-            const blacklistLocalStorage = localStorage.getItem('blacklist');
-            
-            // If blacklisted in either storage, redirect
-            if (blacklistCookie === 'true' || blacklistLocalStorage === 'true') {
-                window.location.href = 'blacklist.html';
-                return true;
+function checkBlacklisted() {
+    const isBlacklisted = getCookie('blacklist') === 'true' || localStorage.getItem('blacklist') === 'true';
+
+    if (isBlacklisted) {
+        // Modern approach: show a modal or alert instead of separate page
+        alert("🚫 Your account is blacklisted. Contact support if this is a mistake.");
+        // Optional: redirect to home or login page
+        window.location.href = '/';
+        return true;
+    }
+
+    return false;
+}
+
+// Handle blacklist responses from server
+async function handleBlacklistResponse(response) {
+    if (response.status === 403) {
+        try {
+            const data = await response.json();
+            if (data.error === "Account blacklisted") {
+                // Save blacklist status
+                setCookie('blacklist', 'true', 365);
+                localStorage.setItem('blacklist', 'true');
+
+                // Modern redirect or message
+                alert(data.message || "🚫 Your account has been blacklisted.");
+                window.location.href = data.redirect || '/';
+                throw new Error('Account blacklisted');
             }
-            
-            return false;
+            throw new Error(data.error || 'Unknown server error');
+        } catch (err) {
+            console.error(err);
+            throw err;
         }
-        
-        // Function to handle blacklist responses from server
-        function handleBlacklistResponse(response) {
-            if (response.status === 403) {
-                return response.json().then(data => {
-                    if (data.error === "Account blacklisted") {
-                        // Set blacklist flag in both cookie and localStorage
-                        setCookie('blacklist', 'true', 365);
-                        localStorage.setItem('blacklist', 'true');
-                        
-                        // Redirect to blacklist page
-                        window.location.href = data.redirect || 'blacklist.html';
-                        return Promise.reject(new Error('Account blacklisted'));
-                    }
-                    return Promise.reject(data);
-                });
-            }
-            return response;
-        }
+    }
+    return response;
+}
         
         // Function to verify token with server
         async function verifyToken(token) {
