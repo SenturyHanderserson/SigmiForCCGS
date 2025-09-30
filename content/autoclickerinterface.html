@@ -164,6 +164,16 @@
             backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(192, 132, 252, 0.3);
         }
+        
+        .debug-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .debug-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);
+        }
     </style>
 </head>
 <body class="text-white cyber-grid">
@@ -195,6 +205,10 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-2">
+                    <button onclick="testWindowsKey()" 
+                            class="px-3 py-1 debug-btn rounded-lg text-xs text-white font-semibold transition-colors">
+                        <i class="fab fa-windows mr-1"></i>Test Win Key
+                    </button>
                     <button onclick="showNotification('info', 'Service Info', 'Background service is running smoothly.')" 
                             class="px-3 py-1 glass-card rounded-lg text-xs hover:bg-purple-600 transition-colors">
                         <i class="fas fa-info-circle mr-1"></i>Status
@@ -402,6 +416,29 @@
                             </div>
                         </div>
 
+                        <!-- Debug Section -->
+                        <div class="glass-card rounded-2xl p-6 hover-lift transition-all duration-500">
+                            <h2 class="text-xl font-bold mb-4 flex items-center font-['Orbitron']">
+                                <div class="relative mr-3">
+                                    <div class="absolute inset-0 bg-orange-500/20 rounded-full blur"></div>
+                                    <i class="fas fa-bug text-orange-300 relative z-10"></i>
+                                </div>
+                                DEBUG TOOLS
+                            </h2>
+                            <div class="space-y-3">
+                                <button onclick="testWindowsKey()"
+                                        class="w-full debug-btn py-3 px-6 rounded-xl font-semibold text-white transition-all duration-300 transform hover:scale-105">
+                                    <i class="fab fa-windows mr-2"></i>
+                                    TEST WINDOWS KEY
+                                </button>
+                                <button onclick="testSingleClick()"
+                                        class="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 py-3 px-6 rounded-xl font-semibold text-white transition-all duration-300 transform hover:scale-105">
+                                    <i class="fas fa-mouse-pointer mr-2"></i>
+                                    TEST SINGLE CLICK
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- System Control -->
                         <div class="glass-card rounded-2xl p-6 hover-lift transition-all duration-500">
                             <h2 class="text-xl font-bold mb-4 flex items-center font-['Orbitron']">
@@ -548,6 +585,39 @@ function setHumanLike(e) { sendCommand("set_human_like", { enabled: e }); }
 function setCustomKey() {
     const k = prompt("Enter custom key:");
     if (k) sendCommand("set_custom_key", { key: k });
+}
+
+// Debug functions
+async function testWindowsKey() {
+    console.log("🪟 Testing Windows key press...");
+    const result = await sendCommand("debug_windows_key");
+    if (result && result.status === "ok") {
+        showNotification("✅ Windows key pressed successfully!", "info");
+    } else {
+        showNotification("❌ Failed to press Windows key", "error");
+    }
+}
+
+async function testSingleClick() {
+    console.log("🖱️ Testing single click...");
+    const result = await sendCommand("debug_single_click");
+    if (result && result.status === "ok") {
+        showNotification("✅ Single click performed!", "info");
+    } else {
+        showNotification("❌ Failed to perform click", "error");
+    }
+}
+
+function restartBackend() {
+    console.log("🔄 Restarting backend...");
+    sendCommand("restart");
+    showNotification("🔄 Restarting backend service...", "info");
+}
+
+function shutdownBackend() {
+    console.log("🔌 Shutting down backend...");
+    sendCommand("shutdown");
+    showNotification("🔌 Shutting down backend service...", "info");
 }
 
 setInterval(checkBackendConnection, 1500);
