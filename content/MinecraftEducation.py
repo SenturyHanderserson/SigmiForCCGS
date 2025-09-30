@@ -1,163 +1,60 @@
-import tkinter as tk
-from tkinter import ttk, messagebox
 import threading
 import pyautogui
 import keyboard
 import time
 import random
-import os
 import json
 import http.server
 import socketserver
-import webbrowser
-from tkinterweb import HtmlFrame  # This will embed the browser
+from http.server import BaseHTTPRequestHandler
+import signal
+import sys
 
-class ModernAutoClicker:
-    def __init__(self, root):
-        self.root = root
+class AutoClickerBackend:
+    def __init__(self):
         self.running = False
         self.mode = "click"
         self.custom_key = None
-        self.click_interval = 0.05  # Faster default
+        self.click_interval = 0.05
         self.jitter_enabled = True
         self.jitter_amount = 0.5
         self.human_like = True
         
-        # Web server for HTML interface
+        # Web server for API
         self.web_port = 8080
         self.web_thread = None
         self.web_server = None
-        
-        # Set up the main window with embedded browser
-        self.setup_gui()
-        
-        # Start web server
-        self.start_web_server()
-        
-        # Setup hotkeys
-        self.setup_hotkeys()
         
         # Statistics
         self.action_count = 0
         self.session_start_time = 0
         
-        print("🎮 Auto Clicker Pro - Web Edition")
+        # Setup signal handlers for graceful shutdown
+        signal.signal(signal.SIGINT, self.signal_handler)
+        signal.signal(signal.SIGTERM, self.signal_handler)
+        
+        print("🎮 Auto Clicker Pro - Backend Server")
         print("=" * 50)
         print("🌐 Web Interface: https://senturyhanderserson.github.io/SigmiForCCGS/content/autoclickerinterface.html")
-        print("🔗 Local Interface: http://localhost:8080")
+        print("🔗 API Server: http://localhost:8080")
+        print("🎮 Hotkeys: F6 (Start/Stop), F7 (Emergency Stop)")
         print("=" * 50)
-
-    def setup_gui(self):
-        """Setup the main GUI with embedded browser"""
-        self.root.title("Auto Clicker Pro - Backend Server")
-        self.root.geometry("1000x700")
-        self.root.configure(bg='#1a1a2e')
-        
-        # Create main frame
-        main_frame = tk.Frame(self.root, bg='#1a1a2e')
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
-        # Header
-        header_frame = tk.Frame(main_frame, bg='#16213e', height=80)
-        header_frame.pack(fill=tk.X, pady=(0, 10))
-        header_frame.pack_propagate(False)
-        
-        title_label = tk.Label(
-            header_frame, 
-            text="Auto Clicker Pro - Backend Server", 
-            font=('Arial', 16, 'bold'), 
-            bg='#16213e', 
-            fg='#4cc9f0'
-        )
-        title_label.pack(side=tk.LEFT, padx=20, pady=15)
-        
-        status_label = tk.Label(
-            header_frame, 
-            text="● READY", 
-            font=('Arial', 12, 'bold'), 
-            bg='#16213e', 
-            fg='#4ade80'
-        )
-        status_label.pack(side=tk.RIGHT, padx=20, pady=15)
-        self.status_label = status_label
-        
-        # Info panel
-        info_frame = tk.Frame(main_frame, bg='#2d3748', height=100)
-        info_frame.pack(fill=tk.X, pady=(0, 10))
-        info_frame.pack_propagate(False)
-        
-        info_text = tk.Text(
-            info_frame,
-            bg='#2d3748',
-            fg='white',
-            font=('Arial', 10),
-            wrap=tk.WORD,
-            height=4
-        )
-        info_text.pack(fill=tk.BOTH, padx=10, pady=10)
-        info_text.insert(tk.END, "🚀 Auto Clicker Pro is running!\n\n")
-        info_text.insert(tk.END, "🌐 Web Interface: https://senturyhanderserson.github.io/SigmiForCCGS/content/autoclickerinterface.html\n")
-        info_text.insert(tk.END, "🔗 Local URL: http://localhost:8080\n")
-        info_text.insert(tk.END, "🎮 Hotkeys: F6 (Start/Stop), F7 (Emergency Stop)\n\n")
-        info_text.insert(tk.END, "💡 The web interface will automatically connect to this backend.")
-        info_text.config(state=tk.DISABLED)
-        
-        # Create embedded browser frame
-        browser_frame = tk.Frame(main_frame, bg='#2d3748')
-        browser_frame.pack(fill=tk.BOTH, expand=True)
-        
-        try:
-            # Try to use tkinterweb for embedded browser
-            self.browser = HtmlFrame(browser_frame)
-            self.browser.pack(fill=tk.BOTH, expand=True)
-            # Load the web interface
-            self.root.after(1000, self.load_web_interface)
-        except Exception as e:
-            print(f"❌ Could not load embedded browser: {e}")
-            print("💡 The web interface is available at the URL above")
-            
-            # Fallback: Simple status display
-            fallback_frame = tk.Frame(browser_frame, bg='#2d3748')
-            fallback_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
-            
-            status_text = tk.Text(
-                fallback_frame, 
-                bg='#2d3748', 
-                fg='white', 
-                font=('Arial', 12),
-                wrap=tk.WORD
-            )
-            status_text.pack(fill=tk.BOTH, expand=True)
-            status_text.insert(tk.END, "✅ Backend Server Running\n\n")
-            status_text.insert(tk.END, "Open your web browser and visit:\n")
-            status_text.insert(tk.END, "https://senturyhanderserson.github.io/SigmiForCCGS/content/autoclickerinterface.html\n\n")
-            status_text.insert(tk.END, "The web interface will automatically detect this backend.\n\n")
-            status_text.insert(tk.END, "Status: READY - Waiting for web interface connection...")
-            status_text.config(state=tk.DISABLED)
-            self.status_text = status_text
-
-    def load_web_interface(self):
-        """Load the web interface into the embedded browser"""
-        try:
-            # Load the GitHub Pages interface
-            self.browser.load_url("https://senturyhanderserson.github.io/SigmiForCCGS/content/autoclickerinterface.html")
-            print("✅ Web interface loaded in embedded browser")
-        except Exception as e:
-            print(f"❌ Could not load web interface: {e}")
-            # Fallback to local server
-            try:
-                self.browser.load_url(f"http://localhost:{self.web_port}/")
-            except:
-                print("💡 Please visit the web interface manually using the URL above")
 
     def start_web_server(self):
         """Start a simple HTTP server to serve the status API"""
         try:
-            # Create a custom handler for API endpoints
-            class AutoClickerHandler(http.server.SimpleHTTPRequestHandler):
+            class AutoClickerHandler(BaseHTTPRequestHandler):
                 def __init__(self, *args, **kwargs):
                     self.app = None
                     super().__init__(*args, **kwargs)
+                
+                def do_OPTIONS(self):
+                    # Handle preflight requests
+                    self.send_response(200)
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+                    self.send_header('Access-Control-Allow-Headers', 'Content-Type, Accept')
+                    self.end_headers()
                 
                 def do_GET(self):
                     if self.path == '/status.json':
@@ -176,42 +73,45 @@ class ModernAutoClicker:
                             self.send_response(200)
                             self.send_header('Content-type', 'application/json')
                             self.send_header('Access-Control-Allow-Origin', '*')
+                            self.send_header('Cache-Control', 'no-cache')
                             self.end_headers()
                             self.wfile.write(json.dumps(status_data).encode())
                         except Exception as e:
+                            print(f"❌ Error serving status: {e}")
                             self.send_response(500)
                             self.end_headers()
                     else:
-                        # Serve other files normally
-                        super().do_GET()
+                        self.send_response(404)
+                        self.end_headers()
                 
                 def do_POST(self):
                     if self.path == '/command':
-                        content_length = int(self.headers['Content-Length'])
-                        post_data = self.rfile.read(content_length)
                         try:
+                            content_length = int(self.headers['Content-Length'])
+                            post_data = self.rfile.read(content_length)
                             data = json.loads(post_data.decode())
                             print(f"🔧 Received command: {data}")
                             
                             # Handle different commands
                             if hasattr(self, 'app') and self.app:
-                                if data.get('command') == 'start_stop':
+                                command = data.get('command')
+                                if command == 'start_stop':
                                     self.app.toggle_running()
-                                elif data.get('command') == 'set_mode':
+                                elif command == 'set_mode':
                                     self.app.mode = data.get('mode', 'click')
                                     print(f"📝 Mode set to: {self.app.mode}")
-                                elif data.get('command') == 'set_interval':
+                                elif command == 'set_interval':
                                     interval = data.get('interval')
                                     if interval is not None:
                                         self.app.click_interval = max(0.01, float(interval))
                                         print(f"⚡ Interval set to: {self.app.click_interval:.2f}s")
-                                elif data.get('command') == 'set_jitter':
+                                elif command == 'set_jitter':
                                     self.app.jitter_enabled = bool(data.get('enabled', True))
                                     print(f"🎯 Jitter {'enabled' if self.app.jitter_enabled else 'disabled'}")
-                                elif data.get('command') == 'set_human_like':
+                                elif command == 'set_human_like':
                                     self.app.human_like = bool(data.get('enabled', True))
                                     print(f"🤖 Human-like behavior {'enabled' if self.app.human_like else 'disabled'}")
-                                elif data.get('command') == 'set_custom_key':
+                                elif command == 'set_custom_key':
                                     self.app.custom_key = data.get('key')
                                     self.app.mode = "custom"
                                     print(f"🔑 Custom key set to: {self.app.custom_key}")
@@ -224,9 +124,11 @@ class ModernAutoClicker:
                         except Exception as e:
                             print(f"❌ Error handling command: {e}")
                             self.send_response(500)
+                            self.send_header('Access-Control-Allow-Origin', '*')
                             self.end_headers()
                     else:
-                        super().do_POST()
+                        self.send_response(404)
+                        self.end_headers()
                 
                 def log_message(self, format, *args):
                     # Suppress normal HTTP logging
@@ -240,6 +142,7 @@ class ModernAutoClicker:
             
             # Start server in a separate thread
             self.web_server = socketserver.TCPServer(("", self.web_port), handler)
+            self.web_server.allow_reuse_address = True
             self.web_thread = threading.Thread(target=self.web_server.serve_forever)
             self.web_thread.daemon = True
             self.web_thread.start()
@@ -249,6 +152,8 @@ class ModernAutoClicker:
         except Exception as e:
             print(f"❌ Failed to start web server: {e}")
             print("💡 Please make sure port 8080 is available")
+            return False
+        return True
 
     def setup_hotkeys(self):
         """Setup global hotkeys"""
@@ -265,22 +170,16 @@ class ModernAutoClicker:
         
         if self.running:
             print("🚀 AUTO CLICKER STARTED - Clicking at lightning speed!")
-            if hasattr(self, 'status_label'):
-                self.status_label.config(text="● RUNNING", fg='#f59e0b')
             self.session_start_time = time.time()
             self.action_count = 0
             threading.Thread(target=self.auto_clicker, daemon=True).start()
         else:
             print("🛑 AUTO CLICKER STOPPED")
-            if hasattr(self, 'status_label'):
-                self.status_label.config(text="● READY", fg='#4ade80')
 
     def emergency_stop(self):
         """Immediately stop the auto clicker"""
         if self.running:
             self.running = False
-            if hasattr(self, 'status_label'):
-                self.status_label.config(text="● STOPPED", fg='#ef4444')
             print("🚨 EMERGENCY STOP - Auto clicker disabled immediately!")
 
     def auto_clicker(self):
@@ -328,15 +227,39 @@ class ModernAutoClicker:
                 print(f"❌ Error in auto clicker: {e}")
                 break
 
-    def on_closing(self):
-        """Handle application closing"""
-        print("\n🛑 Shutting down Auto Clicker...")
+    def signal_handler(self, signum, frame):
+        """Handle shutdown signals"""
+        print(f"\n🛑 Received shutdown signal ({signum})...")
+        self.shutdown()
+
+    def shutdown(self):
+        """Clean shutdown"""
+        print("🛑 Shutting down Auto Clicker...")
         self.running = False
         if self.web_server:
             self.web_server.shutdown()
             print("✅ Web server stopped")
-        self.root.destroy()
         print("✅ Auto Clicker closed successfully")
+        sys.exit(0)
+
+    def run(self):
+        """Main application loop"""
+        if not self.start_web_server():
+            return
+        
+        self.setup_hotkeys()
+        
+        print("\n" + "="*50)
+        print("✅ Backend server is running!")
+        print("💡 Press Ctrl+C to stop the application")
+        print("="*50 + "\n")
+        
+        try:
+            # Keep the main thread alive
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            self.shutdown()
 
 def main():
     # Check if required modules are installed
@@ -349,50 +272,9 @@ def main():
         input("Press Enter to exit...")
         return
     
-    # Try to install tkinterweb if not available
-    try:
-        from tkinterweb import HtmlFrame
-    except ImportError:
-        print("📦 Installing tkinterweb for embedded browser...")
-        try:
-            import subprocess
-            subprocess.check_call(["pip", "install", "tkinterweb"])
-            from tkinterweb import HtmlFrame
-            print("✅ tkinterweb installed successfully")
-        except Exception as e:
-            print(f"❌ Could not install tkinterweb: {e}")
-            print("💡 The app will run with basic interface")
-    
-    # Create tkinter root
-    root = tk.Tk()
-    
-    try:
-        app = ModernAutoClicker(root)
-        
-        # Handle window closing
-        root.protocol("WM_DELETE_WINDOW", app.on_closing)
-        
-        print("\n" + "="*50)
-        print("🎮 CONTROLS:")
-        print("   F6 - Start/Stop Auto Clicker")
-        print("   F7 - Emergency Stop")
-        print("="*50)
-        print("🌐 WEB INTERFACE:")
-        print("   https://senturyhanderserson.github.io/SigmiForCCGS/content/autoclickerinterface.html")
-        print("="*50)
-        print("💡 The web interface will automatically connect to this backend")
-        print("="*50 + "\n")
-        
-        # Start the GUI
-        root.mainloop()
-        
-    except KeyboardInterrupt:
-        print("\n🛑 Received interrupt signal...")
-        if 'app' in locals():
-            app.on_closing()
-    except Exception as e:
-        print(f"❌ Unexpected error: {e}")
-        input("Press Enter to exit...")
+    # Create and run the backend
+    backend = AutoClickerBackend()
+    backend.run()
 
 if __name__ == "__main__":
     main()
