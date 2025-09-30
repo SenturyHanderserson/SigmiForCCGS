@@ -10,7 +10,7 @@
     <style>
         body {
             font-family: 'Rajdhani', sans-serif;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a0b2e 50%, #2d1b69 100%);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 25%, #2d2d2d 50%, #1a1a1a 75%, #0a0a0a 100%);
             overflow-x: hidden;
             min-height: 100vh;
         }
@@ -88,8 +88,8 @@
         
         .cyber-grid {
             background-image: 
-                linear-gradient(rgba(192, 132, 252, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(192, 132, 252, 0.1) 1px, transparent 1px);
+                linear-gradient(rgba(192, 132, 252, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(192, 132, 252, 0.05) 1px, transparent 1px);
             background-size: 50px 50px;
         }
         
@@ -135,9 +135,9 @@
 <body class="text-white cyber-grid">
     <!-- Animated Background Elements -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl float"></div>
-        <div class="absolute top-3/4 right-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl float" style="animation-delay: 2s;"></div>
-        <div class="absolute bottom-1/4 left-1/2 w-80 h-80 bg-violet-500/10 rounded-full blur-3xl float" style="animation-delay: 4s;"></div>
+        <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl float"></div>
+        <div class="absolute top-3/4 right-1/4 w-96 h-96 bg-indigo-600/5 rounded-full blur-3xl float" style="animation-delay: 2s;"></div>
+        <div class="absolute bottom-1/4 left-1/2 w-80 h-80 bg-violet-500/5 rounded-full blur-3xl float" style="animation-delay: 4s;"></div>
     </div>
 
     <div class="relative z-10 min-h-screen flex items-center justify-center p-4">
@@ -465,30 +465,37 @@
         }
 
         // Control functions
-        function toggleRunning() {
+        async function sendCommand(command, data = {}) {
             if (!isConnected) return;
             
-            fetch('http://localhost:8080/command', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ command: 'start_stop' })
-            }).catch(error => {
-                console.log('Failed to send command');
+            try {
+                const response = await fetch('http://localhost:8080/command', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ command, ...data })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.log('Failed to send command:', error);
                 showDisconnectedUI();
-            });
+                return null;
+            }
+        }
+
+        function toggleRunning() {
+            sendCommand('start_stop');
         }
 
         function setMode(mode) {
-            if (!isConnected) return;
-            
-            fetch('http://localhost:8080/command', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ command: 'set_mode', mode: mode })
-            }).catch(error => {
-                console.log('Failed to send command');
-                showDisconnectedUI();
-            });
+            sendCommand('set_mode', { mode: mode });
             
             // Visual feedback
             document.querySelectorAll('.mode-btn').forEach(btn => {
@@ -498,56 +505,20 @@
         }
 
         function setInterval(value) {
-            if (!isConnected) return;
-            
             const interval = Math.max(0.01, value);
-            fetch('http://localhost:8080/command', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ command: 'set_interval', interval: interval })
-            }).catch(error => {
-                console.log('Failed to send command');
-                showDisconnectedUI();
-            });
+            sendCommand('set_interval', { interval: interval });
         }
 
         function setJitter(enabled) {
-            if (!isConnected) return;
-            
-            fetch('http://localhost:8080/command', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ command: 'set_jitter', enabled: enabled })
-            }).catch(error => {
-                console.log('Failed to send command');
-                showDisconnectedUI();
-            });
+            sendCommand('set_jitter', { enabled: enabled });
         }
 
         function setHumanLike(enabled) {
-            if (!isConnected) return;
-            
-            fetch('http://localhost:8080/command', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ command: 'set_human_like', enabled: enabled })
-            }).catch(error => {
-                console.log('Failed to send command');
-                showDisconnectedUI();
-            });
+            sendCommand('set_human_like', { enabled: enabled });
         }
 
         function emergencyStop() {
-            if (!isConnected) return;
-            
-            fetch('http://localhost:8080/command', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ command: 'start_stop' })
-            }).catch(error => {
-                console.log('Failed to send command');
-                showDisconnectedUI();
-            });
+            sendCommand('start_stop');
         }
 
         function setCustomKey() {
@@ -555,14 +526,7 @@
             
             const key = prompt('Enter custom key (e.g., "a", "ctrl", "shift"):');
             if (key) {
-                fetch('http://localhost:8080/command', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ command: 'set_custom_key', key: key })
-                }).catch(error => {
-                    console.log('Failed to send command');
-                    showDisconnectedUI();
-                });
+                sendCommand('set_custom_key', { key: key });
             }
         }
 
