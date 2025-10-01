@@ -48,32 +48,28 @@ class AutoClickerBackend:
     def start_web_server(self):
         try:
             class AutoClickerHandler(BaseHTTPRequestHandler):
-                def do_OPTIONS(self):
-                    """Handle preflight CORS requests"""
-                    self.send_response(200)
-                    self.send_header('Access-Control-Allow-Origin', '*')
-                    self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-                    self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin, X-Requested-With')
-                    self.send_header('Access-Control-Max-Age', '86400')
-                    self.end_headers()
-
                 def _set_cors_headers(self):
                     """Set CORS headers for all responses"""
                     self.send_header('Access-Control-Allow-Origin', '*')
                     self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
                     self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin, X-Requested-With')
                     self.send_header('Access-Control-Allow-Credentials', 'true')
+                    self.send_header('Access-Control-Max-Age', '86400')
+
+                def do_OPTIONS(self):
+                    """Handle preflight CORS requests"""
+                    self.send_response(200)
+                    self._set_cors_headers()
+                    self.end_headers()
 
                 def do_GET(self):
                     """Handle GET requests"""
                     try:
-                        # Set CORS headers for all GET requests
-                        self._set_cors_headers()
-                        
                         if self.path == '/status.json' or self.path == '/status':
                             status_data = self.server.backend_app.get_status()
                             self.send_response(200)
                             self.send_header('Content-type', 'application/json')
+                            self._set_cors_headers()
                             self.end_headers()
                             self.wfile.write(json.dumps(status_data).encode('utf-8'))
                         elif self.path == '/':
@@ -117,18 +113,17 @@ class AutoClickerBackend:
                             self.wfile.write(html.encode('utf-8'))
                         else:
                             self.send_response(404)
+                            self._set_cors_headers()
                             self.end_headers()
                     except Exception as e:
                         print(f"❌ Error in GET handler: {e}")
                         self.send_response(500)
+                        self._set_cors_headers()
                         self.end_headers()
 
                 def do_POST(self):
                     """Handle POST requests"""
                     try:
-                        # Set CORS headers for all POST requests
-                        self._set_cors_headers()
-                        
                         if self.path == '/command':
                             content_length = int(self.headers.get('Content-Length', 0))
                             post_data = b''
@@ -149,15 +144,18 @@ class AutoClickerBackend:
                             
                             self.send_response(200)
                             self.send_header('Content-type', 'application/json')
+                            self._set_cors_headers()
                             self.end_headers()
                             self.wfile.write(json.dumps(response_data).encode("utf-8"))
                         else:
                             self.send_response(404)
+                            self._set_cors_headers()
                             self.end_headers()
                     except Exception as e:
                         print(f"❌ Error in POST handler: {e}")
                         self.send_response(500)
                         self.send_header('Content-type', 'application/json')
+                        self._set_cors_headers()
                         error_response = {"status": "error", "message": str(e)}
                         self.end_headers()
                         self.wfile.write(json.dumps(error_response).encode("utf-8"))
