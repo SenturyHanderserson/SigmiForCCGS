@@ -65,66 +65,35 @@ class AutoClickerBackend:
                 def do_GET(self):
                     """Handle GET requests"""
                     try:
-                        if self.path == '/status.json' or self.path == '/status':
+                        # Set CORS headers for all responses
+                        self.send_response(200)
+                        self.send_header('Content-type', 'application/json')
+                        self._set_cors_headers()
+                        
+                        # Handle different paths
+                        if self.path.startswith('/status') or self.path.startswith('/status.json'):
                             status_data = self.server.backend_app.get_status()
-                            self.send_response(200)
-                            self.send_header('Content-type', 'application/json')
-                            self._set_cors_headers()
                             self.end_headers()
                             self.wfile.write(json.dumps(status_data).encode('utf-8'))
-                        elif self.path == '/':
-                            # Serve a simple status page for direct browser access
-                            status_data = self.server.backend_app.get_status()
-                            html = f"""
-                            <html>
-                                <head>
-                                    <title>Auto Clicker Pro Backend</title>
-                                    <style>
-                                        body {{ 
-                                            font-family: Arial, sans-serif; 
-                                            margin: 40px; 
-                                            background: #1a1a2e;
-                                            color: white;
-                                        }}
-                                        .status {{ 
-                                            background: #16213e; 
-                                            padding: 20px; 
-                                            border-radius: 10px;
-                                            margin: 10px 0;
-                                        }}
-                                    </style>
-                                </head>
-                                <body>
-                                    <h1>Auto Clicker Pro Backend</h1>
-                                    <div class="status">
-                                        <p>Status: <strong>{'RUNNING' if status_data['running'] else 'STOPPED'}</strong></p>
-                                        <p>Mode: {status_data['mode']}</p>
-                                        <p>Interval: {status_data['interval']}s</p>
-                                        <p>Actions: {status_data['actions']}</p>
-                                        <p>Session Time: {status_data['session_time']}s</p>
-                                    </div>
-                                    <p>Web interface available at the main HTML file</p>
-                                </body>
-                            </html>
-                            """
-                            self.send_response(200)
-                            self.send_header('Content-type', 'text/html')
-                            self.end_headers()
-                            self.wfile.write(html.encode('utf-8'))
                         else:
-                            self.send_response(404)
-                            self._set_cors_headers()
+                            # For any other path, return status (this handles /status.json?timestamp cases)
+                            status_data = self.server.backend_app.get_status()
                             self.end_headers()
+                            self.wfile.write(json.dumps(status_data).encode('utf-8'))
+                            
                     except Exception as e:
                         print(f"❌ Error in GET handler: {e}")
                         self.send_response(500)
+                        self.send_header('Content-type', 'application/json')
                         self._set_cors_headers()
                         self.end_headers()
+                        error_response = {"status": "error", "message": str(e)}
+                        self.wfile.write(json.dumps(error_response).encode('utf-8'))
 
                 def do_POST(self):
                     """Handle POST requests"""
                     try:
-                        if self.path == '/command':
+                        if self.path == '/command' or self.path.startswith('/command?'):
                             content_length = int(self.headers.get('Content-Length', 0))
                             post_data = b''
                             
@@ -149,8 +118,11 @@ class AutoClickerBackend:
                             self.wfile.write(json.dumps(response_data).encode("utf-8"))
                         else:
                             self.send_response(404)
+                            self.send_header('Content-type', 'application/json')
                             self._set_cors_headers()
                             self.end_headers()
+                            error_response = {"status": "error", "message": "Endpoint not found"}
+                            self.wfile.write(json.dumps(error_response).encode("utf-8"))
                     except Exception as e:
                         print(f"❌ Error in POST handler: {e}")
                         self.send_response(500)
@@ -178,6 +150,8 @@ class AutoClickerBackend:
                     self.web_thread = threading.Thread(target=self.web_server.serve_forever, daemon=True)
                     self.web_thread.start()
                     print(f"✅ Web server started successfully on http://localhost:{self.web_port}")
+                    print(f"📊 Status endpoint: http://localhost:{self.web_port}/status.json")
+                    print(f"🎮 Command endpoint: http://localhost:{self.web_port}/command")
                     return True
                 except OSError as e:
                     if "Address already in use" in str(e):
