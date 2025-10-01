@@ -39,7 +39,7 @@ class AutoClickerBackend:
         print("🎮 Auto Clicker Pro - Backend Server")
         print("=" * 50)
         print("🌐 API Server: http://localhost:8080")
-        print("🎮 Hotkeys: F6 (Start/Stop), F7 (Emergency Stop)")
+        print("🎮 Hotkeys: F6 (Toggle Start/Stop), F7 (Emergency Stop)")
         print("🔧 Debug: Windows key test available via web interface")
         print("⚡ Max CPS: 200 (0.005s interval)")
         print("=" * 50)
@@ -168,12 +168,26 @@ class AutoClickerBackend:
         response_data = {"status": "ok"}
         
         try:
-            if command == "start_stop":
-                self.toggle_running()
-                response_data["message"] = f"Auto-clicker {'started' if self.running else 'stopped'}"
+            if command == "start_clicker":
+                # Only start if not already running
+                if not self.running:
+                    self.start_auto_clicker()
+                    response_data["message"] = "Auto-clicker started"
+                else:
+                    response_data["message"] = "Auto-clicker is already running"
+                response_data["running"] = self.running
+                
+            elif command == "stop_clicker":
+                # Only stop if currently running
+                if self.running:
+                    self.stop_auto_clicker()
+                    response_data["message"] = "Auto-clicker stopped"
+                else:
+                    response_data["message"] = "Auto-clicker is already stopped"
                 response_data["running"] = self.running
                 
             elif command == "panic_stop":
+                was_running = self.running
                 self.panic_stop()
                 response_data["message"] = "Emergency stop activated"
                 response_data["running"] = self.running
@@ -270,7 +284,7 @@ class AutoClickerBackend:
             print("❌ No custom key provided")
 
     def toggle_running(self):
-        """Start or stop the auto-clicker"""
+        """Toggle the auto-clicker state (for F6 hotkey)"""
         if self.running:
             self.stop_auto_clicker()
         else:
@@ -444,9 +458,11 @@ class AutoClickerBackend:
     def setup_hotkeys(self):
         """Setup global hotkeys"""
         try:
+            # F6 toggles start/stop
             keyboard.add_hotkey("f6", self.toggle_running)
+            # F7 is emergency stop
             keyboard.add_hotkey("f7", self.panic_stop)
-            print("✅ Hotkeys registered: F6 (Start/Stop), F7 (Panic Stop)")
+            print("✅ Hotkeys registered: F6 (Toggle Start/Stop), F7 (Emergency Stop)")
         except Exception as e:
             print(f"❌ Failed to setup hotkeys: {e}")
 
@@ -474,7 +490,7 @@ class AutoClickerBackend:
         
         print("\n🎯 Auto Clicker Pro is now running!")
         print("💡 Use the web interface at http://localhost:8080")
-        print("💡 Or use hotkeys: F6 (Start/Stop), F7 (Emergency Stop)")
+        print("💡 Or use hotkeys: F6 (Toggle Start/Stop), F7 (Emergency Stop)")
         print("⚡ Max performance: 200 CPS (0.005s interval)")
         print("⏹️  Press Ctrl+C to exit\n")
         
