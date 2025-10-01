@@ -417,15 +417,15 @@
                                 QUICK CONTROL
                             </h2>
                             <div class="space-y-4">
-                                <button onclick="startAutoClicker()" id="startStopBtn"
+                                <button onclick="toggleAutoClicker()" id="toggleBtn"
                                         class="w-full liquid-fill hover:brightness-110 py-4 px-6 rounded-2xl font-bold text-lg font-['Orbitron'] transition-all duration-300 transform hover:scale-105 pulse-glow border border-green-400/30">
                                     <i class="fas fa-play mr-3"></i>
                                     START AUTO CLICKER (F6)
                                 </button>
-                                <button onclick="stopAutoClicker()" id="panicStopBtn"
+                                <button onclick="panicStop()" id="panicStopBtn"
                                         class="w-full panic-btn py-3 px-6 rounded-2xl font-bold font-['Orbitron'] transition-all duration-300 transform hover:scale-105 border border-red-400/30 btn-disabled">
                                     <i class="fas fa-skull-crossbones mr-3"></i>
-                                    STOP AUTO CLICKER (F6)
+                                    EMERGENCY STOP (F7)
                                 </button>
                             </div>
                         </div>
@@ -513,7 +513,7 @@ let isConnected = false;
 let currentStatus = {};
 let connectionAttempts = 0;
 let isRunning = false;
-let lastSuccessfulConnection = 0;
+let connectionCheckInterval;
 
 function showNotification(message, type = "info") {
     console.log(`🔔 [${type.toUpperCase()}] ${message}`);
@@ -542,16 +542,17 @@ async function checkBackendConnection() {
         const timeoutId = setTimeout(() => controller.abort(), 2000);
         
         const res = await fetch("http://localhost:8080/status.json", {
-            signal: controller.signal
+            signal: controller.signal,
+            cache: 'no-cache'
         });
         
         clearTimeout(timeoutId);
         
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         
-        currentStatus = await res.json();
+        const newStatus = await res.json();
+        currentStatus = newStatus;
         connectionAttempts = 0;
-        lastSuccessfulConnection = Date.now();
         
         if (!isConnected) {
             isConnected = true;
@@ -559,7 +560,10 @@ async function checkBackendConnection() {
             showNotification("✅ Connected to Auto Clicker backend", "success");
         }
         
-        updateUI();
+        // Only update UI if status actually changed
+        if (JSON.stringify(newStatus) !== JSON.stringify(currentStatus)) {
+            updateUI();
+        }
         
     } catch (err) {
         connectionAttempts++;
@@ -576,11 +580,9 @@ async function checkBackendConnection() {
             }
         }
         
-        // Show download section if not connected after several attempts
-        if (connectionAttempts > 1) {
-            document.getElementById('downloadSection').classList.remove('hidden');
-            document.getElementById('controlPanel').classList.add('hidden');
-        }
+        // Show download section if not connected
+        document.getElementById('downloadSection').classList.remove('hidden');
+        document.getElementById('controlPanel').classList.add('hidden');
     }
 }
 
@@ -649,25 +651,25 @@ function updateUI() {
 }
 
 function updateButtonStates() {
-    const startBtn = document.getElementById('startStopBtn');
-    const stopBtn = document.getElementById('panicStopBtn');
+    const toggleBtn = document.getElementById('toggleBtn');
+    const panicBtn = document.getElementById('panicStopBtn');
     
     if (isRunning) {
-        // When running: disable start button, enable stop button
-        startBtn.classList.add('btn-disabled');
-        startBtn.classList.remove('liquid-fill', 'pulse-glow');
-        startBtn.style.background = 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)';
+        // When running: show stop state
+        toggleBtn.innerHTML = '<i class="fas fa-stop mr-3"></i>STOP AUTO CLICKER (F6)';
+        toggleBtn.classList.remove('liquid-fill');
+        toggleBtn.classList.add('bg-gradient-to-r', 'from-orange-500', 'to-amber-500');
+        toggleBtn.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
         
-        stopBtn.classList.remove('btn-disabled');
-        stopBtn.style.animation = 'panicPulse 1s ease-in-out infinite';
+        panicBtn.classList.remove('btn-disabled');
     } else {
-        // When stopped: enable start button, disable stop button
-        startBtn.classList.remove('btn-disabled');
-        startBtn.classList.add('liquid-fill', 'pulse-glow');
-        startBtn.style.background = '';
+        // When stopped: show start state
+        toggleBtn.innerHTML = '<i class="fas fa-play mr-3"></i>START AUTO CLICKER (F6)';
+        toggleBtn.classList.add('liquid-fill');
+        toggleBtn.classList.remove('bg-gradient-to-r', 'from-orange-500', 'to-amber-500');
+        toggleBtn.style.background = '';
         
-        stopBtn.classList.add('btn-disabled');
-        stopBtn.style.animation = 'none';
+        panicBtn.classList.add('btn-disabled');
     }
 }
 
@@ -717,16 +719,14 @@ async function sendCommand(command, extra = {}) {
     }
 }
 
-// Command functions - SEPARATE functions for start and stop
-function startAutoClicker() { 
-    if (!isRunning) {
-        sendCommand("start_clicker"); 
-    }
+// Command functions
+function toggleAutoClicker() { 
+    sendCommand("toggle_running"); 
 }
 
-function stopAutoClicker() { 
+function panicStop() { 
     if (isRunning) {
-        sendCommand("stop_clicker"); 
+        sendCommand("panic_stop"); 
     }
 }
 
@@ -735,7 +735,6 @@ function setMode(m) {
 }
 
 function setInterval(v) { 
-    // Allow much smaller intervals for higher CPS (down to 0.005s = 200 CPS)
     const interval = Math.max(0.005, v);
     sendCommand("set_interval", { interval: interval }); 
 }
@@ -790,9 +789,16 @@ function shutdownBackend() {
 
 // Initialize connection checking
 console.log("🚀 Auto Clicker Pro Web Interface starting...");
-setInterval(checkBackendConnection, 2000); // Check every 2 seconds for connection status
+connectionCheckInterval = setInterval(checkBackendConnection, 2000); // Check every 2 seconds
 // Initial connection check
 setTimeout(checkBackendConnection, 500);
+
+// Clean up on page unload
+window.addEventListener('beforeunload', () => {
+    if (connectionCheckInterval) {
+        clearInterval(connectionCheckInterval);
+    }
+});
 </script>
 
 </body>
