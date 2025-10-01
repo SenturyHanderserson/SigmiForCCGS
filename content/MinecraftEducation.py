@@ -41,6 +41,7 @@ class AutoClickerBackend:
         print("🌐 API Server: http://localhost:8080")
         print("🎮 Hotkeys: F6 (Start/Stop), F7 (Emergency Stop)")
         print("🔧 Debug: Windows key test available via web interface")
+        print("⚡ Max CPS: 200 (0.005s interval)")
         print("=" * 50)
 
     # ------------------- Web Server -------------------
@@ -85,7 +86,7 @@ class AutoClickerBackend:
                                     <p>Mode: {status_data['mode']}</p>
                                     <p>Interval: {status_data['interval']}s</p>
                                     <p>Actions: {status_data['actions']}</p>
-                                    <p>Uptime: {status_data['session_time']}s</p>
+                                    <p>Session Time: {status_data['session_time']}s</p>
                                     <p>Web interface available at the main HTML file</p>
                                 </body>
                             </html>
@@ -170,10 +171,12 @@ class AutoClickerBackend:
             if command == "start_stop":
                 self.toggle_running()
                 response_data["message"] = f"Auto-clicker {'started' if self.running else 'stopped'}"
+                response_data["running"] = self.running
                 
             elif command == "panic_stop":
                 self.panic_stop()
                 response_data["message"] = "Emergency stop activated"
+                response_data["running"] = self.running
                 
             elif command == "set_mode":
                 mode = data.get("mode", "click")
@@ -239,9 +242,11 @@ class AutoClickerBackend:
             print(f"❌ Invalid mode: {mode}")
 
     def set_interval(self, interval):
-        """Set the click interval"""
-        self.click_interval = max(0.01, min(1.0, interval))  # Clamp between 0.01 and 1.0
-        print(f"⚡ Interval updated to: {self.click_interval}s")
+        """Set the click interval - allow much smaller values for higher CPS"""
+        # Allow intervals from 0.005s (200 CPS) to 2.0s (0.5 CPS)
+        self.click_interval = max(0.005, min(2.0, interval))
+        cps = 1 / self.click_interval if self.click_interval > 0 else float('inf')
+        print(f"⚡ Interval updated to: {self.click_interval}s ({cps:.1f} CPS)")
 
     def set_jitter(self, enabled):
         """Enable or disable mouse jitter"""
@@ -281,6 +286,8 @@ class AutoClickerBackend:
             self.clicker_thread = threading.Thread(target=self.auto_clicker_loop, daemon=True)
             self.clicker_thread.start()
             print("🚀 Auto-clicker started")
+            # Send status update
+            self.send_status_update()
 
     def stop_auto_clicker(self):
         """Stop the auto-clicker"""
@@ -288,6 +295,8 @@ class AutoClickerBackend:
             self.running = False
             self.stop_clicker.set()
             print("🛑 Auto-clicker stopped")
+            # Send status update
+            self.send_status_update()
 
     def panic_stop(self):
         """Emergency stop"""
@@ -298,6 +307,14 @@ class AutoClickerBackend:
             print("🚨 Emergency stop activated")
         else:
             print("ℹ️  Panic stop pressed but auto-clicker was not running")
+        # Send status update
+        self.send_status_update()
+
+    def send_status_update(self):
+        """Print status update for debugging"""
+        status = self.get_status()
+        print(f"📊 Status Update - Running: {status['running']}, Mode: {status['mode']}, "
+              f"Interval: {status['interval']}s, Actions: {status['actions']}")
 
     # ------------------- Debug Functions -------------------
     def debug_windows_key(self):
@@ -342,7 +359,12 @@ class AutoClickerBackend:
                 pyautogui.press(self.custom_key)
                 
             self.action_count += 1
-            print(f"✅ Action performed ({self.mode}) - Total: {self.action_count}")
+            
+            # Print action count every 100 actions for performance monitoring
+            if self.action_count % 100 == 0:
+                cps = 100 / (time.time() - self.session_start_time) if self.running else 0
+                print(f"📈 Progress: {self.action_count} actions | Est. CPS: {cps:.1f}")
+                
             return True
             
         except Exception as e:
@@ -350,16 +372,21 @@ class AutoClickerBackend:
             return False
 
     def auto_clicker_loop(self):
-        """Main auto-clicker loop"""
+        """Main auto-clicker loop - optimized for high CPS"""
         last_time = time.time()
         print("🔄 Auto-clicker thread started")
+        
+        # Performance monitoring
+        action_batch = 0
+        batch_start_time = time.time()
         
         while self.running and not self.stop_clicker.is_set():
             try:
                 now = time.time()
                 
                 # Calculate interval with random variation if human-like is enabled
-                if self.human_like:
+                if self.human_like and self.click_interval >= 0.02:
+                    # Only apply human-like variation for intervals >= 0.02s
                     interval = self.click_interval * random.uniform(0.8, 1.2)
                 else:
                     interval = self.click_interval
@@ -367,9 +394,19 @@ class AutoClickerBackend:
                 if now - last_time >= interval:
                     self.perform_action()
                     last_time = now
+                    action_batch += 1
                     
-                # Small sleep to prevent CPU overload
-                time.sleep(0.001)
+                # Performance monitoring every second
+                if now - batch_start_time >= 1.0:
+                    if action_batch > 0:
+                        cps = action_batch / (now - batch_start_time)
+                        print(f"⚡ Current CPS: {cps:.1f} | Total: {self.action_count}")
+                    action_batch = 0
+                    batch_start_time = now
+                    
+                # Adaptive sleep for high performance
+                sleep_time = max(0.0001, interval * 0.1)  # Very small sleep for high CPS
+                time.sleep(sleep_time)
                 
             except Exception as e:
                 print(f"❌ Error in auto-clicker loop: {e}")
@@ -438,6 +475,7 @@ class AutoClickerBackend:
         print("\n🎯 Auto Clicker Pro is now running!")
         print("💡 Use the web interface at http://localhost:8080")
         print("💡 Or use hotkeys: F6 (Start/Stop), F7 (Emergency Stop)")
+        print("⚡ Max performance: 200 CPS (0.005s interval)")
         print("⏹️  Press Ctrl+C to exit\n")
         
         # Periodic state verification
@@ -460,7 +498,7 @@ class AutoClickerBackend:
 if __name__ == "__main__":
     # Set pyautogui failsafe to False to prevent accidental stops
     pyautogui.FAILSAFE = False
-    # Increase pyautogui speed
-    pyautogui.PAUSE = 0.01
+    # Remove pyautogui delay for maximum performance
+    pyautogui.PAUSE = 0
     
     AutoClickerBackend().run()
