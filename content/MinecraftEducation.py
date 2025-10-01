@@ -219,14 +219,6 @@ class AutoClickerBackend:
                 self.debug_single_click()
                 response_data["message"] = "Single click performed"
                 
-            elif command == "restart":
-                response_data["message"] = "Restart command received"
-                # In a real implementation, you might restart the service here
-                
-            elif command == "shutdown":
-                response_data["message"] = "Shutdown command received"
-                # In a real implementation, you might shutdown the service here
-                
             else:
                 response_data = {"status": "error", "message": f"Unknown command: {command}"}
                 print(f"⚠️ Unknown command: {command}")
@@ -357,11 +349,6 @@ class AutoClickerBackend:
                 
             self.action_count += 1
             
-            # Print action count every 100 actions for performance monitoring
-            if self.action_count % 100 == 0:
-                cps = 100 / (time.time() - self.session_start_time) if self.running else 0
-                print(f"📈 Progress: {self.action_count} actions | Est. CPS: {cps:.1f}")
-                
             return True
             
         except Exception as e:
@@ -372,10 +359,6 @@ class AutoClickerBackend:
         """Main auto-clicker loop - optimized for high CPS"""
         last_time = time.time()
         print("🔄 Auto-clicker thread started")
-        
-        # Performance monitoring
-        action_batch = 0
-        batch_start_time = time.time()
         
         while self.running and not self.stop_clicker.is_set():
             try:
@@ -391,19 +374,9 @@ class AutoClickerBackend:
                 if now - last_time >= interval:
                     self.perform_action()
                     last_time = now
-                    action_batch += 1
                     
-                # Performance monitoring every second
-                if now - batch_start_time >= 1.0:
-                    if action_batch > 0:
-                        cps = action_batch / (now - batch_start_time)
-                        print(f"⚡ Current CPS: {cps:.1f} | Total: {self.action_count}")
-                    action_batch = 0
-                    batch_start_time = now
-                    
-                # Adaptive sleep for high performance
-                sleep_time = max(0.0001, interval * 0.1)  # Very small sleep for high CPS
-                time.sleep(sleep_time)
+                # Small sleep to prevent CPU overload
+                time.sleep(0.001)
                 
             except Exception as e:
                 print(f"❌ Error in auto-clicker loop: {e}")
