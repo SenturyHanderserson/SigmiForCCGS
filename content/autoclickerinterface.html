@@ -15,19 +15,6 @@
             min-height: 100vh;
         }
         
-        .notification-toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            transform: translateX(400px);
-            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-        
-        .notification-toast.show {
-            transform: translateX(0);
-        }
-        
         .glass-liquid {
             background: linear-gradient(135deg, 
                 rgba(139, 92, 246, 0.15) 0%, 
@@ -106,10 +93,6 @@
             background-size: 50px 50px;
         }
         
-        .glow-border {
-            position: relative;
-        }
-        
         .download-btn {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             transition: all 0.3s ease;
@@ -118,10 +101,6 @@
         .download-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
-        }
-        
-        .status-offline {
-            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
         }
         
         .slider::-webkit-slider-thumb {
@@ -185,23 +164,17 @@
             transform: none !important;
             box-shadow: none !important;
         }
+        
+        .start-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .stop-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
     </style>
 </head>
 <body class="text-white cyber-grid">
-    <!-- Notification Toast -->
-    <div id="notificationToast" class="notification-toast glass-card rounded-2xl p-4 max-w-sm hidden">
-        <div class="flex items-start space-x-3">
-            <div id="notificationIcon" class="text-2xl mt-1"></div>
-            <div class="flex-1">
-                <h3 id="notificationTitle" class="font-bold text-lg"></h3>
-                <p id="notificationMessage" class="text-purple-200 text-sm mt-1"></p>
-            </div>
-            <button onclick="dismissNotification()" class="text-purple-300 hover:text-white transition-colors">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    </div>
-
     <!-- Top Bar -->
     <div class="top-bar fixed top-0 left-0 right-0 z-50">
         <div class="container mx-auto px-4 py-3">
@@ -219,14 +192,6 @@
                     <button onclick="testWindowsKey()" 
                             class="px-3 py-1 debug-btn rounded-lg text-xs text-white font-semibold transition-colors">
                         <i class="fab fa-windows mr-1"></i>Test Win Key
-                    </button>
-                    <button onclick="showNotification('info', 'Service Info', 'Background service is running smoothly.')" 
-                            class="px-3 py-1 glass-card rounded-lg text-xs hover:bg-purple-600 transition-colors">
-                        <i class="fas fa-info-circle mr-1"></i>Status
-                    </button>
-                    <button onclick="restartBackend()" 
-                            class="px-3 py-1 glass-card rounded-lg text-xs hover:bg-green-600 transition-colors">
-                        <i class="fas fa-redo mr-1"></i>Restart
                     </button>
                 </div>
             </div>
@@ -359,7 +324,7 @@
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-sm text-purple-300 mb-3 font-semibold">CLICK INTERVAL: <span id="intervalValue" class="text-cyan-300">0.05</span>s</label>
-                                    <input type="range" min="1" max="200" value="5" onchange="setInterval(this.value/100)" 
+                                    <input type="range" min="1" max="200" value="5" onchange="updateInterval(this.value)" 
                                            class="w-full h-3 bg-purple-900/50 rounded-2xl appearance-none cursor-pointer slider">
                                 </div>
                                 <div class="flex justify-between text-xs text-purple-400 font-semibold">
@@ -418,7 +383,7 @@
                             </h2>
                             <div class="space-y-4">
                                 <button onclick="toggleAutoClicker()" id="toggleBtn"
-                                        class="w-full liquid-fill hover:brightness-110 py-4 px-6 rounded-2xl font-bold text-lg font-['Orbitron'] transition-all duration-300 transform hover:scale-105 pulse-glow border border-green-400/30">
+                                        class="w-full start-btn hover:brightness-110 py-4 px-6 rounded-2xl font-bold text-lg font-['Orbitron'] transition-all duration-300 transform hover:scale-105 pulse-glow border border-green-400/30">
                                     <i class="fas fa-play mr-3"></i>
                                     START AUTO CLICKER (F6)
                                 </button>
@@ -449,27 +414,6 @@
                                         class="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 py-3 px-6 rounded-xl font-semibold text-white transition-all duration-300 transform hover:scale-105">
                                     <i class="fas fa-mouse-pointer mr-2"></i>
                                     TEST SINGLE CLICK
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- System Control -->
-                        <div class="glass-card rounded-2xl p-6 hover-lift transition-all duration-500">
-                            <h2 class="text-xl font-bold mb-4 flex items-center font-['Orbitron']">
-                                <div class="relative mr-3">
-                                    <div class="absolute inset-0 bg-orange-500/20 rounded-full blur"></div>
-                                    <i class="fas fa-cogs text-orange-300 relative z-10"></i>
-                                </div>
-                                SYSTEM CONTROL
-                            </h2>
-                            <div class="grid grid-cols-2 gap-3">
-                                <button onclick="restartBackend()" 
-                                        class="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105">
-                                    <i class="fas fa-redo mr-2"></i>RESTART
-                                </button>
-                                <button onclick="shutdownBackend()" 
-                                        class="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105">
-                                    <i class="fas fa-power-off mr-2"></i>SHUTDOWN
                                 </button>
                             </div>
                         </div>
@@ -514,6 +458,7 @@ let currentStatus = {};
 let connectionAttempts = 0;
 let isRunning = false;
 let connectionCheckInterval;
+let lastStatus = '';
 
 function showNotification(message, type = "info") {
     console.log(`🔔 [${type.toUpperCase()}] ${message}`);
@@ -541,9 +486,9 @@ async function checkBackendConnection() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 2000);
         
-        const res = await fetch("http://localhost:8080/status.json", {
+        const res = await fetch("http://localhost:8080/status.json?" + Date.now(), {
             signal: controller.signal,
-            cache: 'no-cache'
+            cache: 'no-store'
         });
         
         clearTimeout(timeoutId);
@@ -560,8 +505,10 @@ async function checkBackendConnection() {
             showNotification("✅ Connected to Auto Clicker backend", "success");
         }
         
-        // Only update UI if status actually changed
-        if (JSON.stringify(newStatus) !== JSON.stringify(currentStatus)) {
+        // Update UI if status changed
+        const currentStatusStr = JSON.stringify(newStatus);
+        if (currentStatusStr !== lastStatus) {
+            lastStatus = currentStatusStr;
             updateUI();
         }
         
@@ -615,6 +562,8 @@ function showDisconnectedUI() {
 function updateUI() {
     if (!isConnected) return;
     
+    console.log("🔄 Updating UI with status:", currentStatus);
+    
     // Update running state
     isRunning = currentStatus.running;
     
@@ -648,6 +597,9 @@ function updateUI() {
     
     // Update CPS display
     updateCPSDisplay();
+    
+    // Update slider position
+    updateSliderPosition();
 }
 
 function updateButtonStates() {
@@ -657,17 +609,17 @@ function updateButtonStates() {
     if (isRunning) {
         // When running: show stop state
         toggleBtn.innerHTML = '<i class="fas fa-stop mr-3"></i>STOP AUTO CLICKER (F6)';
-        toggleBtn.classList.remove('liquid-fill');
-        toggleBtn.classList.add('bg-gradient-to-r', 'from-orange-500', 'to-amber-500');
-        toggleBtn.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+        toggleBtn.classList.remove('start-btn', 'pulse-glow');
+        toggleBtn.classList.add('stop-btn');
+        toggleBtn.style.borderColor = 'rgba(245, 158, 11, 0.3)';
         
         panicBtn.classList.remove('btn-disabled');
     } else {
         // When stopped: show start state
         toggleBtn.innerHTML = '<i class="fas fa-play mr-3"></i>START AUTO CLICKER (F6)';
-        toggleBtn.classList.add('liquid-fill');
-        toggleBtn.classList.remove('bg-gradient-to-r', 'from-orange-500', 'to-amber-500');
-        toggleBtn.style.background = '';
+        toggleBtn.classList.remove('stop-btn');
+        toggleBtn.classList.add('start-btn', 'pulse-glow');
+        toggleBtn.style.borderColor = 'rgba(34, 197, 94, 0.3)';
         
         panicBtn.classList.add('btn-disabled');
     }
@@ -677,6 +629,12 @@ function updateCPSDisplay() {
     const interval = currentStatus.interval;
     const cps = interval > 0 ? (1 / interval).toFixed(1) : "∞";
     document.getElementById('cpsValue').textContent = `${cps} CPS`;
+}
+
+function updateSliderPosition() {
+    const interval = currentStatus.interval;
+    const sliderValue = Math.max(1, Math.min(200, Math.round(interval * 100)));
+    document.querySelector('.slider').value = sliderValue;
 }
 
 async function sendCommand(command, extra = {}) {
@@ -734,9 +692,11 @@ function setMode(m) {
     sendCommand("set_mode", { mode: m }); 
 }
 
-function setInterval(v) { 
-    const interval = Math.max(0.005, v);
-    sendCommand("set_interval", { interval: interval }); 
+function updateInterval(sliderValue) {
+    const interval = Math.max(0.005, sliderValue / 100);
+    document.getElementById('intervalValue').textContent = interval.toFixed(3);
+    updateCPSDisplay();
+    sendCommand("set_interval", { interval: interval });
 }
 
 function setJitter(e) { 
@@ -770,20 +730,6 @@ async function testSingleClick() {
         showNotification("✅ Single click performed!", "success");
     } else {
         showNotification("❌ Failed to perform click", "error");
-    }
-}
-
-function restartBackend() {
-    if (confirm("Are you sure you want to restart the backend?")) {
-        sendCommand("restart");
-        showNotification("🔄 Restarting backend service...", "info");
-    }
-}
-
-function shutdownBackend() {
-    if (confirm("Are you sure you want to shutdown the backend?")) {
-        sendCommand("shutdown");
-        showNotification("🔌 Shutting down backend service...", "info");
     }
 }
 
