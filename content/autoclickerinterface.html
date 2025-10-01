@@ -417,15 +417,15 @@
                                 QUICK CONTROL
                             </h2>
                             <div class="space-y-4">
-                                <button onclick="toggleRunning()" id="startStopBtn"
+                                <button onclick="startAutoClicker()" id="startStopBtn"
                                         class="w-full liquid-fill hover:brightness-110 py-4 px-6 rounded-2xl font-bold text-lg font-['Orbitron'] transition-all duration-300 transform hover:scale-105 pulse-glow border border-green-400/30">
                                     <i class="fas fa-play mr-3"></i>
                                     START AUTO CLICKER (F6)
                                 </button>
-                                <button onclick="panicStop()" id="panicStopBtn"
+                                <button onclick="stopAutoClicker()" id="panicStopBtn"
                                         class="w-full panic-btn py-3 px-6 rounded-2xl font-bold font-['Orbitron'] transition-all duration-300 transform hover:scale-105 border border-red-400/30 btn-disabled">
                                     <i class="fas fa-skull-crossbones mr-3"></i>
-                                    PANIC STOP (F7)
+                                    STOP AUTO CLICKER (F6)
                                 </button>
                             </div>
                         </div>
@@ -485,11 +485,11 @@
                             </h2>
                             <div class="space-y-3 text-sm">
                                 <div class="flex justify-between items-center">
-                                    <span class="text-purple-200 font-semibold">Start/Stop:</span>
+                                    <span class="text-purple-200 font-semibold">Toggle Start/Stop:</span>
                                     <kbd class="px-3 py-1 bg-purple-600 rounded-lg font-mono font-bold border border-purple-400/30">F6</kbd>
                                 </div>
                                 <div class="flex justify-between items-center">
-                                    <span class="text-purple-200 font-semibold">Panic Stop:</span>
+                                    <span class="text-purple-200 font-semibold">Emergency Stop:</span>
                                     <kbd class="px-3 py-1 bg-red-600 rounded-lg font-mono font-bold border border-red-400/30">F7</kbd>
                                 </div>
                             </div>
@@ -645,24 +645,24 @@ function updateUI() {
 
 function updateButtonStates() {
     const startBtn = document.getElementById('startStopBtn');
-    const panicBtn = document.getElementById('panicStopBtn');
+    const stopBtn = document.getElementById('panicStopBtn');
     
     if (isRunning) {
-        // When running: disable start button, enable panic button
+        // When running: disable start button, enable stop button
         startBtn.classList.add('btn-disabled');
         startBtn.classList.remove('liquid-fill', 'pulse-glow');
         startBtn.style.background = 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)';
         
-        panicBtn.classList.remove('btn-disabled');
-        panicBtn.style.animation = 'panicPulse 1s ease-in-out infinite';
+        stopBtn.classList.remove('btn-disabled');
+        stopBtn.style.animation = 'panicPulse 1s ease-in-out infinite';
     } else {
-        // When stopped: enable start button, disable panic button
+        // When stopped: enable start button, disable stop button
         startBtn.classList.remove('btn-disabled');
         startBtn.classList.add('liquid-fill', 'pulse-glow');
         startBtn.style.background = '';
         
-        panicBtn.classList.add('btn-disabled');
-        panicBtn.style.animation = 'none';
+        stopBtn.classList.add('btn-disabled');
+        stopBtn.style.animation = 'none';
     }
 }
 
@@ -710,16 +710,16 @@ async function sendCommand(command, extra = {}) {
     }
 }
 
-// Command functions
-function toggleRunning() { 
+// Command functions - SEPARATE functions for start and stop
+function startAutoClicker() { 
     if (!isRunning) {
-        sendCommand("start_stop"); 
+        sendCommand("start_clicker"); 
     }
 }
 
-function panicStop() { 
+function stopAutoClicker() { 
     if (isRunning) {
-        sendCommand("panic_stop"); 
+        sendCommand("stop_clicker"); 
     }
 }
 
