@@ -174,6 +174,17 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);
         }
+        
+        .btn-disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .btn-disabled:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
     </style>
 </head>
 <body class="text-white cyber-grid">
@@ -348,13 +359,16 @@
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-sm text-purple-300 mb-3 font-semibold">CLICK INTERVAL: <span id="intervalValue" class="text-cyan-300">0.05</span>s</label>
-                                    <input type="range" min="1" max="100" value="5" onchange="setInterval(this.value/100)" 
+                                    <input type="range" min="1" max="200" value="5" onchange="setInterval(this.value/100)" 
                                            class="w-full h-3 bg-purple-900/50 rounded-2xl appearance-none cursor-pointer slider">
                                 </div>
                                 <div class="flex justify-between text-xs text-purple-400 font-semibold">
                                     <span>FASTER ←</span>
-                                    <span>[0.01s - 1.0s]</span>
+                                    <span>[0.005s - 2.0s]</span>
                                     <span>→ SLOWER</span>
+                                </div>
+                                <div class="text-xs text-purple-300 text-center">
+                                    <span id="cpsValue">20 CPS</span>
                                 </div>
                             </div>
                         </div>
@@ -408,8 +422,8 @@
                                     <i class="fas fa-play mr-3"></i>
                                     START AUTO CLICKER (F6)
                                 </button>
-                                <button onclick="panicStop()"
-                                        class="w-full panic-btn py-3 px-6 rounded-2xl font-bold font-['Orbitron'] transition-all duration-300 transform hover:scale-105 border border-red-400/30">
+                                <button onclick="panicStop()" id="panicStopBtn"
+                                        class="w-full panic-btn py-3 px-6 rounded-2xl font-bold font-['Orbitron'] transition-all duration-300 transform hover:scale-105 border border-red-400/30 btn-disabled">
                                     <i class="fas fa-skull-crossbones mr-3"></i>
                                     PANIC STOP (F7)
                                 </button>
@@ -498,6 +512,7 @@
 let isConnected = false;
 let currentStatus = {};
 let connectionAttempts = 0;
+let isRunning = false;
 
 function showNotification(message, type = "info") {
     console.log(`🔔 [${type.toUpperCase()}] ${message}`);
@@ -593,14 +608,17 @@ function showDisconnectedUI() {
 function updateUI() {
     if (!isConnected) return;
     
+    // Update running state
+    isRunning = currentStatus.running;
+    
     // Update status display
-    document.getElementById('intervalValue').textContent = Number(currentStatus.interval).toFixed(2);
-    document.getElementById('statusText').textContent = currentStatus.running ? "RUNNING" : "STOPPED";
+    document.getElementById('intervalValue').textContent = Number(currentStatus.interval).toFixed(3);
+    document.getElementById('statusText').textContent = isRunning ? "RUNNING" : "STOPPED";
     document.getElementById('statusText').className = `text-2xl font-bold font-['Orbitron'] ${
-        currentStatus.running ? 'text-green-400' : 'text-red-400'
+        isRunning ? 'text-green-400' : 'text-red-400'
     }`;
     document.getElementById('statusIndicator').className = `w-5 h-5 rounded-full mx-auto mb-4 border-2 border-white/30 ${
-        currentStatus.running ? 'bg-green-500' : 'bg-red-500'
+        isRunning ? 'bg-green-500' : 'bg-red-500'
     }`;
     
     document.getElementById('actionCount').textContent = currentStatus.actions;
@@ -617,6 +635,41 @@ function updateUI() {
             btn.classList.add("mode-active");
         }
     });
+
+    // Update button states
+    updateButtonStates();
+    
+    // Update CPS display
+    updateCPSDisplay();
+}
+
+function updateButtonStates() {
+    const startBtn = document.getElementById('startStopBtn');
+    const panicBtn = document.getElementById('panicStopBtn');
+    
+    if (isRunning) {
+        // When running: disable start button, enable panic button
+        startBtn.classList.add('btn-disabled');
+        startBtn.classList.remove('liquid-fill', 'pulse-glow');
+        startBtn.style.background = 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)';
+        
+        panicBtn.classList.remove('btn-disabled');
+        panicBtn.style.animation = 'panicPulse 1s ease-in-out infinite';
+    } else {
+        // When stopped: enable start button, disable panic button
+        startBtn.classList.remove('btn-disabled');
+        startBtn.classList.add('liquid-fill', 'pulse-glow');
+        startBtn.style.background = '';
+        
+        panicBtn.classList.add('btn-disabled');
+        panicBtn.style.animation = 'none';
+    }
+}
+
+function updateCPSDisplay() {
+    const interval = currentStatus.interval;
+    const cps = interval > 0 ? (1 / interval).toFixed(1) : "∞";
+    document.getElementById('cpsValue').textContent = `${cps} CPS`;
 }
 
 async function sendCommand(command, extra = {}) {
@@ -659,11 +712,15 @@ async function sendCommand(command, extra = {}) {
 
 // Command functions
 function toggleRunning() { 
-    sendCommand("start_stop"); 
+    if (!isRunning) {
+        sendCommand("start_stop"); 
+    }
 }
 
 function panicStop() { 
-    sendCommand("panic_stop"); 
+    if (isRunning) {
+        sendCommand("panic_stop"); 
+    }
 }
 
 function setMode(m) { 
@@ -671,7 +728,9 @@ function setMode(m) {
 }
 
 function setInterval(v) { 
-    sendCommand("set_interval", { interval: v }); 
+    // Allow much smaller intervals for higher CPS (down to 0.005s = 200 CPS)
+    const interval = Math.max(0.005, v);
+    sendCommand("set_interval", { interval: interval }); 
 }
 
 function setJitter(e) { 
@@ -724,7 +783,7 @@ function shutdownBackend() {
 
 // Initialize connection checking
 console.log("🚀 Auto Clicker Pro Web Interface starting...");
-setInterval(checkBackendConnection, 2000);
+setInterval(checkBackendConnection, 1000); // Check every second for real-time updates
 // Initial connection check
 setTimeout(checkBackendConnection, 500);
 </script>
