@@ -53,7 +53,7 @@ class AutoClickerBackend:
                     self.send_response(200)
                     self.send_header('Access-Control-Allow-Origin', '*')
                     self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-                    self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin')
+                    self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin, X-Requested-With')
                     self.send_header('Access-Control-Max-Age', '86400')
                     self.end_headers()
 
@@ -61,17 +61,19 @@ class AutoClickerBackend:
                     """Set CORS headers for all responses"""
                     self.send_header('Access-Control-Allow-Origin', '*')
                     self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-                    self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin')
+                    self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin, X-Requested-With')
                     self.send_header('Access-Control-Allow-Credentials', 'true')
 
                 def do_GET(self):
                     """Handle GET requests"""
                     try:
-                        if self.path in ['/status.json', '/status']:
+                        # Set CORS headers for all GET requests
+                        self._set_cors_headers()
+                        
+                        if self.path == '/status.json' or self.path == '/status':
                             status_data = self.server.backend_app.get_status()
                             self.send_response(200)
                             self.send_header('Content-type', 'application/json')
-                            self._set_cors_headers()
                             self.end_headers()
                             self.wfile.write(json.dumps(status_data).encode('utf-8'))
                         elif self.path == '/':
@@ -79,14 +81,32 @@ class AutoClickerBackend:
                             status_data = self.server.backend_app.get_status()
                             html = f"""
                             <html>
-                                <head><title>Auto Clicker Pro Backend</title></head>
+                                <head>
+                                    <title>Auto Clicker Pro Backend</title>
+                                    <style>
+                                        body {{ 
+                                            font-family: Arial, sans-serif; 
+                                            margin: 40px; 
+                                            background: #1a1a2e;
+                                            color: white;
+                                        }}
+                                        .status {{ 
+                                            background: #16213e; 
+                                            padding: 20px; 
+                                            border-radius: 10px;
+                                            margin: 10px 0;
+                                        }}
+                                    </style>
+                                </head>
                                 <body>
                                     <h1>Auto Clicker Pro Backend</h1>
-                                    <p>Status: {'RUNNING' if status_data['running'] else 'STOPPED'}</p>
-                                    <p>Mode: {status_data['mode']}</p>
-                                    <p>Interval: {status_data['interval']}s</p>
-                                    <p>Actions: {status_data['actions']}</p>
-                                    <p>Session Time: {status_data['session_time']}s</p>
+                                    <div class="status">
+                                        <p>Status: <strong>{'RUNNING' if status_data['running'] else 'STOPPED'}</strong></p>
+                                        <p>Mode: {status_data['mode']}</p>
+                                        <p>Interval: {status_data['interval']}s</p>
+                                        <p>Actions: {status_data['actions']}</p>
+                                        <p>Session Time: {status_data['session_time']}s</p>
+                                    </div>
                                     <p>Web interface available at the main HTML file</p>
                                 </body>
                             </html>
@@ -97,19 +117,22 @@ class AutoClickerBackend:
                             self.wfile.write(html.encode('utf-8'))
                         else:
                             self.send_response(404)
-                            self._set_cors_headers()
                             self.end_headers()
                     except Exception as e:
                         print(f"❌ Error in GET handler: {e}")
                         self.send_response(500)
-                        self._set_cors_headers()
                         self.end_headers()
 
                 def do_POST(self):
                     """Handle POST requests"""
                     try:
+                        # Set CORS headers for all POST requests
+                        self._set_cors_headers()
+                        
                         if self.path == '/command':
                             content_length = int(self.headers.get('Content-Length', 0))
+                            post_data = b''
+                            
                             if content_length > 0:
                                 post_data = self.rfile.read(content_length)
                                 data = json.loads(post_data.decode('utf-8'))
@@ -126,18 +149,15 @@ class AutoClickerBackend:
                             
                             self.send_response(200)
                             self.send_header('Content-type', 'application/json')
-                            self._set_cors_headers()
                             self.end_headers()
                             self.wfile.write(json.dumps(response_data).encode("utf-8"))
                         else:
                             self.send_response(404)
-                            self._set_cors_headers()
                             self.end_headers()
                     except Exception as e:
                         print(f"❌ Error in POST handler: {e}")
                         self.send_response(500)
                         self.send_header('Content-type', 'application/json')
-                        self._set_cors_headers()
                         error_response = {"status": "error", "message": str(e)}
                         self.end_headers()
                         self.wfile.write(json.dumps(error_response).encode("utf-8"))
@@ -152,12 +172,25 @@ class AutoClickerBackend:
                     self.allow_reuse_address = True
                     super().__init__(addr, handler)
 
-            self.web_server = BackendServer(("", self.web_port), AutoClickerHandler, self)
-            print(f"🚀 Starting web server on port {self.web_port}...")
-            self.web_thread = threading.Thread(target=self.web_server.serve_forever, daemon=True)
-            self.web_thread.start()
-            print(f"✅ Web server started successfully on http://localhost:{self.web_port}")
-            return True
+            # Try to start the server, handling port conflicts
+            for attempt in range(3):
+                try:
+                    self.web_server = BackendServer(("", self.web_port), AutoClickerHandler, self)
+                    print(f"🚀 Starting web server on port {self.web_port}...")
+                    self.web_thread = threading.Thread(target=self.web_server.serve_forever, daemon=True)
+                    self.web_thread.start()
+                    print(f"✅ Web server started successfully on http://localhost:{self.web_port}")
+                    return True
+                except OSError as e:
+                    if "Address already in use" in str(e):
+                        print(f"⚠️ Port {self.web_port} in use, trying port {self.web_port + 1}")
+                        self.web_port += 1
+                    else:
+                        raise e
+                        
+            print(f"❌ Failed to start web server after multiple attempts")
+            return False
+            
         except Exception as e:
             print(f"❌ Failed to start web server: {e}")
             return False
@@ -218,6 +251,14 @@ class AutoClickerBackend:
             elif command == "debug_single_click":
                 self.debug_single_click()
                 response_data["message"] = "Single click performed"
+                
+            elif command == "restart":
+                response_data["message"] = "Restart command received"
+                # In a real implementation, you might restart the service here
+                
+            elif command == "shutdown":
+                response_data["message"] = "Shutdown command received"
+                # In a real implementation, you might shutdown the service here
                 
             else:
                 response_data = {"status": "error", "message": f"Unknown command: {command}"}
