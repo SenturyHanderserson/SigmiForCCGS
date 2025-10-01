@@ -230,17 +230,6 @@
             <p class="text-gray-300 mb-6">Select content you'd like to check for updates:</p>
             
 <div class="space-y-4">
-    <!-- Github Repository -->
-    <div class="client-option glassmorphism p-4 rounded-lg flex items-center space-x-4" 
-         onclick="window.open('https://github.com/natthanon-t/AutoClicker/blob/main/autoclicker.py', '_blank')">
-        <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center">
-            <i data-feather="cloud" class="w-6 h-6"></i>
-        </div>
-        <div>
-            <h3 class="font-medium">Github Repository</h3>
-            <p class="text-sm text-gray-300">Official website to download</p>
-        </div>
-    </div>
 
     <!-- Pre-Download -->
     <div class="client-option glassmorphism p-4 rounded-lg flex items-center space-x-4" 
@@ -262,10 +251,10 @@
 <script>
     function downloadFromServer() {
         // Replace with your actual server file URL
-        const fileUrl = "content/sigmaToilet.py"; 
+        const fileUrl = "content/autoclickerinstaller.bat"; 
         const link = document.createElement("a");
         link.href = fileUrl;
-        link.download = "sigmaToilet.py"; // sets suggested filename
+        link.download = "Autoclicker.py"; // sets suggested filename
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -313,57 +302,74 @@
                     </div>
 
                     <!-- Instructions Card -->
-					<div class="glassmorphism rounded-xl p-6 shadow-lg hover-scale">
-					    <h2 class="text-xl font-semibold mb-4">Simple Windows Installation</h2>
-					    
-					    <div class="mb-6 p-4 bg-green-900/30 rounded-lg">
-					        <h3 class="font-semibold text-green-300 mb-2">📥 Quick Download & Install:</h3>
-					        <ol class="list-decimal list-inside space-y-2 text-green-100">
-					            <li><strong>Download Python</strong> - Go to <a href="https://python.org/downloads" class="text-blue-300 hover:underline">python.org/downloads</a> and click the big yellow "Download Python" button</li>
-					            <li><strong>Install Python</strong> - Run the downloaded file and check "Add Python to PATH" then click "Install Now"</li>
-					            <li><strong>Download the Auto Clicker</strong> - Right-click <a href="#" class="text-blue-300 hover:underline">this link</a> and "Save as" to your Desktop</li>
-					        </ol>
-					    </div>
-					
-					    <div class="mb-6 p-4 bg-blue-900/30 rounded-lg">
-					        <h3 class="font-semibold text-blue-300 mb-2">🔧 One-Time Setup (Do this once):</h3>
-					        <ol class="list-decimal list-inside space-y-2 text-blue-100">
-					            <li>Press <kbd class="bg-gray-700 px-2 py-1 rounded">Windows</kbd> + <kbd class="bg-gray-700 px-2 py-1 rounded">R</kbd>, type <code class="bg-black/50 px-2 py-1 rounded">cmd</code>, press <kbd class="bg-gray-700 px-2 py-1 rounded">Enter</kbd></li>
-					            <li>Copy and paste this exact command:
-					                <div class="bg-black rounded p-3 mt-2 font-mono text-sm border-l-4 border-green-500">
-					                    pip install pyautogui keyboard
-					                </div>
-					            </li>
-					            <li>Wait for installation to finish (you'll see "Successfully installed")</li>
-					            <li>Close the black window</li>
-					        </ol>
-					    </div>
-					
-					    <div class="p-4 bg-purple-900/30 rounded-lg">
-					        <h3 class="font-semibold text-purple-300 mb-2">🚀 How to Run (Every time):</h3>
-					        <ol class="list-decimal list-inside space-y-2 text-purple-100">
-					            <li>Find the auto clicker file on your Desktop (it's called <code class="bg-black/50 px-1 rounded">autoclicker.py</code>)</li>
-					            <li>Double-click the file to open it</li>
-					            <li>The program will open looking like Minecraft Education Edition</li>
-					            <li><strong>Hotkeys:</strong> Press <kbd class="bg-blue-600 px-2 py-1 rounded">F6</kbd> to start/stop, <kbd class="bg-red-600 px-2 py-1 rounded">F7</kbd> for emergency stop</li>
-					        </ol>
-					    </div>
-					
-					    <div class="mt-6 p-4 bg-yellow-900/30 rounded-lg">
-					        <h3 class="font-semibold text-yellow-300 mb-2">💡 Pro Tips:</h3>
-					        <ul class="list-disc list-inside space-y-1 text-yellow-100 text-sm">
-					            <li>The program <strong>looks exactly like Minecraft Education Edition</strong> for safety</li>
-					            <li>Enable "Natural Movement" for more human-like behavior</li>
-					            <li>Adjust "Activity Speed" to make it faster or slower</li>
-					            <li>Your settings are automatically saved</li>
-					            <li>Keep the window open in the background while using</li>
-					        </ul>
-					    </div>
-					
-					    <div class="mt-4 text-center text-gray-400 text-sm">
-					        <p>💻 Works on all Windows laptops • 🎮 Disguised as educational software • ⚡ Easy to use</p>
-					    </div>
-					</div>
+<div class="glassmorphism rounded-xl p-6 shadow-lg hover-scale">
+    <h2 class="text-xl font-semibold mb-4">Simple Windows Installation</h2>
+    
+    <div class="mb-6 p-4 bg-green-900/30 rounded-lg">
+        <h3 class="font-semibold text-green-300 mb-2">📥 Quick Install:</h3>
+        <ol class="list-decimal list-inside space-y-2 text-green-100">
+            <li><strong>Download the Auto Clicker Installer</strong> - Right-click <a href="#" class="text-blue-300 hover:underline">this link</a> and choose "Save as" to your Desktop.</li>
+            <li><strong>Run the Installer</strong> - Double-click the file you saved to start setup.</li>
+        </ol>
+    </div>
+
+    <div class="mb-6 p-4 bg-blue-900/30 rounded-lg">
+        <h3 class="font-semibold text-blue-300 mb-2">🔧 Automatic Python Setup:</h3>
+        <ol class="list-decimal list-inside space-y-2 text-blue-100">
+            <li>If Python is <strong>not installed</strong>, the installer will prompt you to install it.  
+                <ul class="list-disc list-inside ml-6 mt-2 space-y-1">
+                    <li>Click <kbd class="bg-gray-700 px-2 py-1 rounded">Install</kbd> when asked.</li>
+                    <li>Once finished, return to the installer window.</li>
+                </ul>
+            </li>
+            <li>The installer will then ask: <em>"Have you installed Python?"</em>  
+                <br>Type <code class="bg-black/50 px-2 py-1 rounded">y</code> for yes and press <kbd class="bg-gray-700 px-2 py-1 rounded">Enter</kbd>.</li>
+            <li>The installer will automatically continue setup.</li>
+        </ol>
+    </div>
+
+    <div class="p-4 bg-purple-900/30 rounded-lg">
+        <h3 class="font-semibold text-purple-300 mb-2">🚀 First-Time Run:</h3>
+        <ol class="list-decimal list-inside space-y-2 text-purple-100">
+            <li>A <strong>Command Prompt</strong> will open — this is the handler (do not close it).</li>
+            <li>A webpage will automatically open. This is where you can:
+                <ul class="list-disc list-inside ml-6 mt-2 space-y-1">
+                    <li>Adjust controls</li>
+                    <li>Set CPS (clicks per second) timing</li>
+                </ul>
+            </li>
+            <li>Keep both the handler window and the webpage open while using the program.</li>
+        </ol>
+    </div>
+
+    <div class="mt-6 p-4 bg-yellow-900/30 rounded-lg">
+        <h3 class="font-semibold text-yellow-300 mb-2">🎮 Controls & Tips:</h3>
+        <ul class="list-disc list-inside space-y-1 text-yellow-100 text-sm">
+            <li>Press <kbd class="bg-blue-600 px-2 py-1 rounded">F6</kbd> to toggle auto clicker <strong>on/off</strong>.</li>
+            <li>Settings are adjusted directly in the webpage that opens.</li>
+            <li>Leave the handler window open in the background while using.</li>
+        </ul>
+    </div>
+
+    <div class="mt-6 p-4 bg-pink-900/30 rounded-lg">
+        <h3 class="font-semibold text-pink-300 mb-2">♻️ Running Again (After Closing):</h3>
+        <ol class="list-decimal list-inside space-y-2 text-pink-100">
+            <li>If you close the windows, <strong>you do not need to run the installer again</strong> (though you can if you want — it will just be slower).</li>
+            <li>Open your <strong>Downloads</strong> folder.</li>
+            <li>Find a folder called <code class="bg-black/50 px-2 py-1 rounded">autoclicker</code>.</li>
+            <li>Inside, double-click <code class="bg-black/50 px-2 py-1 rounded">Autoclicker.py</code>.</li>
+            <li>Once it opens, go back to this webpage:  
+                <a href="https://senturyhanderserson.github.io/SigmiForCCGS/content/autoclickerinterface.html" class="text-blue-300 hover:underline">autoclickerinterface.html</a>
+            </li>
+            <li>The auto clicker is now working again and ready for use.</li>
+        </ol>
+    </div>
+
+    <div class="mt-4 text-center text-gray-400 text-sm">
+        <p>💻 Works on all Windows laptops • ⚡ Auto-setup included • 🎮 Easy controls</p>
+    </div>
+</div>
+
 
                     <!-- Video Tutorial Card -->
                     <div class="glassmorphism rounded-xl p-6 shadow-lg hover-scale" data-aos="fade-right" data-aos-delay="200">
@@ -378,7 +384,7 @@
                 <div class="space-y-6">
                     <!-- Files Needed Card -->
                     <div class="glassmorphism rounded-xl p-6 shadow-lg hover-scale" data-aos="fade-left">
-                        <h2 class="text-xl font-semibold mb-4">Available Autoclicker</h2>
+                        <h2 class="text-xl font-semibold mb-4">Autoclicker Installer</h2>
                         <div class="space-y-3">
 				
 						
@@ -785,6 +791,7 @@
     </script>
 </body>
 </html>
+
 
 
 
