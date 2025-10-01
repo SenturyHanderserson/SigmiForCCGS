@@ -39,7 +39,7 @@ class AutoClickerBackend:
         print("🎮 Auto Clicker Pro - Backend Server")
         print("=" * 50)
         print("🌐 API Server: http://localhost:8080")
-        print("🎮 Hotkeys: F6 (Toggle Start/Stop), F7 (Emergency Stop)")
+        print("🎮 Hotkeys: F6 (Toggle Start/Stop)")
         print("🔧 Debug: Windows key test available via web interface")
         print("⚡ Max CPS: 200 (0.005s interval)")
         print("=" * 50)
@@ -429,9 +429,7 @@ class AutoClickerBackend:
         try:
             # F6 toggles start/stop
             keyboard.add_hotkey("f6", self.hotkey_toggle)
-            # F7 is emergency stop
-            keyboard.add_hotkey("f7", self.hotkey_panic)
-            print("✅ Hotkeys registered: F6 (Toggle Start/Stop), F7 (Emergency Stop)")
+            print("✅ Hotkeys registered: F6 (Toggle Start/Stop)")
         except Exception as e:
             print(f"❌ Failed to setup hotkeys: {e}")
 
@@ -439,11 +437,6 @@ class AutoClickerBackend:
         """Handle F6 hotkey with status update"""
         print("🎮 F6 pressed - Toggling auto-clicker")
         self.toggle_running()
-
-    def hotkey_panic(self):
-        """Handle F7 hotkey with status update"""
-        print("🎮 F7 pressed - Emergency stop")
-        self.panic_stop()
 
     # ------------------- Signal Handling -------------------
     def signal_handler(self, signum, frame):
@@ -469,7 +462,7 @@ class AutoClickerBackend:
         
         print("\n🎯 Auto Clicker Pro is now running!")
         print("💡 Use the web interface at http://localhost:8080")
-        print("💡 Or use hotkeys: F6 (Toggle Start/Stop), F7 (Emergency Stop)")
+        print("💡 Or use hotkey: F6 (Toggle Start/Stop)")
         print("⚡ Max performance: 200 CPS (0.005s interval)")
         print("⏹️  Press Ctrl+C to exit\n")
         
