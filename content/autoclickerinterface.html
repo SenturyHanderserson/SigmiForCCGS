@@ -176,156 +176,7 @@
             box-shadow: none !important;
         }
         
-        /* Theme Variables */
-        body {
-            --bg-primary: #1a0933;
-            --bg-secondary: #3b1d6c;
-            --bg-tertiary: #6e3b9c;
-            --text-primary: #ffffff;
-            --text-secondary: #d8d8d8;
-            --accent-primary: #8e44ad;
-            --accent-secondary: #6c5ce7;
-            --glass-bg: rgba(92, 50, 168, 0.2);
-            --glass-border: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Theme Classes */
-        .theme-dark {
-            --bg-primary: #1a0933 !important;
-            --bg-secondary: #3b1d6c !important;
-            --bg-tertiary: #6e3b9c !important;
-            --text-primary: #ffffff !important;
-            --text-secondary: #d8d8d8 !important;
-            --accent-primary: #8e44ad !important;
-            --accent-secondary: #6c5ce7 !important;
-            --glass-bg: rgba(92, 50, 168, 0.2) !important;
-            --glass-border: rgba(255, 255, 255, 0.1) !important;
-        }
-        
-        .theme-light {
-            --bg-primary: #f8f9fa !important;
-            --bg-secondary: #e9ecef !important;
-            --bg-tertiary: #dee2e6 !important;
-            --text-primary: #212529 !important;   
-            --text-secondary: #495057 !important; 
-            --accent-primary: #6f42c1 !important;
-            --accent-secondary: #6610f2 !important;
-            --glass-bg: rgba(255, 255, 255, 0.7) !important;
-            --glass-border: rgba(0, 0, 0, 0.1) !important;
-        }
-        
-        .theme-light p:not(.text-transparent),
-        .theme-light span:not(.text-transparent),
-        .theme-light h1:not(.text-transparent),
-        .theme-light h2:not(.text-transparent),
-        .theme-light h3:not(.text-transparent),
-        .theme-light h4:not(.text-transparent),
-        .theme-light h5:not(.text-transparent),
-        .theme-light h6:not(.text-transparent),
-        .theme-light li:not(.text-transparent),
-        .theme-light a:not(.text-transparent),
-        .theme-light div:not(.text-transparent) {
-            color: var(--text-primary) !important;
-        }
-        
-        .theme-light .text-secondary,
-        .theme-light small,
-        .theme-light .muted {
-            color: var(--text-secondary) !important;
-        }
-
-        .theme-amoled {
-            --bg-primary: #000000 !important;
-            --bg-secondary: #111111 !important;
-            --bg-tertiary: #222222 !important;
-            --text-primary: #ffffff !important;
-            --text-secondary: #cccccc !important;
-            --accent-primary: #8e44ad !important;
-            --accent-secondary: #9b59b6 !important;
-            --glass-bg: rgba(0, 0, 0, 0.8) !important;
-            --glass-border: rgba(255, 255, 255, 0.05) !important;
-        }
-        
-        .theme-blue {
-            --bg-primary: #0a1931 !important;
-            --bg-secondary: #1a3c6e !important;
-            --bg-tertiary: #2a5ca9 !important;
-            --text-primary: #ffffff !important;
-            --text-secondary: #d8d8d8 !important;
-            --accent-primary: #2563eb !important;
-            --accent-secondary: #3b82f6 !important;
-            --glass-bg: rgba(37, 99, 235, 0.3) !important;
-            --glass-border: rgba(255, 255, 255, 0.15) !important;
-        }
-
-        /* Message Styles */
-        .message-container {
-            position: fixed;
-            top: 70px;
-            left: 20px;
-            z-index: 1001;
-            width: 350px;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .message-alert {
-            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            border-left: 4px solid #ff8c00;
-            border-top: 1px solid rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-        }
-
-        .message-entry {
-            border-left: 3px solid var(--accent-primary);
-        }
-
-        /* Message Animation Styles */
-        @keyframes slideInFromLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes slideOutToLeft {
-            from {
-                opacity: 1;
-                transform: translateX(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateX(-100%);
-            }
-        }
-
-        .message-slide-in {
-            animation: slideInFromLeft 0.5s ease forwards;
-        }
-
-        .message-slide-out {
-            animation: slideOutToLeft 0.5s ease forwards;
-        }
-
-        .broadcast-toast {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 24rem;
-        }
-        
-        /* Login Modal Styles */
+        /* Server Features Styles */
         .login-modal {
             position: fixed;
             top: 0;
@@ -348,7 +199,7 @@
         }
         
         .login-content {
-            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
+            background: linear-gradient(135deg, #1a0933 0%, #3b1d6c 50%, #6e3b9c 100%);
             border-radius: 16px;
             padding: 2rem;
             max-width: 400px;
@@ -374,7 +225,6 @@
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
         }
         
-        /* Loading Overlay Styles */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -415,7 +265,6 @@
             display: none;
         }
         
-        /* Notification Styles */
         .notification-container {
             position: fixed;
             top: 80px;
@@ -482,10 +331,45 @@
                 transform: translateX(0);
             }
         }
+        
+        .message-container {
+            position: fixed;
+            top: 70px;
+            left: 20px;
+            z-index: 1001;
+            width: 350px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .message-alert {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border-left: 4px solid #ff8c00;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .message-entry {
+            border-left: 3px solid #8e44ad;
+        }
+
+        .broadcast-toast {
+            background: rgba(92, 50, 168, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 24rem;
+        }
     </style>
 </head>
-<body class="text-white cyber-grid theme-dark">
-    <!-- Login Modal -->
+<body class="text-white cyber-grid">
+    <!-- Server Features Modals (Hidden by default) -->
     <div id="loginModal" class="login-modal">
         <div class="login-content">
             <div class="medal-icon">
@@ -493,7 +377,7 @@
             </div>
             <h2 class="text-2xl font-bold mb-4">Authentication Required</h2>
             <p class="text-gray-300 mb-6">You need to be logged in to access all features. Sign in to continue.</p>
-            <button onclick="redirectToLogin()" class="btn-primary py-3 px-6 rounded-lg font-medium w-full mb-4">
+            <button onclick="redirectToLogin()" class="liquid-fill py-3 px-6 rounded-lg font-medium w-full mb-4">
                 Sign In
             </button>
             <button onclick="closeLoginModal()" class="py-2 px-4 rounded-lg border border-purple-700 text-purple-300 hover:bg-purple-800 hover:bg-opacity-50 transition w-full">
@@ -502,9 +386,8 @@
         </div>
     </div>
 
-    <!-- Warning Modal -->
     <div id="warningModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
-        <div class="glass rounded-xl p-8 max-w-md w-full mx-4">
+        <div class="glass-card rounded-xl p-8 max-w-md w-full mx-4">
             <div class="flex justify-between items-center mb-4">
                 <div class="flex items-center">
                     <div class="medal-icon mr-3">
@@ -536,9 +419,8 @@
         </div>
     </div>
 
-    <!-- Messages Container -->
     <div id="messageContainer" class="fixed top-20 left-4 z-[1001] w-80 max-h-[70vh] overflow-y-auto hidden">
-        <div class="glass rounded-xl p-4 mb-3" id="messageHeader" style="display: none;">
+        <div class="glass-card rounded-xl p-4 mb-3" id="messageHeader" style="display: none;">
             <div class="flex justify-between items-center mb-2">
                 <h3 class="font-semibold">Messages</h3>
             </div>
@@ -546,9 +428,8 @@
         <div id="messagesList"></div>
     </div>
 
-    <!-- Broadcast Modal -->
     <div id="broadcastModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
-        <div class="glass rounded-xl p-6 max-w-md w-full mx-4">
+        <div class="glass-card rounded-xl p-6 max-w-md w-full mx-4">
             <div class="flex justify-between items-center mb-4">
                 <div class="flex items-center">
                     <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center mr-3">
@@ -565,21 +446,21 @@
                 <span id="broadcastAuthor"></span>
                 <span id="broadcastTime"></span>
             </div>
-            <button onclick="dismissBroadcast()" class="btn-primary py-2 px-6 rounded-lg font-medium w-full">
+            <button onclick="dismissBroadcast()" class="liquid-fill py-2 px-6 rounded-lg font-medium w-full">
                 Acknowledge
             </button>
         </div>
     </div>
 
-    <!-- Loading Overlay - For auto-login verification -->
     <div id="loadingOverlay" class="modal-overlay">
-        <div class="glass rounded-xl p-8 max-w-md w-full mx-4 text-center">
+        <div class="glass-card rounded-xl p-8 max-w-md w-full mx-4 text-center">
             <div class="loading-spinner mb-4"></div>
             <h2 class="text-2xl font-bold mb-2">Verifying session...</h2>
             <p class="text-gray-300">Please wait while we verify your session</p>
         </div>
     </div>
 
+    <!-- Original Auto Clicker Content -->
     <!-- Top Bar -->
     <div class="top-bar fixed top-0 left-0 right-0 z-50">
         <div class="container mx-auto px-4 py-3">
@@ -854,14 +735,7 @@
     </div>
 
 <script>
-// Global variables for broadcast, warning, and message systems
-let userWarnings = [];
-let activeBroadcasts = [];
-let broadcastCheckInterval = null;
-let warningCheckInterval = null;
-const SERVER_URL = 'https://proxyforsigmi.onrender.com';
-
-// Auto-clicker variables
+// ==================== AUTO CLICKER LOGIC ====================
 let isConnected = false;
 let currentStatus = {};
 let connectionAttempts = 0;
@@ -870,710 +744,29 @@ let connectionCheckInterval;
 let websocket = null;
 let reconnectTimeout = null;
 
-// Cookie management functions
-function getCookie(name) {
-    const cookieName = name + "=";
-    const decodedCookie = decodeURIComponent(document.cookie);
-    const cookieArray = decodedCookie.split(';');
+// Auto-clicker notification system
+function showNotification(message, type = "info") {
+    console.log(`🔔 [${type.toUpperCase()}] ${message}`);
     
-    for(let i = 0; i < cookieArray.length; i++) {
-        let cookie = cookieArray[i];
-        while (cookie.charAt(0) === ' ') {
-            cookie = cookie.substring(1);
-        }
-        if (cookie.indexOf(cookieName) === 0) {
-            return cookie.substring(cookieName.length, cookie.length);
-        }
-    }
-    return "";
-}
-
-function setCookie(name, value, days) {
-    const date = new Date();
-    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-    const expires = "expires=" + date.toUTCString();
-    document.cookie = name + "=" + value + ";" + expires + ";path=/";
-}
-
-// Theme management
-function getTheme() {
-    const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
-    return preferences.theme || 'dark';
-}
-
-function setTheme(theme) {
-    // Update the theme class on body
-    document.body.className = document.body.className.replace(/\btheme-\w+/g, '');
-    document.body.classList.add(`theme-${theme}`);
-    
-    // Save to preferences
-    const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
-    preferences.theme = theme;
-    setCookie('UserPreferences', JSON.stringify(preferences), 365);
-}
-
-function applyThemeOnLoad() {
-    const theme = getTheme();
-    setTheme(theme);
-}
-
-// Authentication functions
-function isLoggedIn() {
-    const token = getCookie('AuthToken');
-    const currentUser = localStorage.getItem('currentUser');
-    return !!(token && currentUser);
-}
-
-async function verifyToken(token) {
-    try {
-        const response = await fetch('https://proxyforsigmi.onrender.com/api/verify-token', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            return false;
-        }
-        
-        const data = await response.json();
-        return data.valid === true;
-    } catch (error) {
-        console.error('Token verification error:', error);
-        return false;
-    }
-}
-
-// Show login modal function
-function showLoginModal() {
-    document.getElementById('loginModal').classList.add('active');
-}
-
-// Close login modal function
-function closeLoginModal() {
-    document.getElementById('loginModal').classList.remove('active');
-}
-
-// Redirect to login page
-function redirectToLogin() {
-    window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
-}
-
-// Notification system
-function showNotification(message, type = "info", duration = 3000) {
-    // Create notification container if it doesn't exist
-    let container = document.getElementById('notificationContainer');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'notificationContainer';
-        container.className = 'notification-container';
-        document.body.appendChild(container);
-    }
-    
+    // Create notification element
     const notification = document.createElement('div');
-    notification.className = `notification ${type}`;	
+    notification.className = `fixed bottom-4 right-4 p-4 rounded-lg z-50 transition-all duration-300 ${
+        type === 'error' ? 'bg-red-500 text-white' : 
+        type === 'success' ? 'bg-green-500 text-white' : 
+        'bg-blue-500 text-white'
+    }`;
+    notification.textContent = message;
     
-    let icon = 'info';
-    if (type === 'success') icon = 'check-circle';
-    if (type === 'error') icon = 'alert-triangle';
-    if (type === 'warning') icon = 'alert-circle';
+    document.body.appendChild(notification);
     
-    notification.innerHTML = `
-        <div class="notification-icon">
-            <i data-feather="${icon}"></i>
-        </div>
-        <div class="notification-content">
-            ${message}
-        </div>
-        <div class="notification-close" onclick="this.parentElement.remove()">
-            <i data-feather="x"></i>
-        </div>
-    `;
-    
-    container.appendChild(notification);
-    feather.replace();
-    
+    // Remove after 3 seconds
     setTimeout(() => {
-        notification.remove();
-    }, duration);
+        notification.style.opacity = '0';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
 
-// Broadcast System Functions
-async function checkForBroadcasts() {
-    try {
-        const token = getCookie('AuthToken');
-        if (!token) return;
-        
-        const response = await fetch(`${SERVER_URL}/api/broadcasts`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to fetch broadcasts');
-        }
-        
-        const data = await response.json();
-        
-        if (data.success && data.broadcasts.length > 0) {
-            const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
-            
-            data.broadcasts.forEach(broadcast => {
-                if (!dismissedBroadcasts.includes(broadcast.id) && 
-                    !activeBroadcasts.some(ab => ab.id === broadcast.id)) {
-                    activeBroadcasts.push(broadcast);
-                    showBroadcastToast(broadcast);
-                }
-            });
-        }
-    } catch (error) {
-        console.error('Error checking for broadcasts:', error);
-    }
-}
-
-function createBroadcastToastContainer() {
-    const container = document.createElement('div');
-    container.id = 'broadcastToastContainer';
-    container.className = 'fixed bottom-4 right-4 z-[1000] max-w-md';
-    document.body.appendChild(container);
-    return container;
-}
-
-function showBroadcastToast(broadcast) {
-    const toastContainer = document.getElementById('broadcastToastContainer') || createBroadcastToastContainer();
-    
-    const toast = document.createElement('div');
-    toast.className = 'broadcast-toast glass p-4 rounded-lg mb-2 transform translate-y-20 transition-transform duration-300';
-    toast.dataset.broadcastId = broadcast.id;
-    
-    toast.innerHTML = `
-        <div class="flex items-start">
-            <div class="mr-3 mt-0.5">
-                <i data-feather="bell" class="w-5 h-5 text-yellow-400"></i>
-            </div>
-            <div class="flex-1">
-                <h3 class="font-semibold mb-1">New Announcement</h3>
-                <p class="text-sm text-gray-300">${truncateText(broadcast.message, 100)}</p>
-            </div>
-            <button onclick="hideBroadcastToast('${broadcast.id}')" class="ml-3 text-gray-400 hover:text-white">
-                <i data-feather="x" class="w-4 h-4"></i>
-            </button>
-        </div>
-        <div class="mt-2 flex justify-end">
-            <button onclick="showBroadcastModal('${broadcast.id}')" class="text-sm text-purple-300 hover:text-purple-100 mr-3">
-                View Details
-            </button>
-            <button onclick="dismissBroadcast('${broadcast.id}')" class="text-sm text-gray-400 hover:text-white">
-                Dismiss
-            </button>
-        </div>
-    `;
-    
-    toastContainer.appendChild(toast);
-    feather.replace();
-    
-    setTimeout(() => {
-        toast.classList.remove('translate-y-20');
-        toast.classList.add('translate-y-0');
-    }, 100);
-    
-    setTimeout(() => {
-        hideBroadcastToast(broadcast.id);
-    }, 15000);
-}
-
-function hideBroadcastToast(broadcastId) {
-    const toast = document.querySelector(`.broadcast-toast[data-broadcast-id="${broadcastId}"]`);
-    if (toast) {
-        toast.classList.remove('translate-y-0');
-        toast.classList.add('translate-y-20');
-        
-        setTimeout(() => {
-            toast.remove();
-            activeBroadcasts = activeBroadcasts.filter(b => b.id !== broadcastId);
-        }, 300);
-    }
-}
-
-function showBroadcastModal(broadcastId) {
-    const broadcast = activeBroadcasts.find(b => b.id === broadcastId);
-    if (!broadcast) return;
-    
-    const modal = document.getElementById('broadcastModal');
-    const message = document.getElementById('broadcastMessage');
-    const author = document.getElementById('broadcastAuthor');
-    const time = document.getElementById('broadcastTime');
-    
-    message.textContent = broadcast.message;
-    author.textContent = `From: ${broadcast.createdBy}`;
-    time.textContent = formatTime(new Date(broadcast.createdAt));
-    
-    modal.dataset.broadcastId = broadcastId;
-    modal.classList.remove('hidden');
-    
-    hideBroadcastToast(broadcastId);
-}
-
-async function dismissBroadcast(broadcastId) {
-    try {
-        const token = getCookie('AuthToken');
-        if (token) {
-            await fetch(`${SERVER_URL}/api/broadcasts/${broadcastId}/dismiss`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-        }
-        
-        const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
-        if (!dismissedBroadcasts.includes(broadcastId)) {
-            dismissedBroadcasts.push(broadcastId);
-            localStorage.setItem('dismissedBroadcasts', JSON.stringify(dismissedBroadcasts));
-        }
-        
-        const modal = document.getElementById('broadcastModal');
-        if (modal.dataset.broadcastId === broadcastId) {
-            modal.classList.add('hidden');
-        }
-        
-        hideBroadcastToast(broadcastId);
-        
-    } catch (error) {
-        console.error('Error dismissing broadcast:', error);
-    }
-}
-
-// Warning System Functions
-async function checkForWarnings() {
-    try {
-        const token = getCookie('AuthToken');
-        if (!token) return;
-        
-        const response = await fetch(`${SERVER_URL}/api/check-warnings`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            userWarnings = data.warnings || [];
-            
-            if (data.hasWarnings && userWarnings.length > 0) {
-                showWarningModal(userWarnings);
-            }
-        }
-    } catch (error) {
-        console.error('Error checking for warnings:', error);
-    }
-}
-
-async function dismissWarning(warningId) {
-    try {
-        const token = getCookie('AuthToken');
-        if (!token) {
-            showNotification('Authentication required', 'error');
-            return false;
-        }
-        
-        const response = await fetch(`${SERVER_URL}/api/warnings/${warningId}/dismiss`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            
-            const warningIndex = userWarnings.findIndex(w => w.id === warningId);
-            if (warningIndex !== -1) {
-                userWarnings[warningIndex] = {
-                    ...userWarnings[warningIndex],
-                    dismissed: true,
-                    dismissedAt: data.warning.dismissedAt,
-                    dismissedBy: data.warning.dismissedBy
-                };
-            }
-            
-            showWarningModal(userWarnings);
-            showNotification(data.message || 'Warning dismissed successfully', 'success');
-            return true;
-        } else {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to dismiss warning');
-        }
-    } catch (error) {
-        console.error('Error dismissing warning:', error);
-        showNotification(error.message || 'Failed to dismiss warning', 'error');
-        return false;
-    }
-}
-
-function showWarningModal(warnings) {
-    const modal = document.getElementById('warningModal');
-    const warningList = document.getElementById('warningList');
-    const warningCount = document.getElementById('warningCount');
-    const modalTitle = document.getElementById('warningModalTitle');
-    const closeWarningBtn = document.getElementById('closeWarningBtn');
-    const dismissAllBtn = document.getElementById('dismissAllBtn');
-    
-    warningList.innerHTML = '';
-    
-    const activeWarnings = warnings.filter(w => !w.dismissed);
-    
-    warningCount.textContent = `${activeWarnings.length} active warning${activeWarnings.length !== 1 ? 's' : ''}`;
-    modalTitle.textContent = `Warnings (${activeWarnings.length})`;
-    
-    if (activeWarnings.length === 0) {
-        dismissAllBtn.classList.add('hidden');
-        closeWarningBtn.classList.remove('hidden');
-    } else {
-        dismissAllBtn.classList.remove('hidden');
-        closeWarningBtn.classList.add('hidden');
-    }
-    
-    activeWarnings.forEach((warning, index) => {
-        const warningElement = document.createElement('div');
-        warningElement.className = 'p-3 rounded-lg bg-red-900 bg-opacity-30 border border-red-700 mb-3';
-        warningElement.innerHTML = `
-            <div class="flex justify-between items-start mb-2">
-                <span class="font-medium">Warning #${index + 1}</span>
-                <span class="text-xs px-2 py-1 bg-red-700 rounded">Active</span>
-            </div>
-            <p class="text-sm mb-2">${warning.reason}</p>
-            <div class="flex justify-between items-center text-xs text-gray-400">
-                <span>By: ${warning.issuedBy}</span>
-                <span>${new Date(warning.issuedAt).toLocaleDateString()}</span>
-            </div>
-            <button onclick="dismissWarning('${warning.id}')" class="w-full mt-2 py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-medium">
-                Dismiss This Warning
-            </button>
-        `;
-        warningList.appendChild(warningElement);
-    });
-    
-    if (activeWarnings.length === 0) {
-        warningList.innerHTML = `
-            <div class="text-center py-4">
-                <i data-feather="check-circle" class="w-12 h-12 text-green-400 mx-auto mb-2"></i>
-                <p class="text-green-300 font-medium">All warnings have been dismissed</p>
-                <p class="text-gray-400 text-sm mt-1">You can now close this window</p>
-            </div>
-        `;
-    }
-    
-    modal.classList.remove('hidden');
-    feather.replace();
-}
-
-async function dismissAllWarnings() {
-    try {
-        const token = getCookie('AuthToken');
-        if (!token) {
-            showNotification('Authentication required', 'error');
-            return;
-        }
-        
-        const activeWarnings = userWarnings.filter(w => !w.dismissed);
-        if (activeWarnings.length === 0) {
-            showNotification('No active warnings to dismiss', 'info');
-            return;
-        }
-        
-        const response = await fetch(`${SERVER_URL}/api/warnings/dismiss-all`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            
-            userWarnings.forEach(warning => {
-                if (!warning.dismissed) {
-                    warning.dismissed = true;
-                    warning.dismissedAt = new Date().toISOString();
-                    warning.dismissedBy = localStorage.getItem('currentUser');
-                }
-            });
-            
-            showWarningModal(userWarnings);
-            showNotification(data.message || `Dismissed ${data.dismissedCount} warning(s)`, 'success');
-            
-        } else {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to dismiss warnings');
-        }
-    } catch (error) {
-        console.error('Error dismissing all warnings:', error);
-        showNotification(error.message || 'Failed to dismiss all warnings', 'error');
-    }
-}
-
-function closeWarningModal() {
-    const activeWarnings = userWarnings.filter(w => !w.dismissed);
-    
-    if (activeWarnings.length === 0) {
-        document.getElementById('warningModal').classList.add('hidden');
-        showNotification('Warning modal closed', 'info');
-    } else {
-        showNotification(`You still have ${activeWarnings.length} active warning(s) to dismiss`, 'warning');
-    }
-}
-
-async function viewWarningHistory() {
-    try {
-        const token = getCookie('AuthToken');
-        if (!token) return;
-        
-        const response = await fetch(`${SERVER_URL}/api/warnings/history`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            showWarningHistoryModal(data.warnings);
-        }
-    } catch (error) {
-        console.error('Error fetching warning history:', error);
-        showNotification('Failed to load warning history', 'error');
-    }
-}
-
-function showWarningHistoryModal(warnings) {
-    const activeWarningsBefore = userWarnings.filter(w => !w.dismissed).length;
-    
-    const historyHTML = `
-        <div id="warningHistoryModal" class="fixed inset-0 z-[2001] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm">
-            <div class="glass rounded-xl p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">Warning History</h2>
-                    <button onclick="closeHistoryModal(${activeWarningsBefore})" class="p-1 rounded-full hover:bg-purple-700">
-                        <i data-feather="x" class="w-5 h-5"></i>
-                    </button>
-                </div>
-                <div class="space-y-4">
-                    ${warnings.length > 0 ? warnings.map(warning => `
-                        <div class="p-4 rounded-lg ${warning.dismissed ? 'bg-green-900 bg-opacity-30' : 'bg-red-900 bg-opacity-30'}">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="font-medium">${warning.reason}</p>
-                                    <p class="text-sm text-gray-400 mt-1">
-                                        Issued by ${warning.issuedBy} on ${new Date(warning.issuedAt).toLocaleDateString()}
-                                        ${warning.dismissedAt ? `<br>Dismissed on ${new Date(warning.dismissedAt).toLocaleDateString()} by ${warning.dismissedBy}` : ''}
-                                    </p>
-                                </div>
-                                <span class="px-2 py-1 rounded text-xs ${warning.dismissed ? 'bg-green-700' : 'bg-red-700'}">
-                                    ${warning.dismissed ? 'Dismissed' : 'Active'}
-                                </span>
-                            </div>
-                            ${!warning.dismissed ? `
-                                <button onclick="dismissWarning('${warning.id}')" class="w-full mt-2 py-2 bg-red-700 hover:bg-red-600 rounded text-sm">
-                                    Dismiss This Warning
-                                </button>
-                            ` : ''}
-                        </div>
-                    `).join('') : '<p class="text-gray-400 text-center py-8">No warning history found</p>'}
-                </div>
-            </div>
-        </div>
-    `;
-    
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = historyHTML;
-    document.body.appendChild(tempDiv);
-    feather.replace();
-}
-
-function closeHistoryModal(activeWarningsBefore) {
-    const historyModal = document.getElementById('warningHistoryModal');
-    if (historyModal) {
-        historyModal.remove();
-    }
-    
-    const activeWarningsNow = userWarnings.filter(w => !w.dismissed).length;
-    
-    if (activeWarningsNow > 0 && activeWarningsNow === activeWarningsBefore) {
-        setTimeout(() => {
-            showWarningModal(userWarnings);
-        }, 300);
-    }
-}
-
-// Message System Functions
-async function loadMessages() {
-    try {
-        const token = getCookie('AuthToken');
-        if (!token) return;
-        
-        const response = await fetch(`${SERVER_URL}/api/messages`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            displayMessages(data.messages);
-        }
-    } catch (error) {
-        console.error('Error loading messages:', error);
-    }
-}
-
-function displayMessages(messages) {
-    const container = document.getElementById('messageContainer');
-    const messagesList = document.getElementById('messagesList');
-    const messageHeader = document.getElementById('messageHeader');
-    
-    messagesList.innerHTML = '';
-    
-    if (!messages || messages.length === 0) {
-        container.classList.add('hidden');
-        messageHeader.style.display = 'none';
-        return;
-    }
-    
-    container.classList.remove('hidden');
-    messageHeader.style.display = 'block';
-    
-    messages.forEach((message, index) => {
-        setTimeout(() => {
-            const messageElement = createMessageElement(message);
-            messagesList.appendChild(messageElement);
-        }, index * 100);
-    });
-    
-    feather.replace();
-}
-
-function createMessageElement(message) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'glass rounded-lg p-4 mb-3 message-entry';
-    messageDiv.style.animation = 'slideInLeft 0.3s ease-out';
-    messageDiv.id = `message-${message.id}`;
-    
-    const timeAgo = getTimeAgo(message.createdAt);
-    
-    messageDiv.innerHTML = `
-        <div class="flex justify-between items-start mb-2">
-            <div class="flex items-center">
-                <i data-feather="mail" class="w-4 h-4 mr-2 text-purple-400"></i>
-                <span class="font-medium text-sm">${escapeHtml(message.from)}</span>
-            </div>
-            <span class="text-xs text-gray-400">${timeAgo}</span>
-        </div>
-        <p class="text-sm text-gray-300 mb-3">${escapeHtml(message.message)}</p>
-        <div class="flex justify-end">
-            <button onclick="dismissMessage('${message.id}')" 
-                    class="text-xs bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded transition-colors">
-                Dismiss
-            </button>
-        </div>
-    `;
-    
-    return messageDiv;
-}
-
-async function dismissMessage(messageId) {
-    try {
-        const token = getCookie('AuthToken');
-        if (!token) {
-            showNotification('Authentication required', 'error');
-            return;
-        }
-        
-        const response = await fetch(`${SERVER_URL}/api/messages/${messageId}/dismiss`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (response.ok) {
-            const messageElement = document.getElementById(`message-${messageId}`);
-            if (messageElement) {
-                messageElement.style.animation = 'slideOutLeft 0.3s ease-in';
-                setTimeout(() => {
-                    messageElement.remove();
-                    checkRemainingMessages();
-                }, 300);
-            }
-            showNotification('Message dismissed', 'success');
-        } else {
-            showNotification('Failed to dismiss message', 'error');
-        }
-    } catch (error) {
-        console.error('Error dismissing message:', error);
-        showNotification('Error dismissing message', 'error');
-    }
-}
-
-function checkRemainingMessages() {
-    const messagesList = document.getElementById('messagesList');
-    const messageHeader = document.getElementById('messageHeader');
-    const container = document.getElementById('messageContainer');
-    
-    if (messagesList.children.length === 0) {
-        container.classList.add('hidden');
-        messageHeader.style.display = 'none';
-    }
-}
-
-function getTimeAgo(timestamp) {
-    const now = new Date();
-    const messageTime = new Date(timestamp);
-    const diffInSeconds = Math.floor((now - messageTime) / 1000);
-    
-    if (diffInSeconds < 60) return 'just now';
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-    return `${Math.floor(diffInSeconds / 86400)}d ago`;
-}
-
-function escapeHtml(unsafe) {
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-function initMessageSystem() {
-    setTimeout(loadMessages, 1000);
-    setInterval(loadMessages, 3 * 60 * 1000);
-}
-
-// Helper functions
-function truncateText(text, maxLength) {
-    if (text.length <= maxLength) return text;
-    return text.substr(0, maxLength) + '...';
-}
-
-function formatTime(date) {
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
-
-// Auto-clicker functionality
+// WebSocket connection for auto-clicker
 function connectWebSocket() {
     if (websocket) {
         websocket.close();
@@ -1811,7 +1004,7 @@ async function sendCommand(command, extra = {}) {
     }
 }
 
-// Command functions
+// Auto-clicker command functions
 function toggleAutoClicker() { 
     sendCommand("toggle_running"); 
 }
@@ -1846,7 +1039,7 @@ function setCustomKey() {
     if (k) sendCommand("set_custom_key", { key: k });
 }
 
-// Debug functions
+// Auto-clicker debug functions
 async function testWindowsKey() {
     console.log("🪟 Testing Windows key press...");
     const result = await sendCommand("debug_windows_key");
@@ -1867,9 +1060,99 @@ async function testSingleClick() {
     }
 }
 
-// Initialize everything when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize authentication
+// ==================== SERVER FEATURES LOGIC ====================
+// Global variables for server features
+let userWarnings = [];
+let activeBroadcasts = [];
+let broadcastCheckInterval = null;
+let warningCheckInterval = null;
+const SERVER_URL = 'https://proxyforsigmi.onrender.com';
+
+// Cookie management for server features
+function getCookie(name) {
+    const cookieName = name + "=";
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const cookieArray = decodedCookie.split(';');
+    
+    for(let i = 0; i < cookieArray.length; i++) {
+        let cookie = cookieArray[i];
+        while (cookie.charAt(0) === ' ') {
+            cookie = cookie.substring(1);
+        }
+        if (cookie.indexOf(cookieName) === 0) {
+            return cookie.substring(cookieName.length, cookie.length);
+        }
+    }
+    return "";
+}
+
+function setCookie(name, value, days) {
+    const date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    const expires = "expires=" + date.toUTCString();
+    document.cookie = name + "=" + value + ";" + expires + ";path=/";
+}
+
+// Authentication functions for server features
+function isLoggedIn() {
+    const token = getCookie('AuthToken');
+    const currentUser = localStorage.getItem('currentUser');
+    return !!(token && currentUser);
+}
+
+async function verifyToken(token) {
+    try {
+        const response = await fetch('https://proxyforsigmi.onrender.com/api/verify-token', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            return false;
+        }
+        
+        const data = await response.json();
+        return data.valid === true;
+    } catch (error) {
+        console.error('Token verification error:', error);
+        return false;
+    }
+}
+
+// Server features UI functions
+function showLoginModal() {
+    document.getElementById('loginModal').classList.add('active');
+}
+
+function closeLoginModal() {
+    document.getElementById('loginModal').classList.remove('active');
+}
+
+function redirectToLogin() {
+    window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
+}
+
+// Server features systems (stubs - can be implemented as needed)
+function checkForBroadcasts() {
+    // Implementation for broadcast system
+    console.log('Checking for broadcasts...');
+}
+
+function checkForWarnings() {
+    // Implementation for warning system
+    console.log('Checking for warnings...');
+}
+
+function loadMessages() {
+    // Implementation for message system
+    console.log('Loading messages...');
+}
+
+// Initialize server features
+function initServerFeatures() {
     const token = getCookie('AuthToken');
     const currentUser = localStorage.getItem('currentUser');
     
@@ -1880,7 +1163,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('loadingOverlay').classList.remove('active');
             if (isValid) {
                 // Initialize all systems after successful authentication
-                initMessageSystem();
+                loadMessages();
                 checkForBroadcasts();
                 checkForWarnings();
                 
@@ -1898,11 +1181,11 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         setTimeout(showLoginModal, 1000);
     }
-    
-    // Apply theme
-    applyThemeOnLoad();
-    
-    // Initialize auto-clicker connection
+}
+
+// ==================== INITIALIZATION ====================
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize auto-clicker
     console.log("🚀 Auto Clicker Pro Web Interface starting...");
     connectWebSocket();
     setTimeout(checkBackendConnection, 100);
@@ -1910,20 +1193,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize Feather Icons
     feather.replace();
     
-    // Add event listeners for warning system
-    document.addEventListener('click', function(e) {
-        if (e.target.id === 'viewHistoryBtn' || e.target.closest('#viewHistoryBtn')) {
-            viewWarningHistory();
-        }
-        
-        if (e.target.id === 'dismissAllBtn' || e.target.closest('#dismissAllBtn')) {
-            dismissAllWarnings();
-        }
-        
-        if (e.target.id === 'closeWarningBtn' || e.target.closest('#closeWarningBtn')) {
-            closeWarningModal();
-        }
-    });
+    // Initialize server features (optional - uncomment if needed)
+    // initServerFeatures();
 });
 
 // Clean up on page unload
