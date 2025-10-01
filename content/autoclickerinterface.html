@@ -497,93 +497,193 @@
 <script>
 let isConnected = false;
 let currentStatus = {};
+let connectionAttempts = 0;
 
-function showNotification(msg, type="info") {
-    console.log(`🔔 Notification [${type}]:`, msg);
-
-    // If you want visual popups, inject a floating div
-    let div = document.createElement("div");
-    div.textContent = msg;
-    div.style.position = "fixed";
-    div.style.bottom = "20px";
-    div.style.right = "20px";
-    div.style.background = (type === "error") ? "#ff4d4d" : "#4dff88";
-    div.style.color = "#000";
-    div.style.padding = "10px 20px";
-    div.style.borderRadius = "8px";
-    div.style.zIndex = "9999";
-    document.body.appendChild(div);
-    setTimeout(() => div.remove(), 3000);
+function showNotification(message, type = "info") {
+    console.log(`🔔 [${type.toUpperCase()}] ${message}`);
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed bottom-4 right-4 p-4 rounded-lg z-50 transition-all duration-300 ${
+        type === 'error' ? 'bg-red-500 text-white' : 
+        type === 'success' ? 'bg-green-500 text-white' : 
+        'bg-blue-500 text-white'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
 
-    
 async function checkBackendConnection() {
     try {
-        const res = await fetch("http://localhost:8080/status.json");
-        if (!res.ok) throw new Error(res.status);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        
+        const res = await fetch("http://localhost:8080/status.json", {
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        
         currentStatus = await res.json();
-        console.log("✅ Status fetched:", currentStatus);
+        connectionAttempts = 0;
+        
         if (!isConnected) {
-            function showConnectedUI() {
-                console.log("✅ Connected to backend");
-                // Optional: add UI changes here (like enabling buttons, changing color)
+            isConnected = true;
+            showConnectedUI();
+            showNotification("✅ Connected to Auto Clicker backend", "success");
+        }
+        
+        updateUI();
+        
+    } catch (err) {
+        connectionAttempts++;
+        
+        if (isConnected || connectionAttempts === 1) {
+            console.warn("❌ Backend connection failed:", err.message);
+        }
+        
+        if (isConnected) {
+            isConnected = false;
+            showDisconnectedUI();
+            if (connectionAttempts > 3) {
+                showNotification("❌ Lost connection to backend", "error");
             }
         }
-        updateUI();
-        isConnected = true;
-    } catch (err) {
-        if (isConnected) console.warn("❌ Lost connection", err);
-        function showDisconnectedUI() {
-            console.log("❌ Disconnected from backend");
-            // Optional: add UI changes here (like greying out buttons)
+        
+        // Show download section if not connected after several attempts
+        if (connectionAttempts > 2) {
+            document.getElementById('downloadSection').classList.remove('hidden');
+            document.getElementById('controlPanel').classList.add('hidden');
         }
-        isConnected = false;
     }
 }
 
+function showConnectedUI() {
+    console.log("✅ Connected to backend - updating UI");
+    
+    document.getElementById('connectionDot').className = 'w-3 h-3 bg-green-500 rounded-full pulse-glow';
+    document.getElementById('connectionText').textContent = 'Connected to Auto Clicker Backend';
+    document.getElementById('connectionText').className = 'text-green-300 font-semibold';
+    document.getElementById('connectionInfo').textContent = 'Connected • Backend Active';
+    document.getElementById('serviceStatus').className = 'w-2 h-2 bg-green-500 rounded-full';
+    
+    document.getElementById('downloadSection').classList.add('hidden');
+    document.getElementById('controlPanel').classList.remove('hidden');
+}
+
+function showDisconnectedUI() {
+    console.log("❌ Disconnected from backend - updating UI");
+    
+    document.getElementById('connectionDot').className = 'w-3 h-3 bg-red-500 rounded-full pulse-glow';
+    document.getElementById('connectionText').textContent = 'Searching for Auto Clicker Backend...';
+    document.getElementById('connectionText').className = 'text-red-300 font-semibold';
+    document.getElementById('connectionInfo').textContent = 'Disconnected • Check if backend is running';
+    document.getElementById('serviceStatus').className = 'w-2 h-2 bg-red-500 rounded-full';
+}
+
 function updateUI() {
-    console.log("🔄 Updating UI with:", currentStatus);
+    if (!isConnected) return;
+    
+    // Update status display
+    document.getElementById('intervalValue').textContent = Number(currentStatus.interval).toFixed(2);
+    document.getElementById('statusText').textContent = currentStatus.running ? "RUNNING" : "STOPPED";
+    document.getElementById('statusText').className = `text-2xl font-bold font-['Orbitron'] ${
+        currentStatus.running ? 'text-green-400' : 'text-red-400'
+    }`;
+    document.getElementById('statusIndicator').className = `w-5 h-5 rounded-full mx-auto mb-4 border-2 border-white/30 ${
+        currentStatus.running ? 'bg-green-500' : 'bg-red-500'
+    }`;
+    
+    document.getElementById('actionCount').textContent = currentStatus.actions;
+    document.getElementById('sessionTime').textContent = currentStatus.session_time + "s";
 
-    document.getElementById("intervalValue").textContent = Number(currentStatus.interval).toFixed(2);
+    // Update toggles
+    document.getElementById('jitterToggle').checked = currentStatus.jitter_enabled;
+    document.getElementById('humanLikeToggle').checked = currentStatus.human_like;
 
-    document.getElementById("statusText").textContent = currentStatus.running ? "RUNNING" : "STOPPED";
-    document.getElementById("actionCount").textContent = currentStatus.actions;
-    document.getElementById("sessionTime").textContent = currentStatus.session_time + "s";
-
-    document.getElementById("jitterToggle").checked = currentStatus.jitter_enabled;
-    document.getElementById("humanLikeToggle").checked = currentStatus.human_like;
-
+    // Update active mode
     document.querySelectorAll(".mode-btn").forEach(btn => {
         btn.classList.remove("mode-active");
-        if (btn.dataset.mode === currentStatus.mode) btn.classList.add("mode-active");
+        if (btn.dataset.mode === currentStatus.mode) {
+            btn.classList.add("mode-active");
+        }
     });
 }
 
 async function sendCommand(command, extra = {}) {
-    if (!isConnected) { console.warn("⚠️ Not connected, skipping command"); return; }
+    if (!isConnected) {
+        showNotification("⚠️ Not connected to backend. Please check if the Auto Clicker application is running.", "error");
+        console.warn("⚠️ Not connected, skipping command:", command);
+        return null;
+    }
+    
     console.log("📤 Sending command:", command, extra);
+    
     try {
-        const res = await fetch("http://localhost:8080/command", {
+        const response = await fetch("http://localhost:8080/command", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
             body: JSON.stringify({ command, ...extra })
         });
-        const data = await res.json();
-        console.log("📥 Response:", data);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log("📥 Command response:", data);
+        
+        // Refresh status after command
+        setTimeout(checkBackendConnection, 100);
+        
         return data;
+        
     } catch (err) {
-        console.error("❌ Command failed", err);
+        console.error("❌ Command failed:", err);
+        showNotification(`❌ Command failed: ${err.message}`, "error");
+        return null;
     }
 }
 
-function toggleRunning() { sendCommand("start_stop"); }
-function panicStop() { sendCommand("panic_stop"); }
-function setMode(m) { sendCommand("set_mode", { mode: m }); }
-function setInterval(v) { sendCommand("set_interval", { interval: v }); }
-function setJitter(e) { sendCommand("set_jitter", { enabled: e }); }
-function setHumanLike(e) { sendCommand("set_human_like", { enabled: e }); }
+// Command functions
+function toggleRunning() { 
+    sendCommand("start_stop"); 
+}
+
+function panicStop() { 
+    sendCommand("panic_stop"); 
+}
+
+function setMode(m) { 
+    sendCommand("set_mode", { mode: m }); 
+}
+
+function setInterval(v) { 
+    sendCommand("set_interval", { interval: v }); 
+}
+
+function setJitter(e) { 
+    sendCommand("set_jitter", { enabled: e }); 
+}
+
+function setHumanLike(e) { 
+    sendCommand("set_human_like", { enabled: e }); 
+}
+
 function setCustomKey() {
-    const k = prompt("Enter custom key:");
+    const k = prompt("Enter custom key (e.g., 'a', 'enter', 'space'):");
     if (k) sendCommand("set_custom_key", { key: k });
 }
 
@@ -592,7 +692,7 @@ async function testWindowsKey() {
     console.log("🪟 Testing Windows key press...");
     const result = await sendCommand("debug_windows_key");
     if (result && result.status === "ok") {
-        showNotification("✅ Windows key pressed successfully!", "info");
+        showNotification("✅ Windows key pressed successfully!", "success");
     } else {
         showNotification("❌ Failed to press Windows key", "error");
     }
@@ -602,26 +702,31 @@ async function testSingleClick() {
     console.log("🖱️ Testing single click...");
     const result = await sendCommand("debug_single_click");
     if (result && result.status === "ok") {
-        showNotification("✅ Single click performed!", "info");
+        showNotification("✅ Single click performed!", "success");
     } else {
         showNotification("❌ Failed to perform click", "error");
     }
 }
 
 function restartBackend() {
-    console.log("🔄 Restarting backend...");
-    sendCommand("restart");
-    showNotification("🔄 Restarting backend service...", "info");
+    if (confirm("Are you sure you want to restart the backend?")) {
+        sendCommand("restart");
+        showNotification("🔄 Restarting backend service...", "info");
+    }
 }
 
 function shutdownBackend() {
-    console.log("🔌 Shutting down backend...");
-    sendCommand("shutdown");
-    showNotification("🔌 Shutting down backend service...", "info");
+    if (confirm("Are you sure you want to shutdown the backend?")) {
+        sendCommand("shutdown");
+        showNotification("🔌 Shutting down backend service...", "info");
+    }
 }
 
-setInterval(checkBackendConnection, 1500);
-setInterval(() => { if (isConnected) updateUI(); }, 1000);
+// Initialize connection checking
+console.log("🚀 Auto Clicker Pro Web Interface starting...");
+setInterval(checkBackendConnection, 2000);
+// Initial connection check
+setTimeout(checkBackendConnection, 500);
 </script>
 
 </body>
