@@ -173,6 +173,7 @@ class AutoClickerBackend:
                 if not self.running:
                     self.start_auto_clicker()
                     response_data["message"] = "Auto-clicker started"
+                    print(f"✅ Start command processed - Running: {self.running}")
                 else:
                     response_data["message"] = "Auto-clicker is already running"
                 response_data["running"] = self.running
@@ -182,6 +183,7 @@ class AutoClickerBackend:
                 if self.running:
                     self.stop_auto_clicker()
                     response_data["message"] = "Auto-clicker stopped"
+                    print(f"✅ Stop command processed - Running: {self.running}")
                 else:
                     response_data["message"] = "Auto-clicker is already stopped"
                 response_data["running"] = self.running
@@ -191,6 +193,7 @@ class AutoClickerBackend:
                 self.panic_stop()
                 response_data["message"] = "Emergency stop activated"
                 response_data["running"] = self.running
+                print(f"✅ Panic stop processed - Was running: {was_running}, Now running: {self.running}")
                 
             elif command == "set_mode":
                 mode = data.get("mode", "click")
@@ -289,6 +292,7 @@ class AutoClickerBackend:
             self.stop_auto_clicker()
         else:
             self.start_auto_clicker()
+        print(f"🔄 F6 Toggle - Running: {self.running}")
 
     def start_auto_clicker(self):
         """Start the auto-clicker"""
