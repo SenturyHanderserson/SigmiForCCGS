@@ -513,6 +513,7 @@ let isConnected = false;
 let currentStatus = {};
 let connectionAttempts = 0;
 let isRunning = false;
+let lastSuccessfulConnection = 0;
 
 function showNotification(message, type = "info") {
     console.log(`🔔 [${type.toUpperCase()}] ${message}`);
@@ -538,7 +539,7 @@ function showNotification(message, type = "info") {
 async function checkBackendConnection() {
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
         
         const res = await fetch("http://localhost:8080/status.json", {
             signal: controller.signal
@@ -550,6 +551,7 @@ async function checkBackendConnection() {
         
         currentStatus = await res.json();
         connectionAttempts = 0;
+        lastSuccessfulConnection = Date.now();
         
         if (!isConnected) {
             isConnected = true;
@@ -569,13 +571,13 @@ async function checkBackendConnection() {
         if (isConnected) {
             isConnected = false;
             showDisconnectedUI();
-            if (connectionAttempts > 3) {
+            if (connectionAttempts > 1) {
                 showNotification("❌ Lost connection to backend", "error");
             }
         }
         
         // Show download section if not connected after several attempts
-        if (connectionAttempts > 2) {
+        if (connectionAttempts > 1) {
             document.getElementById('downloadSection').classList.remove('hidden');
             document.getElementById('controlPanel').classList.add('hidden');
         }
@@ -603,6 +605,9 @@ function showDisconnectedUI() {
     document.getElementById('connectionText').className = 'text-red-300 font-semibold';
     document.getElementById('connectionInfo').textContent = 'Disconnected • Check if backend is running';
     document.getElementById('serviceStatus').className = 'w-2 h-2 bg-red-500 rounded-full';
+    
+    document.getElementById('downloadSection').classList.remove('hidden');
+    document.getElementById('controlPanel').classList.add('hidden');
 }
 
 function updateUI() {
@@ -698,7 +703,7 @@ async function sendCommand(command, extra = {}) {
         const data = await response.json();
         console.log("📥 Command response:", data);
         
-        // Refresh status after command
+        // Force immediate status check after command
         setTimeout(checkBackendConnection, 100);
         
         return data;
@@ -706,6 +711,8 @@ async function sendCommand(command, extra = {}) {
     } catch (err) {
         console.error("❌ Command failed:", err);
         showNotification(`❌ Command failed: ${err.message}`, "error");
+        // Check if backend is still connected
+        setTimeout(checkBackendConnection, 100);
         return null;
     }
 }
@@ -783,7 +790,7 @@ function shutdownBackend() {
 
 // Initialize connection checking
 console.log("🚀 Auto Clicker Pro Web Interface starting...");
-setInterval(checkBackendConnection, 1000); // Check every second for real-time updates
+setInterval(checkBackendConnection, 2000); // Check every 2 seconds for connection status
 // Initial connection check
 setTimeout(checkBackendConnection, 500);
 </script>
