@@ -36,13 +36,6 @@ class AutoClickerBackend:
         signal.signal(signal.SIGINT, self.signal_handler)
         signal.signal(signal.SIGTERM, self.signal_handler)
 
-        print("🎮 Auto Clicker Pro - Backend Server")
-        print("=" * 50)
-        print("🌐 API Server: http://localhost:8080")
-        print("🎮 Hotkeys: F6 (Toggle Start/Stop)")
-        print("🔧 Debug: Windows key test available via web interface")
-        print("⚡ Max CPS: 200 (0.005s interval)")
-        print("=" * 50)
 
     # ------------------- Web Server -------------------
     def start_web_server(self):
@@ -146,12 +139,8 @@ class AutoClickerBackend:
             for attempt in range(3):
                 try:
                     self.web_server = BackendServer(("", self.web_port), AutoClickerHandler, self)
-                    print(f"🚀 Starting web server on port {self.web_port}...")
                     self.web_thread = threading.Thread(target=self.web_server.serve_forever, daemon=True)
                     self.web_thread.start()
-                    print(f"✅ Web server started successfully on http://localhost:{self.web_port}")
-                    print(f"📊 Status endpoint: http://localhost:{self.web_port}/status.json")
-                    print(f"🎮 Command endpoint: http://localhost:{self.web_port}/command")
                     return True
                 except OSError as e:
                     if "Address already in use" in str(e):
@@ -177,14 +166,11 @@ class AutoClickerBackend:
                 self.toggle_running()
                 response_data["message"] = f"Auto-clicker {'started' if self.running else 'stopped'}"
                 response_data["running"] = self.running
-                print(f"🔄 Toggle command - Running: {self.running}")
-                
             elif command == "panic_stop":
                 was_running = self.running
                 self.panic_stop()
                 response_data["message"] = "Emergency stop activated"
                 response_data["running"] = self.running
-                print(f"🚨 Panic stop - Was running: {was_running}, Now running: {self.running}")
                 
             elif command == "set_mode":
                 mode = data.get("mode", "click")
@@ -248,7 +234,6 @@ class AutoClickerBackend:
         valid_modes = ["click", "right_click", "space", "custom"]
         if mode in valid_modes:
             self.mode = mode
-            print(f"📝 Mode set to: {mode}")
             # Test the mode immediately
             self.perform_action()
         else:
@@ -259,24 +244,21 @@ class AutoClickerBackend:
         # Allow intervals from 0.005s (200 CPS) to 2.0s (0.5 CPS)
         self.click_interval = max(0.005, min(2.0, interval))
         cps = 1 / self.click_interval if self.click_interval > 0 else float('inf')
-        print(f"⚡ Interval updated to: {self.click_interval}s ({cps:.1f} CPS)")
 
     def set_jitter(self, enabled):
         """Enable or disable mouse jitter"""
         self.jitter_enabled = enabled
-        print(f"🎯 Jitter {'enabled' if enabled else 'disabled'}")
+
 
     def set_human_like(self, enabled):
         """Enable or disable human-like timing"""
         self.human_like = enabled
-        print(f"🤖 Human-like timing {'enabled' if enabled else 'disabled'}")
 
     def set_custom_key(self, key):
         """Set custom key for custom mode"""
         if key:
             self.custom_key = key
             self.mode = "custom"
-            print(f"🔑 Custom key set to: '{key}'")
             # Test the custom key immediately
             self.perform_action()
         else:
@@ -288,7 +270,6 @@ class AutoClickerBackend:
             self.stop_auto_clicker()
         else:
             self.start_auto_clicker()
-        print(f"🔄 Toggle - Running: {self.running}")
 
     def start_auto_clicker(self):
         """Start the auto-clicker"""
@@ -299,7 +280,6 @@ class AutoClickerBackend:
             self.action_count = 0
             self.clicker_thread = threading.Thread(target=self.auto_clicker_loop, daemon=True)
             self.clicker_thread.start()
-            print("🚀 Auto-clicker started")
 
     def stop_auto_clicker(self):
         """Stop the auto-clicker"""
@@ -321,13 +301,11 @@ class AutoClickerBackend:
     # ------------------- Debug Functions -------------------
     def debug_windows_key(self):
         """Press Windows key for debugging"""
-        print("🪟 DEBUG: Pressing Windows key")
         pyautogui.press("win")
         print("✅ Windows key pressed successfully")
 
     def debug_single_click(self):
         """Perform single click for debugging"""
-        print("🖱️ DEBUG: Performing single click")
         pyautogui.click()
         print("✅ Single click performed")
 
@@ -371,7 +349,6 @@ class AutoClickerBackend:
     def auto_clicker_loop(self):
         """Main auto-clicker loop - optimized for high CPS"""
         last_time = time.time()
-        print("🔄 Auto-clicker thread started")
         
         while self.running and not self.stop_clicker.is_set():
             try:
@@ -395,7 +372,6 @@ class AutoClickerBackend:
                 print(f"❌ Error in auto-clicker loop: {e}")
                 break
                 
-        print("✅ Auto-clicker thread ended")
 
     # ------------------- Status and Utility Functions -------------------
     def get_status(self):
@@ -429,13 +405,11 @@ class AutoClickerBackend:
         try:
             # F6 toggles start/stop
             keyboard.add_hotkey("f6", self.hotkey_toggle)
-            print("✅ Hotkeys registered: F6 (Toggle Start/Stop)")
         except Exception as e:
             print(f"❌ Failed to setup hotkeys: {e}")
 
     def hotkey_toggle(self):
         """Handle F6 hotkey with status update"""
-        print("🎮 F6 pressed - Toggling auto-clicker")
         self.toggle_running()
 
     # ------------------- Signal Handling -------------------
@@ -445,10 +419,8 @@ class AutoClickerBackend:
         self.running = False
         self.stop_clicker.set()
         if self.web_server:
-            print("🔌 Shutting down web server...")
             self.web_server.shutdown()
             self.web_server.server_close()
-        print("✅ Auto Clicker Pro backend shutdown complete")
         sys.exit(0)
 
     # ------------------- Main Loop -------------------
@@ -460,11 +432,6 @@ class AutoClickerBackend:
         
         self.setup_hotkeys()
         
-        print("\n🎯 Auto Clicker Pro is now running!")
-        print("💡 Use the web interface at http://localhost:8080")
-        print("💡 Or use hotkey: F6 (Toggle Start/Stop)")
-        print("⚡ Max performance: 200 CPS (0.005s interval)")
-        print("⏹️  Press Ctrl+C to exit\n")
         
         # Periodic state verification
         def state_check():
@@ -490,3 +457,4 @@ if __name__ == "__main__":
     pyautogui.PAUSE = 0
     
     AutoClickerBackend().run()
+
