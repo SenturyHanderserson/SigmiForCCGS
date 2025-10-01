@@ -678,12 +678,37 @@ async function sendCommand(command, extra = {}) {
 }
 
 // Command functions
-function toggleAutoClicker() { 
-    sendCommand("toggle_running"); 
+async function toggleAutoClicker() { 
+    // Immediately update the UI for responsiveness
+    const toggleBtn = document.getElementById('toggleBtn');
+    const panicBtn = document.getElementById('panicStopBtn');
+    
+    if (!isRunning) {
+        // When starting: immediately gray out the start button
+        toggleBtn.classList.add('btn-disabled');
+        toggleBtn.disabled = true;
+        panicBtn.classList.remove('btn-disabled');
+    } else {
+        // When stopping: immediately enable the start button
+        toggleBtn.classList.remove('btn-disabled');
+        toggleBtn.disabled = false;
+        panicBtn.classList.add('btn-disabled');
+    }
+    
+    // Send the command to the backend
+    await sendCommand("toggle_running");
 }
 
 function panicStop() { 
     if (isRunning) {
+        const toggleBtn = document.getElementById('toggleBtn');
+        const panicBtn = document.getElementById('panicStopBtn');
+        
+        // Immediately update UI
+        toggleBtn.classList.remove('btn-disabled');
+        toggleBtn.disabled = false;
+        panicBtn.classList.add('btn-disabled');
+        
         sendCommand("panic_stop"); 
     }
 }
