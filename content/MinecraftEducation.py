@@ -168,57 +168,48 @@ class AutoClickerBackend:
         response_data = {"status": "ok"}
         
         try:
-            if command == "start_clicker":
-                # Only start if not already running
-                if not self.running:
-                    self.start_auto_clicker()
-                    response_data["message"] = "Auto-clicker started"
-                    print(f"✅ Start command processed - Running: {self.running}")
-                else:
-                    response_data["message"] = "Auto-clicker is already running"
+            if command == "toggle_running":
+                self.toggle_running()
+                response_data["message"] = f"Auto-clicker {'started' if self.running else 'stopped'}"
                 response_data["running"] = self.running
-                
-            elif command == "stop_clicker":
-                # Only stop if currently running
-                if self.running:
-                    self.stop_auto_clicker()
-                    response_data["message"] = "Auto-clicker stopped"
-                    print(f"✅ Stop command processed - Running: {self.running}")
-                else:
-                    response_data["message"] = "Auto-clicker is already stopped"
-                response_data["running"] = self.running
+                print(f"🔄 Toggle command - Running: {self.running}")
                 
             elif command == "panic_stop":
                 was_running = self.running
                 self.panic_stop()
                 response_data["message"] = "Emergency stop activated"
                 response_data["running"] = self.running
-                print(f"✅ Panic stop processed - Was running: {was_running}, Now running: {self.running}")
+                print(f"🚨 Panic stop - Was running: {was_running}, Now running: {self.running}")
                 
             elif command == "set_mode":
                 mode = data.get("mode", "click")
                 self.set_mode(mode)
                 response_data["message"] = f"Mode set to {mode}"
+                response_data["mode"] = self.mode
                 
             elif command == "set_interval":
                 interval = float(data.get("interval", 0.05))
                 self.set_interval(interval)
                 response_data["message"] = f"Interval set to {interval}s"
+                response_data["interval"] = self.click_interval
                 
             elif command == "set_jitter":
                 enabled = bool(data.get("enabled", True))
                 self.set_jitter(enabled)
                 response_data["message"] = f"Jitter {'enabled' if enabled else 'disabled'}"
+                response_data["jitter_enabled"] = self.jitter_enabled
                 
             elif command == "set_human_like":
                 enabled = bool(data.get("enabled", True))
                 self.set_human_like(enabled)
                 response_data["message"] = f"Human-like mode {'enabled' if enabled else 'disabled'}"
+                response_data["human_like"] = self.human_like
                 
             elif command == "set_custom_key":
                 key = data.get("key")
                 self.set_custom_key(key)
                 response_data["message"] = f"Custom key set to '{key}'"
+                response_data["mode"] = self.mode
                 
             elif command == "debug_windows_key":
                 self.debug_windows_key()
@@ -229,11 +220,11 @@ class AutoClickerBackend:
                 response_data["message"] = "Single click performed"
                 
             elif command == "restart":
-                response_data["message"] = "Restart command received (would restart in production)"
+                response_data["message"] = "Restart command received"
                 # In a real implementation, you might restart the service here
                 
             elif command == "shutdown":
-                response_data["message"] = "Shutdown command received (would shutdown in production)"
+                response_data["message"] = "Shutdown command received"
                 # In a real implementation, you might shutdown the service here
                 
             else:
@@ -287,12 +278,12 @@ class AutoClickerBackend:
             print("❌ No custom key provided")
 
     def toggle_running(self):
-        """Toggle the auto-clicker state (for F6 hotkey)"""
+        """Toggle the auto-clicker state (for F6 hotkey and web interface)"""
         if self.running:
             self.stop_auto_clicker()
         else:
             self.start_auto_clicker()
-        print(f"🔄 F6 Toggle - Running: {self.running}")
+        print(f"🔄 Toggle - Running: {self.running}")
 
     def start_auto_clicker(self):
         """Start the auto-clicker"""
@@ -304,8 +295,6 @@ class AutoClickerBackend:
             self.clicker_thread = threading.Thread(target=self.auto_clicker_loop, daemon=True)
             self.clicker_thread.start()
             print("🚀 Auto-clicker started")
-            # Send status update
-            self.send_status_update()
 
     def stop_auto_clicker(self):
         """Stop the auto-clicker"""
@@ -313,8 +302,6 @@ class AutoClickerBackend:
             self.running = False
             self.stop_clicker.set()
             print("🛑 Auto-clicker stopped")
-            # Send status update
-            self.send_status_update()
 
     def panic_stop(self):
         """Emergency stop"""
@@ -325,14 +312,6 @@ class AutoClickerBackend:
             print("🚨 Emergency stop activated")
         else:
             print("ℹ️  Panic stop pressed but auto-clicker was not running")
-        # Send status update
-        self.send_status_update()
-
-    def send_status_update(self):
-        """Print status update for debugging"""
-        status = self.get_status()
-        print(f"📊 Status Update - Running: {status['running']}, Mode: {status['mode']}, "
-              f"Interval: {status['interval']}s, Actions: {status['actions']}")
 
     # ------------------- Debug Functions -------------------
     def debug_windows_key(self):
@@ -463,12 +442,22 @@ class AutoClickerBackend:
         """Setup global hotkeys"""
         try:
             # F6 toggles start/stop
-            keyboard.add_hotkey("f6", self.toggle_running)
+            keyboard.add_hotkey("f6", self.hotkey_toggle)
             # F7 is emergency stop
-            keyboard.add_hotkey("f7", self.panic_stop)
+            keyboard.add_hotkey("f7", self.hotkey_panic)
             print("✅ Hotkeys registered: F6 (Toggle Start/Stop), F7 (Emergency Stop)")
         except Exception as e:
             print(f"❌ Failed to setup hotkeys: {e}")
+
+    def hotkey_toggle(self):
+        """Handle F6 hotkey with status update"""
+        print("🎮 F6 pressed - Toggling auto-clicker")
+        self.toggle_running()
+
+    def hotkey_panic(self):
+        """Handle F7 hotkey with status update"""
+        print("🎮 F7 pressed - Emergency stop")
+        self.panic_stop()
 
     # ------------------- Signal Handling -------------------
     def signal_handler(self, signum, frame):
