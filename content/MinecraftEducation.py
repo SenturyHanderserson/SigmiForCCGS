@@ -243,12 +243,10 @@ class AutoClickerBackend:
         """Set the click interval - allow much smaller values for higher CPS"""
         # Allow intervals from 0.005s (200 CPS) to 2.0s (0.5 CPS)
         self.click_interval = max(0.005, min(2.0, interval))
-        cps = 1 / self.click_interval if self.click_interval > 0 else float('inf')
 
     def set_jitter(self, enabled):
         """Enable or disable mouse jitter"""
         self.jitter_enabled = enabled
-
 
     def set_human_like(self, enabled):
         """Enable or disable human-like timing"""
@@ -432,7 +430,6 @@ class AutoClickerBackend:
         
         self.setup_hotkeys()
         
-        
         # Periodic state verification
         def state_check():
             while True:
@@ -457,4 +454,3 @@ if __name__ == "__main__":
     pyautogui.PAUSE = 0
     
     AutoClickerBackend().run()
-
