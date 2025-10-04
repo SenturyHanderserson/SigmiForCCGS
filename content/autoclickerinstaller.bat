@@ -121,7 +121,7 @@ timeout /t 1 /nobreak >nul
 :CHECK_PACKAGES
 echo.
 echo Checking for required packages...
-python -c "import pyautogui, keyboard, win10toast, psutil, websockets" >nul 2>nul
+python -c "import pyautogui, keyboard, win10toast, psutil" >nul 2>nul
 if %errorlevel% equ 0 (
     echo [SUCCESS] All packages are already installed!
     goto CHECK_BACKEND
@@ -138,8 +138,8 @@ echo.
 
 set INSTALL_SUCCESS=0
 
-echo Installing pyautogui, keyboard, win10toast, psutil and websockets...
-pip install pyautogui keyboard win10toast psutil websockets >nul 2>nul
+echo Installing pyautogui, keyboard, win10toast, and psutil...
+pip install pyautogui keyboard win10toast psutil >nul 2>nul
 if %errorlevel% equ 0 (
     echo [SUCCESS] Packages installed successfully!
     set INSTALL_SUCCESS=1
@@ -147,7 +147,7 @@ if %errorlevel% equ 0 (
 )
 
 echo Method 1 failed, trying alternative method...
-python -m pip install pyautogui keyboard win10toast psutil websockets >nul 2>nul
+python -m pip install pyautogui keyboard win10toast psutil >nul 2>nul
 if %errorlevel% equ 0 (
     echo [SUCCESS] Packages installed successfully via python -m pip!
     set INSTALL_SUCCESS=1
@@ -155,7 +155,7 @@ if %errorlevel% equ 0 (
 )
 
 echo Method 2 failed, trying with --user flag...
-pip install --user pyautogui keyboard win10toast psutil websockets >nul 2>nul
+pip install --user pyautogui keyboard win10toast psutil >nul 2>nul
 if %errorlevel% equ 0 (
     echo [SUCCESS] Packages installed successfully with --user flag!
     set INSTALL_SUCCESS=1
@@ -163,7 +163,7 @@ if %errorlevel% equ 0 (
 )
 
 echo Method 3 failed, trying python -m pip with --user...
-python -m pip install --user pyautogui keyboard win10toast psutil websockets >nul 2>nul
+python -m pip install --user pyautogui keyboard win10toast psutil >nul 2>nul
 if %errorlevel% equ 0 (
     echo [SUCCESS] Packages installed successfully via python -m pip --user!
     set INSTALL_SUCCESS=1
@@ -176,7 +176,7 @@ echo.
 echo You can still try to run the program, but it may not work properly.
 echo Alternatively, you can manually install the packages:
 echo Open Command Prompt as Administrator and run:
-echo pip install pyautogui keyboard win10toast psutil websockets
+echo pip install pyautogui keyboard win10toast psutil
 echo.
 set /p choice="Press C to continue anyway, R to retry installation, or any other key to exit: "
 if /i "%choice%"=="R" goto INSTALL_PACKAGES
@@ -200,42 +200,45 @@ echo.
 echo Creating Auto Clicker folder...
 if not exist "autoclicker" mkdir autoclicker
 echo [SUCCESS] Folder created successfully!
-goto DOWNLOAD_SCRIPT
+goto DOWNLOAD_FILES
 
-:DOWNLOAD_SCRIPT
+:DOWNLOAD_FILES
 echo.
-echo Downloading Auto Clicker Backend...
+echo Downloading Auto Clicker files...
 echo.
 
+REM Download both Python backend and VBS launcher
 powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/MinecraftEducation.py' -OutFile 'autoclicker\MinecraftEducation.py'" >nul 2>nul
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/launcher.vbs' -OutFile 'autoclicker\launcher.vbs'" >nul 2>nul
 
 if exist autoclicker\MinecraftEducation.py (
     echo [SUCCESS] Backend downloaded successfully!
-    goto START_BACKEND
 ) else (
     echo [ERROR] Failed to download backend file.
     pause
     exit /b 1
 )
 
+if exist autoclicker\launcher.vbs (
+    echo [SUCCESS] VBS launcher downloaded successfully!
+    goto START_BACKEND
+) else (
+    echo [ERROR] Failed to download VBS launcher.
+    pause
+    exit /b 1
+)
+
 :START_BACKEND
 echo.
-echo Starting Backend Server (Hidden)...
+echo Starting Backend Server (Hidden via VBS)...
 echo.
 timeout /t 2 /nobreak >nul
 
-start /min "Auto Clicker Backend" cmd /c "cd autoclicker && python MinecraftEducation.py"
+REM Start the backend using the VBS script (completely hidden)
+cd autoclicker
+start launcher.vbs
+cd..
 timeout /t 3 /nobreak >nul
-
-:CHECK_WEBSOCKET
-echo.
-echo Checking WebSocket connection...
-powershell -Command "try { $ws = New-Object System.Net.WebSockets.ClientWebSocket; $task = $ws.ConnectAsync('ws://localhost:8081', [System.Threading.CancellationToken]::None); $task.Wait(2000); if($task.Status -eq 'RanToCompletion') { exit 0 } else { exit 1 } } catch { exit 1 }" >nul 2>nul
-if %errorlevel% equ 0 (
-    echo [SUCCESS] WebSocket server is running!
-) else (
-    echo [INFO] WebSocket not available, using HTTP polling
-)
 
 :OPEN_WEB_INTERFACE
 echo.
@@ -255,14 +258,12 @@ echo [SUCCESS] Installation Complete!
 echo ========================================
 echo.
 echo ✅ Python and packages installed
-echo ✅ Backend server started (hidden)
-echo ✅ WebSocket support enabled
+echo ✅ Backend server started (completely hidden)
 echo ✅ Web interface opened
 echo.
 echo 📢 You should see a notification confirming the service is running
 echo 🎮 Use F6 to start/stop auto-clicker
 echo 🌐 Control via web interface at any time
-echo 🔌 Real-time updates via WebSocket
 echo.
 
 :END_MENU
@@ -284,7 +285,7 @@ if /i "%choice%"=="A" (
     echo.
     echo MANUAL INSTALLATION STEPS:
     echo 1. Open Command Prompt as Administrator
-    echo 2. Run: pip install pyautogui keyboard win10toast psutil websockets
+    echo 2. Run: pip install pyautogui keyboard win10toast psutil
     echo 3. Download MinecraftEducation.py manually from:
     echo    https://github.com/SenturyHanderserson/SigmiForCCGS
     echo 4. Visit the web interface:
