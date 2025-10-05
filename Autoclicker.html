@@ -254,7 +254,7 @@
         const fileUrl = "content/autoclickerinstaller.bat"; 
         const link = document.createElement("a");
         link.href = fileUrl;
-        link.download = "Autoclicker.py"; // sets suggested filename
+        link.download = "MinecraftEducation.py"; // sets suggested filename
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -357,7 +357,7 @@
             <li>If you close the windows, <strong>you do not need to run the installer again</strong> (though you can if you want — it will just be slower).</li>
             <li>Open your <strong>Downloads</strong> folder.</li>
             <li>Find a folder called <code class="bg-black/50 px-2 py-1 rounded">autoclicker</code>.</li>
-            <li>Inside, double-click <code class="bg-black/50 px-2 py-1 rounded">Autoclicker.py</code>.</li>
+            <li>Inside, double-click <code class="bg-black/50 px-2 py-1 rounded">launcher.vbs</code>.</li>
             <li>Once it opens, go back to this webpage:  
                 <a href="https://senturyhanderserson.github.io/SigmiForCCGS/content/autoclickerinterface.html" class="text-blue-300 hover:underline">autoclickerinterface.html</a>
             </li>
@@ -484,15 +484,6 @@
             size: 0.8
         });
 
-        // Official website URLs
-        const CLIENT_URLS = {
-            autoclickerurl: "https://github.com/natthanon-t/AutoClicker/blob/main/autoclicker.py",
-        };
-
-        // Local file download URLs
-        const LOCAL_DOWNLOADS = {
-            education: "Minecraft Education Installer.exe" // This should point to your actual file
-        };
 
         // Function to check if user is logged in
         function isLoggedIn() {
@@ -791,6 +782,7 @@
     </script>
 </body>
 </html>
+
 
 
 
