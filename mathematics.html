@@ -412,6 +412,41 @@
             color: white;
             font-weight: bold;
         }
+        
+        /* Report Button Styles */
+        .report-btn {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: #ef4444;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+            opacity: 0.8;
+        }
+        
+        .report-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.7);
+        }
+        
+        .report-btn img {
+            width: 16px;
+            height: 16px;
+            filter: brightness(0) invert(1);
+        }
+        
+        .theme-light .report-btn img {
+            filter: brightness(0) invert(0);
+        }
     </style>
 </head>
 <body class="min-h-screen text-white font-sans overflow-x-hidden theme-dark">
@@ -1507,6 +1542,25 @@
             return true;
         }
         
+        // Handle report button click
+        function handleReportGame(gameId, gameTitle) {
+            // Get current time
+            const now = new Date();
+            const timestamp = now.toISOString();
+            const formattedTime = now.toLocaleString();
+            
+            // Create URL parameters for the down.html page
+            const params = new URLSearchParams({
+                game: gameTitle,
+                gameId: gameId,
+                time: timestamp,
+                reason: 'not_working' // Default reason
+            });
+            
+            // Redirect to down.html with the parameters
+            window.location.href = `down.html?${params.toString()}`;
+        }
+        
 		// Broadcast System Functions
 		async function checkForBroadcasts() {
 			try {
@@ -2273,8 +2327,19 @@
                 // Use title instead of name (fixing the undefined issue)
                 const gameTitle = game.title || "Untitled Game";
                 
+                // Determine which megaphone icon to use based on theme
+                const currentTheme = getTheme();
+                const megaphoneIcon = currentTheme === 'light' ? 
+                    'images/extraIcons/megaphone.png' : 
+                    'images/extraIcons/megaphonewhite.png';
+                
                 gameCard.innerHTML = `
                     <div class="relative mb-4 rounded-lg overflow-hidden">
+                        <!-- Report Button -->
+                        <button class="report-btn" onclick="handleReportGame(${game.id}, '${gameTitle.replace(/'/g, "\\'")}')" title="Report Game Not Working">
+                            <img src="${megaphoneIcon}" alt="Report">
+                        </button>
+                        
                         <img src="${game.image}" alt="${gameTitle}" class="w-full h-40 object-cover fallback-img" onerror="this.onerror=null; this.classList.add('fallback-img'); this.nextElementSibling.textContent='${gameTitle.charAt(0)}'">
                         <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70"></div>
                         <div class="absolute bottom-2 left-2 flex items-center">
@@ -2388,6 +2453,3 @@
     </script>
 </body>
 </html>
-
-
-
