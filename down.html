@@ -127,38 +127,258 @@
             box-shadow: 0 10px 20px rgba(142, 68, 173, 0.3);
         }
         
+        .neon-text {
+            text-shadow: 0 0 10px #8e44ad, 0 0 20px #8e44ad, 0 0 30px #8e44ad;
+            animation: neon-pulse 2s infinite alternate;
+        }
+        
+        @keyframes neon-pulse {
+            0% {
+                text-shadow: 0 0 10px #8e44ad, 0 0 20px #8e44ad, 0 0 30px #8e44ad;
+            }
+            100% {
+                text-shadow: 0 0 15px #8e44ad, 0 0 30px #8e44ad, 0 0 45px #8e44ad;
+            }
+        }
+        
+        .gradient-text {
+            background: linear-gradient(90deg, #8e44ad, #6c5ce7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(142, 68, 173, 0.6);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(142, 68, 173, 0.8);
+        }
+        
         .hidden {
             display: none;
         }
         
-        .notification {
+        /* Login Modal Styles */
+        .login-modal {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 8px;
-            color: white;
-            z-index: 10000;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .login-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .login-content {
+            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
+            border-radius: 16px;
+            padding: 2rem;
             max-width: 400px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        
+        .login-modal.active .login-content {
+            transform: scale(1);
+        }
+        
+        .medal-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1rem;
+            background: linear-gradient(135deg, #FFD700 0%, #DAA520 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        
+        /* Loading Overlay Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #fff;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Warning Modal Styles */
+        .warning-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .warning-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .warning-content {
+            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        
+        .warning-modal.active .warning-content {
+            transform: scale(1);
+        }
+        
+        /* Message Styles */
+        .message-container {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            z-index: 1001;
+            width: 350px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .message-alert {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border-left: 4px solid #ff8c00;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .message-entry {
+            border-left: 3px solid var(--accent-primary);
+        }
+
+        /* Message Animation Styles */
+        @keyframes slideInFromLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOutToLeft {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(-100%);
+            }
+        }
+
+        .message-slide-in {
+            animation: slideInFromLeft 0.5s ease forwards;
+        }
+
+        .message-slide-out {
+            animation: slideOutToLeft 0.5s ease forwards;
+        }
+
+        .broadcast-toast {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 24rem;
         }
         
-        .notification.success {
-            background: linear-gradient(135deg, #00b09b, #96c93d);
-        }
-        
-        .notification.error {
-            background: linear-gradient(135deg, #ff416c, #ff4b2b);
-        }
-        
-        .notification.info {
-            background: linear-gradient(135deg, #4facfe, #00f2fe);
-        }
-        
-        .notification.warning {
-            background: linear-gradient(135deg, #f7971e, #ffd200);
-        }
-        
+        /* Report-specific styles */
         .more-info-link {
             color: #3b82f6;
             text-decoration: underline;
@@ -217,29 +437,60 @@
         .report-item:hover .admin-actions {
             opacity: 1;
         }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            z-index: 10000;
+            max-width: 400px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .notification.success {
+            background: linear-gradient(135deg, #00b09b, #96c93d);
+        }
+        
+        .notification.error {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+        }
+        
+        .notification.info {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+        }
+        
+        .notification.warning {
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+        }
     </style>
 </head>
 <body class="min-h-screen text-white font-sans overflow-x-hidden theme-dark">
     <!-- Vanta.js background -->
     <div id="vanta-bg"></div>
     
+    <!-- Particles -->
+    <div class="particles" id="particles"></div>
+    
     <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm">
+    <div id="loadingOverlay" class="modal-overlay active">
         <div class="glass rounded-xl p-8 max-w-md w-full mx-4 text-center">
             <div class="loading-spinner mb-4"></div>
-            <h2 class="text-2xl font-bold mb-2">Loading...</h2>
-            <p class="text-gray-300">Please wait</p>
+            <h2 class="text-2xl font-bold mb-2">Loading Report System</h2>
+            <p class="text-gray-300">Please wait while we initialize the system</p>
         </div>
     </div>
 
     <!-- Login Modal -->
-    <div id="loginModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
-        <div class="glass rounded-xl p-8 max-w-md w-full mx-4">
-            <div class="medal-icon mb-4">
+    <div id="loginModal" class="login-modal">
+        <div class="login-content">
+            <div class="medal-icon">
                 <i data-feather="award" class="w-10 h-10 text-white"></i>
             </div>
             <h2 class="text-2xl font-bold mb-4">Authentication Required</h2>
-            <p class="text-gray-300 mb-6">You need to be logged in to report issues.</p>
+            <p class="text-gray-300 mb-6">You need to be logged in to report issues and access all features.</p>
             <button onclick="redirectToLogin()" class="btn-primary py-3 px-6 rounded-lg font-medium w-full mb-4">
                 Sign In
             </button>
@@ -249,9 +500,84 @@
         </div>
     </div>
 
+    <!-- Warning Modal -->
+    <div id="warningModal" class="warning-modal">
+        <div class="warning-content">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center">
+                    <div class="medal-icon mr-3">
+                        <i data-feather="alert-triangle" class="w-8 h-8 text-yellow-400"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold" id="warningModalTitle">Warnings</h2>
+                </div>
+                <button onclick="closeWarningModal()" class="p-2 rounded-full hover:bg-purple-700">
+                    <i data-feather="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div id="warningList" class="mb-6 max-h-60 overflow-y-auto space-y-3">
+                <!-- Warnings will be dynamically populated here -->
+            </div>
+            
+            <div class="flex justify-between items-center text-sm text-gray-400 mb-4">
+                <span id="warningCount">0 active warnings</span>
+                <button id="viewHistoryBtn" class="text-purple-300 hover:text-purple-100">
+                    View History
+                </button>
+            </div>
+            
+            <div class="flex flex-col gap-3">
+                <button id="dismissAllBtn" class="bg-red-600 hover:bg-red-700 py-3 px-6 rounded-lg font-medium">
+                    Dismiss All Warnings
+                </button>
+                <button id="closeWarningBtn" class="bg-gray-600 hover:bg-gray-700 py-2 px-6 rounded-lg font-medium hidden">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages Container -->
+    <div id="messageContainer" class="message-container hidden">
+        <div class="glass rounded-xl p-4 mb-3" id="messageHeader" style="display: none;">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="font-semibold">Messages</h3>
+                <button onclick="hideMessages()" class="p-1 rounded-full hover:bg-purple-700">
+                    <i data-feather="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+        <div id="messagesList"></div>
+    </div>
+
+    <!-- Broadcast Modal -->
+    <div id="broadcastModal" class="login-modal">
+        <div class="login-content">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center mr-3">
+                        <i data-feather="bell" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <h2 class="text-xl font-bold">Announcement</h2>
+                </div>
+                <button onclick="dismissBroadcast()" class="p-1 rounded-full hover:bg-purple-700">
+                    <i data-feather="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <p id="broadcastMessage" class="text-gray-300 mb-4"></p>
+            <div class="flex justify-between items-center text-sm text-gray-400 mb-4">
+                <span id="broadcastAuthor"></span>
+                <span id="broadcastTime"></span>
+            </div>
+            <button onclick="dismissBroadcast()" class="btn-primary py-2 px-6 rounded-lg font-medium w-full">
+                Acknowledge
+            </button>
+        </div>
+    </div>
+
     <!-- More Info Modal -->
-    <div id="moreInfoModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
-        <div class="glass rounded-xl p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+    <div id="moreInfoModal" class="login-modal">
+        <div class="login-content max-w-2xl max-h-[80vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold">Report System Information</h2>
                 <button onclick="closeMoreInfoModal()" class="p-2 rounded-full hover:bg-purple-700">
@@ -261,17 +587,24 @@
             
             <div class="space-y-4">
                 <div class="p-4 rounded-lg bg-red-900 bg-opacity-20 border border-red-700">
-                    <h3 class="font-bold text-red-300 mb-2">⚠️ Important Warning</h3>
+                    <h3 class="font-bold text-red-300 mb-2 flex items-center">
+                        <i data-feather="alert-triangle" class="w-5 h-5 mr-2"></i>
+                        Important Warning
+                    </h3>
                     <p class="text-sm">Misuse of the report system may result in:</p>
                     <ul class="list-disc list-inside mt-2 text-sm space-y-1">
                         <li>Account suspension or termination</li>
                         <li>Hardware ID banning</li>
                         <li>Permanent blacklisting from our services</li>
+                        <li>Legal action in severe cases</li>
                     </ul>
                 </div>
                 
                 <div class="p-4 rounded-lg bg-blue-900 bg-opacity-20 border border-blue-700">
-                    <h3 class="font-bold text-blue-300 mb-2">📝 Proper Use Guidelines</h3>
+                    <h3 class="font-bold text-blue-300 mb-2 flex items-center">
+                        <i data-feather="info" class="w-5 h-5 mr-2"></i>
+                        Proper Use Guidelines
+                    </h3>
                     <p class="text-sm">Only report genuine issues such as:</p>
                     <ul class="list-disc list-inside mt-2 text-sm space-y-1">
                         <li>Games that are completely inaccessible</li>
@@ -282,7 +615,10 @@
                 </div>
                 
                 <div class="p-4 rounded-lg bg-green-900 bg-opacity-20 border border-green-700">
-                    <h3 class="font-bold text-green-300 mb-2">🔧 What Happens Next</h3>
+                    <h3 class="font-bold text-green-300 mb-2 flex items-center">
+                        <i data-feather="tool" class="w-5 h-5 mr-2"></i>
+                        What Happens Next
+                    </h3>
                     <ul class="list-disc list-inside mt-2 text-sm space-y-1">
                         <li>Reports are reviewed by our admin team</li>
                         <li>We investigate the reported issue</li>
@@ -292,7 +628,10 @@
                 </div>
                 
                 <div class="p-4 rounded-lg bg-yellow-900 bg-opacity-20 border border-yellow-700">
-                    <h3 class="font-bold text-yellow-300 mb-2">🚫 What NOT to Report</h3>
+                    <h3 class="font-bold text-yellow-300 mb-2 flex items-center">
+                        <i data-feather="x-circle" class="w-5 h-5 mr-2"></i>
+                        What NOT to Report
+                    </h3>
                     <ul class="list-disc list-inside mt-2 text-sm space-y-1">
                         <li>Games you simply don't like</li>
                         <li>Minor graphical glitches</li>
@@ -314,16 +653,27 @@
     <header class="glass p-4 sticky top-0 z-40">
         <div class="container mx-auto flex justify-between items-center">
             <div class="flex items-center space-x-4">
-                <a href="mathematics" class="flex items-center">
-                    <i data-feather="arrow-left" class="w-6 h-6 mr-2"></i>
-                    <h1 class="text-xl font-bold flex items-center">
-                        <i data-feather="hexagon" class="w-6 h-6 mr-2"></i>
-                        Sigmi Arcade
-                    </h1>
+                <a href="games.html" class="flex items-center btn-primary py-2 px-4 rounded-lg">
+                    <i data-feather="arrow-left" class="w-5 h-5 mr-2"></i>
+                    Back to Games
                 </a>
+                <h1 class="text-xl font-bold flex items-center">
+                    <i data-feather="hexagon" class="w-6 h-6 mr-2"></i>
+                    Sigmi Arcade
+                </h1>
             </div>
             <div class="flex items-center space-x-4">
                 <span id="userInfo" class="text-sm text-gray-300"></span>
+                <div class="flex space-x-2">
+                    <button id="messagesBtn" onclick="toggleMessages()" class="p-2 rounded-lg bg-purple-700 hover:bg-purple-600 relative hidden">
+                        <i data-feather="mail" class="w-5 h-5"></i>
+                        <span id="messageBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+                    </button>
+                    <button id="warningsBtn" onclick="showWarningModal()" class="p-2 rounded-lg bg-yellow-600 hover:bg-yellow-500 relative hidden">
+                        <i data-feather="alert-triangle" class="w-5 h-5"></i>
+                        <span id="warningBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+                    </button>
+                </div>
             </div>
         </div>
     </header>
@@ -331,15 +681,15 @@
     <!-- Main Content -->
     <main class="container mx-auto px-4 py-8">
         <!-- Page Header -->
-        <section class="mb-8 text-center">
-            <h1 class="text-4xl md:text-5xl font-bold mb-4">Report an Issue</h1>
+        <section class="mb-8 text-center" data-aos="fade-up">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 neon-text">Report an Issue</h1>
             <p class="text-xl text-gray-300 max-w-3xl mx-auto">
                 Let us know if a game or service isn't working properly
             </p>
         </section>
 
         <!-- Disclaimer -->
-        <section class="mb-8 glass rounded-xl p-6 border-l-4 border-yellow-500">
+        <section class="mb-8 glass rounded-xl p-6 border-l-4 border-yellow-500" data-aos="fade-up" data-aos-delay="100">
             <div class="flex items-start">
                 <i data-feather="alert-triangle" class="w-6 h-6 text-yellow-400 mr-3 mt-1"></i>
                 <div class="flex-1">
@@ -356,7 +706,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- Report Form -->
-            <section class="glass rounded-xl p-6">
+            <section class="glass rounded-xl p-6" data-aos="fade-right" data-aos-delay="200">
                 <h2 class="text-2xl font-bold mb-6 gradient-text">Submit a Report</h2>
                 
                 <form id="reportForm" class="space-y-4">
@@ -397,15 +747,15 @@
                         </label>
                     </div>
                     
-                    <button type="submit" class="btn-primary py-3 px-6 rounded-lg font-medium w-full">
-                        <i data-feather="send" class="w-5 h-5 mr-2 inline"></i>
+                    <button type="submit" class="btn-primary py-3 px-6 rounded-lg font-medium w-full flex items-center justify-center">
+                        <i data-feather="send" class="w-5 h-5 mr-2"></i>
                         Submit Report
                     </button>
                 </form>
             </section>
 
             <!-- Reports List (Admin Only) -->
-            <section id="adminSection" class="glass rounded-xl p-6 hidden">
+            <section id="adminSection" class="glass rounded-xl p-6 hidden" data-aos="fade-left" data-aos-delay="200">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold gradient-text">Reports Management</h2>
                     <button onclick="refreshReports()" class="p-2 rounded-lg bg-purple-700 hover:bg-purple-600">
@@ -419,7 +769,7 @@
             </section>
 
             <!-- User Reports -->
-            <section id="userReportsSection" class="glass rounded-xl p-6">
+            <section id="userReportsSection" class="glass rounded-xl p-6" data-aos="fade-up" data-aos-delay="300">
                 <h2 class="text-2xl font-bold mb-6 gradient-text">My Reports</h2>
                 <div class="space-y-4 max-h-96 overflow-y-auto" id="userReportsList">
                     <!-- User reports will be loaded here -->
@@ -429,9 +779,14 @@
     </main>
 
     <script>
+        // Global variables for system integration
         const SERVER_URL = 'https://proxyforsigmi.onrender.com';
         let currentUser = null;
         let userRole = null;
+        let userWarnings = [];
+        let activeBroadcasts = [];
+        let broadcastCheckInterval = null;
+        let warningCheckInterval = null;
 
         // Utility functions
         function getCookie(name) {
@@ -451,6 +806,108 @@
             return "";
         }
 
+        function setCookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            const expires = "expires=" + date.toUTCString();
+            document.cookie = name + "=" + value + ";" + expires + ";path=/";
+        }
+
+        function getTheme() {
+            const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
+            return preferences.theme || 'dark';
+        }
+
+        function setTheme(theme) {
+            document.body.className = document.body.className.replace(/\btheme-\w+/g, '');
+            document.body.classList.add(`theme-${theme}`);
+            
+            const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
+            preferences.theme = theme;
+            setCookie('UserPreferences', JSON.stringify(preferences), 365);
+            
+            initVantaBackground();
+        }
+
+        function applyThemeOnLoad() {
+            const theme = getTheme();
+            setTheme(theme);
+        }
+
+        function initVantaBackground() {
+            const theme = getTheme();
+            let color, bgColor;
+            
+            switch(theme) {
+                case 'light':
+                    color = 0x6f42c1;
+                    bgColor = 0xf8f9fa;
+                    break;
+                case 'amoled':
+                    color = 0x8e44ad;
+                    bgColor = 0x0;
+                    break;
+                case 'blue':
+                    color = 0x2563eb;
+                    bgColor = 0x0a1931;
+                    break;
+                default: // dark
+                    color = 0x8e44ad;
+                    bgColor = 0x1a0933;
+            }
+            
+            if (window.VANTA) {
+                if (window.vantaEffect) {
+                    window.vantaEffect.destroy();
+                }
+                
+                window.vantaEffect = VANTA.GLOBE({
+                    el: "#vanta-bg",
+                    mouseControls: true,
+                    touchControls: true,
+                    gyroControls: false,
+                    minHeight: 200.00,
+                    minWidth: 200.00,
+                    scale: 1.00,
+                    scaleMobile: 1.00,
+                    color: color,
+                    backgroundColor: bgColor,
+                    size: 0.8
+                });
+            }
+        }
+
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                const size = Math.random() * 2 + 1;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                
+                particle.style.opacity = Math.random() * 0.5 + 0.1;
+                
+                gsap.to(particle, {
+                    x: `${(Math.random() - 0.5) * 100}px`,
+                    y: `${(Math.random() - 0.5) * 100}px`,
+                    duration: Math.random() * 10 + 10,
+                    repeat: -1,
+                    yoyo: true,
+                    ease: "sine.inOut"
+                });
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Notification system
         function showNotification(message, type = 'info', duration = 3000) {
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
@@ -469,6 +926,7 @@
             }, duration);
         }
 
+        // Authentication functions
         async function verifyToken(token) {
             try {
                 const response = await fetch(`${SERVER_URL}/api/verify-token`, {
@@ -484,13 +942,12 @@
             }
         }
 
-        // Authentication functions
         function showLoginModal() {
-            document.getElementById('loginModal').classList.remove('hidden');
+            document.getElementById('loginModal').classList.add('active');
         }
 
         function closeLoginModal() {
-            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('loginModal').classList.remove('active');
         }
 
         function redirectToLogin() {
@@ -499,11 +956,377 @@
 
         // More Info Modal
         function showMoreInfoModal() {
-            document.getElementById('moreInfoModal').classList.remove('hidden');
+            document.getElementById('moreInfoModal').classList.add('active');
         }
 
         function closeMoreInfoModal() {
-            document.getElementById('moreInfoModal').classList.add('hidden');
+            document.getElementById('moreInfoModal').classList.remove('active');
+        }
+
+        // Warning System Functions
+        async function checkForWarnings() {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) return;
+                
+                const response = await fetch(`${SERVER_URL}/api/check-warnings`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    userWarnings = data.warnings || [];
+                    
+                    // Update warning badge
+                    const warningBadge = document.getElementById('warningBadge');
+                    const warningsBtn = document.getElementById('warningsBtn');
+                    
+                    if (data.hasWarnings && userWarnings.length > 0) {
+                        warningBadge.textContent = userWarnings.length;
+                        warningBadge.classList.remove('hidden');
+                        warningsBtn.classList.remove('hidden');
+                    } else {
+                        warningBadge.classList.add('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking for warnings:', error);
+            }
+        }
+
+        function showWarningModal() {
+            const modal = document.getElementById('warningModal');
+            const warningList = document.getElementById('warningList');
+            const warningCount = document.getElementById('warningCount');
+            const modalTitle = document.getElementById('warningModalTitle');
+            const closeWarningBtn = document.getElementById('closeWarningBtn');
+            const dismissAllBtn = document.getElementById('dismissAllBtn');
+            
+            warningList.innerHTML = '';
+            
+            const activeWarnings = userWarnings.filter(w => !w.dismissed);
+            
+            warningCount.textContent = `${activeWarnings.length} active warning${activeWarnings.length !== 1 ? 's' : ''}`;
+            modalTitle.textContent = `Warnings (${activeWarnings.length})`;
+            
+            if (activeWarnings.length === 0) {
+                dismissAllBtn.classList.add('hidden');
+                closeWarningBtn.classList.remove('hidden');
+                warningList.innerHTML = `
+                    <div class="text-center py-4">
+                        <i data-feather="check-circle" class="w-12 h-12 text-green-400 mx-auto mb-2"></i>
+                        <p class="text-green-300 font-medium">All warnings have been dismissed</p>
+                        <p class="text-gray-400 text-sm mt-1">You can now close this window</p>
+                    </div>
+                `;
+            } else {
+                dismissAllBtn.classList.remove('hidden');
+                closeWarningBtn.classList.add('hidden');
+                
+                activeWarnings.forEach((warning, index) => {
+                    const warningElement = document.createElement('div');
+                    warningElement.className = 'p-3 rounded-lg bg-red-900 bg-opacity-30 border border-red-700 mb-3';
+                    warningElement.innerHTML = `
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="font-medium">Warning #${index + 1}</span>
+                            <span class="text-xs px-2 py-1 bg-red-700 rounded">Active</span>
+                        </div>
+                        <p class="text-sm mb-2">${warning.reason}</p>
+                        <div class="flex justify-between items-center text-xs text-gray-400">
+                            <span>By: ${warning.issuedBy}</span>
+                            <span>${new Date(warning.issuedAt).toLocaleDateString()}</span>
+                        </div>
+                        <button onclick="dismissWarning('${warning.id}')" class="w-full mt-2 py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-medium">
+                            Dismiss This Warning
+                        </button>
+                    `;
+                    warningList.appendChild(warningElement);
+                });
+            }
+            
+            modal.classList.add('active');
+            feather.replace();
+        }
+
+        function closeWarningModal() {
+            document.getElementById('warningModal').classList.remove('active');
+        }
+
+        async function dismissWarning(warningId) {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) {
+                    showNotification('Authentication required', 'error');
+                    return false;
+                }
+                
+                const response = await fetch(`${SERVER_URL}/api/warnings/${warningId}/dismiss`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    showNotification('Warning dismissed successfully', 'success');
+                    checkForWarnings();
+                    closeWarningModal();
+                    return true;
+                } else {
+                    throw new Error('Failed to dismiss warning');
+                }
+            } catch (error) {
+                console.error('Error dismissing warning:', error);
+                showNotification('Failed to dismiss warning', 'error');
+                return false;
+            }
+        }
+
+        // Broadcast System Functions
+        async function checkForBroadcasts() {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) return;
+                
+                const response = await fetch(`${SERVER_URL}/api/broadcasts`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch broadcasts');
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.broadcasts.length > 0) {
+                    const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
+                    
+                    data.broadcasts.forEach(broadcast => {
+                        if (!dismissedBroadcasts.includes(broadcast.id) && 
+                            !activeBroadcasts.some(ab => ab.id === broadcast.id)) {
+                            activeBroadcasts.push(broadcast);
+                            showBroadcastModal(broadcast);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error checking for broadcasts:', error);
+            }
+        }
+
+        function showBroadcastModal(broadcast) {
+            const modal = document.getElementById('broadcastModal');
+            const message = document.getElementById('broadcastMessage');
+            const author = document.getElementById('broadcastAuthor');
+            const time = document.getElementById('broadcastTime');
+            
+            message.textContent = broadcast.message;
+            author.textContent = `From: ${broadcast.createdBy}`;
+            time.textContent = new Date(broadcast.createdAt).toLocaleString();
+            
+            modal.dataset.broadcastId = broadcast.id;
+            modal.classList.add('active');
+        }
+
+        async function dismissBroadcast() {
+            const modal = document.getElementById('broadcastModal');
+            const broadcastId = modal.dataset.broadcastId;
+            
+            try {
+                const token = getCookie('AuthToken');
+                if (token) {
+                    await fetch(`${SERVER_URL}/api/broadcasts/${broadcastId}/dismiss`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                }
+                
+                const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
+                if (!dismissedBroadcasts.includes(broadcastId)) {
+                    dismissedBroadcasts.push(broadcastId);
+                    localStorage.setItem('dismissedBroadcasts', JSON.stringify(dismissedBroadcasts));
+                }
+                
+                modal.classList.remove('active');
+                activeBroadcasts = activeBroadcasts.filter(b => b.id !== broadcastId);
+                
+            } catch (error) {
+                console.error('Error dismissing broadcast:', error);
+                modal.classList.remove('active');
+            }
+        }
+
+        // Message System Functions
+        async function loadMessages() {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) return;
+                
+                const response = await fetch(`${SERVER_URL}/api/messages`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayMessages(data.messages);
+                }
+            } catch (error) {
+                console.error('Error loading messages:', error);
+            }
+        }
+
+        function displayMessages(messages) {
+            const container = document.getElementById('messageContainer');
+            const messagesList = document.getElementById('messagesList');
+            const messageHeader = document.getElementById('messageHeader');
+            const messageBadge = document.getElementById('messageBadge');
+            const messagesBtn = document.getElementById('messagesBtn');
+            
+            messagesList.innerHTML = '';
+            
+            if (!messages || messages.length === 0) {
+                messageHeader.style.display = 'none';
+                messageBadge.classList.add('hidden');
+                return;
+            }
+            
+            messageHeader.style.display = 'block';
+            messageBadge.textContent = messages.length;
+            messageBadge.classList.remove('hidden');
+            messagesBtn.classList.remove('hidden');
+            
+            messages.forEach((message, index) => {
+                setTimeout(() => {
+                    const messageElement = createMessageElement(message);
+                    messagesList.appendChild(messageElement);
+                }, index * 100);
+            });
+            
+            feather.replace();
+        }
+
+        function createMessageElement(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'glass rounded-lg p-4 mb-3 message-entry message-slide-in';
+            messageDiv.id = `message-${message.id}`;
+            
+            const timeAgo = getTimeAgo(message.createdAt);
+            
+            messageDiv.innerHTML = `
+                <div class="flex justify-between items-start mb-2">
+                    <div class="flex items-center">
+                        <i data-feather="mail" class="w-4 h-4 mr-2 text-purple-400"></i>
+                        <span class="font-medium text-sm">${escapeHtml(message.from)}</span>
+                    </div>
+                    <span class="text-xs text-gray-400">${timeAgo}</span>
+                </div>
+                <p class="text-sm text-gray-300 mb-3">${escapeHtml(message.message)}</p>
+                <div class="flex justify-end">
+                    <button onclick="dismissMessage('${message.id}')" 
+                            class="text-xs bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded transition-colors">
+                        Dismiss
+                    </button>
+                </div>
+            `;
+            
+            return messageDiv;
+        }
+
+        async function dismissMessage(messageId) {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) {
+                    showNotification('Authentication required', 'error');
+                    return;
+                }
+                
+                const response = await fetch(`${SERVER_URL}/api/messages/${messageId}/dismiss`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const messageElement = document.getElementById(`message-${messageId}`);
+                    if (messageElement) {
+                        messageElement.classList.remove('message-slide-in');
+                        messageElement.classList.add('message-slide-out');
+                        setTimeout(() => {
+                            messageElement.remove();
+                            checkRemainingMessages();
+                        }, 500);
+                    }
+                    showNotification('Message dismissed', 'success');
+                } else {
+                    showNotification('Failed to dismiss message', 'error');
+                }
+            } catch (error) {
+                console.error('Error dismissing message:', error);
+                showNotification('Error dismissing message', 'error');
+            }
+        }
+
+        function checkRemainingMessages() {
+            const messagesList = document.getElementById('messagesList');
+            const messageHeader = document.getElementById('messageHeader');
+            const container = document.getElementById('messageContainer');
+            const messageBadge = document.getElementById('messageBadge');
+            
+            if (messagesList.children.length === 0) {
+                messageHeader.style.display = 'none';
+                messageBadge.classList.add('hidden');
+            } else {
+                messageBadge.textContent = messagesList.children.length;
+            }
+        }
+
+        function getTimeAgo(timestamp) {
+            const now = new Date();
+            const messageTime = new Date(timestamp);
+            const diffInSeconds = Math.floor((now - messageTime) / 1000);
+            
+            if (diffInSeconds < 60) return 'just now';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+            return `${Math.floor(diffInSeconds / 86400)}d ago`;
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function toggleMessages() {
+            const container = document.getElementById('messageContainer');
+            if (container.classList.contains('hidden')) {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        function hideMessages() {
+            document.getElementById('messageContainer').classList.add('hidden');
         }
 
         // Report submission
@@ -733,8 +1556,17 @@
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', async function() {
-            // Show loading
-            document.getElementById('loadingOverlay').classList.remove('hidden');
+            // Initialize systems
+            AOS.init({
+                duration: 800,
+                easing: 'ease-in-out',
+                once: true
+            });
+            
+            feather.replace();
+            applyThemeOnLoad();
+            createParticles();
+            initVantaBackground();
 
             // Check authentication
             const token = getCookie('AuthToken');
@@ -762,9 +1594,20 @@
                             }
                             
                             loadUserReports();
+                            
+                            // Initialize system checks
+                            checkForWarnings();
+                            checkForBroadcasts();
+                            loadMessages();
+                            
+                            // Set up periodic checking
+                            warningCheckInterval = setInterval(checkForWarnings, 5 * 60 * 1000);
+                            broadcastCheckInterval = setInterval(checkForBroadcasts, 2 * 60 * 1000);
+                            setInterval(loadMessages, 3 * 60 * 1000);
                         }
                     } catch (error) {
                         console.error('Error fetching user info:', error);
+                        showLoginModal();
                     }
                 } else {
                     showLoginModal();
@@ -773,12 +1616,11 @@
                 showLoginModal();
             }
 
-            // Hide loading
-            document.getElementById('loadingOverlay').classList.add('hidden');
+            // Hide loading overlay
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').classList.remove('active');
+            }, 1000);
             
-            // Initialize feather icons
-            feather.replace();
-
             // Check URL parameters for pre-filled data
             const urlParams = new URLSearchParams(window.location.search);
             const game = urlParams.get('game');
@@ -794,57 +1636,15 @@
             }
         });
 
-        // Theme management (simplified)
-        function getTheme() {
-            const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
-            return preferences.theme || 'dark';
-        }
-
-        function initVantaBackground() {
-            const theme = getTheme();
-            let color, bgColor;
-            
-            switch(theme) {
-                case 'light':
-                    color = 0x6f42c1;
-                    bgColor = 0xf8f9fa;
-                    break;
-                case 'amoled':
-                    color = 0x8e44ad;
-                    bgColor = 0x0;
-                    break;
-                case 'blue':
-                    color = 0x2563eb;
-                    bgColor = 0x0a1931;
-                    break;
-                default: // dark
-                    color = 0x8e44ad;
-                    bgColor = 0x1a0933;
+        // Clear intervals when page is unloaded
+        window.addEventListener('beforeunload', () => {
+            if (broadcastCheckInterval) {
+                clearInterval(broadcastCheckInterval);
             }
-            
-            if (window.VANTA) {
-                if (window.vantaEffect) {
-                    window.vantaEffect.destroy();
-                }
-                
-                window.vantaEffect = VANTA.GLOBE({
-                    el: "#vanta-bg",
-                    mouseControls: true,
-                    touchControls: true,
-                    gyroControls: false,
-                    minHeight: 200.00,
-                    minWidth: 200.00,
-                    scale: 1.00,
-                    scaleMobile: 1.00,
-                    color: color,
-                    backgroundColor: bgColor,
-                    size: 0.8
-                });
+            if (warningCheckInterval) {
+                clearInterval(warningCheckInterval);
             }
-        }
-
-        // Initialize background
-        initVantaBackground();
+        });
     </script>
 </body>
 </html>
