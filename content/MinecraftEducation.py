@@ -37,7 +37,7 @@ class AutoClickerBackend:
         signal.signal(signal.SIGTERM, self.signal_handler)
 
 
-    # ------------------- Web Server -------------------
+    # - Web Server -
     def start_web_server(self):
         try:
             class AutoClickerHandler(BaseHTTPRequestHandler):
@@ -58,18 +58,15 @@ class AutoClickerBackend:
                 def do_GET(self):
                     """Handle GET requests"""
                     try:
-                        # Set CORS headers for all responses
                         self.send_response(200)
                         self.send_header('Content-type', 'application/json')
                         self._set_cors_headers()
                         
-                        # Handle different paths
                         if self.path.startswith('/status') or self.path.startswith('/status.json'):
                             status_data = self.server.backend_app.get_status()
                             self.end_headers()
                             self.wfile.write(json.dumps(status_data).encode('utf-8'))
                         else:
-                            # For any other path, return status (this handles /status.json?timestamp cases)
                             status_data = self.server.backend_app.get_status()
                             self.end_headers()
                             self.wfile.write(json.dumps(status_data).encode('utf-8'))
@@ -101,7 +98,6 @@ class AutoClickerBackend:
                             app = self.server.backend_app
                             cmd = data.get("command")
                             
-                            # Handle the command and get response
                             response_data = app.handle_command(cmd, data)
                             
                             self.send_response(200)
@@ -135,7 +131,6 @@ class AutoClickerBackend:
                     self.allow_reuse_address = True
                     super().__init__(addr, handler)
 
-            # Try to start the server, handling port conflicts
             for attempt in range(3):
                 try:
                     self.web_server = BackendServer(("", self.web_port), AutoClickerHandler, self)
@@ -156,7 +151,7 @@ class AutoClickerBackend:
             print(f"❌ Failed to start web server: {e}")
             return False
 
-    # ------------------- Command Handler -------------------
+    # - Command Handler -
     def handle_command(self, command, data):
         """Handle all commands from the web interface"""
         response_data = {"status": "ok"}
@@ -212,11 +207,11 @@ class AutoClickerBackend:
                 
             elif command == "restart":
                 response_data["message"] = "Restart command received"
-                # In a real implementation, you might restart the service here
+                # coming soon ig
                 
             elif command == "shutdown":
                 response_data["message"] = "Shutdown command received"
-                # In a real implementation, you might shutdown the service here
+                # coming soon ig
                 
             else:
                 response_data = {"status": "error", "message": f"Unknown command: {command}"}
@@ -228,20 +223,18 @@ class AutoClickerBackend:
             
         return response_data
 
-    # ------------------- Control Functions -------------------
+    # -Control Functions -
     def set_mode(self, mode):
         """Set the click mode"""
         valid_modes = ["click", "right_click", "space", "custom"]
         if mode in valid_modes:
             self.mode = mode
-            # Test the mode immediately
             self.perform_action()
         else:
             print(f"❌ Invalid mode: {mode}")
 
     def set_interval(self, interval):
         """Set the click interval - allow much smaller values for higher CPS"""
-        # Allow intervals from 0.005s (200 CPS) to 2.0s (0.5 CPS)
         self.click_interval = max(0.005, min(2.0, interval))
 
     def set_jitter(self, enabled):
@@ -257,7 +250,6 @@ class AutoClickerBackend:
         if key:
             self.custom_key = key
             self.mode = "custom"
-            # Test the custom key immediately
             self.perform_action()
         else:
             print("❌ No custom key provided")
@@ -296,7 +288,7 @@ class AutoClickerBackend:
         else:
             print("ℹ️  Panic stop pressed but auto-clicker was not running")
 
-    # ------------------- Debug Functions -------------------
+    # - Debug Functions -
     def debug_windows_key(self):
         """Press Windows key for debugging"""
         pyautogui.press("win")
@@ -307,13 +299,12 @@ class AutoClickerBackend:
         pyautogui.click()
         print("✅ Single click performed")
 
-    # ------------------- Core Auto-Clicker Logic -------------------
+    # -Core Auto-Clicker Logic -
     def perform_action(self):
         """Perform a single action based on current mode"""
         try:
             if self.mode == "click":
                 if self.jitter_enabled:
-                    # Add small random offset to click position
                     x, y = pyautogui.position()
                     offset_x = random.randint(-self.jitter_amount, self.jitter_amount)
                     offset_y = random.randint(-self.jitter_amount, self.jitter_amount)
@@ -352,9 +343,7 @@ class AutoClickerBackend:
             try:
                 now = time.time()
                 
-                # Calculate interval with random variation if human-like is enabled
                 if self.human_like and self.click_interval >= 0.02:
-                    # Only apply human-like variation for intervals >= 0.02s
                     interval = self.click_interval * random.uniform(0.8, 1.2)
                 else:
                     interval = self.click_interval
@@ -363,7 +352,6 @@ class AutoClickerBackend:
                     self.perform_action()
                     last_time = now
                     
-                # Small sleep to prevent CPU overload
                 time.sleep(0.001)
                 
             except Exception as e:
@@ -371,7 +359,7 @@ class AutoClickerBackend:
                 break
                 
 
-    # ------------------- Status and Utility Functions -------------------
+    # - Status and Utility Functions -
     def get_status(self):
         """Get current status for web interface"""
         if self.running:
@@ -397,7 +385,7 @@ class AutoClickerBackend:
             self.clicker_thread = threading.Thread(target=self.auto_clicker_loop, daemon=True)
             self.clicker_thread.start()
 
-    # ------------------- Hotkey Setup -------------------
+    # - Hotkey Setup -  more coming soon gonna make it so you can change the key
     def setup_hotkeys(self):
         """Setup global hotkeys"""
         try:
@@ -410,7 +398,7 @@ class AutoClickerBackend:
         """Handle F6 hotkey with status update"""
         self.toggle_running()
 
-    # ------------------- Signal Handling -------------------
+    # - Signal Handling -
     def signal_handler(self, signum, frame):
         """Handle shutdown signals"""
         print(f"🛑 Received signal {signum}, shutting down...")
@@ -421,7 +409,7 @@ class AutoClickerBackend:
             self.web_server.server_close()
         sys.exit(0)
 
-    # ------------------- Main Loop -------------------
+    # - Main Looping Logic -
     def run(self):
         """Main application loop"""
         if not self.start_web_server():
@@ -430,7 +418,6 @@ class AutoClickerBackend:
         
         self.setup_hotkeys()
         
-        # Periodic state verification
         def state_check():
             while True:
                 self.verify_state()
@@ -448,9 +435,8 @@ class AutoClickerBackend:
 
 
 if __name__ == "__main__":
-    # Set pyautogui failsafe to False to prevent accidental stops
     pyautogui.FAILSAFE = False
-    # Remove pyautogui delay for maximum performance
     pyautogui.PAUSE = 0
     
     AutoClickerBackend().run()
+
