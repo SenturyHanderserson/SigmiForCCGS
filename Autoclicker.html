@@ -316,6 +316,7 @@
     <div class="mb-6 p-4 bg-blue-900/30 rounded-lg">
         <h3 class="font-semibold text-blue-300 mb-2">🔧 Automatic Python Setup:</h3>
         <ol class="list-decimal list-inside space-y-2 text-blue-100">
+			<li>When opening the installer, it will say it is made by an unknown publisher, this is fine and does not mean it is malware. If you are skeptical, check the source code. This shouldn't require administrator privliges.</li> 
             <li>If Python is <strong>not installed</strong>, the installer will prompt you to install it.  
                 <ul class="list-disc list-inside ml-6 mt-2 space-y-1">
                     <li>Click <kbd class="bg-gray-700 px-2 py-1 rounded">Install</kbd> when asked.</li>
@@ -331,7 +332,8 @@
     <div class="p-4 bg-purple-900/30 rounded-lg">
         <h3 class="font-semibold text-purple-300 mb-2">🚀 First-Time Run:</h3>
         <ol class="list-decimal list-inside space-y-2 text-purple-100">
-            <li>A <strong>Command Prompt</strong> will open — this is the handler (do not close it).</li>
+            <li>A <strong>Command Prompt</strong> will open in the background, it is wrapped in a vbs handler to hide it.</li>
+			<li>If the program prompts you to give it access to private networks, this is becuase the backend reads off of ports (local ports). If you can, allow it, but if you can't it will still work.</li>
             <li>A webpage will automatically open. This is where you can:
                 <ul class="list-disc list-inside ml-6 mt-2 space-y-1">
                     <li>Adjust controls</li>
@@ -782,6 +784,7 @@
     </script>
 </body>
 </html>
+
 
 
 
