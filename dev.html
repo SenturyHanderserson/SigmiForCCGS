@@ -139,22 +139,22 @@
         .user-checkbox:hover {
             background-color: rgba(255, 255, 255, 0.1);
         }
-		    .status-warned {
-				background-color: #f59e0b;
-				color: white;
-			}
-			
-			.warnings-badge {
-				display: inline-flex;
-				align-items: center;
-				background-color: #f59e0b;
-				color: white;
-				border-radius: 9999px;
-				padding: 0.25rem 0.5rem;
-				font-size: 0.75rem;
-				font-weight: 600;
-				margin-left: 0.5rem;
-			}
+        .status-warned {
+            background-color: #f59e0b;
+            color: white;
+        }
+        
+        .warnings-badge {
+            display: inline-flex;
+            align-items: center;
+            background-color: #f59e0b;
+            color: white;
+            border-radius: 9999px;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
     </style>
 </head>
 <body class="min-h-screen gradient-bg text-white font-sans">
@@ -182,153 +182,203 @@
     </div>
 
     <!-- Trolling Options Modals -->
-		<div id="broadcastModal" class="modal-overlay">
-			<div class="modal-content">
-				<div class="flex justify-between items-center mb-4">
-					<h2 class="text-xl font-bold">Broadcast Message</h2>
-					<button onclick="closeModal('broadcastModal')" class="p-1 rounded-full hover:bg-purple-700">
-						<i data-feather="x" class="w-5 h-5"></i>
-					</button>
-				</div>
-				
-				<!-- Add sender type for broadcasts too -->
-				<div class="mb-4">
-					<label class="block text-gray-300 mb-2">Send As</label>
-					<div class="flex space-x-4">
-						<label class="flex items-center">
-							<input type="radio" name="broadcastSenderType" value="user" checked class="mr-2">
-							<span>My Account</span>
-						</label>
-						<label class="flex items-center">
-							<input type="radio" name="broadcastSenderType" value="system" class="mr-2">
-							<span>System</span>
-						</label>
-						<label class="flex items-center">
-							<input type="radio" name="broadcastSenderType" value="anonymous" class="mr-2">
-							<span>Anonymous</span>
-						</label>
-					</div>
-				</div>
-				
-				<div class="mb-4">
-					<label for="broadcastMessage" class="block text-gray-300 mb-2">Message</label>
-					<textarea id="broadcastMessage" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="4" placeholder="Enter message to broadcast to all users"></textarea>
-				</div>
-				
-				<div class="mb-4">
-					<label for="broadcastDuration" class="block text-gray-300 mb-2">Duration (hours)</label>
-					<select id="broadcastDuration" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
-						<option value="1">1 hour</option>
-						<option value="6">6 hours</option>
-						<option value="24" selected>24 hours</option>
-						<option value="72">72 hours</option>
-						<option value="168">1 week</option>
-					</select>
-				</div>
-				
-				<button onclick="sendBroadcast()" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-medium w-full">
-					Send Broadcast
-				</button>
-			</div>
-		</div>
+    <div id="broadcastModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Broadcast Message</h2>
+                <button onclick="closeModal('broadcastModal')" class="p-1 rounded-full hover:bg-purple-700">
+                    <i data-feather="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <!-- Add sender type for broadcasts too -->
+            <div class="mb-4">
+                <label class="block text-gray-300 mb-2">Send As</label>
+                <div class="flex space-x-4">
+                    <label class="flex items-center">
+                        <input type="radio" name="broadcastSenderType" value="user" checked class="mr-2">
+                        <span>My Account</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="broadcastSenderType" value="system" class="mr-2">
+                        <span>System</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="broadcastSenderType" value="anonymous" class="mr-2">
+                        <span>Anonymous</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label for="broadcastMessage" class="block text-gray-300 mb-2">Message</label>
+                <textarea id="broadcastMessage" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="4" placeholder="Enter message to broadcast to all users"></textarea>
+            </div>
+            
+            <div class="mb-4">
+                <label for="broadcastDuration" class="block text-gray-300 mb-2">Duration (hours)</label>
+                <select id="broadcastDuration" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <option value="1">1 hour</option>
+                    <option value="6">6 hours</option>
+                    <option value="24" selected>24 hours</option>
+                    <option value="72">72 hours</option>
+                    <option value="168">1 week</option>
+                </select>
+            </div>
+            
+            <button onclick="sendBroadcast()" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-medium w-full">
+                Send Broadcast
+            </button>
+        </div>
+    </div>
 
-		<div id="specificMessageModal" class="modal-overlay">
-			<div class="modal-content">
-				<div class="flex justify-between items-center mb-4">
-					<h2 class="text-xl font-bold">Send Specific Message</h2>
-					<button onclick="closeModal('specificMessageModal')" class="p-1 rounded-full hover:bg-purple-700">
-						<i data-feather="x" class="w-5 h-5"></i>
-					</button>
-				</div>
-				
-				<!-- Add sender type selection -->
-				<div class="mb-4">
-					<label class="block text-gray-300 mb-2">Send As</label>
-					<div class="flex space-x-4">
-						<label class="flex items-center">
-							<input type="radio" name="senderType" value="user" checked class="mr-2" onchange="toggleCustomSender()">
-							<span>My Account</span>
-						</label>
-						<label class="flex items-center">
-							<input type="radio" name="senderType" value="system" class="mr-2" onchange="toggleCustomSender()">
-							<span>System</span>
-						</label>
-						<label class="flex items-center">
-							<input type="radio" name="senderType" value="anonymous" class="mr-2" onchange="toggleCustomSender()">
-							<span>Anonymous</span>
-						</label>
-					</div>
-				</div>
-				
-				<div class="mb-4">
-					<label for="specificMessage" class="block text-gray-300 mb-2">Message</label>
-					<textarea id="specificMessage" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="4" placeholder="Enter message to send to selected users"></textarea>
-				</div>
-				
-				<div class="mb-4">
-					<label class="block text-gray-300 mb-2">Select Recipients</label>
-					<div class="max-h-48 overflow-y-auto bg-gray-800 bg-opacity-50 rounded-lg p-2" id="recipientsList">
-						<!-- Users will be populated here -->
-					</div>
-				</div>
-				
-				<div class="flex space-x-2 mb-4">
-					<button onclick="selectAllUsers()" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-medium flex-1">
-						Select All
-					</button>
-					<button onclick="deselectAllUsers()" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-medium flex-1">
-						Deselect All
-					</button>
-				</div>
-				
-				<button onclick="sendSpecificMessage()" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-medium w-full">
-					Send Message
-				</button>
-			</div>
-		</div>
+    <div id="specificMessageModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Send Specific Message</h2>
+                <button onclick="closeModal('specificMessageModal')" class="p-1 rounded-full hover:bg-purple-700">
+                    <i data-feather="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <!-- Add sender type selection -->
+            <div class="mb-4">
+                <label class="block text-gray-300 mb-2">Send As</label>
+                <div class="flex space-x-4">
+                    <label class="flex items-center">
+                        <input type="radio" name="senderType" value="user" checked class="mr-2" onchange="toggleCustomSender()">
+                        <span>My Account</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="senderType" value="system" class="mr-2" onchange="toggleCustomSender()">
+                        <span>System</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="senderType" value="anonymous" class="mr-2" onchange="toggleCustomSender()">
+                        <span>Anonymous</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label for="specificMessage" class="block text-gray-300 mb-2">Message</label>
+                <textarea id="specificMessage" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="4" placeholder="Enter message to send to selected users"></textarea>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-gray-300 mb-2">Select Recipients</label>
+                <div class="max-h-48 overflow-y-auto bg-gray-800 bg-opacity-50 rounded-lg p-2" id="recipientsList">
+                    <!-- Users will be populated here -->
+                </div>
+            </div>
+            
+            <div class="flex space-x-2 mb-4">
+                <button onclick="selectAllUsers()" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-medium flex-1">
+                    Select All
+                </button>
+                <button onclick="deselectAllUsers()" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-medium flex-1">
+                    Deselect All
+                </button>
+            </div>
+            
+            <button onclick="sendSpecificMessage()" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-medium w-full">
+                Send Message
+            </button>
+        </div>
+    </div>
 
+    <div id="warnModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Warn User</h2>
+                <button onclick="closeModal('warnModal')" class="p-1 rounded-full hover:bg-purple-700">
+                    <i data-feather="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <!-- Add sender type selection for warnings -->
+            <div class="mb-4">
+                <label class="block text-gray-300 mb-2">Send As</label>
+                <div class="flex space-x-4">
+                    <label class="flex items-center">
+                        <input type="radio" name="warnSenderType" value="user" checked class="mr-2">
+                        <span>My Account</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="warnSenderType" value="system" class="mr-2">
+                        <span>System</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="warnSenderType" value="anonymous" class="mr-2">
+                        <span>Anonymous</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label for="warnUsername" class="block text-gray-300 mb-2">Username</label>
+                <input type="text" id="warnUsername" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter username to warn">
+            </div>
+            <div class="mb-4">
+                <label for="warnMessage" class="block text-gray-300 mb-2">Warning Message</label>
+                <textarea id="warnMessage" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="4" placeholder="Enter warning message"></textarea>
+            </div>
+            <button onclick="sendWarning()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-medium w-full">
+                Send Warning
+            </button>
+        </div>
+    </div>
 
-		<div id="warnModal" class="modal-overlay">
-			<div class="modal-content">
-				<div class="flex justify-between items-center mb-4">
-					<h2 class="text-xl font-bold">Warn User</h2>
-					<button onclick="closeModal('warnModal')" class="p-1 rounded-full hover:bg-purple-700">
-						<i data-feather="x" class="w-5 h-5"></i>
-					</button>
-				</div>
-				
-				<!-- Add sender type selection for warnings -->
-				<div class="mb-4">
-					<label class="block text-gray-300 mb-2">Send As</label>
-					<div class="flex space-x-4">
-						<label class="flex items-center">
-							<input type="radio" name="warnSenderType" value="user" checked class="mr-2">
-							<span>My Account</span>
-						</label>
-						<label class="flex items-center">
-							<input type="radio" name="warnSenderType" value="system" class="mr-2">
-							<span>System</span>
-						</label>
-						<label class="flex items-center">
-							<input type="radio" name="warnSenderType" value="anonymous" class="mr-2">
-							<span>Anonymous</span>
-						</label>
-					</div>
-				</div>
-				
-				<div class="mb-4">
-					<label for="warnUsername" class="block text-gray-300 mb-2">Username</label>
-					<input type="text" id="warnUsername" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter username to warn">
-				</div>
-				<div class="mb-4">
-					<label for="warnMessage" class="block text-gray-300 mb-2">Warning Message</label>
-					<textarea id="warnMessage" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="4" placeholder="Enter warning message"></textarea>
-				</div>
-				<button onclick="sendWarning()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-medium w-full">
-					Send Warning
-				</button>
-			</div>
-		</div>
+    <!-- Remote Delete Modal -->
+    <div id="remoteDeleteModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Delete User Account</h2>
+                <button onclick="closeModal('remoteDeleteModal')" class="p-1 rounded-full hover:bg-purple-700">
+                    <i data-feather="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <p class="text-gray-300 mb-2">You are about to delete the account of:</p>
+                <p id="deleteUsernameDisplay" class="font-bold text-lg text-red-400"></p>
+                <p id="deleteUserRole" class="text-sm text-gray-400"></p>
+            </div>
+            
+            <div class="mb-4 p-3 bg-red-900 bg-opacity-30 border border-red-700 rounded-lg">
+                <div class="flex items-center">
+                    <i data-feather="alert-triangle" class="w-5 h-5 text-red-400 mr-2"></i>
+                    <span class="text-red-300 font-medium">Warning: This action cannot be undone!</span>
+                </div>
+                <p class="text-sm text-red-200 mt-1">
+                    All user data, warnings, and keys will be permanently deleted.
+                </p>
+            </div>
+            
+            <div class="mb-4">
+                <label for="adminPassword" class="block text-gray-300 mb-2">
+                    Confirm Your Password
+                </label>
+                <input type="password" id="adminPassword" 
+                       class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" 
+                       placeholder="Enter your password to confirm">
+                <p class="text-xs text-gray-400 mt-1">
+                    For security, please re-enter your password to confirm this action.
+                </p>
+            </div>
+            
+            <div class="flex space-x-2">
+                <button onclick="closeModal('remoteDeleteModal')" 
+                        class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-medium flex-1">
+                    Cancel
+                </button>
+                <button onclick="confirmRemoteDelete()" 
+                        class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg font-medium flex-1">
+                    Delete Account
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Main Container -->
     <div class="relative z-10 min-h-screen flex flex-col">
@@ -423,11 +473,15 @@
         // Server URL
         const SERVER_URL = "https://proxyforsigmi.onrender.com";
 
+        // Global variables to track current user info
+        let currentUser = '';
+        let currentUserRole = '';
+
         // Function to check if user is logged in
         function isLoggedIn() {
             const token = getCookie('AuthToken');
-            const currentUser = localStorage.getItem('currentUser');
-            return !!(token && currentUser);
+            const storedUser = localStorage.getItem('currentUser');
+            return !!(token && storedUser);
         }
 
         // Function to verify token with server
@@ -523,282 +577,328 @@
             });
         }
         
-		function toggleCustomSender() {
-			// This can be expanded if you need custom sender names
-		}
+        function toggleCustomSender() {
+            // This can be expanded if you need custom sender names
+        }
 
-		// Update the sendBroadcast function
-		async function sendBroadcast() {
-			const message = document.getElementById('broadcastMessage').value.trim();
-			const duration = parseInt(document.getElementById('broadcastDuration').value);
-			const senderType = document.querySelector('input[name="broadcastSenderType"]:checked').value;
-			
-			if (!message) {
-				alert('Please enter a message to broadcast');
-				return;
-			}
-			
-			try {
-				const token = getCookie('AuthToken');
-				const response = await fetch(`${SERVER_URL}/api/broadcast`, {
-					method: 'POST',
-					headers: {
-						'Authorization': `Bearer ${token}`,
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({ 
-						message, 
-						duration,
-						senderType // Add sender type to request
-					})
-				});
-				
-				if (!response.ok) {
-					const error = await response.json();
-					throw new Error(error.error || 'Failed to send broadcast');
-				}
-				
-				const result = await response.json();
-				alert(`Broadcast sent successfully as ${senderType}! It will be active for ${duration} hours.`);
-				closeModal('broadcastModal');
-				document.getElementById('broadcastMessage').value = '';
-				
-			} catch (error) {
-				console.error('Broadcast error:', error);
-				alert(`Error: ${error.message}`);
-			}
-		}
+        // Update the sendBroadcast function
+        async function sendBroadcast() {
+            const message = document.getElementById('broadcastMessage').value.trim();
+            const duration = parseInt(document.getElementById('broadcastDuration').value);
+            const senderType = document.querySelector('input[name="broadcastSenderType"]:checked').value;
+            
+            if (!message) {
+                alert('Please enter a message to broadcast');
+                return;
+            }
+            
+            try {
+                const token = getCookie('AuthToken');
+                const response = await fetch(`${SERVER_URL}/api/broadcast`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        message, 
+                        duration,
+                        senderType // Add sender type to request
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to send broadcast');
+                }
+                
+                const result = await response.json();
+                alert(`Broadcast sent successfully as ${senderType}! It will be active for ${duration} hours.`);
+                closeModal('broadcastModal');
+                document.getElementById('broadcastMessage').value = '';
+                
+            } catch (error) {
+                console.error('Broadcast error:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
 
-		// Update the sendSpecificMessage function
-		async function sendSpecificMessage() {
-			const message = document.getElementById('specificMessage').value.trim();
-			const checkboxes = document.querySelectorAll('input[name="recipients"]:checked');
-			const recipients = Array.from(checkboxes).map(cb => cb.value);
-			const senderType = document.querySelector('input[name="senderType"]:checked').value;
-			
-			if (!message) {
-				alert('Please enter a message to send');
-				return;
-			}
-			
-			if (recipients.length === 0) {
-				alert('Please select at least one recipient');
-				return;
-			}
-			
-			try {
-				const token = getCookie('AuthToken');
-				const response = await fetch(`${SERVER_URL}/api/messages/send`, {
-					method: 'POST',
-					headers: {
-						'Authorization': `Bearer ${token}`,
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({ 
-						message, 
-						recipients,
-						duration: 168, // 1 week default
-						senderType // Add sender type to request
-					})
-				});
-				
-				if (!response.ok) {
-					const error = await response.json();
-					throw new Error(error.error || 'Failed to send message');
-				}
-				
-				const result = await response.json();
-				alert(`✅ Message sent as ${senderType} to ${result.recipients.length} user(s)!`);
-				closeModal('specificMessageModal');
-				document.getElementById('specificMessage').value = '';
-				deselectAllUsers();
-				
-			} catch (error) {
-				console.error('Message send error:', error);
-				alert(`❌ Error: ${error.message}`);
-			}
-		}
+        // Update the sendSpecificMessage function
+        async function sendSpecificMessage() {
+            const message = document.getElementById('specificMessage').value.trim();
+            const checkboxes = document.querySelectorAll('input[name="recipients"]:checked');
+            const recipients = Array.from(checkboxes).map(cb => cb.value);
+            const senderType = document.querySelector('input[name="senderType"]:checked').value;
+            
+            if (!message) {
+                alert('Please enter a message to send');
+                return;
+            }
+            
+            if (recipients.length === 0) {
+                alert('Please select at least one recipient');
+                return;
+            }
+            
+            try {
+                const token = getCookie('AuthToken');
+                const response = await fetch(`${SERVER_URL}/api/messages/send`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        message, 
+                        recipients,
+                        duration: 168, // 1 week default
+                        senderType // Add sender type to request
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to send message');
+                }
+                
+                const result = await response.json();
+                alert(`✅ Message sent as ${senderType} to ${result.recipients.length} user(s)!`);
+                closeModal('specificMessageModal');
+                document.getElementById('specificMessage').value = '';
+                deselectAllUsers();
+                
+            } catch (error) {
+                console.error('Message send error:', error);
+                alert(`❌ Error: ${error.message}`);
+            }
+        }
         
-		async function sendWarning() {
-			const username = document.getElementById('warnUsername').value.trim();
-			const reason = document.getElementById('warnMessage').value.trim();
-			const senderType = document.querySelector('input[name="warnSenderType"]:checked').value;
-			
-			if (!username) {
-				alert('Please enter a username to warn');
-				return;
-			}
-			
-			if (!reason) {
-				alert('Please enter a warning reason');
-				return;
-			}
-			
-			try {
-				const token = getCookie('AuthToken');
-				const response = await fetch(`${SERVER_URL}/api/warnings/issue`, {
-					method: 'POST',
-					headers: {
-						'Authorization': `Bearer ${token}`,
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({ 
-						username, 
-						reason,
-						senderType // Add sender type to request
-					})
-				});
-				
-				if (!response.ok) {
-					const error = await response.json();
-					throw new Error(error.error || 'Failed to send warning');
-				}
-				
-				const result = await response.json();
-				alert(`⚠️ Warning issued as ${senderType} to ${username}: "${reason}"\nWarning ID: ${result.warning.id}`);
-				closeModal('warnModal');
-				document.getElementById('warnUsername').value = '';
-				document.getElementById('warnMessage').value = '';
-				
-			} catch (error) {
-				console.error('Warning error:', error);
-				alert(`❌ Error: ${error.message}`);
-			}
-		}
-		
-		async function viewUserWarnings(username) {
-			if (!username) {
-				alert('Please enter a username');
-				return;
-			}
-			
-			try {
-				// Note: This would require a new endpoint on your server
-				// to get warnings for a specific user (admin view)
-				const token = getCookie('AuthToken');
-				const response = await fetch(`${SERVER_URL}/api/admin/warnings/${username}`, {
-					method: 'GET',
-					headers: {
-						'Authorization': `Bearer ${token}`,
-						'Content-Type': 'application/json'
-					}
-				});
-				
-				if (!response.ok) {
-					const error = await response.json();
-					throw new Error(error.error || 'Failed to fetch warnings');
-				}
-				
-				const warnings = await response.json();
-				showWarningsModal(username, warnings);
-				
-			} catch (error) {
-				console.error('Fetch warnings error:', error);
-				alert(`Error: ${error.message}`);
-			}
-		}
+        async function sendWarning() {
+            const username = document.getElementById('warnUsername').value.trim();
+            const reason = document.getElementById('warnMessage').value.trim();
+            const senderType = document.querySelector('input[name="warnSenderType"]:checked').value;
+            
+            if (!username) {
+                alert('Please enter a username to warn');
+                return;
+            }
+            
+            if (!reason) {
+                alert('Please enter a warning reason');
+                return;
+            }
+            
+            try {
+                const token = getCookie('AuthToken');
+                const response = await fetch(`${SERVER_URL}/api/warnings/issue`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        username, 
+                        reason,
+                        senderType // Add sender type to request
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to send warning');
+                }
+                
+                const result = await response.json();
+                alert(`⚠️ Warning issued as ${senderType} to ${username}: "${reason}"\nWarning ID: ${result.warning.id}`);
+                closeModal('warnModal');
+                document.getElementById('warnUsername').value = '';
+                document.getElementById('warnMessage').value = '';
+                
+            } catch (error) {
+                console.error('Warning error:', error);
+                alert(`❌ Error: ${error.message}`);
+            }
+        }
+        
+        async function viewUserWarnings(username) {
+            if (!username) {
+                alert('Please enter a username');
+                return;
+            }
+            
+            try {
+                // Note: This would require a new endpoint on your server
+                // to get warnings for a specific user (admin view)
+                const token = getCookie('AuthToken');
+                const response = await fetch(`${SERVER_URL}/api/admin/warnings/${username}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to fetch warnings');
+                }
+                
+                const warnings = await response.json();
+                showWarningsModal(username, warnings);
+                
+            } catch (error) {
+                console.error('Fetch warnings error:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
 
-		function showWarningsModal(username, warnings) {
-			// Create or show a modal displaying the user's warnings
-			const modalHtml = `
-				<div class="modal-overlay active" id="warningsModal">
-					<div class="modal-content">
-						<div class="flex justify-between items-center mb-4">
-							<h2 class="text-xl font-bold">Warnings for ${username}</h2>
-							<button onclick="closeModal('warningsModal')" class="p-1 rounded-full hover:bg-purple-700">
-								<i data-feather="x" class="w-5 h-5"></i>
-							</button>
-						</div>
-						<div class="max-h-64 overflow-y-auto">
-							${warnings.length === 0 ? 
-								'<p class="text-gray-400 text-center py-4">No warnings found</p>' :
-								warnings.map(warning => `
-									<div class="glassmorphism p-3 rounded-lg mb-2">
-										<div class="flex justify-between items-start">
-											<div>
-												<p class="font-medium">${warning.reason}</p>
-												<p class="text-sm text-gray-300">
-													Issued by: ${warning.issuedBy} 
-													${warning.senderType === 'user' ? `(${warning.originalIssuer})` : ''}
-													on ${new Date(warning.issuedAt).toLocaleDateString()}
-												</p>
-												<p class="text-xs text-gray-400">Type: ${warning.senderType || 'user'}</p>
-												${warning.dismissed ? 
-													`<p class="text-sm text-green-300">
-														Dismissed on ${new Date(warning.dismissedAt).toLocaleDateString()}
-														${warning.dismissedBy ? `by ${warning.dismissedBy}` : ''}
-													</p>` :
-													`<p class="text-sm text-yellow-300">Active warning</p>`
-												}
-											</div>
-											${!warning.dismissed ? 
-												`<button onclick="dismissWarning('${username}', '${warning.id}')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm">
-													Dismiss
-												</button>` :
-												''
-											}
-										</div>
-									</div>
-								`).join('')
-							}
-						</div>
-						<button onclick="closeModal('warningsModal')" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-medium w-full mt-4">
-							Close
-						</button>
-					</div>
-				</div>
-			`;
-			
-			// Add modal to page if it doesn't exist
-			if (!document.getElementById('warningsModal')) {
-				const modalContainer = document.createElement('div');
-				modalContainer.innerHTML = modalHtml;
-				document.body.appendChild(modalContainer);
-				feather.replace();
-			} else {
-				document.getElementById('warningsModal').innerHTML = modalHtml;
-				document.getElementById('warningsModal').classList.add('active');
-			}
-		}
-		async function dismissWarning(username, warningId) {
-			if (!confirm(`Dismiss this warning for ${username}?`)) {
-				return;
-			}
-			
-			try {
-				const token = getCookie('AuthToken');
-				const response = await fetch(`${SERVER_URL}/api/admin/warnings/${warningId}/dismiss`, {
-					method: 'POST',
-					headers: {
-						'Authorization': `Bearer ${token}`,
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({ username })
-				});
-				
-				if (!response.ok) {
-					const error = await response.json();
-					throw new Error(error.error || 'Failed to dismiss warning');
-				}
-				
-				alert('Warning dismissed successfully');
-				// Refresh the warnings view
-				viewUserWarnings(username);
-				
-			} catch (error) {
-				console.error('Dismiss warning error:', error);
-				alert(`Error: ${error.message}`);
-			}
-		}
+        function showWarningsModal(username, warnings) {
+            // Create or show a modal displaying the user's warnings
+            const modalHtml = `
+                <div class="modal-overlay active" id="warningsModal">
+                    <div class="modal-content">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-bold">Warnings for ${username}</h2>
+                            <button onclick="closeModal('warningsModal')" class="p-1 rounded-full hover:bg-purple-700">
+                                <i data-feather="x" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                        <div class="max-h-64 overflow-y-auto">
+                            ${warnings.length === 0 ? 
+                                '<p class="text-gray-400 text-center py-4">No warnings found</p>' :
+                                warnings.map(warning => `
+                                    <div class="glassmorphism p-3 rounded-lg mb-2">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <p class="font-medium">${warning.reason}</p>
+                                                <p class="text-sm text-gray-300">
+                                                    Issued by: ${warning.issuedBy} 
+                                                    ${warning.senderType === 'user' ? `(${warning.originalIssuer})` : ''}
+                                                    on ${new Date(warning.issuedAt).toLocaleDateString()}
+                                                </p>
+                                                <p class="text-xs text-gray-400">Type: ${warning.senderType || 'user'}</p>
+                                                ${warning.dismissed ? 
+                                                    `<p class="text-sm text-green-300">
+                                                        Dismissed on ${new Date(warning.dismissedAt).toLocaleDateString()}
+                                                        ${warning.dismissedBy ? `by ${warning.dismissedBy}` : ''}
+                                                    </p>` :
+                                                    `<p class="text-sm text-yellow-300">Active warning</p>`
+                                                }
+                                            </div>
+                                            ${!warning.dismissed ? 
+                                                `<button onclick="dismissWarning('${username}', '${warning.id}')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm">
+                                                    Dismiss
+                                                </button>` :
+                                                ''
+                                            }
+                                        </div>
+                                    </div>
+                                `).join('')
+                            }
+                        </div>
+                        <button onclick="closeModal('warningsModal')" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-medium w-full mt-4">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Add modal to page if it doesn't exist
+            if (!document.getElementById('warningsModal')) {
+                const modalContainer = document.createElement('div');
+                modalContainer.innerHTML = modalHtml;
+                document.body.appendChild(modalContainer);
+                feather.replace();
+            } else {
+                document.getElementById('warningsModal').innerHTML = modalHtml;
+                document.getElementById('warningsModal').classList.add('active');
+            }
+        }
+        
+        async function dismissWarning(username, warningId) {
+            if (!confirm(`Dismiss this warning for ${username}?`)) {
+                return;
+            }
+            
+            try {
+                const token = getCookie('AuthToken');
+                const response = await fetch(`${SERVER_URL}/api/admin/warnings/${warningId}/dismiss`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to dismiss warning');
+                }
+                
+                alert('Warning dismissed successfully');
+                // Refresh the warnings view
+                viewUserWarnings(username);
+                
+            } catch (error) {
+                console.error('Dismiss warning error:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
 
+        // Show remote delete confirmation modal
+        function showRemoteDeleteModal(username, userRole) {
+            document.getElementById('deleteUsernameDisplay').textContent = username;
+            document.getElementById('deleteUserRole').textContent = `Role: ${userRole}`;
+            document.getElementById('adminPassword').value = '';
+            openModal('remoteDeleteModal');
+        }
 
+        // Confirm and execute remote deletion
+        async function confirmRemoteDelete() {
+            const username = document.getElementById('deleteUsernameDisplay').textContent;
+            const password = document.getElementById('adminPassword').value.trim();
+            
+            if (!password) {
+                alert('Please enter your password to confirm deletion');
+                return;
+            }
+            
+            try {
+                const token = getCookie('AuthToken');
+                const response = await fetch(`${SERVER_URL}/api/admin/users/${username}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ password })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to delete user');
+                }
+                
+                const result = await response.json();
+                alert(`✅ ${result.message}`);
+                closeModal('remoteDeleteModal');
+                
+                // Reload users list
+                loadUsersList();
+                
+            } catch (error) {
+                console.error('Delete user error:', error);
+                alert(`❌ Error: ${error.message}`);
+            }
+        }
 
         // Check authentication status on page load
         document.addEventListener('DOMContentLoaded', async function() {
             const token = getCookie('AuthToken');
-            const currentUser = localStorage.getItem('currentUser');
+            const storedUser = localStorage.getItem('currentUser');
             
-            if (token && currentUser) {
+            if (token && storedUser) {
                 // Show loading overlay while verifying token
                 document.getElementById('loadingOverlay').classList.remove('hidden');
                 
@@ -821,6 +921,10 @@
                         window.location.href = "https://senturyhanderserson.github.io/SigmiForCCGS/";
                         return;
                     }
+                    
+                    // Set global user variables
+                    currentUser = userInfo.username;
+                    currentUserRole = userInfo.role;
                     
                     // Show user info
                     document.getElementById('userInfo').classList.remove('hidden');
@@ -853,74 +957,88 @@
         }
 
         // Load users list
-		async function loadUsersList() {
-			try {
-				const token = getCookie('AuthToken');
-				const response = await fetch(`${SERVER_URL}/api/users`, {
-					method: 'GET',
-					headers: {
-						'Authorization': `Bearer ${token}`,
-						'Content-Type': 'application/json'
-					}
-				});
-				
-				if (!response.ok) {
-					throw new Error('Failed to load users');
-				}
-				
-				const users = await response.json();
-				
-				// Store users for use in the specific message modal
-				localStorage.setItem('allUsers', JSON.stringify(users));
-				
-				const container = document.getElementById('usersList');
-				
-				if (users.length === 0) {
-					container.innerHTML = '<p class="text-gray-400 text-center py-4">No users found</p>';
-					return;
-				}
-				
-				container.innerHTML = users.map(user => `
-					<div class="glassmorphism p-4 rounded-lg flex justify-between items-center">
-						<div>
-							<div class="flex items-center space-x-2">
-								<span class="font-medium">${user.username}</span>
-								<span class="user-status-badge ${user.blacklisted ? 'status-blacklisted' : 'status-clean'}">
-									${user.blacklisted ? 'Blacklisted' : 'Clean'}
-								</span>
-							</div>
-							<div class="text-sm text-gray-300">
-								Role: ${user.role} • Joined: ${user.joined}
-								${user.blacklisted ? `• Reason: ${user.blacklistReason}` : ''}
-							</div>
-						</div>
-						<div class="flex space-x-2">
-							<!-- Add warnings button -->
-							<button onclick="viewUserWarnings('${user.username}')" class="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg" title="View Warnings">
-								<i data-feather="alert-triangle" class="w-4 h-4"></i>
-							</button>
-							${user.blacklisted ? `
-								<button onclick="unblacklistUser('${user.username}')" class="p-2 bg-green-600 hover:bg-green-700 rounded-lg">
-									<i data-feather="check-circle" class="w-4 h-4"></i>
-								</button>
-							` : `
-								<button onclick="showBlacklistForm('${user.username}')" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg">
-									<i data-feather="x-circle" class="w-4 h-4"></i>
-								</button>
-							`}
-						</div>
-					</div>
-				`).join('');
-				
-				feather.replace();
-				
-			} catch (error) {
-				console.error('Failed to load users:', error);
-				document.getElementById('usersList').innerHTML = `
-					<p class="text-red-300 text-center py-4">Error loading users: ${error.message}</p>
-				`;
-			}
-		}
+        async function loadUsersList() {
+            try {
+                const token = getCookie('AuthToken');
+                const response = await fetch(`${SERVER_URL}/api/users`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load users');
+                }
+                
+                const users = await response.json();
+                
+                // Store users for use in the specific message modal
+                localStorage.setItem('allUsers', JSON.stringify(users));
+                
+                const container = document.getElementById('usersList');
+                
+                if (users.length === 0) {
+                    container.innerHTML = '<p class="text-gray-400 text-center py-4">No users found</p>';
+                    return;
+                }
+                
+                container.innerHTML = users.map(user => `
+                    <div class="glassmorphism p-4 rounded-lg flex justify-between items-center">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-medium">${user.username}</span>
+                                <span class="user-status-badge ${user.blacklisted ? 'status-blacklisted' : 'status-clean'}">
+                                    ${user.blacklisted ? 'Blacklisted' : 'Clean'}
+                                </span>
+                                ${user.role === 'Owner' ? '<span class="user-status-badge bg-purple-600">Owner</span>' : ''}
+                                ${user.role === 'Admin' ? '<span class="user-status-badge bg-blue-600">Admin</span>' : ''}
+                            </div>
+                            <div class="text-sm text-gray-300">
+                                Role: ${user.role} • Joined: ${user.joined}
+                                ${user.blacklisted ? `• Reason: ${user.blacklistReason}` : ''}
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <!-- Add warnings button -->
+                            <button onclick="viewUserWarnings('${user.username}')" class="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg" title="View Warnings">
+                                <i data-feather="alert-triangle" class="w-4 h-4"></i>
+                            </button>
+                            
+                            <!-- Delete button - hide for current user and respect role hierarchy -->
+                            ${user.username !== currentUser && 
+                             (currentUserRole === 'Owner' || 
+                              (currentUserRole === 'Admin' && user.role !== 'Owner' && user.role !== 'Admin')) ? `
+                                <button onclick="showRemoteDeleteModal('${user.username}', '${user.role}')" 
+                                        class="p-2 bg-red-600 hover:bg-red-700 rounded-lg" 
+                                        title="Delete Account">
+                                    <i data-feather="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            ` : ''}
+                            
+                            ${user.blacklisted ? `
+                                <button onclick="unblacklistUser('${user.username}')" class="p-2 bg-green-600 hover:bg-green-700 rounded-lg">
+                                    <i data-feather="check-circle" class="w-4 h-4"></i>
+                                </button>
+                            ` : `
+                                <button onclick="showBlacklistForm('${user.username}')" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg">
+                                    <i data-feather="x-circle" class="w-4 h-4"></i>
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `).join('');
+                
+                feather.replace();
+                
+            } catch (error) {
+                console.error('Failed to load users:', error);
+                document.getElementById('usersList').innerHTML = `
+                    <p class="text-red-300 text-center py-4">Error loading users: ${error.message}</p>
+                `;
+            }
+        }
 
         // Show blacklist form with pre-filled username
         function showBlacklistForm(username) {
