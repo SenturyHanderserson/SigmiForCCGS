@@ -454,6 +454,10 @@
     <!-- Vanta.js background -->
     <div id="vanta-bg"></div>
     
+    <div id="topbarToggle" class="topbar-toggle">
+        <i data-feather="eye-off" id="toggleIcon"></i>
+    </div>
+    
     <!-- Embedded Content -->
     <iframe id="embeddedPage" class="embedded-content" src="about:blank"></iframe>
 
@@ -766,6 +770,43 @@
 
         // Check authentication status on page load
         document.addEventListener('DOMContentLoaded', function() {
+
+                    const topbarToggle = document.getElementById('topbarToggle');
+                    const headerOverlay = document.getElementById('headerOverlay');
+                    const toggleIcon = document.getElementById('toggleIcon');
+                    
+                    // Check if user has a preference for hidden topbar
+                    const isTopbarHidden = localStorage.getItem('topbarHidden') === 'true';
+                    
+                    // Apply initial state
+                    if (isTopbarHidden) {
+                        headerOverlay.classList.add('hidden');
+                        toggleIcon.setAttribute('data-feather', 'eye');
+                        feather.replace();
+                    } else {
+                        toggleIcon.setAttribute('data-feather', 'eye-off');
+                        feather.replace();
+                    }
+                    
+                    // Toggle topbar visibility
+                    topbarToggle.addEventListener('click', function() {
+                        const isHidden = headerOverlay.classList.contains('hidden');
+                        
+                        if (isHidden) {
+                            // Show topbar
+                            headerOverlay.classList.remove('hidden');
+                            toggleIcon.setAttribute('data-feather', 'eye-off');
+                            localStorage.setItem('topbarHidden', 'false');
+                        } else {
+                            // Hide topbar
+                            headerOverlay.classList.add('hidden');
+                            toggleIcon.setAttribute('data-feather', 'eye');
+                            localStorage.setItem('topbarHidden', 'true');
+                        }
+                        
+                        feather.replace();
+                    });
+            
             const token = getCookie('AuthToken');
             const currentUser = localStorage.getItem('currentUser');
             
