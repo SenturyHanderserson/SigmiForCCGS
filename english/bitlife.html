@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
-
+    <link rel="icon" href="images/extraIcons/minecraft_logo.ico" type="image/x-icon">
 
     <style>
         /* Theme Variables */
@@ -447,11 +447,53 @@
             opacity: 1;
             visibility: visible;
         }
+
+        /* NEW: Topbar toggle button styles */
+        .topbar-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 101;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .topbar-toggle:hover {
+            background: var(--accent-primary);
+            transform: scale(1.1);
+        }
+
+        .topbar-toggle.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* Adjust header overlay to have smooth transition */
+        .header-overlay.hidden {
+            transform: translateY(-100%);
+            opacity: 0;
+        }
     </style>
 </head>
 <body class="min-h-screen text-white font-sans overflow-x-hidden theme-dark">
     <!-- Vanta.js background -->
     <div id="vanta-bg"></div>
+    
+    <!-- NEW: Topbar Toggle Button -->
+    <div id="topbarToggle" class="topbar-toggle">
+        <i data-feather="eye-off" id="toggleIcon"></i>
+    </div>
     
     <!-- Embedded Content -->
     <iframe id="embeddedPage" class="embedded-content" src="about:blank"></iframe>
@@ -765,11 +807,48 @@
 
         // Check authentication status on page load
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize topbar toggle button
+            const topbarToggle = document.getElementById('topbarToggle');
+            const headerOverlay = document.getElementById('headerOverlay');
+            const toggleIcon = document.getElementById('toggleIcon');
+            
+            // Check if user has a preference for hidden topbar
+            const isTopbarHidden = localStorage.getItem('topbarHidden') === 'true';
+            
+            // Apply initial state
+            if (isTopbarHidden) {
+                headerOverlay.classList.add('hidden');
+                toggleIcon.setAttribute('data-feather', 'eye');
+                feather.replace();
+            } else {
+                toggleIcon.setAttribute('data-feather', 'eye-off');
+                feather.replace();
+            }
+            
+            // Toggle topbar visibility
+            topbarToggle.addEventListener('click', function() {
+                const isHidden = headerOverlay.classList.contains('hidden');
+                
+                if (isHidden) {
+                    // Show topbar
+                    headerOverlay.classList.remove('hidden');
+                    toggleIcon.setAttribute('data-feather', 'eye-off');
+                    localStorage.setItem('topbarHidden', 'false');
+                } else {
+                    // Hide topbar
+                    headerOverlay.classList.add('hidden');
+                    toggleIcon.setAttribute('data-feather', 'eye');
+                    localStorage.setItem('topbarHidden', 'true');
+                }
+                
+                feather.replace();
+            });
+            
             const token = getCookie('AuthToken');
             const currentUser = localStorage.getItem('currentUser');
             
             // Load the embedded page (replace with your desired URL)
-            loadEmbeddedPage('https://amazingwebsitesupersigma.github.io/bitlife');
+            loadEmbeddedPage('https://amazingwebsitesupersigma.github.io/bitlife/');
             
             if (token && currentUser) {
                 document.getElementById('loadingOverlay').classList.add('active');
