@@ -407,6 +407,44 @@
         .notification-close:hover {
             opacity: 1;
         }
+
+        /* Members Sidebar - Positioned above header */
+        .members-sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: 320px;
+            background: rgba(30, 30, 46, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 2000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            box-shadow: -5px 0 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .members-sidebar.active {
+            transform: translateX(0);
+        }
+
+        .members-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .members-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
     </style>
 </head>
 <body class="min-h-screen text-white font-sans overflow-x-hidden theme-dark">
@@ -431,9 +469,6 @@
                 </button>
                 <button id="membersButton" class="p-2 rounded-full hover:bg-purple-700 transition">
                     <i data-feather="users"></i>
-                </button>
-                <button id="toggleEmbedButton" class="p-2 rounded-full hover:bg-purple-700 transition">
-                    <i data-feather="maximize" class="w-5 h-5"></i>
                 </button>
             </div>
         </div>
@@ -465,8 +500,8 @@
         </div>
     </div>
 
-    <!-- Members Sidebar -->
-    <div id="membersSidebar" class="fixed top-0 right-0 h-full w-80 bg-gray-900 z-50 transform translate-x-full transition-transform duration-300">
+    <!-- Members Sidebar - Positioned above header -->
+    <div id="membersSidebar" class="members-sidebar">
         <div class="p-4 flex justify-between items-center border-b border-purple-800">
             <h2 class="text-lg font-semibold">Current Members</h2>
             <button id="closeMembersSidebar" class="p-1 rounded-full hover:bg-purple-700 transition">
@@ -477,7 +512,7 @@
             <div id="membersList" class="space-y-3"></div>
         </div>
     </div>
-    <div id="membersOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 opacity-0 invisible transition-all duration-300"></div>
+    <div id="membersOverlay" class="members-overlay"></div>
 
     <!-- Notification container -->
     <div class="notification-container" id="notificationContainer"></div>
@@ -572,7 +607,6 @@
         let activeBroadcasts = [];
         let broadcastCheckInterval = null;
         let warningCheckInterval = null;
-        let isEmbeddedFullscreen = false;
         
         // Initialize animations and icons
         AOS.init();
@@ -696,33 +730,6 @@
             embeddedPage.src = url;
         }
 
-        function toggleEmbeddedFullscreen() {
-            const embeddedPage = document.getElementById('embeddedPage');
-            const headerOverlay = document.getElementById('headerOverlay');
-            const toggleButton = document.getElementById('toggleEmbedButton');
-            const icon = toggleButton.querySelector('i');
-            
-            if (isEmbeddedFullscreen) {
-                // Show header and adjust embedded page
-                headerOverlay.style.display = 'block';
-                embeddedPage.style.top = '80px';
-                embeddedPage.style.height = 'calc(100% - 80px)';
-                // Use feather.replace() to update the icon
-                icon.setAttribute('data-feather', 'maximize');
-                feather.replace();
-            } else {
-                // Hide header and make embedded page fullscreen
-                headerOverlay.style.display = 'none';
-                embeddedPage.style.top = '0';
-                embeddedPage.style.height = '100%';
-                // Use feather.replace() to update the icon
-                icon.setAttribute('data-feather', 'minimize');
-                feather.replace();
-            }
-            
-            isEmbeddedFullscreen = !isEmbeddedFullscreen;
-        }
-
         // ============ VERIFICATION LOGIC ============
         
         // Function to check if user is logged in
@@ -844,11 +851,6 @@
             window.location.href = 'settings';
         });
 
-        // Toggle embedded fullscreen
-        document.getElementById('toggleEmbedButton').addEventListener('click', function() {
-            toggleEmbeddedFullscreen();
-        });
-
         // Members sidebar functionality
         document.getElementById('membersButton').addEventListener('click', function() {
             const token = getCookie('AuthToken');
@@ -857,25 +859,19 @@
                 return;
             }
             
-            document.getElementById('membersSidebar').classList.add('translate-x-0');
-            document.getElementById('membersSidebar').classList.remove('translate-x-full');
-            document.getElementById('membersOverlay').classList.add('opacity-100', 'visible');
-            document.getElementById('membersOverlay').classList.remove('opacity-0', 'invisible');
+            document.getElementById('membersSidebar').classList.add('active');
+            document.getElementById('membersOverlay').classList.add('active');
             loadMembers();
         });
 
         document.getElementById('closeMembersSidebar').addEventListener('click', function() {
-            document.getElementById('membersSidebar').classList.remove('translate-x-0');
-            document.getElementById('membersSidebar').classList.add('translate-x-full');
-            document.getElementById('membersOverlay').classList.remove('opacity-100', 'visible');
-            document.getElementById('membersOverlay').classList.add('opacity-0', 'invisible');
+            document.getElementById('membersSidebar').classList.remove('active');
+            document.getElementById('membersOverlay').classList.remove('active');
         });
 
         document.getElementById('membersOverlay').addEventListener('click', function() {
-            document.getElementById('membersSidebar').classList.remove('translate-x-0');
-            document.getElementById('membersSidebar').classList.add('translate-x-full');
-            this.classList.remove('opacity-100', 'visible');
-            this.classList.add('opacity-0', 'invisible');
+            document.getElementById('membersSidebar').classList.remove('active');
+            this.classList.remove('active');
         });
 
         // Load members function
