@@ -101,9 +101,9 @@ THEMES = {
     }
 }
 
-# Settings storage e
+# Settings storage
 SETTINGS_FILE = 'bypass_settings.json'
-VERSION = 'v1.1 beta'
+VERSION = 'v1 beta'
 
 def load_settings():
     """Load settings from file with proper defaults"""
@@ -141,94 +141,40 @@ def save_settings(settings):
         print(f"Error saving settings: {e}")
 
 def check_for_updates():
-    """Check if updates are available from GitHub"""
+    """Check if updates are available by running updater.py"""
     try:
-        # Get current file path
-        current_file = __file__
-        
-        # Get online version
-        online_url = "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/bypasstoolkit/BypassGUI.py"
-        response = requests.get(online_url, timeout=10)
-        
-        if response.status_code == 200:
-            online_content = response.text
+        # Check if updater.py exists
+        if os.path.exists('updater.py'):
+            # Run updater to check for updates
+            result = subprocess.run([sys.executable, 'updater.py', '--check'], 
+                                 capture_output=True, text=True, timeout=30)
             
-            # Read current file
-            with open(current_file, 'r', encoding='utf-8') as f:
-                current_content = f.read()
+            if result.returncode == 0:
+                # Parse the result
+                try:
+                    update_info = json.loads(result.stdout.strip())
+                    return update_info
+                except:
+                    return {'available': False, 'error': 'Failed to parse update info'}
+            else:
+                return {'available': False, 'error': f'Updater failed: {result.stderr}'}
+        else:
+            return {'available': False, 'error': 'Updater not found'}
             
-            # Simple comparison (you might want to parse version numbers properly)
-            if online_content != current_content:
-                # Extract version from online content
-                online_version = "v1.1"  # Default assumption
-                for line in online_content.split('\n'):
-                    if 'VERSION = ' in line:
-                        online_version = line.split('=')[1].strip().strip("'\"")
-                        break
-                
-                return {
-                    'available': True,
-                    'online_version': online_version,
-                    'online_content': online_content
-                }
-        
-        return {'available': False}
-        
     except Exception as e:
         print(f"Update check failed: {e}")
         return {'available': False, 'error': str(e)}
 
-def perform_update(online_content):
-    """Perform the update by creating updater script"""
+def perform_update():
+    """Perform the update by running updater.py"""
     try:
-        # Create updater script
-        updater_script = '''
-import os
-import requests
-import sys
-import time
-
-def update_app():
-    """Update the application with new content"""
-    try:
-        # Get the online content
-        online_url = "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/bypasstoolkit/BypassGUI.py"
-        response = requests.get(online_url, timeout=30)
-        
-        if response.status_code == 200:
-            online_content = response.text
-            
-            # Write new content to file
-            current_file = __file__.replace('updater.py', 'BypassGUI.py')
-            with open(current_file, 'w', encoding='utf-8') as f:
-                f.write(online_content)
-            
-            print("Update successful! Restarting application...")
-            time.sleep(2)
-            
-            # Restart the application
-            python = sys.executable
-            os.execl(python, python, current_file)
+        if os.path.exists('updater.py'):
+            # Run updater in a separate process
+            subprocess.Popen([sys.executable, 'updater.py', '--update'])
+            return True
         else:
-            print("Failed to download update")
-            
-    except Exception as e:
-        print(f"Update failed: {e}")
-
-if __name__ == '__main__':
-    update_app()
-'''.strip()
-        
-        # Write updater script
-        with open('updater.py', 'w') as f:
-            f.write(updater_script)
-        
-        # Run updater
-        subprocess.Popen([sys.executable, 'updater.py'])
-        
-        # Close current app
-        sys.exit(0)
-        
+            print("Updater not found")
+            return False
     except Exception as e:
         print(f"Update initiation failed: {e}")
         return False
@@ -266,11 +212,8 @@ class BypassAPI:
     def performUpdate(self):
         """Perform the update"""
         try:
-            result = check_for_updates()
-            if result['available']:
-                success = perform_update(result['online_content'])
-                return {'success': success}
-            return {'success': False, 'error': 'No update available'}
+            success = perform_update()
+            return {'success': success}
         except Exception as e:
             return {'success': False, 'error': str(e)}
 
