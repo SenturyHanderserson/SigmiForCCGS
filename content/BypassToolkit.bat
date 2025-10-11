@@ -2,6 +2,8 @@
 title Bypass Toolkit Installer
 color 0A
 
+setlocal EnableDelayedExpansion
+
 echo.
 echo ========================================
 echo       BYPASS TOOLKIT INSTALLER
@@ -12,6 +14,13 @@ echo.
 echo This will install Bypass Toolkit automatically...
 echo.
 timeout /t 1 /nobreak >nul
+
+:SET_PATHS
+set "INSTALL_PATH=%LOCALAPPDATA%\BypassToolkit"
+set "LAUNCHER_PATH=%INSTALL_PATH%\launcher.vbs"
+
+echo Installation Path: !INSTALL_PATH!
+echo.
 
 :CHECK_PYTHON
 echo Checking for Python installation...
@@ -188,9 +197,9 @@ exit /b 0
 
 :CREATE_FOLDER
 echo.
-echo Creating Bypass Toolkit folder...
-if not exist "bypasstoolkit" mkdir bypasstoolkit
-echo [SUCCESS] Folder created successfully!
+echo Creating Bypass Toolkit folder in LocalAppData...
+if not exist "!INSTALL_PATH!" mkdir "!INSTALL_PATH!"
+echo [SUCCESS] Folder created: !INSTALL_PATH!
 goto DOWNLOAD_FILES
 
 :DOWNLOAD_FILES
@@ -198,86 +207,104 @@ echo.
 echo Downloading Bypass Toolkit files...
 echo.
 
-REM Download the main Python GUI file from GitHub
-powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/BypassGUI.py' -OutFile 'bypasstoolkit\BypassGUI.py'" >nul 2>nul
+REM Download main Python GUI
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/BypassGUI.py' -OutFile '!INSTALL_PATH!\BypassGUI.py'" >nul 2>nul
 
-if exist "bypasstoolkit\BypassGUI.py" (
+if exist "!INSTALL_PATH!\BypassGUI.py" (
     echo [SUCCESS] Bypass Toolkit downloaded successfully!
-    goto CREATE_LAUNCHER
 ) else (
-    echo [ERROR] Failed to download Bypass Toolkit from GitHub.
-    echo Please check your internet connection and try again.
-    echo.
-    echo You can also download it manually from:
-    echo https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/BypassGUI.py
+    echo [ERROR] Failed to download Bypass Toolkit.
     pause
     exit /b 1
 )
 
-:CREATE_LAUNCHER
-echo.
-echo Creating launcher...
-(
-echo @echo off
-echo title Bypass Toolkit
-echo cd bypasstoolkit
-echo python BypassGUI.py
-echo pause
-) > Launch_Toolkit.bat
+REM Download VBS launcher
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/GUILauncher.vbs' -OutFile '!LAUNCHER_PATH!'" >nul 2>nul
 
-echo [SUCCESS] Launcher created!
-goto START_APP
+if exist "!LAUNCHER_PATH!" (
+    echo [SUCCESS] VBS launcher downloaded successfully!
+) else (
+    echo [ERROR] Failed to download VBS launcher.
+    pause
+    exit /b 1
+)
+
+REM Download updater
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/updater.py' -OutFile '!INSTALL_PATH!\updater.py'" >nul 2>nul
+
+if exist "!INSTALL_PATH!\updater.py" (
+    echo [SUCCESS] Updater downloaded successfully!
+) else (
+    echo [INFO] Updater not available, continuing without update checks.
+)
+
+:CREATE_DESKTOP_SHORTCUT
+echo.
+echo Creating desktop shortcut...
+set "DESKTOP_PATH=%USERPROFILE%\Desktop\Bypass Toolkit.lnk"
+
+powershell -Command "$WshShell = New-Object -comObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%DESKTOP_PATH%'); $Shortcut.TargetPath = '!LAUNCHER_PATH!'; $Shortcut.WorkingDirectory = '!INSTALL_PATH!'; $Shortcut.IconLocation = '!INSTALL_PATH!\BypassGUI.py, 0'; $Shortcut.Save()" >nul 2>nul
+
+if exist "%DESKTOP_PATH%" (
+    echo [SUCCESS] Desktop shortcut created!
+) else (
+    echo [INFO] Could not create desktop shortcut.
+)
+
+:CHECK_UPDATES
+echo.
+echo Checking for updates...
+if exist "!INSTALL_PATH!\updater.py" (
+    python "!INSTALL_PATH!\updater.py" >nul 2>nul
+    if %errorlevel% equ 1 (
+        echo [INFO] Update available! Restarting installer...
+        goto DOWNLOAD_FILES
+    ) else (
+        echo [SUCCESS] Application is up to date!
+    )
+)
 
 :START_APP
 echo.
-echo Starting Bypass Toolkit...
+echo Starting Bypass Toolkit (hidden)...
 echo.
 timeout /t 2 /nobreak >nul
 
-start Launch_Toolkit.bat
+start "" "!LAUNCHER_PATH!"
 
 echo.
 echo ========================================
 echo [SUCCESS] Installation Complete!
 echo ========================================
 echo.
-echo ✅ Python and packages installed
-echo ✅ Bypass Toolkit downloaded
-echo ✅ Launcher created
 echo.
-echo 🚀 Use Launch_Toolkit.bat to start the app anytime
-echo 🌐 Enter any URL to bypass filters via Google Translate
+echo 🚀 Application is now running in background
+echo 🚀 Use the desktop shortcut to launch anytime
 echo.
 
 :END_MENU
 echo.
 echo ------------------------------------------------------------------------------------------------
 echo.
-set /p choice="Press R to restart the installer, A to create executable, or any other key to exit: "
+set /p choice="Press R to restart app, U to check for updates, or any other key to exit: "
 
 if /i "%choice%"=="R" (
     echo.
-    echo Restarting installer...
-    timeout /t 2 /nobreak >nul
-    goto MAIN
+    echo Restarting Bypass Toolkit...
+    start "" "!LAUNCHER_PATH!"
+    goto END_MENU
 )
 
-if /i "%choice%"=="A" (
+if /i "%choice%"=="U" (
     echo.
-    echo Creating executable...
-    pip install pyinstaller >nul 2>nul
-    cd bypasstoolkit
-    pyinstaller --onefile --windowed --name "BypassToolkit" BypassGUI.py >nul 2>nul
-    if exist "dist\BypassToolkit.exe" (
-        echo [SUCCESS] Executable created in bypasstoolkit\dist folder!
-    ) else (
-        echo [ERROR] Failed to create executable.
+    echo Checking for updates...
+    if exist "!INSTALL_PATH!\updater.py" (
+        python "!INSTALL_PATH!\updater.py"
     )
-    cd..
     goto END_MENU
 )
 
 echo.
-echo Thank you for using Bypass Toolkit!
+echo Thank you for using Bypass Toolkit! -396abc
 echo.
 timeout /t 3 /nobreak >nul
