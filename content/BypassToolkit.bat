@@ -17,7 +17,8 @@ timeout /t 1 /nobreak >nul
 
 :SET_PATHS
 set "INSTALL_PATH=%LOCALAPPDATA%\BypassToolkit"
-set "LAUNCHER_PATH=%INSTALL_PATH%\launcher.vbs"
+set "LAUNCHER_PATH=%INSTALL_PATH%\GUILauncher.vbs"
+set "UPDATER_PATH=%INSTALL_PATH%\updater.py"
 
 echo Installation Path: !INSTALL_PATH!
 echo.
@@ -208,6 +209,7 @@ echo Downloading Bypass Toolkit files...
 echo.
 
 REM Download main Python GUI
+echo Downloading BypassGUI.py...
 powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/BypassGUI.py' -OutFile '!INSTALL_PATH!\BypassGUI.py'" >nul 2>nul
 
 if exist "!INSTALL_PATH!\BypassGUI.py" (
@@ -219,31 +221,43 @@ if exist "!INSTALL_PATH!\BypassGUI.py" (
 )
 
 REM Download VBS launcher
+echo Downloading VBS launcher...
 powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/GUILauncher.vbs' -OutFile '!LAUNCHER_PATH!'" >nul 2>nul
 
 if exist "!LAUNCHER_PATH!" (
     echo [SUCCESS] VBS launcher downloaded successfully!
 ) else (
-    echo [ERROR] Failed to download VBS launcher.
-    pause
-    exit /b 1
+    echo [WARNING] Could not download VBS launcher. Creating basic one...
+    goto CREATE_BASIC_VBS
 )
 
 REM Download updater
-powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/updater.py' -OutFile '!INSTALL_PATH!\updater.py'" >nul 2>nul
+echo Downloading updater...
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/updater.py' -OutFile '!UPDATER_PATH!'" >nul 2>nul
 
-if exist "!INSTALL_PATH!\updater.py" (
+if exist "!UPDATER_PATH!" (
     echo [SUCCESS] Updater downloaded successfully!
 ) else (
     echo [INFO] Updater not available, continuing without update checks.
 )
+
+goto CREATE_DESKTOP_SHORTCUT
+
+:CREATE_BASIC_VBS
+(
+echo Set WshShell = CreateObject^("WScript.Shell"^)
+echo currentDir = "!INSTALL_PATH!"
+echo WshShell.CurrentDirectory = currentDir
+echo WshShell.Run "python BypassGUI.py", 0, False
+) > "!LAUNCHER_PATH!"
+echo [INFO] Basic VBS launcher created.
 
 :CREATE_DESKTOP_SHORTCUT
 echo.
 echo Creating desktop shortcut...
 set "DESKTOP_PATH=%USERPROFILE%\Desktop\Bypass Toolkit.lnk"
 
-powershell -Command "$WshShell = New-Object -comObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%DESKTOP_PATH%'); $Shortcut.TargetPath = '!LAUNCHER_PATH!'; $Shortcut.WorkingDirectory = '!INSTALL_PATH!'; $Shortcut.IconLocation = '!INSTALL_PATH!\BypassGUI.py, 0'; $Shortcut.Save()" >nul 2>nul
+powershell -Command "$WshShell = New-Object -comObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%DESKTOP_PATH%'); $Shortcut.TargetPath = '!LAUNCHER_PATH!'; $Shortcut.WorkingDirectory = '!INSTALL_PATH!'; $Shortcut.Save()" >nul 2>nul
 
 if exist "%DESKTOP_PATH%" (
     echo [SUCCESS] Desktop shortcut created!
@@ -254,14 +268,16 @@ if exist "%DESKTOP_PATH%" (
 :CHECK_UPDATES
 echo.
 echo Checking for updates...
-if exist "!INSTALL_PATH!\updater.py" (
-    python "!INSTALL_PATH!\updater.py" >nul 2>nul
-    if %errorlevel% equ 1 (
-        echo [INFO] Update available! Restarting installer...
+if exist "!UPDATER_PATH!" (
+    python "!UPDATER_PATH!" >nul 2>nul
+    if !errorlevel! equ 1 (
+        echo [INFO] Update available! Downloading latest version...
         goto DOWNLOAD_FILES
     ) else (
         echo [SUCCESS] Application is up to date!
     )
+) else (
+    echo [INFO] Skipping update check (updater not available)
 )
 
 :START_APP
@@ -277,9 +293,14 @@ echo ========================================
 echo [SUCCESS] Installation Complete!
 echo ========================================
 echo.
+echo ✅ Python and packages installed
+echo ✅ Bypass Toolkit installed to LocalAppData
+echo ✅ VBS launcher created (runs hidden)
+echo ✅ Desktop shortcut created
 echo.
 echo 🚀 Application is now running in background
 echo 🚀 Use the desktop shortcut to launch anytime
+echo 🌐 Enter any URL to bypass filters via Google Translate
 echo.
 
 :END_MENU
@@ -298,8 +319,15 @@ if /i "%choice%"=="R" (
 if /i "%choice%"=="U" (
     echo.
     echo Checking for updates...
-    if exist "!INSTALL_PATH!\updater.py" (
-        python "!INSTALL_PATH!\updater.py"
+    if exist "!UPDATER_PATH!" (
+        python "!UPDATER_PATH!"
+        if !errorlevel! equ 1 (
+            echo.
+            echo Update available! Run the installer again to get the latest version.
+            pause
+        )
+    ) else (
+        echo Updater not available.
     )
     goto END_MENU
 )
