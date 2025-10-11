@@ -1,4 +1,4 @@
-import webview
+import pywebview
 import threading
 import time
 import json
@@ -1197,7 +1197,7 @@ def create_window():
     height = settings['window_size']['height']
     
     # Create WebView2 window
-    window = webview.create_window(
+    window = pywebview.create_window(
         'Bypass Toolkit',
         'http://127.0.0.1:4785/',
         x=x, y=y, width=width, height=height,
@@ -1207,7 +1207,7 @@ def create_window():
         js_api=BypassAPI()
     )
     
-    webview.start()
+    pywebview.start()
 
 if __name__ == '__main__':
     create_window()
