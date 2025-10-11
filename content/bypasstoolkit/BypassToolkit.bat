@@ -19,6 +19,7 @@ timeout /t 1 /nobreak >nul
 set "INSTALL_PATH=%LOCALAPPDATA%\BypassToolkit"
 set "LAUNCHER_PATH=%INSTALL_PATH%\GUILauncher.vbs"
 set "UPDATER_PATH=%INSTALL_PATH%\updater.py"
+set "REQUIREMENTS_PATH=%INSTALL_PATH%\requirements.txt"
 
 echo Installation Path: !INSTALL_PATH!
 echo.
@@ -131,7 +132,7 @@ timeout /t 1 /nobreak >nul
 :CHECK_PACKAGES
 echo.
 echo Checking for required packages...
-python -c "import customtkinter" >nul 2>nul
+python -c "import pywebview, flask" >nul 2>nul
 if %errorlevel% equ 0 (
     echo [SUCCESS] All packages are already installed!
     goto CREATE_FOLDER
@@ -148,8 +149,8 @@ echo.
 
 set INSTALL_SUCCESS=0
 
-echo Installing customtkinter...
-pip install customtkinter >nul 2>nul
+echo Installing pywebview and flask...
+pip install pywebview flask >nul 2>nul
 if %errorlevel% equ 0 (
     echo [SUCCESS] Packages installed successfully!
     set INSTALL_SUCCESS=1
@@ -157,7 +158,7 @@ if %errorlevel% equ 0 (
 )
 
 echo Method 1 failed, trying alternative method...
-python -m pip install customtkinter >nul 2>nul
+python -m pip install pywebview flask >nul 2>nul
 if %errorlevel% equ 0 (
     echo [SUCCESS] Packages installed successfully via python -m pip!
     set INSTALL_SUCCESS=1
@@ -165,7 +166,7 @@ if %errorlevel% equ 0 (
 )
 
 echo Method 2 failed, trying with --user flag...
-pip install --user customtkinter >nul 2>nul
+pip install --user pywebview flask >nul 2>nul
 if %errorlevel% equ 0 (
     echo [SUCCESS] Packages installed successfully with --user flag!
     set INSTALL_SUCCESS=1
@@ -173,7 +174,7 @@ if %errorlevel% equ 0 (
 )
 
 echo Method 3 failed, trying python -m pip with --user...
-python -m pip install --user customtkinter >nul 2>nul
+python -m pip install --user pywebview flask >nul 2>nul
 if %errorlevel% equ 0 (
     echo [SUCCESS] Packages installed successfully via python -m pip --user!
     set INSTALL_SUCCESS=1
@@ -186,7 +187,7 @@ echo.
 echo You can still try to run the program, but it may not work properly.
 echo Alternatively, you can manually install the packages:
 echo Open Command Prompt as Administrator and run:
-echo pip install customtkinter
+echo pip install pywebview flask
 echo.
 set /p choice="Press C to continue anyway, R to retry installation, or any other key to exit: "
 if /i "%choice%"=="R" goto INSTALL_PACKAGES
@@ -208,9 +209,9 @@ echo.
 echo Downloading Bypass Toolkit files...
 echo.
 
-REM Download main Python GUI
+REM Download main Python GUI with WebView2
 echo Downloading BypassGUI.py...
-powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/BypassGUI.py' -OutFile '!INSTALL_PATH!\BypassGUI.py'" >nul 2>nul
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/bypasstoolkit/BypassGUI.py' -OutFile '!INSTALL_PATH!\BypassGUI.py'" >nul 2>nul
 
 if exist "!INSTALL_PATH!\BypassGUI.py" (
     echo [SUCCESS] Bypass Toolkit downloaded successfully!
@@ -222,7 +223,7 @@ if exist "!INSTALL_PATH!\BypassGUI.py" (
 
 REM Download VBS launcher
 echo Downloading VBS launcher...
-powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/GUILauncher.vbs' -OutFile '!LAUNCHER_PATH!'" >nul 2>nul
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/bypasstoolkit/GUILauncher.vbs' -OutFile '!LAUNCHER_PATH!'" >nul 2>nul
 
 if exist "!LAUNCHER_PATH!" (
     echo [SUCCESS] VBS launcher downloaded successfully!
@@ -233,12 +234,23 @@ if exist "!LAUNCHER_PATH!" (
 
 REM Download updater
 echo Downloading updater...
-powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/updater.py' -OutFile '!UPDATER_PATH!'" >nul 2>nul
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/bypasstoolkit/updater.py' -OutFile '!UPDATER_PATH!'" >nul 2>nul
 
 if exist "!UPDATER_PATH!" (
     echo [SUCCESS] Updater downloaded successfully!
 ) else (
     echo [INFO] Updater not available, continuing without update checks.
+)
+
+REM Download requirements file
+echo Downloading requirements.txt...
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/bypasstoolkit/requirements.txt' -OutFile '!REQUIREMENTS_PATH!'" >nul 2>nul
+
+if exist "!REQUIREMENTS_PATH!" (
+    echo [SUCCESS] Requirements file downloaded successfully!
+) else (
+    echo [INFO] Creating basic requirements file...
+    goto CREATE_BASIC_REQUIREMENTS
 )
 
 goto CREATE_DESKTOP_SHORTCUT
@@ -251,6 +263,13 @@ echo WshShell.CurrentDirectory = currentDir
 echo WshShell.Run "python BypassGUI.py", 0, False
 ) > "!LAUNCHER_PATH!"
 echo [INFO] Basic VBS launcher created.
+
+:CREATE_BASIC_REQUIREMENTS
+(
+echo pywebview>=4.2.2
+echo flask>=3.0.0
+) > "!REQUIREMENTS_PATH!"
+echo [INFO] Basic requirements file created.
 
 :CREATE_DESKTOP_SHORTCUT
 echo.
@@ -301,6 +320,7 @@ echo.
 echo 🚀 Application is now running in background
 echo 🚀 Use the desktop shortcut to launch anytime
 echo 🌐 Enter any URL to bypass filters via Google Translate
+echo 💫 Now with WebView2 for true CSS glass morphism!
 echo.
 
 :END_MENU
