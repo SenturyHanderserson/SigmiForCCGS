@@ -101,9 +101,9 @@ THEMES = {
     }
 }
 
-# Settings storage
+# Settings storage e
 SETTINGS_FILE = 'bypass_settings.json'
-VERSION = 'v1 beta'
+VERSION = 'v1.1 beta'
 
 def load_settings():
     """Load settings from file with proper defaults"""
