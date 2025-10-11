@@ -153,13 +153,6 @@ pip install pywebview
 if %errorlevel% neq 0 (
     echo [WARNING] pip install pywebview failed, trying python -m pip...
     python -m pip install pywebview
-    if %errorlevel% neq 0 (
-        echo [WARNING] python -m pip install pywebview failed, trying with --user...
-        pip install --user pywebview
-        if %errorlevel% neq 0 (
-            python -m pip install --user pywebview
-        )
-    )
 )
 
 echo.
@@ -171,21 +164,18 @@ if %errorlevel% neq 0 (
 
 echo.
 echo Verifying installation...
-python -c "import pywebview, flask; print('SUCCESS: All packages installed correctly!')" >nul 2>nul
+python -c "import pywebview, flask" >nul 2>nul
 if %errorlevel% equ 0 (
     echo [SUCCESS] Packages installed and verified!
     set INSTALL_SUCCESS=1
     goto CREATE_FOLDER
 ) else (
-    echo [ERROR] Package installation failed!
+    echo [ERROR] Package verification failed!
+    echo The packages were installed but cannot be imported.
+    echo This might be a Python path issue.
     echo.
-    echo Please install the packages manually:
-    echo 1. Open Command Prompt as Administrator
-    echo 2. Run these commands:
-    echo    pip install pywebview flask
-    echo.
-    echo 3. If that doesn't work, try:
-    echo    python -m pip install pywebview flask
+    echo Let's test the import manually:
+    python -c "import pywebview, flask; print('Manual test: SUCCESS')"
     echo.
     set /p choice="Press C to continue anyway, or any other key to exit: "
     if /i "%choice%"=="C" (
