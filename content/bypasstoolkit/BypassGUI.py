@@ -26,7 +26,7 @@ HTML_CONTENT = '''
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: transparent;
-            color: white;
+            color: #333;
             overflow: hidden;
             height: 100vh;
             user-select: none;
@@ -36,14 +36,18 @@ HTML_CONTENT = '''
             width: 100vw;
             height: 100vh;
             background: linear-gradient(135deg, 
-                rgba(25, 25, 35, 0.95) 0%, 
-                rgba(15, 15, 25, 0.98) 100%);
+                rgba(255, 255, 255, 0.85) 0%, 
+                rgba(255, 255, 255, 0.95) 100%);
             backdrop-filter: blur(40px) saturate(200%);
             -webkit-backdrop-filter: blur(40px) saturate(200%);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.8);
             display: flex;
             flex-direction: column;
             position: relative;
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(255, 255, 255, 0.9),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
         }
 
         .app-container::before {
@@ -54,8 +58,8 @@ HTML_CONTENT = '''
             right: 0;
             bottom: 0;
             background: 
-                radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 107, 107, 0.05) 0%, transparent 50%);
             pointer-events: none;
             z-index: -1;
         }
@@ -63,9 +67,9 @@ HTML_CONTENT = '''
         /* Title Bar */
         .title-bar {
             height: 60px;
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.8);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -83,7 +87,7 @@ HTML_CONTENT = '''
             height: 1px;
             background: linear-gradient(90deg, 
                 transparent 0%, 
-                rgba(255, 255, 255, 0.3) 50%, 
+                rgba(0, 0, 0, 0.1) 50%, 
                 transparent 100%);
         }
 
@@ -95,17 +99,17 @@ HTML_CONTENT = '''
 
         .title-icon {
             font-size: 24px;
-            filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.6));
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
         }
 
         .title-text {
             font-size: 20px;
             font-weight: 700;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #7877C6, #FF6B6B);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .window-controls {
@@ -117,10 +121,10 @@ HTML_CONTENT = '''
         .control-btn {
             width: 32px;
             height: 32px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(0, 0, 0, 0.1);
             border-radius: 8px;
-            color: white;
+            color: #555;
             font-size: 18px;
             cursor: pointer;
             display: flex;
@@ -128,16 +132,19 @@ HTML_CONTENT = '''
             justify-content: center;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
         .control-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.9);
             transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .close-btn:hover {
-            background: rgba(255, 75, 75, 0.4);
-            border-color: rgba(255, 100, 100, 0.5);
+            background: rgba(255, 107, 107, 0.2);
+            border-color: rgba(255, 107, 107, 0.3);
+            color: #FF6B6B;
         }
 
         /* Main Content */
@@ -150,9 +157,9 @@ HTML_CONTENT = '''
         /* Sidebar */
         .sidebar {
             width: 280px;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.5);
             backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
             padding: 30px 0;
             display: flex;
             flex-direction: column;
@@ -164,31 +171,46 @@ HTML_CONTENT = '''
 
         .nav-item {
             padding: 16px 30px;
-            color: rgba(255, 255, 255, 0.9);
+            color: #555;
             cursor: pointer;
             transition: all 0.4s ease;
             display: flex;
             align-items: center;
             font-weight: 600;
             border-left: 4px solid transparent;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
             position: relative;
             margin: 5px 15px;
             border-radius: 12px;
         }
 
+        .nav-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(120, 119, 198, 0.1), transparent);
+            border-radius: 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
         .nav-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border-left-color: rgba(255, 255, 255, 0.4);
+            background: rgba(120, 119, 198, 0.08);
+            color: #7877C6;
+            border-left-color: rgba(120, 119, 198, 0.3);
             transform: translateX(5px);
         }
 
+        .nav-item:hover .nav-glow {
+            opacity: 1;
+        }
+
         .nav-item.active {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.25), rgba(118, 75, 162, 0.15));
-            color: white;
-            border-left-color: #667eea;
-            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
+            background: linear-gradient(135deg, rgba(120, 119, 198, 0.15), rgba(255, 107, 107, 0.08));
+            color: #7877C6;
+            border-left-color: #7877C6;
+            box-shadow: 0 8px 25px rgba(120, 119, 198, 0.15);
         }
 
         .nav-icon {
@@ -203,7 +225,7 @@ HTML_CONTENT = '''
 
         .nav-subitem {
             padding: 14px 20px;
-            color: rgba(255, 255, 255, 0.8);
+            color: #666;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
@@ -213,27 +235,28 @@ HTML_CONTENT = '''
             border-radius: 10px;
             margin: 4px 0;
             justify-content: space-between;
+            position: relative;
         }
 
         .nav-subitem:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: white;
+            background: rgba(120, 119, 198, 0.05);
+            color: #7877C6;
             transform: translateX(8px);
         }
 
         .nav-subitem.active {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(102, 126, 234, 0.15));
-            color: white;
-            border-left-color: #667eea;
+            background: linear-gradient(135deg, rgba(120, 119, 198, 0.12), rgba(120, 119, 198, 0.05));
+            color: #7877C6;
+            border-left-color: #7877C6;
         }
 
         .nav-badge {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(120, 119, 198, 0.1);
             padding: 4px 8px;
             border-radius: 6px;
             font-size: 11px;
             font-weight: 600;
-            color: rgba(255, 255, 255, 0.9);
+            color: #7877C6;
         }
 
         /* Content Area */
@@ -252,32 +275,33 @@ HTML_CONTENT = '''
 
         h2 {
             font-size: 32px;
-            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8),
-                        0 0 20px rgba(102, 126, 234, 0.4);
+            color: #333;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             font-weight: 700;
         }
 
         .section-badge {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #7877C6, #FF6B6B);
             padding: 8px 16px;
             border-radius: 10px;
             font-size: 12px;
             font-weight: 700;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+            box-shadow: 0 4px 15px rgba(120, 119, 198, 0.3);
         }
 
         /* Method Cards */
         .method-card {
             background: linear-gradient(135deg, 
-                rgba(255, 255, 255, 0.12) 0%, 
-                rgba(255, 255, 255, 0.08) 100%);
+                rgba(255, 255, 255, 0.7) 0%, 
+                rgba(255, 255, 255, 0.5) 100%);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.8);
             border-radius: 20px;
             padding: 35px;
             margin-bottom: 30px;
             transition: all 0.4s ease;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
             position: relative;
             overflow: hidden;
         }
@@ -289,7 +313,7 @@ HTML_CONTENT = '''
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
             transition: left 0.8s ease;
         }
 
@@ -299,8 +323,8 @@ HTML_CONTENT = '''
 
         .method-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
-            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.12);
+            border-color: rgba(255, 255, 255, 0.9);
         }
 
         .card-header {
@@ -312,7 +336,8 @@ HTML_CONTENT = '''
 
         h3 {
             font-size: 22px;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+            color: #333;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
             font-weight: 600;
         }
 
@@ -321,24 +346,23 @@ HTML_CONTENT = '''
             border-radius: 8px;
             font-size: 11px;
             font-weight: 700;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            color: white;
         }
 
         .method-badge.success {
             background: linear-gradient(135deg, #4CAF50, #45a049);
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.2);
         }
 
         .method-badge.warning {
             background: linear-gradient(135deg, #FF9800, #F57C00);
-            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.2);
         }
 
         p {
-            color: rgba(255, 255, 255, 0.95);
+            color: #555;
             line-height: 1.7;
             margin-bottom: 25px;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
             font-size: 15px;
         }
 
@@ -357,27 +381,26 @@ HTML_CONTENT = '''
         .url-input {
             width: 100%;
             padding: 18px 20px 18px 50px;
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.1);
             border-radius: 14px;
-            color: white;
+            color: #333;
             font-size: 16px;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
         }
 
         .url-input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
+            color: #999;
         }
 
         .url-input:focus {
             outline: none;
-            background: rgba(255, 255, 255, 0.18);
-            border-color: rgba(102, 126, 234, 0.8);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3),
-                        0 12px 35px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.95);
+            border-color: rgba(120, 119, 198, 0.5);
+            box-shadow: 0 0 0 3px rgba(120, 119, 198, 0.1),
+                        0 12px 35px rgba(0, 0, 0, 0.08);
         }
 
         .input-icon {
@@ -386,12 +409,12 @@ HTML_CONTENT = '''
             top: 50%;
             transform: translateY(-50%);
             font-size: 18px;
-            color: rgba(255, 255, 255, 0.7);
+            color: #999;
         }
 
         .bypass-button, .placeholder-button {
             padding: 18px 35px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #7877C6 0%, #FF6B6B 100%);
             border: none;
             border-radius: 14px;
             color: white;
@@ -401,8 +424,7 @@ HTML_CONTENT = '''
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 8px 25px rgba(120, 119, 198, 0.3);
             min-width: 140px;
         }
 
@@ -422,31 +444,31 @@ HTML_CONTENT = '''
 
         .bypass-button:hover, .placeholder-button:hover {
             transform: translateY(-3px);
-            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.6);
+            box-shadow: 0 15px 35px rgba(120, 119, 198, 0.4);
         }
 
         .bypass-button:active, .placeholder-button:active {
             transform: translateY(0);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
+            box-shadow: 0 5px 20px rgba(120, 119, 198, 0.3);
         }
 
         .placeholder-button {
-            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-            box-shadow: 0 8px 25px rgba(108, 117, 125, 0.5);
+            background: linear-gradient(135deg, #9e9e9e 0%, #757575 100%);
+            box-shadow: 0 8px 25px rgba(158, 158, 158, 0.3);
         }
 
         .placeholder-button:hover {
-            box-shadow: 0 15px 35px rgba(108, 117, 125, 0.6);
+            box-shadow: 0 15px 35px rgba(158, 158, 158, 0.4);
         }
 
         .card-footer {
             margin-top: 20px;
             padding-top: 15px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
         }
 
         .info-text {
-            color: rgba(255, 255, 255, 0.7);
+            color: #777;
             font-size: 13px;
         }
 
@@ -456,18 +478,18 @@ HTML_CONTENT = '''
         }
 
         .content-area::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.5);
             border-radius: 5px;
         }
 
         .content-area::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #7877C6, #FF6B6B);
             border-radius: 5px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .content-area::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #764ba2, #667eea);
+            background: linear-gradient(135deg, #FF6B6B, #7877C6);
         }
 
         /* Animations */
@@ -495,6 +517,35 @@ HTML_CONTENT = '''
         .fade-in {
             animation: fadeIn 0.6s ease-out;
         }
+
+        /* Loading Animation */
+        .button-loader {
+            display: none;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .bypass-button.loading .button-text {
+            display: none;
+        }
+
+        .bypass-button.loading .button-loader {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -518,6 +569,7 @@ HTML_CONTENT = '''
                     <div class="nav-item active">
                         <span class="nav-icon">🔓</span>
                         Bypasses
+                        <span class="nav-glow"></span>
                     </div>
                     <div class="nav-subitems">
                         <div class="nav-subitem active">
@@ -547,12 +599,14 @@ HTML_CONTENT = '''
                     <div class="nav-item">
                         <span class="nav-icon">🛠️</span>
                         Tools
+                        <span class="nav-glow"></span>
                     </div>
                 </div>
                 <div class="nav-section">
                     <div class="nav-item">
                         <span class="nav-icon">⚙️</span>
                         Settings
+                        <span class="nav-glow"></span>
                     </div>
                 </div>
             </div>
@@ -576,8 +630,11 @@ HTML_CONTENT = '''
                             <input type="text" id="urlInput" placeholder="https://example.com" class="url-input">
                             <span class="input-icon">🔗</span>
                         </div>
-                        <button class="bypass-button" onclick="handleBypass()">
+                        <button class="bypass-button" id="bypassBtn">
                             <span class="button-text">Bypass Now</span>
+                            <span class="button-loader">
+                                <div class="spinner"></div>
+                            </span>
                             <span class="button-glow"></span>
                         </button>
                     </div>
@@ -609,6 +666,7 @@ HTML_CONTENT = '''
         // Handle bypass functionality
         function handleBypass() {
             const urlInput = document.getElementById('urlInput');
+            const bypassBtn = document.getElementById('bypassBtn');
             const url = urlInput.value.trim();
             
             if (!url) {
@@ -617,13 +675,21 @@ HTML_CONTENT = '''
                 return;
             }
 
-            let destination = url;
-            if (!/^https?:\/\//i.test(destination)) {
-                destination = "https://" + destination;
-            }
+            // Show loading state
+            bypassBtn.classList.add('loading');
             
-            const bypassUrl = `https://translate.google.com/translate?sl=auto&tl=en&u=${encodeURIComponent(destination)}`;
-            window.open(bypassUrl, '_blank');
+            setTimeout(() => {
+                let destination = url;
+                if (!/^https?:\/\//i.test(destination)) {
+                    destination = "https://" + destination;
+                }
+                
+                const bypassUrl = `https://translate.google.com/translate?sl=auto&tl=en&u=${encodeURIComponent(destination)}`;
+                window.open(bypassUrl, '_blank');
+                
+                // Reset button state
+                bypassBtn.classList.remove('loading');
+            }, 1500);
         }
 
         // Handle Enter key in input
@@ -632,6 +698,9 @@ HTML_CONTENT = '''
                 handleBypass();
             }
         });
+
+        // Add click event to bypass button
+        document.getElementById('bypassBtn').addEventListener('click', handleBypass);
 
         // Navigation functionality
         document.querySelectorAll('.nav-item, .nav-subitem').forEach(item => {
@@ -664,6 +733,52 @@ HTML_CONTENT = '''
                 this.style.transform = 'translateY(0)';
             });
         });
+
+        // Dragging functionality for the entire window
+        let isDragging = false;
+        let currentX;
+        let currentY;
+        let initialX;
+        let initialY;
+        let xOffset = 0;
+        let yOffset = 0;
+
+        const titleBar = document.querySelector('.title-bar');
+
+        titleBar.addEventListener("mousedown", dragStart);
+        document.addEventListener("mousemove", drag);
+        document.addEventListener("mouseup", dragEnd);
+
+        function dragStart(e) {
+            initialX = e.clientX - xOffset;
+            initialY = e.clientY - yOffset;
+
+            if (e.target === titleBar || titleBar.contains(e.target)) {
+                isDragging = true;
+            }
+        }
+
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                currentX = e.clientX - initialX;
+                currentY = e.clientY - initialY;
+
+                xOffset = currentX;
+                yOffset = currentY;
+
+                // In a webview environment, we'd need to use the API to move the window
+                if (window.pywebview) {
+                    pywebview.api.move_window(currentX, currentY);
+                }
+            }
+        }
+
+        function dragEnd(e) {
+            initialX = currentX;
+            initialY = currentY;
+            isDragging = false;
+        }
     </script>
 </body>
 </html>
@@ -680,6 +795,11 @@ class BypassAPI:
         # This will be called from JavaScript
         import os
         os._exit(0)
+    
+    def move_window(self, x, y):
+        """Move the window - placeholder for actual implementation"""
+        # In a real implementation, this would use the webview API to move the window
+        pass
 
 def run_flask():
     """Run Flask server in background"""
@@ -699,7 +819,7 @@ def create_window():
         height=700,
         resizable=True,
         frameless=True,
-        easy_drag=False,
+        easy_drag=True,  # Enable easy dragging
         js_api=BypassAPI()
     )
     
