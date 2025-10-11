@@ -145,93 +145,55 @@ goto INSTALL_PACKAGES
 :INSTALL_PACKAGES
 echo.
 echo Installing required packages...
-echo This may take a few minutes...
+echo This may take a minute...
 echo.
 
-set INSTALL_SUCCESS=0
-
-echo Method 1: Installing pywebview and flask with pip...
-pip install pywebview flask 2>nul
-if %errorlevel% equ 0 (
-    echo [SUCCESS] Packages installed successfully with pip!
-    goto VERIFY_INSTALLATION
-)
-
-echo Method 2: Installing with python -m pip...
-python -m pip install pywebview flask 2>nul
-if %errorlevel% equ 0 (
-    echo [SUCCESS] Packages installed successfully via python -m pip!
-    goto VERIFY_INSTALLATION
-)
-
-echo Method 3: Installing with --user flag...
-pip install --user pywebview flask 2>nul
-if %errorlevel% equ 0 (
-    echo [SUCCESS] Packages installed successfully with --user flag!
-    goto VERIFY_INSTALLATION
-)
-
-echo Method 4: Installing with python -m pip --user...
-python -m pip install --user pywebview flask 2>nul
-if %errorlevel% equ 0 (
-    echo [SUCCESS] Packages installed successfully via python -m pip --user!
-    goto VERIFY_INSTALLATION
-)
-
-echo Method 5: Trying pip3...
-pip3 install pywebview flask 2>nul
-if %errorlevel% equ 0 (
-    echo [SUCCESS] Packages installed successfully with pip3!
-    goto VERIFY_INSTALLATION
-)
-
-echo Method 6: Installing with timeout and retry...
-echo Installing pywebview (this may take a while)...
-python -m pip install pywebview --timeout 60 --retries 3 2>nul
-if %errorlevel% equ 0 (
-    echo Installing flask...
-    python -m pip install flask --timeout 60 --retries 3 2>nul
-    if %errorlevel% equ 0 (
-        echo [SUCCESS] Packages installed successfully with timeout/retry!
-        goto VERIFY_INSTALLATION
+echo Installing pywebview (this is the correct package)...
+pip install pywebview
+if %errorlevel% neq 0 (
+    echo [WARNING] pip install pywebview failed, trying python -m pip...
+    python -m pip install pywebview
+    if %errorlevel% neq 0 (
+        echo [WARNING] python -m pip install pywebview failed, trying with --user...
+        pip install --user pywebview
+        if %errorlevel% neq 0 (
+            python -m pip install --user pywebview
+        )
     )
 )
 
 echo.
-echo [ERROR] Could not install packages automatically.
+echo Installing flask...
+pip install flask
+if %errorlevel% neq 0 (
+    python -m pip install flask
+)
+
 echo.
-echo Please install the packages manually:
-echo 1. Open Command Prompt as Administrator
-echo 2. Run: pip install pywebview flask
-echo 3. If that fails, try: python -m pip install pywebview flask
-echo.
-set /p choice="Press M to open manual installation instructions, C to continue anyway, or any other key to exit: "
-if /i "%choice%"=="M" (
-    start https://pywebview.flowrl.com/guide/installation.html
+echo Verifying installation...
+python -c "import pywebview, flask; print('SUCCESS: All packages installed correctly!')" >nul 2>nul
+if %errorlevel% equ 0 (
+    echo [SUCCESS] Packages installed and verified!
+    set INSTALL_SUCCESS=1
+    goto CREATE_FOLDER
+) else (
+    echo [ERROR] Package installation failed!
     echo.
-    echo Please follow the installation guide and then run this installer again.
-    pause
+    echo Please install the packages manually:
+    echo 1. Open Command Prompt as Administrator
+    echo 2. Run these commands:
+    echo    pip install pywebview flask
+    echo.
+    echo 3. If that doesn't work, try:
+    echo    python -m pip install pywebview flask
+    echo.
+    set /p choice="Press C to continue anyway, or any other key to exit: "
+    if /i "%choice%"=="C" (
+        set INSTALL_SUCCESS=0
+        goto CREATE_FOLDER
+    )
     exit /b 1
 )
-if /i "%choice%"=="C" (
-    set INSTALL_SUCCESS=0
-    goto CREATE_FOLDER
-)
-exit /b 0
-
-:VERIFY_INSTALLATION
-echo.
-echo Verifying package installation...
-python -c "import pywebview, flask; print('Packages verified successfully!')" 2>nul
-if %errorlevel% equ 0 (
-    echo [SUCCESS] Package installation verified!
-    set INSTALL_SUCCESS=1
-) else (
-    echo [WARNING] Packages installed but verification failed.
-    echo The application may not work properly.
-    set INSTALL_SUCCESS=0
-)
-goto CREATE_FOLDER
 
 :CREATE_FOLDER
 echo.
@@ -342,14 +304,12 @@ echo Starting Bypass Toolkit (hidden)...
 echo.
 
 REM Test if packages are actually installed before starting
-if !INSTALL_SUCCESS! equ 1 (
-    echo Verifying packages before launch...
-    python -c "import pywebview, flask" >nul 2>nul
-    if %errorlevel% neq 0 (
-        echo [ERROR] Packages not found! Cannot start application.
-        echo Please run the installer again or install manually.
-        goto MANUAL_INSTALL_HELP
-    )
+echo Verifying packages before launch...
+python -c "import pywebview, flask" >nul 2>nul
+if %errorlevel% neq 0 (
+    echo [ERROR] Packages not found! Cannot start application.
+    echo Please run the installer again or install manually.
+    goto MANUAL_INSTALL_HELP
 )
 
 timeout /t 2 /nobreak >nul
