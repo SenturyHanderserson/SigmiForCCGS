@@ -607,6 +607,7 @@ HTML_CONTENT = '''
             transition: all 0.3s ease;
             text-align: center;
             background: rgba(255, 255, 255, 0.05);
+            position: relative;
         }
 
         .theme-option:hover {
@@ -617,6 +618,22 @@ HTML_CONTENT = '''
         .theme-option.active {
             border-color: {{ theme.primary }};
             box-shadow: 0 0 0 2px {{ theme.accent_glow }};
+        }
+
+        .theme-option.active::after {
+            content: '✓';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: {{ theme.primary }};
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .theme-preview {
@@ -630,6 +647,17 @@ HTML_CONTENT = '''
         .theme-name {
             font-weight: 600;
             color: {{ theme.text }};
+        }
+
+        /* Theme Transition */
+        .theme-transition {
+            animation: themeChange 0.5s ease-in-out;
+        }
+
+        @keyframes themeChange {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
         }
 
         /* Scrollbar */
@@ -889,19 +917,19 @@ HTML_CONTENT = '''
                                 <span>🎨</span> Theme Preferences
                             </div>
                             <div class="theme-options">
-                                <div class="theme-option active" data-theme="white">
+                                <div class="theme-option {% if current_settings.theme == 'white' %}active{% endif %}" data-theme="white">
                                     <div class="theme-preview" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.95) 100%); border: 1px solid rgba(255, 255, 255, 0.8);"></div>
                                     <div class="theme-name">Frost Glass</div>
                                 </div>
-                                <div class="theme-option" data-theme="blue">
+                                <div class="theme-option {% if current_settings.theme == 'blue' %}active{% endif %}" data-theme="blue">
                                     <div class="theme-preview" style="background: linear-gradient(135deg, rgba(100, 125, 220, 0.85) 0%, rgba(80, 100, 200, 0.95) 100%); border: 1px solid rgba(255, 255, 255, 0.2);"></div>
                                     <div class="theme-name">Ocean Glass</div>
                                 </div>
-                                <div class="theme-option" data-theme="purple">
+                                <div class="theme-option {% if current_settings.theme == 'purple' %}active{% endif %}" data-theme="purple">
                                     <div class="theme-preview" style="background: linear-gradient(135deg, rgba(120, 80, 200, 0.85) 0%, rgba(100, 60, 180, 0.95) 100%); border: 1px solid rgba(255, 255, 255, 0.2);"></div>
                                     <div class="theme-name">Royal Glass</div>
                                 </div>
-                                <div class="theme-option" data-theme="black">
+                                <div class="theme-option {% if current_settings.theme == 'black' %}active{% endif %}" data-theme="black">
                                     <div class="theme-preview" style="background: linear-gradient(135deg, rgba(30, 30, 40, 0.95) 0%, rgba(20, 20, 30, 0.98) 100%); border: 1px solid rgba(255, 255, 255, 0.1);"></div>
                                     <div class="theme-name">Obsidian Glass</div>
                                 </div>
@@ -1007,13 +1035,17 @@ HTML_CONTENT = '''
             });
         }
 
-        // Theme functionality
+        // Theme functionality with auto-refresh
         function setupThemes() {
             const themeOptions = document.querySelectorAll('.theme-option');
             
             themeOptions.forEach(option => {
-                option.addEventListener('click', () => {
+                option.addEventListener('click', async () => {
                     const theme = option.getAttribute('data-theme');
+                    
+                    // Show loading state
+                    const appContainer = document.querySelector('.app-container');
+                    appContainer.classList.add('theme-transition');
                     
                     // Update active state
                     themeOptions.forEach(opt => opt.classList.remove('active'));
@@ -1021,22 +1053,45 @@ HTML_CONTENT = '''
                     
                     // Save theme preference
                     currentSettings.theme = theme;
-                    saveSettings();
                     
-                    // Apply theme (in a real app, this would reload with the new theme)
-                    alert(`Theme changed to ${theme}. In a full implementation, this would apply immediately.`);
+                    try {
+                        // Save settings via API
+                        if (window.pywebview) {
+                            await pywebview.api.save_settings(currentSettings);
+                        } else {
+                            // Fallback for browser testing
+                            localStorage.setItem('bypassSettings', JSON.stringify(currentSettings));
+                        }
+                        
+                        // Wait a moment for the animation, then refresh
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 300);
+                        
+                    } catch (error) {
+                        console.error('Failed to save settings:', error);
+                        // Still refresh even if save fails
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 300);
+                    }
                 });
             });
         }
 
         // Settings management
-        function saveSettings() {
-            if (window.pywebview) {
-                pywebview.api.save_settings(currentSettings);
-            } else {
-                // Fallback for browser testing
-                localStorage.setItem('bypassSettings', JSON.stringify(currentSettings));
-                console.log('Settings saved:', currentSettings);
+        async function saveSettings() {
+            try {
+                if (window.pywebview) {
+                    await pywebview.api.save_settings(currentSettings);
+                } else {
+                    // Fallback for browser testing
+                    localStorage.setItem('bypassSettings', JSON.stringify(currentSettings));
+                }
+                return true;
+            } catch (error) {
+                console.error('Failed to save settings:', error);
+                return false;
             }
         }
 
@@ -1047,8 +1102,15 @@ HTML_CONTENT = '''
                     window_position: {x: 100, y: 100},
                     window_size: {width: 1000, height: 700}
                 };
-                saveSettings();
-                alert('Settings have been reset. Please restart the application.');
+                
+                // Show transition and reload
+                const appContainer = document.querySelector('.app-container');
+                appContainer.classList.add('theme-transition');
+                
+                setTimeout(async () => {
+                    await saveSettings();
+                    window.location.reload();
+                }, 300);
             }
         }
 
@@ -1110,13 +1172,6 @@ HTML_CONTENT = '''
             setupNavigation();
             setupThemes();
             setupDragging();
-
-            // Set active theme in UI
-            const activeThemeOption = document.querySelector(`.theme-option[data-theme="${currentSettings.theme}"]`);
-            if (activeThemeOption) {
-                document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('active'));
-                activeThemeOption.classList.add('active');
-            }
         });
 
         // Close app function for WebView
