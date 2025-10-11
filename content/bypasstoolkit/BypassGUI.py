@@ -77,15 +77,17 @@ def save_settings(settings):
     try:
         with open(SETTINGS_FILE, 'w') as f:
             json.dump(settings, f, indent=2)
-    except:
-        pass
+    except Exception as e:
+        print(f"Error saving settings: {e}")
 
 # Load initial settings
 current_settings = load_settings()
-current_theme = THEMES[current_settings['theme']]
 
-# Our complete HTML with CSS and JavaScript
-HTML_CONTENT = '''
+def get_html_content():
+    """Generate HTML content with current theme"""
+    current_theme = THEMES[current_settings['theme']]
+    
+    return f'''
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -93,28 +95,28 @@ HTML_CONTENT = '''
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bypass Toolkit</title>
     <style>
-        * {
+        * {{
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-        }
+        }}
 
-        body {
+        body {{
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: transparent;
-            color: {{ theme.text }};
+            color: {current_theme['text']};
             overflow: hidden;
             height: 100vh;
             user-select: none;
-        }
+        }}
 
-        .app-container {
+        .app-container {{
             width: 100vw;
             height: 100vh;
-            background: {{ theme.background }};
+            background: {current_theme['background']};
             backdrop-filter: blur(40px) saturate(200%);
             -webkit-backdrop-filter: blur(40px) saturate(200%);
-            border: 1px solid {{ theme.border }};
+            border: 1px solid {current_theme['border']};
             display: flex;
             flex-direction: column;
             position: relative;
@@ -122,9 +124,9 @@ HTML_CONTENT = '''
                 0 25px 50px rgba(0, 0, 0, 0.1),
                 0 0 0 1px rgba(255, 255, 255, 0.1),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        }
+        }}
 
-        .app-container::before {
+        .app-container::before {{
             content: '';
             position: absolute;
             top: 0;
@@ -132,27 +134,27 @@ HTML_CONTENT = '''
             right: 0;
             bottom: 0;
             background: 
-                radial-gradient(circle at 20% 80%, {{ theme.accent_glow }} 0%, transparent 50%),
+                radial-gradient(circle at 20% 80%, {current_theme['accent_glow']} 0%, transparent 50%),
                 radial-gradient(circle at 80% 20%, rgba(255, 107, 107, 0.05) 0%, transparent 50%);
             pointer-events: none;
             z-index: -1;
-        }
+        }}
 
         /* Title Bar */
-        .title-bar {
+        .title-bar {{
             height: 60px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid {{ theme.border }};
+            border-bottom: 1px solid {current_theme['border']};
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 25px;
             position: relative;
             cursor: move;
-        }
+        }}
 
-        .title-bar::after {
+        .title-bar::after {{
             content: '';
             position: absolute;
             bottom: 0;
@@ -163,41 +165,41 @@ HTML_CONTENT = '''
                 transparent 0%, 
                 rgba(255, 255, 255, 0.2) 50%, 
                 transparent 100%);
-        }
+        }}
 
-        .title-content {
+        .title-content {{
             display: flex;
             align-items: center;
             gap: 15px;
-        }
+        }}
 
-        .title-icon {
+        .title-icon {{
             font-size: 24px;
             filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-        }
+        }}
 
-        .title-text {
+        .title-text {{
             font-size: 20px;
             font-weight: 700;
-            background: linear-gradient(135deg, {{ theme.primary }}, {{ theme.secondary }});
+            background: linear-gradient(135deg, {current_theme['primary']}, {current_theme['secondary']});
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
+        }}
 
-        .window-controls {
+        .window-controls {{
             display: flex;
             gap: 12px;
-        }
+        }}
 
-        .control-btn {
+        .control-btn {{
             width: 32px;
             height: 32px;
             background: rgba(255, 255, 255, 0.1);
-            border: 1px solid {{ theme.border }};
+            border: 1px solid {current_theme['border']};
             border-radius: 8px;
-            color: {{ theme.text }};
+            color: {current_theme['text']};
             font-size: 18px;
             cursor: pointer;
             display: flex;
@@ -206,45 +208,45 @@ HTML_CONTENT = '''
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
+        }}
 
-        .control-btn:hover {
+        .control-btn:hover {{
             background: rgba(255, 255, 255, 0.2);
             transform: scale(1.1);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
+        }}
 
-        .close-btn:hover {
+        .close-btn:hover {{
             background: rgba(255, 107, 107, 0.2);
             border-color: rgba(255, 107, 107, 0.3);
             color: #FF6B6B;
-        }
+        }}
 
         /* Main Content */
-        .main-content {
+        .main-content {{
             flex: 1;
             display: flex;
             overflow: hidden;
-        }
+        }}
 
         /* Sidebar */
-        .sidebar {
+        .sidebar {{
             width: 280px;
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
-            border-right: 1px solid {{ theme.border }};
+            border-right: 1px solid {current_theme['border']};
             padding: 30px 0;
             display: flex;
             flex-direction: column;
-        }
+        }}
 
-        .nav-section {
+        .nav-section {{
             margin-bottom: 20px;
-        }
+        }}
 
-        .nav-item {
+        .nav-item {{
             padding: 16px 30px;
-            color: {{ theme.text_secondary }};
+            color: {current_theme['text_secondary']};
             cursor: pointer;
             transition: all 0.4s ease;
             display: flex;
@@ -254,51 +256,51 @@ HTML_CONTENT = '''
             position: relative;
             margin: 5px 15px;
             border-radius: 12px;
-        }
+        }}
 
-        .nav-glow {
+        .nav-glow {{
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(135deg, {{ theme.accent_glow }}, transparent);
+            background: linear-gradient(135deg, {current_theme['accent_glow']}, transparent);
             border-radius: 12px;
             opacity: 0;
             transition: opacity 0.3s ease;
-        }
+        }}
 
-        .nav-item:hover {
+        .nav-item:hover {{
             background: rgba(255, 255, 255, 0.1);
-            color: {{ theme.text }};
-            border-left-color: {{ theme.primary }};
+            color: {current_theme['text']};
+            border-left-color: {current_theme['primary']};
             transform: translateX(5px);
-        }
+        }}
 
-        .nav-item:hover .nav-glow {
+        .nav-item:hover .nav-glow {{
             opacity: 1;
-        }
+        }}
 
-        .nav-item.active {
-            background: linear-gradient(135deg, {{ theme.accent_glow }}, transparent);
-            color: {{ theme.primary }};
-            border-left-color: {{ theme.primary }};
-            box-shadow: 0 8px 25px {{ theme.accent_glow }};
-        }
+        .nav-item.active {{
+            background: linear-gradient(135deg, {current_theme['accent_glow']}, transparent);
+            color: {current_theme['primary']};
+            border-left-color: {current_theme['primary']};
+            box-shadow: 0 8px 25px {current_theme['accent_glow']};
+        }}
 
-        .nav-icon {
+        .nav-icon {{
             margin-right: 15px;
             font-size: 18px;
-        }
+        }}
 
-        .nav-subitems {
+        .nav-subitems {{
             margin-left: 30px;
             margin-top: 10px;
-        }
+        }}
 
-        .nav-subitem {
+        .nav-subitem {{
             padding: 14px 20px;
-            color: {{ theme.text_secondary }};
+            color: {current_theme['text_secondary']};
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
@@ -309,81 +311,81 @@ HTML_CONTENT = '''
             margin: 4px 0;
             justify-content: space-between;
             position: relative;
-        }
+        }}
 
-        .nav-subitem:hover {
+        .nav-subitem:hover {{
             background: rgba(255, 255, 255, 0.05);
-            color: {{ theme.primary }};
+            color: {current_theme['primary']};
             transform: translateX(8px);
-        }
+        }}
 
-        .nav-subitem.active {
-            background: linear-gradient(135deg, {{ theme.accent_glow }}, transparent);
-            color: {{ theme.primary }};
-            border-left-color: {{ theme.primary }};
-        }
+        .nav-subitem.active {{
+            background: linear-gradient(135deg, {current_theme['accent_glow']}, transparent);
+            color: {current_theme['primary']};
+            border-left-color: {current_theme['primary']};
+        }}
 
-        .nav-badge {
-            background: {{ theme.accent_glow }};
+        .nav-badge {{
+            background: {current_theme['accent_glow']};
             padding: 4px 8px;
             border-radius: 6px;
             font-size: 11px;
             font-weight: 600;
-            color: {{ theme.primary }};
-        }
+            color: {current_theme['primary']};
+        }}
 
         /* Content Area */
-        .content-area {
+        .content-area {{
             flex: 1;
             padding: 40px;
             overflow-y: auto;
-        }
+        }}
 
-        .content-section {
+        .content-section {{
             display: none;
-        }
+        }}
 
-        .content-section.active {
+        .content-section.active {{
             display: block;
             animation: fadeIn 0.4s ease;
-        }
+        }}
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn {{
+            from {{ opacity: 0; transform: translateY(15px); }}
+            to {{ opacity: 1; transform: translateY(0); }}
+        }}
 
-        .section-header {
+        .section-header {{
             display: flex;
             align-items: center;
             gap: 20px;
             margin-bottom: 35px;
-        }
+        }}
 
-        h2 {
+        h2 {{
             font-size: 32px;
-            color: {{ theme.text }};
+            color: {current_theme['text']};
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             font-weight: 700;
-        }
+        }}
 
-        .section-badge {
-            background: linear-gradient(135deg, {{ theme.primary }}, {{ theme.secondary }});
+        .section-badge {{
+            background: linear-gradient(135deg, {current_theme['primary']}, {current_theme['secondary']});
             padding: 8px 16px;
             border-radius: 10px;
             font-size: 12px;
             font-weight: 700;
             color: white;
-            box-shadow: 0 4px 15px {{ theme.accent_glow }};
-        }
+            box-shadow: 0 4px 15px {current_theme['accent_glow']};
+        }}
 
         /* Method Cards */
-        .method-card {
+        .method-card {{
             background: linear-gradient(135deg, 
                 rgba(255, 255, 255, 0.1) 0%, 
                 rgba(255, 255, 255, 0.05) 100%);
             backdrop-filter: blur(20px);
-            border: 1px solid {{ theme.border }};
+            border: 1px solid {current_theme['border']};
             border-radius: 20px;
             padding: 35px;
             margin-bottom: 30px;
@@ -391,9 +393,9 @@ HTML_CONTENT = '''
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
             position: relative;
             overflow: hidden;
-        }
+        }}
 
-        .method-card::before {
+        .method-card::before {{
             content: '';
             position: absolute;
             top: 0;
@@ -402,106 +404,106 @@ HTML_CONTENT = '''
             height: 100%;
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
             transition: left 0.8s ease;
-        }
+        }}
 
-        .method-card:hover::before {
+        .method-card:hover::before {{
             left: 100%;
-        }
+        }}
 
-        .method-card:hover {
+        .method-card:hover {{
             transform: translateY(-5px);
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.12);
-            border-color: {{ theme.primary }};
-        }
+            border-color: {current_theme['primary']};
+        }}
 
-        .card-header {
+        .card-header {{
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
-        }
+        }}
 
-        h3 {
+        h3 {{
             font-size: 22px;
-            color: {{ theme.text }};
+            color: {current_theme['text']};
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
             font-weight: 600;
-        }
+        }}
 
-        .method-badge {
+        .method-badge {{
             padding: 6px 12px;
             border-radius: 8px;
             font-size: 11px;
             font-weight: 700;
             color: white;
-        }
+        }}
 
-        .method-badge.success {
+        .method-badge.success {{
             background: linear-gradient(135deg, #4CAF50, #45a049);
             box-shadow: 0 4px 15px rgba(76, 175, 80, 0.2);
-        }
+        }}
 
-        .method-badge.warning {
+        .method-badge.warning {{
             background: linear-gradient(135deg, #FF9800, #F57C00);
             box-shadow: 0 4px 15px rgba(255, 152, 0, 0.2);
-        }
+        }}
 
-        p {
-            color: {{ theme.text_secondary }};
+        p {{
+            color: {current_theme['text_secondary']};
             line-height: 1.7;
             margin-bottom: 25px;
             font-size: 15px;
-        }
+        }}
 
-        .input-group {
+        .input-group {{
             display: flex;
             gap: 20px;
             margin: 30px 0;
             align-items: center;
-        }
+        }}
 
-        .input-container {
+        .input-container {{
             flex: 1;
             position: relative;
-        }
+        }}
 
-        .url-input {
+        .url-input {{
             width: 100%;
             padding: 18px 20px 18px 50px;
             background: rgba(255, 255, 255, 0.1);
-            border: 1px solid {{ theme.border }};
+            border: 1px solid {current_theme['border']};
             border-radius: 14px;
-            color: {{ theme.text }};
+            color: {current_theme['text']};
             font-size: 16px;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
-        }
+        }}
 
-        .url-input::placeholder {
-            color: {{ theme.text_secondary }};
-        }
+        .url-input::placeholder {{
+            color: {current_theme['text_secondary']};
+        }}
 
-        .url-input:focus {
+        .url-input:focus {{
             outline: none;
             background: rgba(255, 255, 255, 0.15);
-            border-color: {{ theme.primary }};
-            box-shadow: 0 0 0 3px {{ theme.accent_glow }},
+            border-color: {current_theme['primary']};
+            box-shadow: 0 0 0 3px {current_theme['accent_glow']},
                         0 12px 35px rgba(0, 0, 0, 0.08);
-        }
+        }}
 
-        .input-icon {
+        .input-icon {{
             position: absolute;
             left: 20px;
             top: 50%;
             transform: translateY(-50%);
             font-size: 18px;
-            color: {{ theme.text_secondary }};
-        }
+            color: {current_theme['text_secondary']};
+        }}
 
-        .bypass-button, .placeholder-button {
+        .bypass-button, .placeholder-button {{
             padding: 18px 35px;
-            background: linear-gradient(135deg, {{ theme.primary }}, {{ theme.secondary }});
+            background: linear-gradient(135deg, {current_theme['primary']}, {current_theme['secondary']});
             border: none;
             border-radius: 14px;
             color: white;
@@ -511,11 +513,11 @@ HTML_CONTENT = '''
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 8px 25px {{ theme.accent_glow }};
+            box-shadow: 0 8px 25px {current_theme['accent_glow']};
             min-width: 140px;
-        }
+        }}
 
-        .button-glow {
+        .button-glow {{
             position: absolute;
             top: 0;
             left: -100%;
@@ -523,109 +525,109 @@ HTML_CONTENT = '''
             height: 100%;
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
             transition: left 0.6s;
-        }
+        }}
 
-        .bypass-button:hover .button-glow, .placeholder-button:hover .button-glow {
+        .bypass-button:hover .button-glow, .placeholder-button:hover .button-glow {{
             left: 100%;
-        }
+        }}
 
-        .bypass-button:hover, .placeholder-button:hover {
+        .bypass-button:hover, .placeholder-button:hover {{
             transform: translateY(-3px);
-            box-shadow: 0 15px 35px {{ theme.accent_glow }};
-        }
+            box-shadow: 0 15px 35px {current_theme['accent_glow']};
+        }}
 
-        .bypass-button:active, .placeholder-button:active {
+        .bypass-button:active, .placeholder-button:active {{
             transform: translateY(0);
-            box-shadow: 0 5px 20px {{ theme.accent_glow }};
-        }
+            box-shadow: 0 5px 20px {current_theme['accent_glow']};
+        }}
 
-        .placeholder-button {
+        .placeholder-button {{
             background: linear-gradient(135deg, #9e9e9e, #757575);
             box-shadow: 0 8px 25px rgba(158, 158, 158, 0.3);
-        }
+        }}
 
-        .placeholder-button:hover {
+        .placeholder-button:hover {{
             box-shadow: 0 15px 35px rgba(158, 158, 158, 0.4);
-        }
+        }}
 
-        .card-footer {
+        .card-footer {{
             margin-top: 20px;
             padding-top: 15px;
-            border-top: 1px solid {{ theme.border }};
-        }
+            border-top: 1px solid {current_theme['border']};
+        }}
 
-        .info-text {
-            color: {{ theme.text_secondary }};
+        .info-text {{
+            color: {current_theme['text_secondary']};
             font-size: 13px;
-        }
+        }}
 
         /* Settings Page */
-        .settings-grid {
+        .settings-grid {{
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 25px;
             margin-top: 30px;
-        }
+        }}
 
-        .setting-group {
+        .setting-group {{
             background: linear-gradient(135deg, 
                 rgba(255, 255, 255, 0.1) 0%, 
                 rgba(255, 255, 255, 0.05) 100%);
             backdrop-filter: blur(20px);
-            border: 1px solid {{ theme.border }};
+            border: 1px solid {current_theme['border']};
             border-radius: 20px;
             padding: 30px;
             transition: all 0.3s ease;
-        }
+        }}
 
-        .setting-group:hover {
+        .setting-group:hover {{
             transform: translateY(-3px);
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-        }
+        }}
 
-        .setting-title {
+        .setting-title {{
             font-size: 18px;
             font-weight: 600;
             margin-bottom: 20px;
-            color: {{ theme.text }};
+            color: {current_theme['text']};
             display: flex;
             align-items: center;
             gap: 10px;
-        }
+        }}
 
-        .theme-options {
+        .theme-options {{
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
-        }
+        }}
 
-        .theme-option {
+        .theme-option {{
             padding: 20px;
-            border: 2px solid {{ theme.border }};
+            border: 2px solid {current_theme['border']};
             border-radius: 15px;
             cursor: pointer;
             transition: all 0.3s ease;
             text-align: center;
             background: rgba(255, 255, 255, 0.05);
             position: relative;
-        }
+        }}
 
-        .theme-option:hover {
+        .theme-option:hover {{
             transform: scale(1.05);
-            border-color: {{ theme.primary }};
-        }
+            border-color: {current_theme['primary']};
+        }}
 
-        .theme-option.active {
-            border-color: {{ theme.primary }};
-            box-shadow: 0 0 0 2px {{ theme.accent_glow }};
-        }
+        .theme-option.active {{
+            border-color: {current_theme['primary']};
+            box-shadow: 0 0 0 2px {current_theme['accent_glow']};
+        }}
 
-        .theme-option.active::after {
+        .theme-option.active::after {{
             content: '✓';
             position: absolute;
             top: 10px;
             right: 10px;
-            background: {{ theme.primary }};
+            background: {current_theme['primary']};
             color: white;
             width: 20px;
             height: 20px;
@@ -634,121 +636,121 @@ HTML_CONTENT = '''
             display: flex;
             align-items: center;
             justify-content: center;
-        }
+        }}
 
-        .theme-preview {
+        .theme-preview {{
             width: 100%;
             height: 60px;
             border-radius: 10px;
             margin-bottom: 10px;
-            border: 1px solid {{ theme.border }};
-        }
+            border: 1px solid {current_theme['border']};
+        }}
 
-        .theme-name {
+        .theme-name {{
             font-weight: 600;
-            color: {{ theme.text }};
-        }
+            color: {current_theme['text']};
+        }}
 
         /* Theme Transition */
-        .theme-transition {
+        .theme-transition {{
             animation: themeChange 0.5s ease-in-out;
-        }
+        }}
 
-        @keyframes themeChange {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
+        @keyframes themeChange {{
+            0% {{ opacity: 1; }}
+            50% {{ opacity: 0.7; }}
+            100% {{ opacity: 1; }}
+        }}
 
         /* Scrollbar */
-        .content-area::-webkit-scrollbar {
+        .content-area::-webkit-scrollbar {{
             width: 10px;
-        }
+        }}
 
-        .content-area::-webkit-scrollbar-track {
+        .content-area::-webkit-scrollbar-track {{
             background: rgba(255, 255, 255, 0.05);
             border-radius: 5px;
-        }
+        }}
 
-        .content-area::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, {{ theme.primary }}, {{ theme.secondary }});
+        .content-area::-webkit-scrollbar-thumb {{
+            background: linear-gradient(135deg, {current_theme['primary']}, {current_theme['secondary']});
             border-radius: 5px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
+        }}
 
-        .content-area::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, {{ theme.secondary }}, {{ theme.primary }});
-        }
+        .content-area::-webkit-scrollbar-thumb:hover {{
+            background: linear-gradient(135deg, {current_theme['secondary']}, {current_theme['primary']});
+        }}
 
         /* Animations */
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
-        }
+        @keyframes shake {{
+            0%, 100% {{ transform: translateX(0); }}
+            25% {{ transform: translateX(-10px); }}
+            75% {{ transform: translateX(10px); }}
+        }}
 
-        .shake {
+        .shake {{
             animation: shake 0.5s ease-in-out;
-        }
+        }}
 
-        @keyframes fadeIn {
-            from { 
+        @keyframes fadeIn {{
+            from {{ 
                 opacity: 0; 
                 transform: translateY(20px); 
-            }
-            to { 
+            }}
+            to {{ 
                 opacity: 1; 
                 transform: translateY(0); 
-            }
-        }
+            }}
+        }}
 
-        .fade-in {
+        .fade-in {{
             animation: fadeIn 0.6s ease-out;
-        }
+        }}
 
         /* Loading Animation */
-        .button-loader {
+        .button-loader {{
             display: none;
-        }
+        }}
 
-        .spinner {
+        .spinner {{
             width: 20px;
             height: 20px;
             border: 2px solid transparent;
             border-top: 2px solid white;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-        }
+        }}
 
-        .bypass-button.loading .button-text {
+        .bypass-button.loading .button-text {{
             display: none;
-        }
+        }}
 
-        .bypass-button.loading .button-loader {
+        .bypass-button.loading .button-loader {{
             display: flex;
             align-items: center;
             justify-content: center;
-        }
+        }}
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin {{
+            0% {{ transform: rotate(0deg); }}
+            100% {{ transform: rotate(360deg); }}
+        }}
 
         /* Coming Soon */
-        .coming-soon {
+        .coming-soon {{
             text-align: center;
             padding: 60px 40px;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 20px;
-            border: 2px dashed {{ theme.border }};
-        }
+            border: 2px dashed {current_theme['border']};
+        }}
 
-        .coming-soon-icon {
+        .coming-soon-icon {{
             font-size: 60px;
             margin-bottom: 20px;
             filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
-        }
+        }}
     </style>
 </head>
 <body>
@@ -917,19 +919,19 @@ HTML_CONTENT = '''
                                 <span>🎨</span> Theme Preferences
                             </div>
                             <div class="theme-options">
-                                <div class="theme-option {% if current_settings.theme == 'white' %}active{% endif %}" data-theme="white">
+                                <div class="theme-option {'active' if current_settings['theme'] == 'white' else ''}" data-theme="white">
                                     <div class="theme-preview" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.95) 100%); border: 1px solid rgba(255, 255, 255, 0.8);"></div>
                                     <div class="theme-name">Frost Glass</div>
                                 </div>
-                                <div class="theme-option {% if current_settings.theme == 'blue' %}active{% endif %}" data-theme="blue">
+                                <div class="theme-option {'active' if current_settings['theme'] == 'blue' else ''}" data-theme="blue">
                                     <div class="theme-preview" style="background: linear-gradient(135deg, rgba(100, 125, 220, 0.85) 0%, rgba(80, 100, 200, 0.95) 100%); border: 1px solid rgba(255, 255, 255, 0.2);"></div>
                                     <div class="theme-name">Ocean Glass</div>
                                 </div>
-                                <div class="theme-option {% if current_settings.theme == 'purple' %}active{% endif %}" data-theme="purple">
+                                <div class="theme-option {'active' if current_settings['theme'] == 'purple' else ''}" data-theme="purple">
                                     <div class="theme-preview" style="background: linear-gradient(135deg, rgba(120, 80, 200, 0.85) 0%, rgba(100, 60, 180, 0.95) 100%); border: 1px solid rgba(255, 255, 255, 0.2);"></div>
                                     <div class="theme-name">Royal Glass</div>
                                 </div>
-                                <div class="theme-option {% if current_settings.theme == 'black' %}active{% endif %}" data-theme="black">
+                                <div class="theme-option {'active' if current_settings['theme'] == 'black' else ''}" data-theme="black">
                                     <div class="theme-preview" style="background: linear-gradient(135deg, rgba(30, 30, 40, 0.95) 0%, rgba(20, 20, 30, 0.98) 100%); border: 1px solid rgba(255, 255, 255, 0.1);"></div>
                                     <div class="theme-name">Obsidian Glass</div>
                                 </div>
@@ -940,7 +942,7 @@ HTML_CONTENT = '''
                             <div class="setting-title">
                                 <span>💾</span> Application Settings
                             </div>
-                            <p style="margin-bottom: 20px; color: {{ theme.text_secondary }};">
+                            <p style="margin-bottom: 20px; color: {current_theme['text_secondary']};">
                                 Customize your bypass toolkit experience.
                             </p>
                             <button class="bypass-button" style="width: 100%;" onclick="resetSettings()">
@@ -953,7 +955,7 @@ HTML_CONTENT = '''
                             <div class="setting-title">
                                 <span>ℹ️</span> About
                             </div>
-                            <p style="color: {{ theme.text_secondary }}; line-height: 1.6;">
+                            <p style="color: {current_theme['text_secondary']}; line-height: 1.6;">
                                 <strong>Bypass Toolkit v2.0</strong><br>
                                 Advanced web filtering bypass utility<br>
                                 With multi-theme glass morphism design<br>
@@ -968,47 +970,47 @@ HTML_CONTENT = '''
 
     <script>
         // Current settings
-        let currentSettings = {{ current_settings | tojson }};
+        let currentSettings = {json.dumps(current_settings)};
 
         // Handle bypass functionality
-        function handleBypass() {
+        function handleBypass() {{
             const urlInput = document.getElementById('urlInput');
             const bypassBtn = document.getElementById('bypassBtn');
             const url = urlInput.value.trim();
             
-            if (!url) {
+            if (!url) {{
                 urlInput.classList.add('shake');
                 setTimeout(() => urlInput.classList.remove('shake'), 500);
                 return;
-            }
+            }}
 
             // Show loading state
             bypassBtn.classList.add('loading');
             
-            setTimeout(() => {
+            setTimeout(() => {{
                 let destination = url;
-                if (!/^https?:\/\//i.test(destination)) {
+                if (!/^https?:\\/\\//i.test(destination)) {{
                     destination = "https://" + destination;
-                }
+                }}
                 
-                const bypassUrl = `https://translate.google.com/translate?sl=auto&tl=en&u=${encodeURIComponent(destination)}`;
+                const bypassUrl = `https://translate.google.com/translate?sl=auto&tl=en&u=${{encodeURIComponent(destination)}}`;
                 window.open(bypassUrl, '_blank');
                 
                 // Reset button state
                 bypassBtn.classList.remove('loading');
-            }, 1500);
-        }
+            }}, 1500);
+        }}
 
         // Navigation functionality
-        function setupNavigation() {
+        function setupNavigation() {{
             const navItems = document.querySelectorAll('.nav-item');
             const navSubitems = document.querySelectorAll('.nav-subitem');
             const contentSections = document.querySelectorAll('.content-section');
             const subsections = document.querySelectorAll('.subsection');
 
             // Main navigation
-            navItems.forEach(item => {
-                item.addEventListener('click', () => {
+            navItems.forEach(item => {{
+                item.addEventListener('click', () => {{
                     const section = item.getAttribute('data-section');
                     
                     // Update active states
@@ -1016,13 +1018,13 @@ HTML_CONTENT = '''
                     item.classList.add('active');
                     
                     contentSections.forEach(content => content.classList.remove('active'));
-                    document.getElementById(`${section}-section`).classList.add('active');
-                });
-            });
+                    document.getElementById(`${{section}}-section`).classList.add('active');
+                }});
+            }});
 
             // Sub-navigation
-            navSubitems.forEach(item => {
-                item.addEventListener('click', () => {
+            navSubitems.forEach(item => {{
+                item.addEventListener('click', () => {{
                     const subsection = item.getAttribute('data-subsection');
                     
                     // Update active states
@@ -1030,17 +1032,17 @@ HTML_CONTENT = '''
                     item.classList.add('active');
                     
                     subsections.forEach(sub => sub.classList.remove('active'));
-                    document.getElementById(`${subsection}-subsection`).classList.add('active');
-                });
-            });
-        }
+                    document.getElementById(`${{subsection}}-subsection`).classList.add('active');
+                }});
+            }});
+        }}
 
         // Theme functionality with auto-refresh
-        function setupThemes() {
+        function setupThemes() {{
             const themeOptions = document.querySelectorAll('.theme-option');
             
-            themeOptions.forEach(option => {
-                option.addEventListener('click', async () => {
+            themeOptions.forEach(option => {{
+                option.addEventListener('click', async () => {{
                     const theme = option.getAttribute('data-theme');
                     
                     // Show loading state
@@ -1054,68 +1056,68 @@ HTML_CONTENT = '''
                     // Save theme preference
                     currentSettings.theme = theme;
                     
-                    try {
+                    try {{
                         // Save settings via API
-                        if (window.pywebview) {
+                        if (window.pywebview) {{
                             await pywebview.api.save_settings(currentSettings);
-                        } else {
+                        }} else {{
                             // Fallback for browser testing
                             localStorage.setItem('bypassSettings', JSON.stringify(currentSettings));
-                        }
+                        }}
                         
                         // Wait a moment for the animation, then refresh
-                        setTimeout(() => {
+                        setTimeout(() => {{
                             window.location.reload();
-                        }, 300);
+                        }}, 300);
                         
-                    } catch (error) {
+                    }} catch (error) {{
                         console.error('Failed to save settings:', error);
                         // Still refresh even if save fails
-                        setTimeout(() => {
+                        setTimeout(() => {{
                             window.location.reload();
-                        }, 300);
-                    }
-                });
-            });
-        }
+                        }}, 300);
+                    }}
+                }});
+            }});
+        }}
 
         // Settings management
-        async function saveSettings() {
-            try {
-                if (window.pywebview) {
+        async function saveSettings() {{
+            try {{
+                if (window.pywebview) {{
                     await pywebview.api.save_settings(currentSettings);
-                } else {
+                }} else {{
                     // Fallback for browser testing
                     localStorage.setItem('bypassSettings', JSON.stringify(currentSettings));
-                }
+                }}
                 return true;
-            } catch (error) {
+            }} catch (error) {{
                 console.error('Failed to save settings:', error);
                 return false;
-            }
-        }
+            }}
+        }}
 
-        function resetSettings() {
-            if (confirm('Are you sure you want to reset all settings to defaults?')) {
-                currentSettings = {
+        function resetSettings() {{
+            if (confirm('Are you sure you want to reset all settings to defaults?')) {{
+                currentSettings = {{
                     theme: 'white',
-                    window_position: {x: 100, y: 100},
-                    window_size: {width: 1000, height: 700}
-                };
+                    window_position: {{x: 100, y: 100}},
+                    window_size: {{width: 1000, height: 700}}
+                }};
                 
                 // Show transition and reload
                 const appContainer = document.querySelector('.app-container');
                 appContainer.classList.add('theme-transition');
                 
-                setTimeout(async () => {
+                setTimeout(async () => {{
                     await saveSettings();
                     window.location.reload();
-                }, 300);
-            }
-        }
+                }}, 300);
+            }}
+        }}
 
         // Dragging functionality
-        function setupDragging() {
+        function setupDragging() {{
             let isDragging = false;
             let currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
             const titleBar = document.getElementById('titleBar');
@@ -1124,17 +1126,17 @@ HTML_CONTENT = '''
             document.addEventListener("mousemove", drag);
             document.addEventListener("mouseup", dragEnd);
 
-            function dragStart(e) {
+            function dragStart(e) {{
                 initialX = e.clientX - xOffset;
                 initialY = e.clientY - yOffset;
 
-                if (e.target === titleBar || titleBar.contains(e.target)) {
+                if (e.target === titleBar || titleBar.contains(e.target)) {{
                     isDragging = true;
-                }
-            }
+                }}
+            }}
 
-            function drag(e) {
-                if (isDragging) {
+            function drag(e) {{
+                if (isDragging) {{
                     e.preventDefault();
                     currentX = e.clientX - initialX;
                     currentY = e.clientY - initialY;
@@ -1143,56 +1145,56 @@ HTML_CONTENT = '''
                     yOffset = currentY;
 
                     // In webview environment, use API to move window
-                    if (window.pywebview) {
+                    if (window.pywebview) {{
                         pywebview.api.move_window(currentX, currentY);
-                    }
-                }
-            }
+                    }}
+                }}
+            }}
 
-            function dragEnd(e) {
+            function dragEnd(e) {{
                 initialX = currentX;
                 initialY = currentY;
                 isDragging = false;
                 
                 // Save window position
-                currentSettings.window_position = {x: currentX, y: currentY};
+                currentSettings.window_position = {{x: currentX, y: currentY}};
                 saveSettings();
-            }
-        }
+            }}
+        }}
 
         // Initialize everything when page loads
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function() {{
             // Set up event listeners
             document.getElementById('bypassBtn').addEventListener('click', handleBypass);
-            document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            document.getElementById('urlInput').addEventListener('keypress', function(e) {{
                 if (e.key === 'Enter') handleBypass();
-            });
+            }});
 
             // Initialize components
             setupNavigation();
             setupThemes();
             setupDragging();
-        });
+        }});
 
         // Close app function for WebView
-        window.closeApp = function() {
-            if (window.pywebview) {
+        window.closeApp = function() {{
+            if (window.pywebview) {{
                 pywebview.api.close_app();
-            } else {
+            }} else {{
                 window.close();
-            }
-        };
+            }}
+        }};
 
         // Hover effects for cards
-        document.querySelectorAll('.method-card').forEach(card => {
-            card.addEventListener('mouseenter', function() {
+        document.querySelectorAll('.method-card').forEach(card => {{
+            card.addEventListener('mouseenter', function() {{
                 this.style.transform = 'translateY(-5px)';
-            });
+            }});
             
-            card.addEventListener('mouseleave', function() {
+            card.addEventListener('mouseleave', function() {{
                 this.style.transform = 'translateY(0)';
-            });
-        });
+            }});
+        }});
     </script>
 </body>
 </html>
@@ -1200,9 +1202,7 @@ HTML_CONTENT = '''
 
 @app.route('/')
 def index():
-    global current_theme, current_settings
-    current_theme = THEMES[current_settings['theme']]
-    return render_template_string(HTML_CONTENT, theme=current_theme, current_settings=current_settings)
+    return get_html_content()
 
 @app.route('/api/save_settings', methods=['POST'])
 def api_save_settings():
@@ -1236,13 +1236,14 @@ class BypassAPI:
 
 def run_flask():
     """Run Flask server in background"""
-    app.run(host='127.0.0.1', port=4785, debug=False)
+    app.run(host='127.0.0.1', port=4785, debug=False, use_reloader=False)
 
 def create_window():
     """Create the WebView2 window"""
     # Start Flask server
-    threading.Thread(target=run_flask, daemon=True).start()
-    time.sleep(1)  # Give server time to start
+    flask_thread = threading.Thread(target=run_flask, daemon=True)
+    flask_thread.start()
+    time.sleep(2)  # Give server more time to start
     
     # Load window position from settings
     settings = load_settings()
@@ -1251,18 +1252,23 @@ def create_window():
     width = settings['window_size']['width']
     height = settings['window_size']['height']
     
-    # Create WebView2 window
-    window = webview.create_window(
-        'Bypass Toolkit',
-        'http://127.0.0.1:4785/',
-        x=x, y=y, width=width, height=height,
-        resizable=True,
-        frameless=True,
-        easy_drag=True,  # Enable easy dragging
-        js_api=BypassAPI()
-    )
-    
-    webview.start()
+    try:
+        # Create WebView2 window
+        window = webview.create_window(
+            'Bypass Toolkit',
+            'http://127.0.0.1:4785/',
+            x=x, y=y, width=width, height=height,
+            resizable=True,
+            frameless=True,
+            easy_drag=True,  # Enable easy dragging
+            js_api=BypassAPI()
+        )
+        
+        webview.start()
+    except Exception as e:
+        print(f"Error creating window: {e}")
+        print("Make sure you have pywebview installed: pip install pywebview")
+        print("On Windows, you might need: pip install pywebview[winforms] or pywebview[cef]")
 
 if __name__ == '__main__':
     create_window()
