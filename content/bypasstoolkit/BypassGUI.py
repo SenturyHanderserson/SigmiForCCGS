@@ -1,430 +1,709 @@
-import customtkinter as ctk
-import webbrowser
-from urllib.parse import quote
+import webview
+import threading
 import time
+import sys
+import os
+from flask import Flask, render_template_string
 
-# Set appearance before creating the app
-ctk.set_appearance_mode("dark")
-ctk.set_default_color_theme("blue")
+# Create Flask app to serve our HTML/CSS/JS
+app = Flask(__name__)
 
-class BypassApp(ctk.CTk):
-    def __init__(self):
-        super().__init__()
-        
-        # Basic window configuration
-        self.title("Bypass Toolkit")
-        self.geometry("900x600")
-        self.resizable(True, True)
-        
-        # Remove default title bar for custom one
-        self.overrideredirect(True)
-        
-        # Make window always on top initially
-        self.attributes('-topmost', True)
-        
-        # Center the window
-        self.center_window()
-        
-        # Variables for window dragging
-        self._drag_start_x = 0
-        self._drag_start_y = 0
-        
-        # Create the GUI
-        self.setup_gui()
-        
-        # Fade in animation
-        self.fade_in()
-        
-    def center_window(self):
-        """Center the window on screen"""
-        self.update_idletasks()
-        screen_width = self.winfo_screenwidth()
-        screen_height = self.winfo_screenheight()
-        window_width = 900
-        window_height = 600
-        x = (screen_width - window_width) // 2
-        y = (screen_height - window_height) // 2
-        self.geometry(f"{window_width}x{window_height}+{x}+{y}")
+# Our complete HTML with CSS and JavaScript
+HTML_CONTENT = '''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bypass Toolkit</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    def fade_in(self):
-        """Fade in animation"""
-        self.attributes('-alpha', 0.0)
-        for i in range(1, 11):
-            self.attributes('-alpha', i * 0.1)
-            self.update()
-            time.sleep(0.02)
-        self.attributes('-topmost', False)  # Remove always on top after fade in
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: transparent;
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+            user-select: none;
+        }
 
-    def setup_gui(self):
-        """Setup the main GUI components"""
-        
-        # Main container with glass effect
-        self.main_frame = ctk.CTkFrame(
-            self,
-            fg_color="#1a1a2a",
-            corner_radius=20,
-            border_width=1,
-            border_color="#333344"
-        )
-        self.main_frame.pack(fill="both", expand=True, padx=10, pady=10)
-        
-        # Create title bar
-        self.create_title_bar()
-        
-        # Create main content
-        self.create_content()
+        .app-container {
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, 
+                rgba(25, 25, 35, 0.95) 0%, 
+                rgba(15, 15, 25, 0.98) 100%);
+            backdrop-filter: blur(40px) saturate(200%);
+            -webkit-backdrop-filter: blur(40px) saturate(200%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
 
-    def create_title_bar(self):
-        """Create custom title bar"""
-        title_bar = ctk.CTkFrame(
-            self.main_frame,
-            fg_color="#252538",
-            height=50,
-            corner_radius=12
-        )
-        title_bar.pack(fill="x", padx=15, pady=15)
-        title_bar.pack_propagate(False)
-        
-        # Make title bar draggable
-        title_bar.bind("<Button-1>", self.start_drag)
-        title_bar.bind("<B1-Motion>", self.do_drag)
-        
-        # Title and icon
-        title_container = ctk.CTkFrame(title_bar, fg_color="transparent")
-        title_container.pack(side="left", padx=20, pady=10)
-        
-        # Icon
-        icon_label = ctk.CTkLabel(
-            title_container,
-            text="🚀",
-            font=("Arial", 20),
-            text_color="#667eea"
-        )
-        icon_label.pack(side="left")
-        icon_label.bind("<Button-1>", self.start_drag)
-        icon_label.bind("<B1-Motion>", self.do_drag)
-        
-        # Title
-        title_label = ctk.CTkLabel(
-            title_container,
-            text="Bypass Toolkit",
-            font=("Arial", 16, "bold"),
-            text_color="white"
-        )
-        title_label.pack(side="left", padx=10)
-        title_label.bind("<Button-1>", self.start_drag)
-        title_label.bind("<B1-Motion>", self.do_drag)
-        
-        # Window controls
-        controls_frame = ctk.CTkFrame(title_bar, fg_color="transparent")
-        controls_frame.pack(side="right", padx=15, pady=10)
-        
-        # Minimize button - FIXED: Use withdraw() instead of iconify() with overrideredirect
-        minimize_btn = ctk.CTkButton(
-            controls_frame,
-            text="─",
-            width=30,
-            height=30,
-            fg_color="#333344",
-            hover_color="#444455",
-            text_color="white",
-            font=("Arial", 14, "bold"),
-            command=self.minimize_window,
-            corner_radius=8
-        )
-        minimize_btn.pack(side="left", padx=5)
-        
-        # Close button
-        close_btn = ctk.CTkButton(
-            controls_frame,
-            text="×",
-            width=30,
-            height=30,
-            fg_color="#333344",
-            hover_color="#ff5555",
-            text_color="white",
-            font=("Arial", 14, "bold"),
-            command=self.quit_app,
-            corner_radius=8
-        )
-        close_btn.pack(side="left", padx=5)
+        .app-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
 
-    def create_content(self):
-        """Create main content area"""
-        content_frame = ctk.CTkFrame(
-            self.main_frame,
-            fg_color="transparent"
-        )
-        content_frame.pack(fill="both", expand=True, padx=15, pady=(0, 15))
-        
-        # Create sidebar and main area
-        self.create_sidebar(content_frame)
-        self.create_main_area(content_frame)
+        /* Title Bar */
+        .title-bar {
+            height: 60px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 25px;
+            -webkit-app-region: drag;
+            position: relative;
+        }
 
-    def create_sidebar(self, parent):
-        """Create navigation sidebar"""
-        sidebar = ctk.CTkFrame(
-            parent,
-            fg_color="#252538",
-            width=200,
-            corner_radius=12
-        )
-        sidebar.pack(side="left", fill="y", padx=(0, 15))
-        sidebar.pack_propagate(False)
-        
-        # Navigation items
-        nav_items = [
-            ("🔓", "Bypasses"),
-            ("🛠️", "Tools"), 
-            ("⚙️", "Settings")
-        ]
-        
-        for icon, text in nav_items:
-            btn = ctk.CTkButton(
-                sidebar,
-                text=f"   {icon}  {text}",
-                font=("Arial", 12),
-                fg_color="transparent",
-                hover_color="#333344",
-                text_color="white",
-                anchor="w",
-                height=40,
-                corner_radius=8
-            )
-            btn.pack(fill="x", padx=10, pady=5)
+        .title-bar::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.3) 50%, 
+                transparent 100%);
+        }
 
-    def create_main_area(self, parent):
-        """Create main content area"""
-        main_area = ctk.CTkFrame(
-            parent,
-            fg_color="#252538",
-            corner_radius=12
-        )
-        main_area.pack(side="left", fill="both", expand=True)
-        
-        # Scrollable content
-        scroll_frame = ctk.CTkScrollableFrame(
-            main_area,
-            fg_color="transparent"
-        )
-        scroll_frame.pack(fill="both", expand=True, padx=20, pady=20)
-        
-        # Header
-        header = ctk.CTkFrame(scroll_frame, fg_color="transparent")
-        header.pack(fill="x", pady=(0, 20))
-        
-        title = ctk.CTkLabel(
-            header,
-            text="Linewize Bypasses",
-            font=("Arial", 24, "bold"),
-            text_color="white"
-        )
-        title.pack(side="left")
-        
-        status_badge = ctk.CTkLabel(
-            header,
-            text="ACTIVE",
-            font=("Arial", 10, "bold"),
-            text_color="white",
-            fg_color="#667eea",
-            corner_radius=8
-        )
-        status_badge.pack(side="left", padx=10, pady=5)
-        
-        # Method 1 Card
-        self.create_method_card(
-            scroll_frame,
-            "Method 1: Google Translate Bypass",
-            "WORKING",
-            "#4CAF50",
-            "Enter any blocked URL to bypass through Google Translate proxy:",
-            True
-        )
-        
-        # Method 2 Card
-        self.create_method_card(
-            scroll_frame,
-            "Method 2: Advanced Proxy",
-            "BETA", 
-            "#FF9800",
-            "Advanced proxy method with enhanced stealth features (coming soon):",
-            False
-        )
+        .title-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
 
-    def create_method_card(self, parent, title, status, status_color, description, has_input):
-        """Create a method card"""
-        card = ctk.CTkFrame(
-            parent,
-            fg_color="#2a2a3a",
-            corner_radius=12,
-            border_width=1,
-            border_color="#333344"
-        )
-        card.pack(fill="x", pady=10)
-        
-        card_content = ctk.CTkFrame(card, fg_color="transparent")
-        card_content.pack(fill="x", padx=20, pady=20)
-        
-        # Card header
-        header = ctk.CTkFrame(card_content, fg_color="transparent")
-        header.pack(fill="x", pady=(0, 10))
-        
-        title_label = ctk.CTkLabel(
-            header,
-            text=title,
-            font=("Arial", 16, "bold"),
-            text_color="white"
-        )
-        title_label.pack(side="left")
-        
-        status_badge = ctk.CTkLabel(
-            header,
-            text=status,
-            font=("Arial", 9, "bold"),
-            text_color="white",
-            fg_color=status_color,
-            corner_radius=6
-        )
-        status_badge.pack(side="right")
-        
-        # Description
-        desc = ctk.CTkLabel(
-            card_content,
-            text=description,
-            font=("Arial", 12),
-            text_color="#cccccc",
-            wraplength=600
-        )
-        desc.pack(fill="x", pady=(0, 15))
-        
-        if has_input:
-            # Input area
-            input_frame = ctk.CTkFrame(card_content, fg_color="transparent")
-            input_frame.pack(fill="x", pady=(0, 10))
+        .title-icon {
+            font-size: 24px;
+            filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.6));
+        }
+
+        .title-text {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 12px;
+            -webkit-app-region: no-drag;
+        }
+
+        .control-btn {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 75, 75, 0.4);
+            border-color: rgba(255, 100, 100, 0.5);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 30px 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav-section {
+            margin-bottom: 20px;
+        }
+
+        .nav-item {
+            padding: 16px 30px;
+            color: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            transition: all 0.4s ease;
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            border-left: 4px solid transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+            position: relative;
+            margin: 5px 15px;
+            border-radius: 12px;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left-color: rgba(255, 255, 255, 0.4);
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.25), rgba(118, 75, 162, 0.15));
+            color: white;
+            border-left-color: #667eea;
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .nav-icon {
+            margin-right: 15px;
+            font-size: 18px;
+        }
+
+        .nav-subitems {
+            margin-left: 30px;
+            margin-top: 10px;
+        }
+
+        .nav-subitem {
+            padding: 14px 20px;
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            border-left: 3px solid transparent;
+            border-radius: 10px;
+            margin: 4px 0;
+            justify-content: space-between;
+        }
+
+        .nav-subitem:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            transform: translateX(8px);
+        }
+
+        .nav-subitem.active {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(102, 126, 234, 0.15));
+            color: white;
+            border-left-color: #667eea;
+        }
+
+        .nav-badge {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 35px;
+        }
+
+        h2 {
+            font-size: 32px;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8),
+                        0 0 20px rgba(102, 126, 234, 0.4);
+            font-weight: 700;
+        }
+
+        .section-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Method Cards */
+        .method-card {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.12) 0%, 
+                rgba(255, 255, 255, 0.08) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 20px;
+            padding: 35px;
+            margin-bottom: 30px;
+            transition: all 0.4s ease;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .method-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+            transition: left 0.8s ease;
+        }
+
+        .method-card:hover::before {
+            left: 100%;
+        }
+
+        .method-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        h3 {
+            font-size: 22px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+            font-weight: 600;
+        }
+
+        .method-badge {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .method-badge.success {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .method-badge.warning {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+        }
+
+        p {
+            color: rgba(255, 255, 255, 0.95);
+            line-height: 1.7;
+            margin-bottom: 25px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            font-size: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 20px;
+            margin: 30px 0;
+            align-items: center;
+        }
+
+        .input-container {
+            flex: 1;
+            position: relative;
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 18px 20px 18px 50px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 14px;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .url-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .url-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(102, 126, 234, 0.8);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3),
+                        0 12px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .bypass-button, .placeholder-button {
+            padding: 18px 35px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+            min-width: 140px;
+        }
+
+        .button-glow {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .bypass-button:hover .button-glow, .placeholder-button:hover .button-glow {
+            left: 100%;
+        }
+
+        .bypass-button:hover, .placeholder-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.6);
+        }
+
+        .bypass-button:active, .placeholder-button:active {
+            transform: translateY(0);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .placeholder-button {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            box-shadow: 0 8px 25px rgba(108, 117, 125, 0.5);
+        }
+
+        .placeholder-button:hover {
+            box-shadow: 0 15px 35px rgba(108, 117, 125, 0.6);
+        }
+
+        .card-footer {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-text {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+        }
+
+        /* Scrollbar */
+        .content-area::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .content-area::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 5px;
+        }
+
+        .content-area::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .content-area::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #764ba2, #667eea);
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container fade-in">
+        <!-- Title Bar -->
+        <div class="title-bar">
+            <div class="title-content">
+                <div class="title-icon">🚀</div>
+                <div class="title-text">Bypass Toolkit</div>
+            </div>
+            <div class="window-controls">
+                <button class="control-btn close-btn" onclick="window.closeApp()">×</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="nav-section">
+                    <div class="nav-item active">
+                        <span class="nav-icon">🔓</span>
+                        Bypasses
+                    </div>
+                    <div class="nav-subitems">
+                        <div class="nav-subitem active">
+                            <div>
+                                <span class="nav-icon">🌐</span>
+                                Linewize
+                            </div>
+                            <span class="nav-badge">2 Methods</span>
+                        </div>
+                        <div class="nav-subitem">
+                            <div>
+                                <span class="nav-icon">🛡️</span>
+                                Securly
+                            </div>
+                            <span class="nav-badge">Soon</span>
+                        </div>
+                        <div class="nav-subitem">
+                            <div>
+                                <span class="nav-icon">🔒</span>
+                                GoGuardian
+                            </div>
+                            <span class="nav-badge">Soon</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-item">
+                        <span class="nav-icon">🛠️</span>
+                        Tools
+                    </div>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-item">
+                        <span class="nav-icon">⚙️</span>
+                        Settings
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <div class="section-header">
+                    <h2>Linewize Bypasses</h2>
+                    <div class="section-badge">Active</div>
+                </div>
+
+                <!-- Method 1 Card -->
+                <div class="method-card">
+                    <div class="card-header">
+                        <h3>Method 1: Google Translate Bypass</h3>
+                        <div class="method-badge success">Working</div>
+                    </div>
+                    <p>Enter any blocked URL to bypass through Google Translate proxy:</p>
+                    <div class="input-group">
+                        <div class="input-container">
+                            <input type="text" id="urlInput" placeholder="https://example.com" class="url-input">
+                            <span class="input-icon">🔗</span>
+                        </div>
+                        <button class="bypass-button" onclick="handleBypass()">
+                            <span class="button-text">Bypass Now</span>
+                            <span class="button-glow"></span>
+                        </button>
+                    </div>
+                    <div class="card-footer">
+                        <span class="info-text">✓ Encrypted connection • ✓ Fast • ✓ Reliable</span>
+                    </div>
+                </div>
+
+                <!-- Method 2 Card -->
+                <div class="method-card">
+                    <div class="card-header">
+                        <h3>Method 2: Advanced Proxy</h3>
+                        <div class="method-badge warning">Beta</div>
+                    </div>
+                    <p>Advanced proxy method with enhanced stealth features (coming soon):</p>
+                    <button class="placeholder-button">
+                        <span class="button-text">Launch Proxy</span>
+                        <span class="button-glow"></span>
+                    </button>
+                    <div class="card-footer">
+                        <span class="info-text">⏳ Under development • Enhanced stealth</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Handle bypass functionality
+        function handleBypass() {
+            const urlInput = document.getElementById('urlInput');
+            const url = urlInput.value.trim();
             
-            # URL input
-            self.url_entry = ctk.CTkEntry(
-                input_frame,
-                placeholder_text="https://example.com",
-                height=40,
-                font=("Arial", 12),
-                fg_color="#1a1a2a",
-                border_color="#444455",
-                text_color="white",
-                placeholder_text_color="#888888"
-            )
-            self.url_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
+            if (!url) {
+                urlInput.classList.add('shake');
+                setTimeout(() => urlInput.classList.remove('shake'), 500);
+                return;
+            }
+
+            let destination = url;
+            if (!/^https?:\/\//i.test(destination)) {
+                destination = "https://" + destination;
+            }
             
-            # Bypass button
-            bypass_btn = ctk.CTkButton(
-                input_frame,
-                text="🚀 Bypass Now",
-                command=self.bypass_url,
-                height=40,
-                font=("Arial", 12, "bold"),
-                fg_color="#667eea",
-                hover_color="#5a6fd8",
-                text_color="white",
-                corner_radius=8
-            )
-            bypass_btn.pack(side="right")
+            const bypassUrl = `https://translate.google.com/translate?sl=auto&tl=en&u=${encodeURIComponent(destination)}`;
+            window.open(bypassUrl, '_blank');
+        }
+
+        // Handle Enter key in input
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleBypass();
+            }
+        });
+
+        // Navigation functionality
+        document.querySelectorAll('.nav-item, .nav-subitem').forEach(item => {
+            item.addEventListener('click', function() {
+                // Remove active class from all items
+                document.querySelectorAll('.nav-item, .nav-subitem').forEach(i => {
+                    i.classList.remove('active');
+                });
+                // Add active class to clicked item
+                this.classList.add('active');
+            });
+        });
+
+        // Close app function for WebView
+        window.closeApp = function() {
+            if (window.pywebview) {
+                pywebview.api.close_app();
+            } else {
+                window.close();
+            }
+        };
+
+        // Hover effects
+        document.querySelectorAll('.method-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+            });
             
-            # Footer info
-            footer = ctk.CTkLabel(
-                card_content,
-                text="✓ Encrypted connection • ✓ Fast • ✓ Reliable",
-                font=("Arial", 10),
-                text_color="#888888"
-            )
-            footer.pack(anchor="w")
-        else:
-            # Coming soon button
-            soon_btn = ctk.CTkButton(
-                card_content,
-                text="🔧 Coming Soon",
-                height=40,
-                font=("Arial", 12, "bold"),
-                fg_color="#555566",
-                hover_color="#666677",
-                text_color="white",
-                corner_radius=8,
-                state="disabled"
-            )
-            soon_btn.pack(fill="x", pady=(0, 10))
-            
-            # Footer info
-            footer = ctk.CTkLabel(
-                card_content,
-                text="⏳ Under development • Enhanced stealth",
-                font=("Arial", 10),
-                text_color="#888888"
-            )
-            footer.pack(anchor="w")
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body>
+</html>
+'''
 
-    def bypass_url(self):
-        """Handle URL bypass"""
-        url = self.url_entry.get().strip()
-        if not url:
-            self.shake_input()
-            return
-        
-        # Add https:// if missing
-        if not url.startswith(('http://', 'https://')):
-            url = 'https://' + url
-        
-        # Create bypass URL
-        bypass_url = f"https://translate.google.com/translate?sl=auto&tl=en&u={quote(url)}"
-        
-        # Open in browser
-        webbrowser.open(bypass_url)
+@app.route('/')
+def index():
+    return render_template_string(HTML_CONTENT)
 
-    def shake_input(self):
-        """Shake animation for empty input"""
-        # Simple visual feedback instead of complex animation
-        original_bg = self.url_entry.cget("border_color")
-        self.url_entry.configure(border_color="#ff5555")
-        self.after(300, lambda: self.url_entry.configure(border_color=original_bg))
+class BypassAPI:
+    def close_app(self):
+        """Close the application"""
+        print("Closing application...")
+        # This will be called from JavaScript
+        import os
+        os._exit(0)
 
-    def start_drag(self, event):
-        """Start window dragging"""
-        self._drag_start_x = event.x
-        self._drag_start_y = event.y
+def run_flask():
+    """Run Flask server in background"""
+    app.run(host='127.0.0.1', port=4785, debug=False)
 
-    def do_drag(self, event):
-        """Handle window dragging"""
-        x = self.winfo_x() + (event.x - self._drag_start_x)
-        y = self.winfo_y() + (event.y - self._drag_start_y)
-        self.geometry(f"+{x}+{y}")
+def create_window():
+    """Create the WebView2 window"""
+    # Start Flask server
+    threading.Thread(target=run_flask, daemon=True).start()
+    time.sleep(1)  # Give server time to start
+    
+    # Create WebView2 window
+    window = webview.create_window(
+        'Bypass Toolkit',
+        'http://127.0.0.1:4785/',
+        width=1000,
+        height=700,
+        resizable=True,
+        frameless=True,
+        easy_drag=False,
+        js_api=BypassAPI()
+    )
+    
+    webview.start()
 
-    def minimize_window(self):
-        """Minimize window - FIXED VERSION"""
-        # Simple hide/show instead of dealing with overrideredirect issues
-        self.withdraw()  # Hide the window
-        self.after(2000, self.restore_window)  # Restore after 2 seconds (for testing)
-
-    def restore_window(self):
-        """Restore window after minimize"""
-        self.deiconify()  # Show the window
-        self.lift()  # Bring to front
-        self.attributes('-topmost', True)  # Make sure it's on top
-        self.after(100, lambda: self.attributes('-topmost', False))  # Then disable
-
-    def quit_app(self):
-        """Quit application with fade out"""
-        for i in range(10, -1, -1):
-            self.attributes('-alpha', i * 0.1)
-            self.update()
-            time.sleep(0.02)
-        self.destroy()
-
-# Simple test to run the app
-if __name__ == "__main__":
-    try:
-        print("Starting Bypass Toolkit...")
-        app = BypassApp()
-        app.mainloop()
-    except Exception as e:
-        print(f"Error: {e}")
-        import traceback
-        traceback.print_exc()
-        input("Press Enter to close...")
+if __name__ == '__main__':
+    create_window()
