@@ -119,7 +119,7 @@ class BypassApp(ctk.CTk):
         controls_frame = ctk.CTkFrame(title_bar, fg_color="transparent")
         controls_frame.pack(side="right", padx=15, pady=10)
         
-        # Minimize button
+        # Minimize button - FIXED: Use withdraw() instead of iconify() with overrideredirect
         minimize_btn = ctk.CTkButton(
             controls_frame,
             text="─",
@@ -380,14 +380,10 @@ class BypassApp(ctk.CTk):
 
     def shake_input(self):
         """Shake animation for empty input"""
-        entry = self.url_entry
-        original_x = entry.winfo_x()
-        for i in range(5):
-            offset = 5 if i % 2 == 0 else -5
-            entry.place(x=original_x + offset)
-            self.update()
-            time.sleep(0.05)
-        entry.place(x=original_x)
+        # Simple visual feedback instead of complex animation
+        original_bg = self.url_entry.cget("border_color")
+        self.url_entry.configure(border_color="#ff5555")
+        self.after(300, lambda: self.url_entry.configure(border_color=original_bg))
 
     def start_drag(self, event):
         """Start window dragging"""
@@ -401,10 +397,17 @@ class BypassApp(ctk.CTk):
         self.geometry(f"+{x}+{y}")
 
     def minimize_window(self):
-        """Minimize window"""
-        self.overrideredirect(False)
-        self.iconify()
-        self.overrideredirect(True)
+        """Minimize window - FIXED VERSION"""
+        # Simple hide/show instead of dealing with overrideredirect issues
+        self.withdraw()  # Hide the window
+        self.after(2000, self.restore_window)  # Restore after 2 seconds (for testing)
+
+    def restore_window(self):
+        """Restore window after minimize"""
+        self.deiconify()  # Show the window
+        self.lift()  # Bring to front
+        self.attributes('-topmost', True)  # Make sure it's on top
+        self.after(100, lambda: self.attributes('-topmost', False))  # Then disable
 
     def quit_app(self):
         """Quit application with fade out"""
