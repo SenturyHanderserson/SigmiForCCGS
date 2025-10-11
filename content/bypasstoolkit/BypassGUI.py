@@ -16,7 +16,7 @@ def install_webview():
         print("Failed to install pywebview via pip.")
         return False
 
-# Try to import webview, install if not available
+# Try to import webview, install if not available e
 try:
     import webview
 except ImportError:
