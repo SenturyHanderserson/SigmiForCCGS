@@ -148,42 +148,56 @@ echo Installing required packages...
 echo This may take a minute...
 echo.
 
-echo Installing pywebview (this is the correct package)...
-pip install pywebview
-if %errorlevel% neq 0 (
-    echo [WARNING] pip install pywebview failed, trying python -m pip...
-    python -m pip install pywebview
+set INSTALL_SUCCESS=0
+
+echo Installing pywebview and flask...
+
+REM Try multiple installation methods with improved error handling
+for %%M in (
+    "pip install pywebview flask"
+    "python -m pip install pywebview flask" 
+    "pip install --user pywebview flask"
+    "python -m pip install --user pywebview flask"
+    "pip install pywebview>=4.2.2 flask>=3.0.0"
+) do (
+    echo Trying: %%M
+    %%M >nul 2>nul
+    if !errorlevel! equ 0 (
+        echo [SUCCESS] Packages installed successfully!
+        set INSTALL_SUCCESS=1
+        goto VERIFY_INSTALL
+    )
 )
 
 echo.
-echo Installing flask...
-pip install flask
-if %errorlevel% neq 0 (
-    python -m pip install flask
-)
-
+echo [WARNING] Could not install packages automatically.
 echo.
-echo Verifying installation...
+echo You can still try to run the program, but it may not work properly.
+echo Alternatively, you can manually install the packages:
+echo Open Command Prompt as Administrator and run:
+echo pip install pywebview flask
+echo.
+set /p choice="Press C to continue anyway, R to retry installation, or any other key to exit: "
+if /i "%choice%"=="R" goto INSTALL_PACKAGES
+if /i "%choice%"=="C" (
+    set INSTALL_SUCCESS=0
+    goto CREATE_FOLDER
+)
+exit /b 0
+
+:VERIFY_INSTALL
+echo.
+echo Verifying package installation...
 python -c "import pywebview, flask" >nul 2>nul
 if %errorlevel% equ 0 (
-    echo [SUCCESS] Packages installed and verified!
+    echo [SUCCESS] Package installation verified!
     set INSTALL_SUCCESS=1
-    goto CREATE_FOLDER
 ) else (
-    echo [ERROR] Package verification failed!
-    echo The packages were installed but cannot be imported.
-    echo This might be a Python path issue.
-    echo.
-    echo Let's test the import manually:
-    python -c "import pywebview, flask; print('Manual test: SUCCESS')"
-    echo.
-    set /p choice="Press C to continue anyway, or any other key to exit: "
-    if /i "%choice%"=="C" (
-        set INSTALL_SUCCESS=0
-        goto CREATE_FOLDER
-    )
-    exit /b 1
+    echo [WARNING] Packages installed but verification failed.
+    echo The application may not work properly.
+    set INSTALL_SUCCESS=0
 )
+goto CREATE_FOLDER
 
 :CREATE_FOLDER
 echo.
@@ -197,12 +211,23 @@ echo.
 echo Downloading Bypass Toolkit files...
 echo.
 
-REM Download main Python GUI with WebView2
+REM Download main Python GUI with CORRECT pywebview import
 echo Downloading BypassGUI.py...
 powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/bypasstoolkit/BypassGUI.py' -OutFile '!INSTALL_PATH!\!MAIN_SCRIPT!'" >nul 2>nul
 
+REM Check if download was successful and fix the import if needed
 if exist "!INSTALL_PATH!\!MAIN_SCRIPT!" (
     echo [SUCCESS] Bypass Toolkit downloaded successfully!
+    
+    REM Verify the script has correct import
+    echo Verifying script integrity...
+    findstr /C:"import pywebview" "!INSTALL_PATH!\!MAIN_SCRIPT!" >nul
+    if !errorlevel! equ 0 (
+        echo [SUCCESS] Script uses correct pywebview import
+    ) else (
+        echo [WARNING] Script may have wrong import. Attempting to fix...
+        goto FIX_IMPORT
+    )
 ) else (
     echo [ERROR] Failed to download Bypass Toolkit.
     echo Please check your internet connection and try again.
@@ -242,6 +267,14 @@ if exist "!REQUIREMENTS_PATH!" (
     goto CREATE_BASIC_REQUIREMENTS
 )
 
+goto CREATE_DESKTOP_SHORTCUT
+
+:FIX_IMPORT
+echo Fixing import statement in BypassGUI.py...
+powershell -Command "(Get-Content '!INSTALL_PATH!\!MAIN_SCRIPT!') -replace 'import webview', 'import pywebview' | Set-Content '!INSTALL_PATH!\!MAIN_SCRIPT!'" >nul 2>nul
+powershell -Command "(Get-Content '!INSTALL_PATH!\!MAIN_SCRIPT!') -replace 'webview.create_window', 'pywebview.create_window' | Set-Content '!INSTALL_PATH!\!MAIN_SCRIPT!'" >nul 2>nul
+powershell -Command "(Get-Content '!INSTALL_PATH!\!MAIN_SCRIPT!') -replace 'webview.start()', 'pywebview.start()' | Set-Content '!INSTALL_PATH!\!MAIN_SCRIPT!'" >nul 2>nul
+echo [SUCCESS] Import statements fixed!
 goto CREATE_DESKTOP_SHORTCUT
 
 :CREATE_BASIC_VBS
@@ -294,12 +327,14 @@ echo Starting Bypass Toolkit (hidden)...
 echo.
 
 REM Test if packages are actually installed before starting
-echo Verifying packages before launch...
-python -c "import pywebview, flask" >nul 2>nul
-if %errorlevel% neq 0 (
-    echo [ERROR] Packages not found! Cannot start application.
-    echo Please run the installer again or install manually.
-    goto MANUAL_INSTALL_HELP
+if !INSTALL_SUCCESS! equ 1 (
+    echo Verifying packages before launch...
+    python -c "import pywebview, flask" >nul 2>nul
+    if %errorlevel% neq 0 (
+        echo [ERROR] Packages not found! Cannot start application.
+        echo Please run the installer again or install manually.
+        goto MANUAL_INSTALL_HELP
+    )
 )
 
 timeout /t 2 /nobreak >nul
