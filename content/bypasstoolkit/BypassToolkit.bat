@@ -20,6 +20,7 @@ set "INSTALL_PATH=%LOCALAPPDATA%\BypassToolkit"
 set "LAUNCHER_PATH=%INSTALL_PATH%\GUILauncher.vbs"
 set "UPDATER_PATH=%INSTALL_PATH%\updater.py"
 set "REQUIREMENTS_PATH=%INSTALL_PATH%\requirements.txt"
+set "MAIN_SCRIPT=BypassGUI.py"
 
 echo Installation Path: !INSTALL_PATH!
 echo.
@@ -64,7 +65,7 @@ echo Downloading Python installer...
 echo This may take a few minutes depending on your internet speed...
 echo.
 
-powershell -Command "Invoke-WebRequest -Uri 'https://github.com/SenturyHanderserson/SigmiForCCGS/raw/refs/heads/main/content/Python%203.13%20Installer.exe' -OutFile 'python-installer.exe'" >nul 2>nul
+powershell -Command "Invoke-WebRequest -Uri 'https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe' -OutFile 'python-installer.exe'" >nul 2>nul
 
 if not exist "python-installer.exe" (
     echo [ERROR] Failed to download Python installer.
@@ -211,12 +212,13 @@ echo.
 
 REM Download main Python GUI with WebView2
 echo Downloading BypassGUI.py...
-powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/bypasstoolkit/BypassGUI.py' -OutFile '!INSTALL_PATH!\BypassGUI.py'" >nul 2>nul
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/bypasstoolkit/BypassGUI.py' -OutFile '!INSTALL_PATH!\!MAIN_SCRIPT!'" >nul 2>nul
 
-if exist "!INSTALL_PATH!\BypassGUI.py" (
+if exist "!INSTALL_PATH!\!MAIN_SCRIPT!" (
     echo [SUCCESS] Bypass Toolkit downloaded successfully!
 ) else (
     echo [ERROR] Failed to download Bypass Toolkit.
+    echo Please check your internet connection and try again.
     pause
     exit /b 1
 )
@@ -276,7 +278,7 @@ echo.
 echo Creating desktop shortcut...
 set "DESKTOP_PATH=%USERPROFILE%\Desktop\Bypass Toolkit.lnk"
 
-powershell -Command "$WshShell = New-Object -comObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%DESKTOP_PATH%'); $Shortcut.TargetPath = '!LAUNCHER_PATH!'; $Shortcut.WorkingDirectory = '!INSTALL_PATH!'; $Shortcut.Save()" >nul 2>nul
+powershell -Command "$WshShell = New-Object -comObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%DESKTOP_PATH%'); $Shortcut.TargetPath = '!LAUNCHER_PATH!'; $Shortcut.WorkingDirectory = '!INSTALL_PATH!'; $Shortcut.IconLocation = '!INSTALL_PATH!\BypassGUI.py,0'; $Shortcut.Save()" >nul 2>nul
 
 if exist "%DESKTOP_PATH%" (
     echo [SUCCESS] Desktop shortcut created!
@@ -319,8 +321,9 @@ echo ✅ Desktop shortcut created
 echo.
 echo 🚀 Application is now running in background
 echo 🚀 Use the desktop shortcut to launch anytime
+echo 🎨 Features 4 beautiful glass morphism themes
+echo 🖱️ Draggable window with theme persistence
 echo 🌐 Enter any URL to bypass filters via Google Translate
-echo 💫 Now with WebView2 for true CSS glass morphism!
 echo.
 
 :END_MENU
