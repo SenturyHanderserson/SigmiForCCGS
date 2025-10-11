@@ -1,9 +1,24 @@
-import pywebview
-import threading
-import time
-import json
+import sys
 import os
-from flask import Flask, render_template_string, request, jsonify
+
+# Add user site-packages to path to ensure we can find installed packages
+user_site = os.path.join(os.path.expanduser("~"), "AppData", "Local", "Packages", "PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0", "LocalCache", "local-packages", "Python313", "site-packages")
+if os.path.exists(user_site):
+    sys.path.insert(0, user_site)
+
+try:
+    import pywebview
+    import threading
+    import time
+    import json
+    import os
+    from flask import Flask, render_template_string, request, jsonify
+except ImportError as e:
+    print(f"Import error: {e}")
+    print("Please make sure pywebview and flask are installed:")
+    print("pip install pywebview flask")
+    input("Press Enter to exit...")
+    sys.exit(1)
 
 # Create Flask app to serve our HTML/CSS/JS
 app = Flask(__name__)
@@ -959,7 +974,7 @@ HTML_CONTENT = '''
             
             setTimeout(() => {
                 let destination = url;
-                if (!/^https?:\/\//i.test(destination)) {
+                if (!/^https?:\\/\\//i.test(destination)) {
                     destination = "https://" + destination;
                 }
                 
