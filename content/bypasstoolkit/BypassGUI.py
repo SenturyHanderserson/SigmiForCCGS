@@ -16,7 +16,7 @@ def install_webview():
         print("Failed to install pywebview via pip.")
         return False
 
-# Try to import webview, install if not available e
+# Try to import webview, install if not available
 try:
     import webview
 except ImportError:
@@ -103,7 +103,7 @@ THEMES = {
 
 # Settings storage
 SETTINGS_FILE = 'bypass_settings.json'
-VERSION = 'v1 beta'
+VERSION = 'v1.0'
 
 def load_settings():
     """Load settings from file with proper defaults"""
@@ -140,43 +140,23 @@ def save_settings(settings):
     except Exception as e:
         print(f"Error saving settings: {e}")
 
-def check_for_updates():
-    """Check if updates are available by running updater.py"""
+def launch_updater():
+    """Launch the updater via VBS wrapper"""
     try:
-        # Check if updater.py exists
-        if os.path.exists('updater.py'):
-            # Run updater to check for updates
-            result = subprocess.run([sys.executable, 'updater.py', '--check'], 
-                                 capture_output=True, text=True, timeout=30)
-            
-            if result.returncode == 0:
-                # Parse the result
-                try:
-                    update_info = json.loads(result.stdout.strip())
-                    return update_info
-                except:
-                    return {'available': False, 'error': 'Failed to parse update info'}
-            else:
-                return {'available': False, 'error': f'Updater failed: {result.stderr}'}
+        print("Launching updater and closing main GUI...")
+        
+        # Launch the updater via VBS wrapper
+        if os.path.exists('UpdaterLauncher.vbs'):
+            subprocess.Popen(['wscript.exe', 'UpdaterLauncher.vbs'], shell=True)
         else:
-            return {'available': False, 'error': 'Updater not found'}
-            
+            # Fallback: run updater directly
+            subprocess.Popen([sys.executable, 'updater.py', '--gui'], shell=True)
+        
+        # Close current app immediately
+        os._exit(0)
+        
     except Exception as e:
-        print(f"Update check failed: {e}")
-        return {'available': False, 'error': str(e)}
-
-def perform_update():
-    """Perform the update by running updater.py"""
-    try:
-        if os.path.exists('updater.py'):
-            # Run updater in a separate process
-            subprocess.Popen([sys.executable, 'updater.py', '--update'])
-            return True
-        else:
-            print("Updater not found")
-            return False
-    except Exception as e:
-        print(f"Update initiation failed: {e}")
+        print(f"Failed to launch updater: {e}")
         return False
 
 class BypassAPI:
@@ -186,7 +166,6 @@ class BypassAPI:
     def close_app(self):
         """Close the application"""
         print("Closing application...")
-        import os
         os._exit(0)
     
     def changeTheme(self, theme):
@@ -202,20 +181,18 @@ class BypassAPI:
         os.execl(python, python, *sys.argv)
     
     def checkUpdates(self):
-        """Check for updates"""
+        """Check for updates and launch updater GUI"""
         try:
-            result = check_for_updates()
-            return result
-        except Exception as e:
-            return {'available': False, 'error': str(e)}
-    
-    def performUpdate(self):
-        """Perform the update"""
-        try:
-            success = perform_update()
-            return {'success': success}
+            # Launch updater via VBS wrapper
+            launch_updater()
+            return {'success': True, 'message': 'Launching updater...'}
         except Exception as e:
             return {'success': False, 'error': str(e)}
+
+# REMOVE THE DUPLICATE BypassAPI CLASS AND THESE FUNCTIONS:
+# def perform_update():
+# def check_for_updates():
+# AND THE SECOND BypassAPI CLASS
 
 def create_webview_app():
     """Create the WebView window with enhanced styling"""
@@ -694,69 +671,6 @@ def create_webview_app():
                 margin-bottom: 15px;
             }}
             
-            /* Update Modal */
-            .update-modal {{
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.5);
-                display: none;
-                justify-content: center;
-                align-items: center;
-                z-index: 10000;
-            }}
-            
-            .update-modal.active {{
-                display: flex;
-            }}
-            
-            .update-content {{
-                background: {current_theme['glass']};
-                backdrop-filter: blur(40px);
-                border: 1px solid {current_theme['glass_border']};
-                border-radius: 20px;
-                padding: 40px;
-                max-width: 500px;
-                width: 90%;
-                text-align: center;
-                box-shadow: {current_theme['shadow']};
-            }}
-            
-            .update-icon {{
-                font-size: 48px;
-                margin-bottom: 20px;
-            }}
-            
-            .update-buttons {{
-                display: flex;
-                gap: 15px;
-                justify-content: center;
-                margin-top: 25px;
-            }}
-            
-            .update-button {{
-                padding: 12px 24px;
-                border: none;
-                border-radius: 10px;
-                font-size: 14px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: all 0.3s ease;
-            }}
-            
-            .update-confirm {{
-                background: linear-gradient(135deg, #10b981, #059669);
-                color: white;
-            }}
-            
-            .update-cancel {{
-                background: {current_theme['glass']};
-                border: 1px solid {current_theme['glass_border']};
-                color: {current_theme['text']};
-            }}
-            
             /* Scrollbar */
             .content-area::-webkit-scrollbar {{
                 width: 8px;
@@ -779,24 +693,6 @@ def create_webview_app():
             <div class="loading-spinner"></div>
             <div class="loading-text">Sigmi Hub</div>
             <div class="loading-subtext">Loading...</div>
-        </div>
-
-        <!-- Update Modal -->
-        <div class="update-modal" id="updateModal">
-            <div class="update-content">
-                <div class="update-icon">🚀</div>
-                <h2 style="margin-bottom: 15px; color: {current_theme['text']};">Update Available!</h2>
-                <p style="color: {current_theme['text_secondary']}; margin-bottom: 10px;" id="updateMessage">
-                    A new version is available for download.
-                </p>
-                <p style="color: {current_theme['text_secondary']}; font-size: 14px;">
-                    The application will restart to complete the update.
-                </p>
-                <div class="update-buttons">
-                    <button class="update-button update-confirm" onclick="confirmUpdate()">Update Now</button>
-                    <button class="update-button update-cancel" onclick="closeUpdateModal()">Later</button>
-                </div>
-            </div>
         </div>
 
         <div class="app-container" id="appContainer">
@@ -941,9 +837,6 @@ def create_webview_app():
         </div>
 
         <script>
-            let updateAvailable = false;
-            let onlineVersion = '';
-
             // Loading screen management
             function hideLoadingScreen() {{
                 const loadingOverlay = document.getElementById('loadingOverlay');
@@ -978,26 +871,6 @@ def create_webview_app():
                 
                 // Hide main app
                 document.getElementById('appContainer').classList.remove('loaded');
-            }}
-
-            // Update modal functions
-            function showUpdateModal(version) {{
-                const modal = document.getElementById('updateModal');
-                const message = document.getElementById('updateMessage');
-                message.textContent = `Version ${{version}} is ready to update!`;
-                modal.classList.add('active');
-            }}
-
-            function closeUpdateModal() {{
-                const modal = document.getElementById('updateModal');
-                modal.classList.remove('active');
-            }}
-
-            function confirmUpdate() {{
-                if (window.pywebview) {{
-                    pywebview.api.performUpdate();
-                }}
-                closeUpdateModal();
             }}
 
             // Bypass functionality
@@ -1073,20 +946,21 @@ def create_webview_app():
                 const button = event.target;
                 const originalText = button.textContent;
                 
-                button.textContent = 'Checking...';
+                button.textContent = 'Launching Updater...';
                 button.disabled = true;
                 
                 if (window.pywebview) {{
                     pywebview.api.checkUpdates().then(result => {{
-                        if (result.available) {{
-                            showUpdateModal(result.online_version);
+                        if (result.success) {{
+                            button.textContent = 'Updater Launched ✓';
                         }} else {{
-                            button.textContent = 'Up to date ✓';
-                            setTimeout(() => {{
-                                button.textContent = originalText;
-                                button.disabled = false;
-                            }}, 2000);
+                            button.textContent = 'Failed to Launch';
+                            console.error('Updater launch error:', result.error);
                         }}
+                        setTimeout(() => {{
+                            button.textContent = originalText;
+                            button.disabled = false;
+                        }}, 2000);
                     }});
                 }} else {{
                     setTimeout(() => {{
