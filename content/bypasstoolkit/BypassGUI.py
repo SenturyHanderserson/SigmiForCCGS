@@ -1,4 +1,4 @@
-import webview
+import pywebview
 import threading
 import time
 import json
@@ -1254,7 +1254,7 @@ def create_window():
     
     try:
         # Create WebView2 window
-        window = webview.create_window(
+        window = pywebview.create_window(
             'Bypass Toolkit',
             'http://127.0.0.1:4785/',
             x=x, y=y, width=width, height=height,
@@ -1264,7 +1264,7 @@ def create_window():
             js_api=BypassAPI()
         )
         
-        webview.start()
+        pywebview.start()
     except Exception as e:
         print(f"Error creating window: {e}")
         print("Make sure you have pywebview installed: pip install pywebview")
