@@ -1,4 +1,4 @@
 Set WshShell = CreateObject("WScript.Shell")
-currentDir = CreateObject("Scripting.FileSystemObject").GetParentFolderName(WScript.ScriptFullName)
-WshShell.CurrentDirectory = currentDir
+appPath = "C:\Users\" & WshShell.ExpandEnvironmentStrings("%USERNAME%") & "\AppData\Local\BypassToolkit"
+WshShell.CurrentDirectory = appPath
 WshShell.Run "python BypassGUI.py", 0, False
