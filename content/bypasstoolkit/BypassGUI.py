@@ -103,7 +103,7 @@ THEMES = {
 
 # Settings storage
 SETTINGS_FILE = 'bypass_settings.json'
-VERSION = 'v1.0'
+VERSION = 'v1.01'
 
 def load_settings():
     """Load settings from file with proper defaults"""
@@ -188,11 +188,6 @@ class BypassAPI:
             return {'success': True, 'message': 'Launching updater...'}
         except Exception as e:
             return {'success': False, 'error': str(e)}
-
-# REMOVE THE DUPLICATE BypassAPI CLASS AND THESE FUNCTIONS:
-# def perform_update():
-# def check_for_updates():
-# AND THE SECOND BypassAPI CLASS
 
 def create_webview_app():
     """Create the WebView window with enhanced styling"""
@@ -316,16 +311,6 @@ def create_webview_app():
                 display: flex;
                 align-items: center;
                 gap: 15px;
-            }}
-            
-            .title-icon {{
-                font-size: 24px;
-                animation: float 3s ease-in-out infinite;
-            }}
-            
-            @keyframes float {{
-                0%, 100% {{ transform: translateY(0px); }}
-                50% {{ transform: translateY(-5px); }}
             }}
             
             .title-text {{
@@ -699,7 +684,6 @@ def create_webview_app():
             <!-- Title Bar -->
             <div class="title-bar" id="titleBar">
                 <div class="title-content">
-                    <div class="title-icon">🚀</div>
                     <div class="title-text">Sigmi Hub</div>
                 </div>
                 <div class="window-controls">
@@ -1010,17 +994,8 @@ def create_webview_app():
     </html>
     '''
     
-    # Create webview window with icon support
+    # Create webview window
     try:
-        # Try to find icon file in the same directory
-        icon_path = None
-        possible_icons = ['icon.ico', 'app.ico', 'logo.ico', 'icon.png', 'app.png', 'logo.png']
-        
-        for icon_file in possible_icons:
-            if os.path.exists(icon_file):
-                icon_path = icon_file
-                break
-        
         window = webview.create_window(
             'Sigmi Hub',
             html=html_content,
