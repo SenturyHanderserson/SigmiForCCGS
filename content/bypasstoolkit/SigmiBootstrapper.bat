@@ -84,25 +84,18 @@ echo Verifying Python installation...
 python --version >nul 2>nul
 if %errorlevel% neq 0 (
     echo.
-    echo [INFO] Python not detected yet. This is normal.
-    echo Let's wait a bit and try again...
+    echo [INFO] Python not detected yet. Checking again...
     timeout /t 5 /nobreak >nul
     python --version >nul 2>nul
     if %errorlevel% neq 0 (
         echo.
-        echo [INFO] Still not detected. Let's try one more time...
-        timeout /t 5 /nobreak >nul
-        python --version >nul 2>nul
-        if %errorlevel% neq 0 (
-            echo.
-            echo [WARNING] Python still not detected automatically.
-            echo.
-            set /p choice="Press C to continue anyway, or any other key to exit: "
-            if /i "!choice!"=="C" (
-                goto CHECK_PACKAGES
-            )
-            exit /b 1
+        echo [WARNING] Python installation not detected.
+        echo.
+        set /p choice="Press C to continue anyway, or any other key to exit: "
+        if /i "!choice!"=="C" (
+            goto CHECK_PACKAGES
         )
+        exit /b 1
     )
 )
 
@@ -138,26 +131,26 @@ if %errorlevel% equ 0 (
     goto CREATE_FOLDER
 )
 
-echo Method 1 failed, trying alternative method...
+echo Installing packages with alternative method...
 python -m pip install pywebview flask requests psutil >nul 2>nul
 if %errorlevel% equ 0 (
-    echo [SUCCESS] Packages installed successfully via python -m pip!
+    echo [SUCCESS] Packages installed successfully!
     set INSTALL_SUCCESS=1
     goto CREATE_FOLDER
 )
 
-echo Method 2 failed, trying with --user flag...
+echo Installing packages with user flag...
 pip install --user pywebview flask requests psutil >nul 2>nul
 if %errorlevel% equ 0 (
-    echo [SUCCESS] Packages installed successfully with --user flag!
+    echo [SUCCESS] Packages installed successfully!
     set INSTALL_SUCCESS=1
     goto CREATE_FOLDER
 )
 
-echo Method 3 failed, trying python -m pip with --user...
+echo Installing packages with final method...
 python -m pip install --user pywebview flask requests psutil >nul 2>nul
 if %errorlevel% equ 0 (
-    echo [SUCCESS] Packages installed successfully via python -m pip --user!
+    echo [SUCCESS] Packages installed successfully!
     set INSTALL_SUCCESS=1
     goto CREATE_FOLDER
 )
@@ -178,7 +171,7 @@ exit /b 0
 
 :CREATE_FOLDER
 echo.
-echo Creating Sigmi Hub folder in LocalAppData...
+echo Creating Sigmi Hub folder...
 if not exist "!INSTALL_PATH!" mkdir "!INSTALL_PATH!"
 echo [SUCCESS] Folder created: !INSTALL_PATH!
 goto DOWNLOAD_FILES
@@ -189,7 +182,7 @@ echo Downloading Sigmi Hub files...
 echo.
 
 REM Download main Python GUI
-echo Downloading BypassGUI.py...
+echo Downloading application files...
 powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/bypasstoolkit/BypassGUI.py' -OutFile '!INSTALL_PATH!\BypassGUI.py'" >nul 2>nul
 
 if exist "!INSTALL_PATH!\BypassGUI.py" (
@@ -200,19 +193,18 @@ if exist "!INSTALL_PATH!\BypassGUI.py" (
     exit /b 1
 )
 
-REM Download VBS launcher
-echo Downloading VBS launcher...
+REM Download launcher
 powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/bypasstoolkit/GUILauncher.vbs' -OutFile '!LAUNCHER_PATH!'" >nul 2>nul
 
 if exist "!LAUNCHER_PATH!" (
-    echo [SUCCESS] VBS launcher downloaded successfully!
+    echo [SUCCESS] Launcher downloaded successfully!
 ) else (
-    echo [WARNING] Could not download VBS launcher. Creating basic one...
-    goto CREATE_BASIC_VBS
+    echo [ERROR] Failed to download launcher.
+    pause
+    exit /b 1
 )
 
 REM Download updater
-echo Downloading updater...
 powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/bypasstoolkit/updater.py' -OutFile '!UPDATER_PATH!'" >nul 2>nul
 
 if exist "!UPDATER_PATH!" (
@@ -222,17 +214,15 @@ if exist "!UPDATER_PATH!" (
 )
 
 REM Download update launcher
-echo Downloading UpdateLauncher.vbs...
 powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/bypasstoolkit/UpdateLauncher.vbs' -OutFile '!UPDATE_LAUNCHER_PATH!'" >nul 2>nul
 
 if exist "!UPDATE_LAUNCHER_PATH!" (
-    echo [SUCCESS] Update launcher downloaded successfully!
+    echo [SUCCESS] Update components downloaded successfully!
 ) else (
-    echo [INFO] Update launcher not available.
+    echo [INFO] Update components not available.
 )
 
 REM Download icon
-echo Downloading application icon...
 powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/bypasstoolkit/logo.ico' -OutFile '!ICON_PATH!'" >nul 2>nul
 
 if exist "!ICON_PATH!" (
@@ -240,17 +230,6 @@ if exist "!ICON_PATH!" (
 ) else (
     echo [INFO] Could not download application icon.
 )
-
-goto CREATE_DESKTOP_SHORTCUT
-
-:CREATE_BASIC_VBS
-(
-echo Set WshShell = CreateObject^("WScript.Shell"^)
-echo currentDir = "!INSTALL_PATH!"
-echo WshShell.CurrentDirectory = currentDir
-echo WshShell.Run "python BypassGUI.py", 0, False
-) > "!LAUNCHER_PATH!"
-echo [INFO] Basic VBS launcher created.
 
 :CREATE_DESKTOP_SHORTCUT
 echo.
@@ -261,7 +240,7 @@ REM Create shortcut with icon
 powershell -Command "$WshShell = New-Object -comObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%DESKTOP_PATH%'); $Shortcut.TargetPath = '!LAUNCHER_PATH!'; $Shortcut.WorkingDirectory = '!INSTALL_PATH!'; $Shortcut.IconLocation = '!ICON_PATH!'; $Shortcut.Description = 'Sigmi Hub - Web Access Tool'; $Shortcut.Save()" >nul 2>nul
 
 if exist "%DESKTOP_PATH%" (
-    echo [SUCCESS] Desktop shortcut created with Sigmi Hub branding!
+    echo [SUCCESS] Desktop shortcut created!
 ) else (
     echo [INFO] Could not create desktop shortcut.
 )
@@ -280,7 +259,7 @@ if exist "%START_MENU_PATH%" (
 
 :START_APP
 echo.
-echo Starting Sigmi Hub (hidden)...
+echo Starting Sigmi Hub...
 echo.
 timeout /t 2 /nobreak >nul
 
@@ -291,17 +270,7 @@ echo ========================================
 echo [SUCCESS] Installation Complete!
 echo ========================================
 echo.
-echo ✅ Python setup completed
-echo ✅ Required packages installed
-echo ✅ Sigmi Hub installed to LocalAppData
-echo ✅ VBS launcher created (runs hidden)
-echo ✅ Desktop shortcut created with custom icon
-echo ✅ Start Menu shortcut created
-echo.
-echo 🚀 Application is now running in background
-echo 🚀 Use the desktop shortcut to launch anytime
-echo 🌐 Enter any URL to access web content
-echo 💫 Features modern glass morphism design
+echo If you want to uninstall, feel free to do so on the inbuilt uninstaller, or just remove shortcuts and delete the folder in %LOCALAPPDATA%
 echo.
 
 :END_MENU
