@@ -1,7 +1,6 @@
 import os
 import sys
 
-# CRITICAL FIX: Disable accessibility features that cause recursion
 os.environ['PYWEBVIEW_DISABLE_ACCESSIBILITY'] = '1'
 os.environ['PYWEBVIEW_DISABLE_DPI_AWARENESS'] = '1'
 
@@ -18,7 +17,6 @@ import logging
 import threading
 from datetime import datetime
 
-# Setup logging (minimal for production)
 def setup_logging():
     """Setup minimal logging"""
     logging.basicConfig(
@@ -29,7 +27,6 @@ def setup_logging():
         ]
     )
 
-# Call setup_logging at the start
 setup_logging()
 
 def install_webview():
@@ -40,7 +37,6 @@ def install_webview():
     except subprocess.CalledProcessError:
         return False
 
-# Try to import webview, install if not available
 try:
     import webview
 except ImportError:
@@ -52,25 +48,106 @@ except ImportError:
     else:
         sys.exit(1)
 
-# Glass Morphism Theme Configuration
-GLASS_THEME = {
-    'background': 'linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(139, 92, 246, 0.2) 50%, rgba(124, 58, 237, 0.3) 100%)',
-    'glass': 'rgba(255, 255, 255, 0.1)',
-    'glass_border': 'rgba(255, 255, 255, 0.2)',
-    'glass_shadow': '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
-    'primary': 'rgba(139, 92, 246, 0.8)',
-    'primary_hover': 'rgba(139, 92, 246, 1)',
-    'secondary': 'rgba(124, 58, 237, 0.6)',
-    'accent': 'rgba(192, 132, 252, 0.8)',
-    'text': 'rgba(255, 255, 255, 0.9)',
-    'text_secondary': 'rgba(255, 255, 255, 0.7)',
-    'success': 'rgba(16, 185, 129, 0.8)',
-    'error': 'rgba(239, 68, 68, 0.8)',
-    'topbar_bg': 'rgba(30, 30, 46, 0.9)'
+THEMES = {
+    'frost': {
+        'name': 'Frost Glass',
+        'background': 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+        'primary': '#3b82f6',
+        'secondary': '#8b5cf6',
+        'accent': '#06b6d4',
+        'text': '#1e293b',
+        'text_secondary': '#64748b',
+        'glass': 'rgba(255, 255, 255, 0.25)',
+        'glass_border': 'rgba(255, 255, 255, 0.4)',
+        'shadow': '0 25px 50px rgba(0, 0, 0, 0.1)',
+        'hover_shadow': '0 35px 60px rgba(0, 0, 0, 0.15)',
+        'topbar_bg': 'rgba(255, 255, 255, 0.9)'
+    },
+    'midnight': {
+        'name': 'Midnight Glass',
+        'background': 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        'primary': '#818cf8',
+        'secondary': '#f472b6',
+        'accent': '#2dd4bf',
+        'text': '#f1f5f9',
+        'text_secondary': '#94a3b8',
+        'glass': 'rgba(30, 41, 59, 0.4)',
+        'glass_border': 'rgba(255, 255, 255, 0.1)',
+        'shadow': '0 25px 50px rgba(0, 0, 0, 0.3)',
+        'hover_shadow': '0 35px 60px rgba(0, 0, 0, 0.4)',
+        'topbar_bg': 'rgba(15, 23, 42, 0.9)'
+    },
+    'sunset': {
+        'name': 'Sunset Glass',
+        'background': 'linear-gradient(135deg, #fef3c7 0%, #fbbf24 100%)',
+        'primary': '#dc2626',
+        'secondary': '#ea580c',
+        'accent': '#d97706',
+        'text': '#451a03',
+        'text_secondary': '#92400e',
+        'glass': 'rgba(255, 255, 255, 0.3)',
+        'glass_border': 'rgba(255, 255, 255, 0.5)',
+        'shadow': '0 25px 50px rgba(251, 191, 36, 0.2)',
+        'hover_shadow': '0 35px 60px rgba(251, 191, 36, 0.3)',
+        'topbar_bg': 'rgba(254, 243, 199, 0.9)'
+    },
+    'ocean': {
+        'name': 'Ocean Glass',
+        'background': 'linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%)',
+        'primary': '#1d4ed8',
+        'secondary': '#7e22ce',
+        'accent': '#0ea5e9',
+        'text': '#1e3a8a',
+        'text_secondary': '#475569',
+        'glass': 'rgba(255, 255, 255, 0.3)',
+        'glass_border': 'rgba(255, 255, 255, 0.5)',
+        'shadow': '0 25px 50px rgba(59, 130, 246, 0.15)',
+        'hover_shadow': '0 35px 60px rgba(59, 130, 246, 0.25)',
+        'topbar_bg': 'rgba(219, 234, 254, 0.9)'
+    },
+    'purple': {
+        'name': 'Purple Haze',
+        'background': 'linear-gradient(135deg, #a78bfa 0%, #7c3aed 50%, #5b21b6 100%)',
+        'primary': '#f0abfc',
+        'secondary': '#c4b5fd',
+        'accent': '#a78bfa',
+        'text': '#faf5ff',
+        'text_secondary': '#ddd6fe',
+        'glass': 'rgba(168, 85, 247, 0.2)',
+        'glass_border': 'rgba(192, 132, 252, 0.3)',
+        'shadow': '0 25px 50px rgba(139, 92, 246, 0.25)',
+        'hover_shadow': '0 35px 60px rgba(139, 92, 246, 0.35)',
+        'topbar_bg': 'rgba(139, 92, 246, 0.9)'
+    }
 }
 
 SETTINGS_FILE = 'bypass_settings.json'
 ONLINE_FILE_URL = "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/bypasstoolkit/BypassGUI.py"
+
+def load_settings():
+    """Load settings from file with proper defaults"""
+    default_settings = {
+        'theme': 'frost',
+        'window_position': {'x': 100, 'y': 100},
+        'window_size': {'width': 1200, 'height': 800}
+    }
+    
+    try:
+        if os.path.exists(SETTINGS_FILE):
+            with open(SETTINGS_FILE, 'r') as f:
+                loaded_settings = json.load(f)
+                for key in default_settings:
+                    if key not in loaded_settings:
+                        loaded_settings[key] = default_settings[key]
+                
+                if loaded_settings.get('theme') not in THEMES:
+                    loaded_settings['theme'] = default_settings['theme']
+                    
+                return loaded_settings
+    except Exception:
+        pass
+    
+    return default_settings
 
 def get_current_version():
     """Get current version from local BypassGUI.py"""
@@ -185,6 +262,7 @@ class UpdaterAPI:
         self.update_info = None
         self.is_updating = False
         self.window = None
+        self.settings = load_settings()
     
     def close_app(self):
         """Close the updater"""
@@ -219,8 +297,8 @@ class UpdaterAPI:
                     }}
                     """
                     self.window.evaluate_js(js_code)
-            except Exception as e:
-                print(f"Progress update error: {e}")
+            except Exception:
+                pass
         
         def update_thread():
             try:
@@ -257,7 +335,7 @@ class UpdaterAPI:
                     with open('BypassGUI.py', 'w', encoding='utf-8') as f:
                         f.write(online_content)
                     update_progress('writing', 80, "New version installed!")
-                except Exception as e:
+                except Exception:
                     update_progress('error', 60, "Installation failed")
                     self.is_updating = False
                     return
@@ -297,6 +375,13 @@ class UpdaterAPI:
 
 def create_updater_gui():
     """Create the beautiful updater GUI"""
+    # Load settings and theme
+    settings = load_settings()
+    theme_name = settings.get('theme', 'frost')
+    if theme_name not in THEMES:
+        theme_name = 'frost'
+    current_theme = THEMES[theme_name]
+    
     # Perform update check before creating window
     update_info = check_for_updates()
     current_version = get_current_version()
@@ -323,8 +408,8 @@ def create_updater_gui():
             
             body {{
                 font-family: 'Inter', sans-serif;
-                background: {GLASS_THEME['background']};
-                color: {GLASS_THEME['text']};
+                background: {current_theme['background']};
+                color: {current_theme['text']};
                 height: 100vh;
                 overflow: hidden;
                 display: flex;
@@ -333,9 +418,9 @@ def create_updater_gui():
             
             /* Custom Topbar */
             .topbar {{
-                background: {GLASS_THEME['topbar_bg']};
+                background: {current_theme['topbar_bg']};
                 backdrop-filter: blur(20px);
-                border-bottom: 1px solid {GLASS_THEME['glass_border']};
+                border-bottom: 1px solid {current_theme['glass_border']};
                 height: 40px;
                 display: flex;
                 align-items: center;
@@ -348,7 +433,7 @@ def create_updater_gui():
             }}
             
             .topbar-title {{
-                color: {GLASS_THEME['text']};
+                color: {current_theme['text']};
                 font-size: 14px;
                 font-weight: 600;
                 display: flex;
@@ -369,7 +454,7 @@ def create_updater_gui():
             .topbar-btn {{
                 background: none;
                 border: none;
-                color: {GLASS_THEME['text_secondary']};
+                color: {current_theme['text_secondary']};
                 font-size: 16px;
                 width: 30px;
                 height: 30px;
@@ -383,7 +468,7 @@ def create_updater_gui():
             
             .topbar-btn:hover {{
                 background: rgba(255, 255, 255, 0.1);
-                color: {GLASS_THEME['text']};
+                color: {current_theme['text']};
             }}
             
             .close-btn:hover {{
@@ -397,7 +482,7 @@ def create_updater_gui():
                 left: -50%;
                 width: 200%;
                 height: 200%;
-                background: {GLASS_THEME['background']};
+                background: {current_theme['background']};
                 filter: blur(40px);
                 z-index: -1;
             }}
@@ -412,12 +497,12 @@ def create_updater_gui():
             }}
             
             .glass-container {{
-                background: {GLASS_THEME['glass']};
+                background: {current_theme['glass']};
                 backdrop-filter: blur(20px);
-                border: 1px solid {GLASS_THEME['glass_border']};
+                border: 1px solid {current_theme['glass_border']};
                 border-radius: 20px;
                 padding: 40px;
-                box-shadow: {GLASS_THEME['glass_shadow']};
+                box-shadow: {current_theme['shadow']};
                 text-align: center;
                 max-width: 500px;
                 width: 100%;
@@ -451,14 +536,14 @@ def create_updater_gui():
                 font-size: 28px;
                 font-weight: 700;
                 margin-bottom: 8px;
-                background: linear-gradient(135deg, {GLASS_THEME['primary']}, {GLASS_THEME['accent']});
+                background: linear-gradient(135deg, {current_theme['primary']}, {current_theme['secondary']});
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 background-clip: text;
             }}
             
             .subtitle {{
-                color: {GLASS_THEME['text_secondary']};
+                color: {current_theme['text_secondary']};
                 font-size: 16px;
                 margin-bottom: 30px;
                 font-weight: 400;
@@ -467,7 +552,7 @@ def create_updater_gui():
             .version-card {{
                 background: rgba(255, 255, 255, 0.1);
                 backdrop-filter: blur(10px);
-                border: 1px solid {GLASS_THEME['glass_border']};
+                border: 1px solid {current_theme['glass_border']};
                 border-radius: 16px;
                 padding: 20px;
                 margin: 20px 0;
@@ -482,7 +567,7 @@ def create_updater_gui():
             }}
             
             .version-label {{
-                color: {GLASS_THEME['text_secondary']};
+                color: {current_theme['text_secondary']};
                 font-size: 12px;
                 font-weight: 500;
                 margin-bottom: 4px;
@@ -491,7 +576,7 @@ def create_updater_gui():
             }}
             
             .version-value {{
-                color: {GLASS_THEME['text']};
+                color: {current_theme['text']};
                 font-size: 18px;
                 font-weight: 600;
             }}
@@ -499,7 +584,7 @@ def create_updater_gui():
             .status-badge {{
                 display: inline-block;
                 padding: 8px 16px;
-                background: {GLASS_THEME['success'] if not update_available else GLASS_THEME['primary']};
+                background: {current_theme['primary'] if update_available else '#10b981'};
                 border-radius: 20px;
                 font-size: 14px;
                 font-weight: 600;
@@ -548,20 +633,20 @@ def create_updater_gui():
             }}
             
             .btn-primary {{
-                background: linear-gradient(135deg, {GLASS_THEME['primary']}, {GLASS_THEME['secondary']});
+                background: linear-gradient(135deg, {current_theme['primary']}, {current_theme['secondary']});
                 color: white;
-                box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+                box-shadow: 0 4px 15px {current_theme['primary']}30;
             }}
             
             .btn-primary:hover {{
                 transform: translateY(-2px);
-                box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+                box-shadow: 0 8px 25px {current_theme['primary']}40;
             }}
             
             .btn-secondary {{
                 background: rgba(255, 255, 255, 0.1);
-                border: 1px solid {GLASS_THEME['glass_border']};
-                color: {GLASS_THEME['text']};
+                border: 1px solid {current_theme['glass_border']};
+                color: {current_theme['text']};
             }}
             
             .btn-secondary:hover {{
@@ -584,7 +669,7 @@ def create_updater_gui():
                 font-size: 18px;
                 font-weight: 600;
                 margin-bottom: 15px;
-                color: {GLASS_THEME['text']};
+                color: {current_theme['text']};
             }}
             
             .progress-bar-container {{
@@ -599,7 +684,7 @@ def create_updater_gui():
             
             .progress-bar {{
                 height: 100%;
-                background: linear-gradient(90deg, {GLASS_THEME['primary']}, {GLASS_THEME['accent']});
+                background: linear-gradient(90deg, {current_theme['primary']}, {current_theme['accent']});
                 border-radius: 10px;
                 width: 0%;
                 transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -631,13 +716,13 @@ def create_updater_gui():
             }}
             
             .progress-text {{
-                color: {GLASS_THEME['text_secondary']};
+                color: {current_theme['text_secondary']};
                 font-size: 14px;
                 font-weight: 500;
             }}
             
             .progress-percentage {{
-                color: {GLASS_THEME['accent']};
+                color: {current_theme['accent']};
                 font-size: 16px;
                 font-weight: 700;
             }}
@@ -654,8 +739,8 @@ def create_updater_gui():
             .spinner {{
                 width: 40px;
                 height: 40px;
-                border: 3px solid {GLASS_THEME['glass_border']};
-                border-top: 3px solid {GLASS_THEME['primary']};
+                border: 3px solid {current_theme['glass_border']};
+                border-top: 3px solid {current_theme['primary']};
                 border-radius: 50%;
                 animation: spin 1s linear infinite;
             }}
@@ -736,7 +821,7 @@ def create_updater_gui():
                 document.getElementById('buttons').style.display = 'none';
                 document.getElementById('progressContainer').style.display = 'block';
                 document.getElementById('statusBadge').textContent = 'Updating...';
-                document.getElementById('statusBadge').style.background = '{GLASS_THEME['primary']}';
+                document.getElementById('statusBadge').style.background = '{current_theme['primary']}';
                 
                 if (window.pywebview) {{
                     pywebview.api.performUpdate().then(result => {{
@@ -761,9 +846,9 @@ def create_updater_gui():
             
             function showError(message) {{
                 document.getElementById('progressText').textContent = message;
-                document.getElementById('progressText').style.color = '{GLASS_THEME['error']}';
+                document.getElementById('progressText').style.color = '#ef4444';
                 document.getElementById('statusBadge').textContent = 'Update Failed';
-                document.getElementById('statusBadge').style.background = '{GLASS_THEME['error']}';
+                document.getElementById('statusBadge').style.background = '#ef4444';
                 document.getElementById('buttons').style.display = 'flex';
             }}
             
@@ -793,9 +878,9 @@ def create_updater_gui():
                 
                 // Visual feedback for completion
                 if (percentage === 100) {{
-                    progressBar.style.background = 'linear-gradient(90deg, {GLASS_THEME['success']}, {GLASS_THEME['accent']})';
+                    progressBar.style.background = 'linear-gradient(90deg, #10b981, {current_theme['accent']})';
                     document.getElementById('statusBadge').textContent = 'Update Complete!';
-                    document.getElementById('statusBadge').style.background = '{GLASS_THEME['success']}';
+                    document.getElementById('statusBadge').style.background = '#10b981';
                 }}
             }};
         </script>
@@ -804,10 +889,8 @@ def create_updater_gui():
     '''
     
     try:
-        # Create the API instance first
         api = UpdaterAPI()
         
-        # Create the window with frameless mode to remove default title bar
         window = webview.create_window(
             'Sigmi Hub Updater',
             html=html_content,
@@ -815,20 +898,15 @@ def create_updater_gui():
             height=650,
             resizable=False,
             js_api=api,
-            # Key changes: frameless mode and easy_drag for custom topbar
             frameless=True,
             easy_drag=True
         )
         
-        # Store window reference in API for progress updates
         api.window = window
         
-        # Start the webview
         webview.start()
         
     except Exception as e:
-        print(f"Error creating updater: {e}")
-        # Fallback: try to launch main app directly
         try:
             restart_main_app()
         except:
