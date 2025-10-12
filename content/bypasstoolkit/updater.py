@@ -161,28 +161,41 @@ def get_current_version():
                 if 'VERSION = ' in line:
                     version_line = line.split('=')[1].strip()
                     version = version_line.split('#')[0].strip().strip("'\"")
+                    logging.info(f"Current version found: {version}")
                     return version
-    except Exception:
-        pass
+    except Exception as e:
+        logging.error(f"Error getting current version: {e}")
     return 'v1.0'
 
 def get_online_version_and_content():
     """Get version and full content from online BypassGUI.py"""
     try:
-        response = requests.get(ONLINE_FILE_URL, timeout=30)
+        logging.info("Fetching online version...")
+        # Add cache busting to prevent caching
+        cache_buster = int(time.time())
+        url = f"{ONLINE_FILE_URL}?t={cache_buster}"
+        
+        response = requests.get(url, timeout=30)
+        logging.info(f"Online response status: {response.status_code}")
         
         if response.status_code == 200:
             content = response.text
+            logging.info(f"Online content length: {len(content)}")
+            
             for line in content.split('\n'):
                 if 'VERSION = ' in line:
                     version_line = line.split('=')[1].strip()
                     version = version_line.split('#')[0].strip().strip("'\"")
+                    logging.info(f"Online version found: {version}")
                     return {
                         'version': version,
                         'content': content
                     }
-    except Exception:
-        pass
+            logging.warning("VERSION line not found in online content")
+        else:
+            logging.error(f"Failed to fetch online file: {response.status_code}")
+    except Exception as e:
+        logging.error(f"Error getting online version: {e}")
     return None
 
 def check_for_updates():
@@ -192,6 +205,7 @@ def check_for_updates():
         online_data = get_online_version_and_content()
         
         if not online_data:
+            logging.error("No online data received")
             return {
                 'available': False,
                 'current_version': current_version,
@@ -200,8 +214,11 @@ def check_for_updates():
             }
         
         online_version = online_data['version']
+        logging.info(f"Version comparison - Current: {current_version}, Online: {online_version}")
         
+        # More robust version comparison
         if online_version != current_version:
+            logging.info(f"Update available: {current_version} -> {online_version}")
             return {
                 'available': True,
                 'current_version': current_version,
@@ -209,15 +226,17 @@ def check_for_updates():
                 'online_content': online_data['content']
             }
         else:
+            logging.info("No update available - versions match")
             return {
                 'available': False,
                 'current_version': current_version,
                 'online_version': online_version
             }
-    except Exception:
+    except Exception as e:
+        logging.error(f"Error in check_for_updates: {e}")
         return {
             'available': False,
-            'error': 'Update check failed'
+            'error': f'Update check failed: {str(e)}'
         }
 
 def terminate_processes():
@@ -234,15 +253,17 @@ def terminate_processes():
                     cmdline = ' '.join(proc.info['cmdline']).lower()
                     if ('bypassgui.py' in cmdline or 'guilauncher.vbs' in cmdline):
                         try:
+                            logging.info(f"Terminating process: {proc.info['pid']}")
                             proc.terminate()
-                        except:
-                            pass
-            except:
-                pass
+                        except Exception as e:
+                            logging.warning(f"Failed to terminate process {proc.info['pid']}: {e}")
+            except Exception as e:
+                logging.warning(f"Error checking process: {e}")
         
         time.sleep(2)
         return True
-    except Exception:
+    except Exception as e:
+        logging.error(f"Error in terminate_processes: {e}")
         return False
 
 def restart_main_app():
@@ -250,11 +271,14 @@ def restart_main_app():
     try:
         time.sleep(1)
         if os.path.exists('GUILauncher.vbs'):
+            logging.info("Launching via VBS wrapper")
             subprocess.Popen(['wscript.exe', 'GUILauncher.vbs'], shell=False)
         else:
+            logging.info("Launching via Python directly")
             subprocess.Popen([sys.executable, 'BypassGUI.py'], shell=False)
         return True
-    except Exception:
+    except Exception as e:
+        logging.error(f"Error restarting main app: {e}")
         return False
 
 class UpdaterAPI:
@@ -275,9 +299,11 @@ class UpdaterAPI:
     def checkUpdates(self):
         """Check for updates"""
         try:
+            logging.info("Manual update check requested")
             self.update_info = check_for_updates()
             return self.update_info
-        except Exception:
+        except Exception as e:
+            logging.error(f"Error in checkUpdates: {e}")
             return {'available': False, 'error': 'Check failed'}
     
     def performUpdate(self):
@@ -297,8 +323,8 @@ class UpdaterAPI:
                     }}
                     """
                     self.window.evaluate_js(js_code)
-            except Exception:
-                pass
+            except Exception as e:
+                logging.error(f"Error updating progress: {e}")
         
         def update_thread():
             try:
@@ -334,8 +360,10 @@ class UpdaterAPI:
                 try:
                     with open('BypassGUI.py', 'w', encoding='utf-8') as f:
                         f.write(online_content)
+                    logging.info("Successfully wrote updated file")
                     update_progress('writing', 80, "New version installed!")
-                except Exception:
+                except Exception as e:
+                    logging.error(f"Error writing file: {e}")
                     update_progress('error', 60, "Installation failed")
                     self.is_updating = False
                     return
@@ -345,16 +373,21 @@ class UpdaterAPI:
                 time.sleep(0.5)
                 
                 new_version = get_current_version()
-                if new_version == update_info.get('online_version'):
+                expected_version = update_info.get('online_version')
+                logging.info(f"Verification - Expected: {expected_version}, Got: {new_version}")
+                
+                if new_version == expected_version:
                     update_progress('complete', 100, "Update completed successfully!")
                     time.sleep(1.5)
                     restart_main_app()
                     self.close_app()
                 else:
+                    logging.error(f"Version mismatch after update: {new_version} vs {expected_version}")
                     update_progress('error', 90, "Verification failed")
                     self.is_updating = False
                     
-            except Exception:
+            except Exception as e:
+                logging.error(f"Error in update thread: {e}")
                 update_progress('error', 0, "Update process failed")
                 self.is_updating = False
         
@@ -367,10 +400,12 @@ class UpdaterAPI:
     def skipUpdate(self):
         """Skip update and restart main app"""
         try:
+            logging.info("Skipping update and restarting main app")
             restart_main_app()
             self.close_app()
             return {'success': True}
-        except Exception:
+        except Exception as e:
+            logging.error(f"Error skipping update: {e}")
             return {'success': False, 'error': 'Skip failed'}
 
 def create_updater_gui():
@@ -389,6 +424,8 @@ def create_updater_gui():
     # Determine UI state
     update_available = update_info.get('available', False)
     online_version = update_info.get('online_version', 'Unknown')
+    
+    logging.info(f"UI State - Update available: {update_available}, Current: {current_version}, Online: {online_version}")
     
     # Beautiful HTML content with glass morphism and custom topbar
     html_content = f'''
@@ -907,6 +944,7 @@ def create_updater_gui():
         webview.start()
         
     except Exception as e:
+        logging.error(f"Error creating updater GUI: {e}")
         try:
             restart_main_app()
         except:
