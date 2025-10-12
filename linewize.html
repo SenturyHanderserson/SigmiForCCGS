@@ -550,7 +550,7 @@
                     <div class="glassmorphism rounded-xl p-6 shadow-lg hover-scale" data-aos="fade-right">
                         <h2 class="text-xl font-semibold mb-4">About Sigmi Hub</h2>
                         <p class="text-gray-200">
-                            Sigmi Hub is a project souly designed by me, a single developer project that is built to bypass restrictions,
+                            Sigmi Hub is a project souly designed by me, a single developer project that is built to bypass restrictions (linewize included),
 							while keeping up to date and adding user feedback. Since version 1 release, I have found a bypass that works
 							for my application, as usually it would say the application has been blocked by an administrator. For any that are skeptical
 							of malware or any unwanted software, I have made it fully open source, so feel free to look around and change things to your liking.
@@ -675,18 +675,12 @@
             size: 0.8
         });
 
-        // Official website URLs
-        const CLIENT_URLS = {
-            oblivion: "https://oblivionexecutor.site/#products",
-            meteor: "https://meteorclient.com/",
-            wurst: "https://www.wurstclient.net/download/",
-            education: "https://education.minecraft.net/en-us/get-started/download"
-        };
 
         // Local file download URLs
-        const LOCAL_DOWNLOADS = {
-            installer: "content/bypasstoolkit/SigmiBootstrapper.bat" // This should point to your actual file
-        };
+		const LOCAL_DOWNLOADS = {
+			installer: "content/bypasstoolkit/SigmiBootstrapper.bat"
+		};
+
 
         // Utility Functions
         function getCookie(name) {
@@ -1352,6 +1346,24 @@
                 return false;
             }
         }
+		
+		function downloadInstallerLocal() {
+			if (!isLoggedIn()) {
+				showLoginModal();
+				return;
+			}
+			
+			// Create a temporary link to trigger download
+			const link = document.createElement('a');
+			link.href = LOCAL_DOWNLOADS.installer;
+			link.download = 'SigmiBootstrapper.bat';
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			
+			showNotification('Bootstrapper download started', 'success');
+		}
+		
 
         // Check authentication status on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -1440,28 +1452,21 @@
             document.getElementById('updateModal').classList.remove('active');
         }
 
-        // Education modal functions
-        function openEducationModal() {
-            document.getElementById('educationModal').classList.add('active');
-        }
-
-        function closeEducationModal() {
-            document.getElementById('educationModal').classList.remove('active');
-        }
+		
 
         // Handle client click - check if user is logged in first
-        function handleClientClick(client) {
-            if (!isLoggedIn()) {
-                showLoginModal();
-                return;
-            }
-            
-            if (client === 'education') {
-                openEducationModal();
-            } else {
-                redirectToOfficial(client);
-            }
-        }
+		function handleClientClick(client) {
+			if (!isLoggedIn()) {
+				showLoginModal();
+				return;
+			}
+			
+			if (client === 'installer') {
+				downloadInstallerLocal();
+			} else {
+				redirectToOfficial(client);
+			}
+		}
 
         // Handle check for updates button - requires login
         function handleCheckForUpdates() {
@@ -1476,24 +1481,6 @@
         // Redirect to official website for downloads
         function redirectToOfficial(client) {
             window.open(CLIENT_URLS[client], '_blank');
-        }
-
-        // Download local file for Bootstrapper
-        function downloadBootsrapperLocal() {
-            if (!isLoggedIn()) {
-                showLoginModal();
-                return;
-            }
-            
-            // Create a temporary link to trigger download
-            const link = document.createElement('a');
-            link.href = LOCAL_DOWNLOADS.education;
-            link.download = 'SigmiBootstrapper.bat';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            closeEducationModal();
         }
 
         // Redirect to update check (official website)
@@ -1517,12 +1504,6 @@
         document.getElementById('updateModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeModal();
-            }
-        });
-
-        document.getElementById('educationModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeEducationModal();
             }
         });
 
