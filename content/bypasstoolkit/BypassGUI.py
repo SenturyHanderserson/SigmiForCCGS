@@ -103,7 +103,7 @@ THEMES = {
 
 # Settings storage
 SETTINGS_FILE = 'bypass_settings.json'
-VERSION = 'v1.01'
+VERSION = 'v1.011'
 
 def load_settings():
     """Load settings from file with proper defaults"""
@@ -426,6 +426,67 @@ def create_webview_app():
                 to {{ opacity: 1; transform: translateY(0); }}
             }}
             
+            /* App Description Card */
+            .app-description {{
+                background: {current_theme['glass']};
+                backdrop-filter: blur(30px);
+                border: 1px solid {current_theme['glass_border']};
+                border-radius: 20px;
+                padding: 30px;
+                margin-bottom: 25px;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: {current_theme['shadow']};
+                text-align: center;
+            }}
+            
+            .app-description:hover {{
+                transform: translateY(-3px);
+                box-shadow: {current_theme['hover_shadow']};
+            }}
+            
+            .app-title {{
+                font-size: 32px;
+                font-weight: 800;
+                background: linear-gradient(135deg, {current_theme['primary']}, {current_theme['secondary']});
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                margin-bottom: 15px;
+            }}
+            
+            .app-subtitle {{
+                font-size: 18px;
+                color: {current_theme['text_secondary']};
+                margin-bottom: 20px;
+                font-weight: 500;
+            }}
+            
+            .app-features {{
+                display: flex;
+                justify-content: center;
+                gap: 30px;
+                margin-top: 25px;
+                flex-wrap: wrap;
+            }}
+            
+            .feature {{
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                color: {current_theme['text_secondary']};
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            
+            .feature-badge {{
+                background: linear-gradient(135deg, {current_theme['primary']}, {current_theme['secondary']});
+                color: white;
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+            }}
+            
             /* Method Cards */
             .method-card {{
                 background: {current_theme['glass']};
@@ -715,6 +776,16 @@ def create_webview_app():
                 <div class="content-area">
                     <!-- Bypasses Section -->
                     <div class="content-section active" id="bypasses-section">
+                        <!-- App Description Card -->
+                        <div class="app-description">
+                            <div class="app-title">Sigmi Hub</div>
+                            <div class="app-subtitle">Recent News</div>
+                            <p style="color: {current_theme['text_secondary']}; max-width: 600px; margin: 0 auto; line-height: 1.6;">
+                                I will be taking some time off to focus on assesments and other things, so Sigmi Hub will not be updated for a while. Features that I can and will implement when
+                                I have the oppertunity include auto updating, working bypasses, login and key replication to main website (Sigmi Team or SigmiForCCGS), real time appliaction control
+                                on a server (eg. playing clash royal or roblox unblocked) and more.
+                            </p>
+
                         <div class="method-card">
                             <div class="card-header">
                                 <h2>Google Translate Bypass</h2>
