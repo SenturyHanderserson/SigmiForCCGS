@@ -4,7 +4,6 @@ import os
 import json
 import webbrowser
 import requests
-import psutil
 from urllib.parse import quote
 
 def install_webview():
@@ -142,21 +141,11 @@ def save_settings(settings):
         print(f"Error saving settings: {e}")
 
 def kill_vbs_wrappers():
-    """Kill VBS wrapper processes"""
+    """Kill VBS wrapper processes using taskkill"""
     try:
-        user_profile = os.path.expanduser("~")
-        gui_launcher = os.path.join(user_profile, "AppData", "Local", "SigmiHub", "GUILauncher.vbs")
-        update_launcher = os.path.join(user_profile, "AppData", "Local", "SigmiHub", "UpdateLauncher.vbs")
-        
-        # Kill wscript processes that might be running our VBS files
-        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
-            try:
-                if proc.info['name'] and 'wscript' in proc.info['name'].lower():
-                    cmdline = proc.info['cmdline'] or []
-                    if any('GUILauncher.vbs' in str(arg) for arg in cmdline) or any('UpdateLauncher.vbs' in str(arg) for arg in cmdline):
-                        proc.terminate()
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                pass
+        # Use taskkill to terminate wscript processes
+        subprocess.run(['taskkill', '/f', '/im', 'wscript.exe'], 
+                      capture_output=True, timeout=5)
     except Exception as e:
         print(f"Error killing VBS wrappers: {e}")
 
@@ -1099,11 +1088,7 @@ def create_webview_app():
                         if (result.status === 'theme_changed') {{
                             // Refresh the page to apply new theme
                             setTimeout(() => {{
-                                if (window.pywebview) {{
-                                    pywebview.api.refresh_theme().then(() => {{
-                                        location.reload();
-                                    }});
-                                }}
+                                location.reload();
                             }}, 1000);
                         }}
                     }});
