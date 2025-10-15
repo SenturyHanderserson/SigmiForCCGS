@@ -103,7 +103,7 @@ THEMES = {
 
 # Settings storage
 SETTINGS_FILE = 'bypass_settings.json'
-VERSION = 'v1.013'
+VERSION = 'v1.014'
 
 def load_settings():
     """Load settings from file with proper defaults"""
@@ -186,14 +186,10 @@ class BypassAPI:
         os._exit(0)
     
     def changeTheme(self, theme):
-        """Change application theme without restarting"""
+        """Change application theme and return theme data"""
         self.settings['theme'] = theme
         save_settings(self.settings)
-        return {'status': 'theme_changed', 'theme': theme}
-    
-    def refresh_theme(self):
-        """Refresh the current page to apply theme changes"""
-        return {'status': 'refresh_requested'}
+        return {'status': 'theme_changed', 'theme': theme, 'theme_data': THEMES[theme]}
     
     def checkUpdates(self):
         """Check for updates and launch updater GUI"""
@@ -203,17 +199,6 @@ class BypassAPI:
             return {'success': True, 'message': 'Launching updater...'}
         except Exception as e:
             return {'success': False, 'error': str(e)}
-
-def get_icon_path():
-    """Get the path to the application icon"""
-    try:
-        user_profile = os.path.expanduser("~")
-        icon_path = os.path.join(user_profile, "AppData", "Local", "SigmiHub", "logo.ico")
-        if os.path.exists(icon_path):
-            return icon_path
-    except Exception as e:
-        print(f"Error getting icon path: {e}")
-    return None
 
 def create_webview_app():
     """Create the WebView window with enhanced styling"""
@@ -230,9 +215,6 @@ def create_webview_app():
     y = settings.get('window_position', {}).get('y', 100)
     width = settings.get('window_size', {}).get('width', 1200)
     height = settings.get('window_size', {}).get('height', 800)
-    
-    # Get icon path
-    icon_path = get_icon_path()
     
     # HTML content with embedded CSS
     html_content = f'''
@@ -258,6 +240,7 @@ def create_webview_app():
                 overflow: hidden;
                 height: 100vh;
                 user-select: none;
+                transition: all 0.5s ease-in-out;
             }}
             
             /* Loading Overlay */
@@ -274,6 +257,7 @@ def create_webview_app():
                 align-items: center;
                 z-index: 9999;
                 backdrop-filter: blur(20px);
+                transition: all 0.5s ease-in-out;
             }}
             
             .loading-spinner {{
@@ -334,6 +318,7 @@ def create_webview_app():
                 padding: 0 25px;
                 cursor: move;
                 box-shadow: {current_theme['shadow']};
+                transition: all 0.5s ease-in-out;
             }}
             
             .title-content {{
@@ -393,6 +378,7 @@ def create_webview_app():
                 padding: 30px 0;
                 display: flex;
                 flex-direction: column;
+                transition: all 0.5s ease-in-out;
             }}
             
             .nav-section {{
@@ -439,6 +425,7 @@ def create_webview_app():
                 flex: 1;
                 padding: 40px;
                 overflow-y: auto;
+                transition: all 0.5s ease-in-out;
             }}
             
             .content-section {{
@@ -971,7 +958,6 @@ def create_webview_app():
                             <ul class="changelog-list">
                                 <li class="changelog-item">Added instant theme switching without app restart</li>
                                 <li class="changelog-item">Improved app closing speed and VBS wrapper cleanup</li>
-                                <li class="changelog-item">Added custom application icon support</li>
                                 <li class="changelog-item">Added new Changelog tab</li>
                                 <li class="changelog-item">Fixed tab navigation issues</li>
                                 <li class="changelog-item">Enhanced process management for VBS wrappers</li>
@@ -1086,13 +1072,54 @@ def create_webview_app():
                 if (window.pywebview) {{
                     pywebview.api.changeTheme(theme).then(result => {{
                         if (result.status === 'theme_changed') {{
-                            // Refresh the page to apply new theme
+                            // Show success message and hide loading screen
                             setTimeout(() => {{
-                                location.reload();
-                            }}, 1000);
+                                hideLoadingScreen();
+                                showSuccessMessage(`Theme changed to ${{themeName}}! The new theme will be applied when you restart the app.`);
+                            }}, 1500);
                         }}
                     }});
                 }}
+            }}
+
+            function showSuccessMessage(message) {{
+                const successDiv = document.createElement('div');
+                successDiv.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, {current_theme['primary']}, {current_theme['secondary']});
+                    color: white;
+                    padding: 15px 25px;
+                    border-radius: 12px;
+                    font-weight: 600;
+                    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+                    z-index: 10000;
+                    animation: slideIn 0.5s ease-out;
+                `;
+                successDiv.textContent = message;
+                document.body.appendChild(successDiv);
+                
+                setTimeout(() => {{
+                    successDiv.style.animation = 'slideOut 0.5s ease-in';
+                    setTimeout(() => {{
+                        document.body.removeChild(successDiv);
+                    }}, 500);
+                }}, 3000);
+                
+                // Add animations
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes slideIn {{
+                        from {{ transform: translateX(100%); opacity: 0; }}
+                        to {{ transform: translateX(0); opacity: 1; }}
+                    }}
+                    @keyframes slideOut {{
+                        from {{ transform: translateX(0); opacity: 1; }}
+                        to {{ transform: translateX(100%); opacity: 0; }}
+                    }}
+                `;
+                document.head.appendChild(style);
             }}
 
             function showThemeLoadingScreen(themeName) {{
@@ -1235,28 +1262,20 @@ def create_webview_app():
     
     # Create webview window
     try:
-        window_kwargs = {
-            'title': 'Sigmi Hub',
-            'html': html_content,
-            'x': x, 
-            'y': y, 
-            'width': width, 
-            'height': height,
-            'resizable': True,
-            'frameless': True,
-            'easy_drag': True,
-            'js_api': BypassAPI()
-        }
-        
-        # Add icon if available
-        if icon_path:
-            window_kwargs['icon'] = icon_path
-            
-        window = webview.create_window(**window_kwargs)
+        window = webview.create_window(
+            'Sigmi Hub',
+            html=html_content,
+            x=x, y=y, width=width, height=height,
+            resizable=True,
+            frameless=True,
+            easy_drag=True,
+            js_api=BypassAPI()
+        )
         
     except Exception as e:
         print(f"Error creating window: {e}")
-        sys.exit(1)
+        # Don't exit on error, just continue without the window
+        return
     
     def on_closed():
         try:
