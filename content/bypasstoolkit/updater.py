@@ -281,15 +281,62 @@ def restart_main_app():
         logging.error(f"Error restarting main app: {e}")
         return False
 
+class ProgressMonitor:
+    """Monitor and ensure progress doesn't get stuck"""
+    def __init__(self, update_callback, timeout_seconds=30):
+        self.update_callback = update_callback
+        self.timeout_seconds = timeout_seconds
+        self.last_progress_time = time.time()
+        self.current_stage = None
+        self.stuck_check_thread = None
+        self.should_stop = False
+        
+    def start_monitoring(self, stage):
+        """Start monitoring for a specific stage"""
+        self.current_stage = stage
+        self.last_progress_time = time.time()
+        self.should_stop = False
+        
+        # Start stuck detection thread
+        self.stuck_check_thread = threading.Thread(target=self._monitor_stuck)
+        self.stuck_check_thread.daemon = True
+        self.stuck_check_thread.start()
+        
+    def update_progress(self, percentage, message):
+        """Update progress and reset stuck timer"""
+        self.last_progress_time = time.time()
+        self.update_callback(self.current_stage, percentage, message)
+        
+    def _monitor_stuck(self):
+        """Monitor if progress gets stuck"""
+        while not self.should_stop:
+            time.sleep(5)  # Check every 5 seconds
+            
+            if time.time() - self.last_progress_time > self.timeout_seconds:
+                logging.warning(f"Progress stuck detected in stage: {self.current_stage}")
+                self.update_callback('error', 0, f"Update stuck at {self.current_stage}. Retrying...")
+                break
+                
+    def stop_monitoring(self):
+        """Stop the monitoring thread"""
+        self.should_stop = True
+        if self.stuck_check_thread and self.stuck_check_thread.is_alive():
+            self.stuck_check_thread.join(timeout=2)
+
 class UpdaterAPI:
     def __init__(self):
         self.update_info = None
         self.is_updating = False
         self.window = None
         self.settings = load_settings()
-    
+        self.progress_monitor = None
+        self.retry_count = 0
+        self.max_retries = 3
+        
     def close_app(self):
         """Close the updater"""
+        if self.progress_monitor:
+            self.progress_monitor.stop_monitoring()
         os._exit(0)
     
     def close_window(self):
@@ -307,15 +354,19 @@ class UpdaterAPI:
             return {'available': False, 'error': 'Check failed'}
     
     def performUpdate(self):
-        """Perform the update with progress tracking"""
+        """Perform the update with robust progress tracking"""
         if self.is_updating:
             return {'success': False, 'error': 'Update in progress'}
         
         self.is_updating = True
+        self.retry_count = 0
         
         def update_progress(stage, percentage, message):
             """Update progress in the UI"""
             try:
+                if self.progress_monitor and stage != 'error':
+                    self.progress_monitor.update_progress(percentage, message)
+                    
                 if self.window:
                     js_code = f"""
                     if (typeof updateProgress === 'function') {{
@@ -328,7 +379,11 @@ class UpdaterAPI:
         
         def update_thread():
             try:
+                # Initialize progress monitor
+                self.progress_monitor = ProgressMonitor(update_progress, timeout_seconds=20)
+                
                 # Stage 1: Checking
+                self.progress_monitor.start_monitoring('checking')
                 update_progress('checking', 10, "Checking for updates...")
                 time.sleep(0.5)
                 
@@ -345,31 +400,62 @@ class UpdaterAPI:
                     return
                 
                 # Stage 2: Preparing
+                self.progress_monitor.start_monitoring('terminating')
                 update_progress('terminating', 30, "Preparing for update...")
                 time.sleep(0.5)
                 
                 if not terminate_processes():
-                    update_progress('error', 30, "Failed to prepare system")
-                    self.is_updating = False
-                    return
+                    if self.retry_count < self.max_retries:
+                        self.retry_count += 1
+                        update_progress('terminating', 30, f"Retrying preparation... (Attempt {self.retry_count}/{self.max_retries})")
+                        time.sleep(2)
+                        if not terminate_processes():
+                            update_progress('error', 30, "Failed to prepare system after retries")
+                            self.is_updating = False
+                            return
+                    else:
+                        update_progress('error', 30, "Failed to prepare system")
+                        self.is_updating = False
+                        return
                 
-                # Stage 3: Downloading
-                update_progress('writing', 60, "Downloading new version...")
-                time.sleep(1)
+                # Stage 3: Downloading and Writing
+                self.progress_monitor.start_monitoring('writing')
+                update_progress('writing', 50, "Downloading new version...")
+                time.sleep(0.5)
+                
+                # Simulate download progress
+                for i in range(50, 80, 5):
+                    update_progress('writing', i, f"Downloading... {i-50}%")
+                    time.sleep(0.1)
                 
                 try:
+                    update_progress('writing', 80, "Installing update...")
                     with open('BypassGUI.py', 'w', encoding='utf-8') as f:
                         f.write(online_content)
                     logging.info("Successfully wrote updated file")
-                    update_progress('writing', 80, "New version installed!")
+                    update_progress('writing', 90, "New version installed!")
                 except Exception as e:
                     logging.error(f"Error writing file: {e}")
-                    update_progress('error', 60, "Installation failed")
-                    self.is_updating = False
-                    return
+                    if self.retry_count < self.max_retries:
+                        self.retry_count += 1
+                        update_progress('writing', 80, f"Retrying installation... (Attempt {self.retry_count}/{self.max_retries})")
+                        time.sleep(1)
+                        try:
+                            with open('BypassGUI.py', 'w', encoding='utf-8') as f:
+                                f.write(online_content)
+                            update_progress('writing', 90, "New version installed!")
+                        except Exception as retry_error:
+                            update_progress('error', 80, "Installation failed after retries")
+                            self.is_updating = False
+                            return
+                    else:
+                        update_progress('error', 80, "Installation failed")
+                        self.is_updating = False
+                        return
                 
                 # Stage 4: Finalizing
-                update_progress('verifying', 90, "Finalizing...")
+                self.progress_monitor.start_monitoring('verifying')
+                update_progress('verifying', 95, "Finalizing...")
                 time.sleep(0.5)
                 
                 new_version = get_current_version()
@@ -383,13 +469,23 @@ class UpdaterAPI:
                     self.close_app()
                 else:
                     logging.error(f"Version mismatch after update: {new_version} vs {expected_version}")
-                    update_progress('error', 90, "Verification failed")
-                    self.is_updating = False
+                    if self.retry_count < self.max_retries:
+                        self.retry_count += 1
+                        update_progress('verifying', 95, f"Verification failed, retrying... (Attempt {self.retry_count}/{self.max_retries})")
+                        time.sleep(2)
+                        # Retry the entire update process
+                        self.performUpdate()
+                    else:
+                        update_progress('error', 95, "Verification failed after retries")
+                        self.is_updating = False
                     
             except Exception as e:
                 logging.error(f"Error in update thread: {e}")
-                update_progress('error', 0, "Update process failed")
+                update_progress('error', 0, f"Update process failed: {str(e)}")
                 self.is_updating = False
+            finally:
+                if self.progress_monitor:
+                    self.progress_monitor.stop_monitoring()
         
         thread = threading.Thread(target=update_thread)
         thread.daemon = True
@@ -786,6 +882,16 @@ def create_updater_gui():
                 0% {{ transform: rotate(0deg); }}
                 100% {{ transform: rotate(360deg); }}
             }}
+            
+            .retry-notice {{
+                background: rgba(245, 158, 11, 0.1);
+                border: 1px solid rgba(245, 158, 11, 0.3);
+                border-radius: 8px;
+                padding: 10px;
+                margin: 10px 0;
+                font-size: 12px;
+                color: {current_theme['text_secondary']};
+            }}
         </style>
     </head>
     <body>
@@ -830,6 +936,9 @@ def create_updater_gui():
                 
                 <div class="progress-container" id="progressContainer">
                     <div class="progress-header" id="progressHeader">Updating Sigmi Hub</div>
+                    <div class="retry-notice" id="retryNotice" style="display: none;">
+                        If update gets stuck, it will automatically retry (max 3 attempts)
+                    </div>
                     <div class="progress-bar-container">
                         <div class="progress-bar" id="progressBar"></div>
                     </div>
@@ -857,6 +966,7 @@ def create_updater_gui():
             function startUpdate() {{
                 document.getElementById('buttons').style.display = 'none';
                 document.getElementById('progressContainer').style.display = 'block';
+                document.getElementById('retryNotice').style.display = 'block';
                 document.getElementById('statusBadge').textContent = 'Updating...';
                 document.getElementById('statusBadge').style.background = '{current_theme['primary']}';
                 
@@ -918,6 +1028,12 @@ def create_updater_gui():
                     progressBar.style.background = 'linear-gradient(90deg, #10b981, {current_theme['accent']})';
                     document.getElementById('statusBadge').textContent = 'Update Complete!';
                     document.getElementById('statusBadge').style.background = '#10b981';
+                    document.getElementById('retryNotice').style.display = 'none';
+                }}
+                
+                // Show retry info if error
+                if (stage === 'error') {{
+                    document.getElementById('retryNotice').style.display = 'block';
                 }}
             }};
         </script>
