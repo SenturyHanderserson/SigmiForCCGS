@@ -103,7 +103,7 @@ THEMES = {
 
 # Settings storage
 SETTINGS_FILE = 'bypass_settings.json'
-VERSION = 'v1.011'
+VERSION = 'v1.012'
 
 def load_settings():
     """Load settings from file with proper defaults"""
@@ -432,8 +432,8 @@ def create_webview_app():
                 backdrop-filter: blur(30px);
                 border: 1px solid {current_theme['glass_border']};
                 border-radius: 20px;
-                padding: 30px;
-                margin-bottom: 25px;
+                padding: 35px;
+                margin-bottom: 30px;
                 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 box-shadow: {current_theme['shadow']};
                 text-align: center;
@@ -451,40 +451,62 @@ def create_webview_app():
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 background-clip: text;
-                margin-bottom: 15px;
+                margin-bottom: 10px;
+                line-height: 1.2;
             }}
             
             .app-subtitle {{
-                font-size: 18px;
+                font-size: 20px;
                 color: {current_theme['text_secondary']};
-                margin-bottom: 20px;
-                font-weight: 500;
-            }}
-            
-            .app-features {{
-                display: flex;
-                justify-content: center;
-                gap: 30px;
-                margin-top: 25px;
-                flex-wrap: wrap;
-            }}
-            
-            .feature {{
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                color: {current_theme['text_secondary']};
-                font-size: 14px;
-                font-weight: 500;
-            }}
-            
-            .feature-badge {{
-                background: linear-gradient(135deg, {current_theme['primary']}, {current_theme['secondary']});
-                color: white;
-                padding: 4px 12px;
-                border-radius: 20px;
-                font-size: 12px;
+                margin-bottom: 25px;
                 font-weight: 600;
+                letter-spacing: 0.5px;
+            }}
+            
+            .news-content {{
+                color: {current_theme['text_secondary']};
+                max-width: 700px;
+                margin: 0 auto;
+                line-height: 1.7;
+                font-size: 16px;
+                text-align: left;
+                padding: 0 20px;
+            }}
+            
+            .news-paragraph {{
+                margin-bottom: 20px;
+                padding: 15px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                border-left: 4px solid {current_theme['primary']};
+            }}
+            
+            .news-highlight {{
+                color: {current_theme['primary']};
+                font-weight: 600;
+            }}
+            
+            .feature-list {{
+                text-align: left;
+                margin: 25px 0;
+                padding: 0 30px;
+            }}
+            
+            .feature-item {{
+                margin-bottom: 12px;
+                padding-left: 25px;
+                position: relative;
+                color: {current_theme['text_secondary']};
+                line-height: 1.6;
+            }}
+            
+            .feature-item:before {{
+                content: "•";
+                color: {current_theme['primary']};
+                font-weight: bold;
+                position: absolute;
+                left: 0;
+                font-size: 18px;
             }}
             
             /* Method Cards */
@@ -779,12 +801,32 @@ def create_webview_app():
                         <!-- App Description Card -->
                         <div class="app-description">
                             <div class="app-title">Sigmi Hub</div>
-                            <div class="app-subtitle">Recent News</div>
-                            <p style="color: {current_theme['text_secondary']}; max-width: 600px; margin: 0 auto; line-height: 1.6;">
-                                I will be taking some time off to focus on assesments and other things, so Sigmi Hub will not be updated for a while. Features that I can and will implement when
-                                I have the oppertunity include auto updating, working bypasses, login and key replication to main website (Sigmi Team or SigmiForCCGS), real time appliaction control
-                                on a server (eg. playing clash royal or roblox unblocked) and more.
-                            </p>
+                            <div class="app-subtitle">Recent News & Updates</div>
+                            
+                            <div class="news-content">
+                                <div class="news-paragraph">
+                                    I will be taking some time off to focus on assessments and other commitments, 
+                                    so Sigmi Hub will not be updated for a while.
+                                </div>
+                                
+                                <div class="news-paragraph">
+                                    <span class="news-highlight">Upcoming Features:</span> 
+                                    When I have the opportunity, I plan to implement:
+                                </div>
+                                
+                                <div class="feature-list">
+                                    <div class="feature-item">Auto-updating system for seamless updates</div>
+                                    <div class="feature-item">Additional working bypass methods</div>
+                                    <div class="feature-item">Login and key replication to main website (Sigmi Team or SigmiForCCGS)</div>
+                                    <div class="feature-item">Real-time application control on a server (e.g., playing Clash Royal or Roblox unblocked)</div>
+                                    <div class="feature-item">And much more!</div>
+                                </div>
+                                
+                                <div class="news-paragraph">
+                                    Thank you for your patience and support during this time!
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="method-card">
                             <div class="card-header">
