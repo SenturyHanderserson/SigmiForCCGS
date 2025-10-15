@@ -4,6 +4,7 @@ import os
 import json
 import webbrowser
 import requests
+import psutil
 from urllib.parse import quote
 
 def install_webview():
@@ -103,7 +104,7 @@ THEMES = {
 
 # Settings storage
 SETTINGS_FILE = 'bypass_settings.json'
-VERSION = 'v1.012'
+VERSION = 'v1.013'
 
 def load_settings():
     """Load settings from file with proper defaults"""
@@ -140,14 +141,39 @@ def save_settings(settings):
     except Exception as e:
         print(f"Error saving settings: {e}")
 
+def kill_vbs_wrappers():
+    """Kill VBS wrapper processes"""
+    try:
+        user_profile = os.path.expanduser("~")
+        gui_launcher = os.path.join(user_profile, "AppData", "Local", "SigmiHub", "GUILauncher.vbs")
+        update_launcher = os.path.join(user_profile, "AppData", "Local", "SigmiHub", "UpdateLauncher.vbs")
+        
+        # Kill wscript processes that might be running our VBS files
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            try:
+                if proc.info['name'] and 'wscript' in proc.info['name'].lower():
+                    cmdline = proc.info['cmdline'] or []
+                    if any('GUILauncher.vbs' in str(arg) for arg in cmdline) or any('UpdateLauncher.vbs' in str(arg) for arg in cmdline):
+                        proc.terminate()
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
+    except Exception as e:
+        print(f"Error killing VBS wrappers: {e}")
+
 def launch_updater():
     """Launch the updater via VBS wrapper"""
     try:
         print("Launching updater and closing main GUI...")
         
+        # Kill current VBS wrappers
+        kill_vbs_wrappers()
+        
         # Launch the updater via VBS wrapper
-        if os.path.exists('UpdaterLauncher.vbs'):
-            subprocess.Popen(['wscript.exe', 'UpdaterLauncher.vbs'], shell=True)
+        user_profile = os.path.expanduser("~")
+        updater_launcher = os.path.join(user_profile, "AppData", "Local", "SigmiHub", "UpdateLauncher.vbs")
+        
+        if os.path.exists(updater_launcher):
+            subprocess.Popen(['wscript.exe', updater_launcher], shell=True)
         else:
             # Fallback: run updater directly
             subprocess.Popen([sys.executable, 'updater.py', '--gui'], shell=True)
@@ -166,19 +192,19 @@ class BypassAPI:
     def close_app(self):
         """Close the application"""
         print("Closing application...")
+        # Kill VBS wrappers before exiting
+        kill_vbs_wrappers()
         os._exit(0)
     
     def changeTheme(self, theme):
-        """Change application theme"""
+        """Change application theme without restarting"""
         self.settings['theme'] = theme
         save_settings(self.settings)
         return {'status': 'theme_changed', 'theme': theme}
     
-    def restart_app(self):
-        """Restart the application to apply theme changes"""
-        print("Restarting application...")
-        python = sys.executable
-        os.execl(python, python, *sys.argv)
+    def refresh_theme(self):
+        """Refresh the current page to apply theme changes"""
+        return {'status': 'refresh_requested'}
     
     def checkUpdates(self):
         """Check for updates and launch updater GUI"""
@@ -188,6 +214,17 @@ class BypassAPI:
             return {'success': True, 'message': 'Launching updater...'}
         except Exception as e:
             return {'success': False, 'error': str(e)}
+
+def get_icon_path():
+    """Get the path to the application icon"""
+    try:
+        user_profile = os.path.expanduser("~")
+        icon_path = os.path.join(user_profile, "AppData", "Local", "SigmiHub", "logo.ico")
+        if os.path.exists(icon_path):
+            return icon_path
+    except Exception as e:
+        print(f"Error getting icon path: {e}")
+    return None
 
 def create_webview_app():
     """Create the WebView window with enhanced styling"""
@@ -204,6 +241,9 @@ def create_webview_app():
     y = settings.get('window_position', {}).get('y', 100)
     width = settings.get('window_size', {}).get('width', 1200)
     height = settings.get('window_size', {}).get('height', 800)
+    
+    # Get icon path
+    icon_path = get_icon_path()
     
     # HTML content with embedded CSS
     html_content = f'''
@@ -739,6 +779,53 @@ def create_webview_app():
                 margin-bottom: 15px;
             }}
             
+            /* Changelog Section */
+            .changelog-container {{
+                background: {current_theme['glass']};
+                backdrop-filter: blur(30px);
+                border: 1px solid {current_theme['glass_border']};
+                border-radius: 20px;
+                padding: 35px;
+                margin-bottom: 25px;
+            }}
+            
+            .version-badge {{
+                background: linear-gradient(135deg, {current_theme['primary']}, {current_theme['secondary']});
+                color: white;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 14px;
+                font-weight: 700;
+                display: inline-block;
+                margin-bottom: 20px;
+            }}
+            
+            .changelog-list {{
+                list-style: none;
+                padding: 0;
+            }}
+            
+            .changelog-item {{
+                padding: 15px;
+                margin-bottom: 12px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                border-left: 4px solid {current_theme['accent']};
+                transition: all 0.3s ease;
+            }}
+            
+            .changelog-item:hover {{
+                transform: translateX(5px);
+                background: rgba(255, 255, 255, 0.15);
+            }}
+            
+            .changelog-item:before {{
+                content: "✓";
+                color: {current_theme['accent']};
+                font-weight: bold;
+                margin-right: 10px;
+            }}
+            
             /* Scrollbar */
             .content-area::-webkit-scrollbar {{
                 width: 8px;
@@ -786,6 +873,10 @@ def create_webview_app():
                         <div class="nav-item" data-section="tools">
                             <span class="nav-icon">🛠️</span>
                             Tools
+                        </div>
+                        <div class="nav-item" data-section="changelog">
+                            <span class="nav-icon">📋</span>
+                            Changelog
                         </div>
                         <div class="nav-item" data-section="settings">
                             <span class="nav-icon">⚙️</span>
@@ -882,6 +973,43 @@ def create_webview_app():
                         </div>
                     </div>
 
+                    <!-- Changelog Section -->
+                    <div class="content-section" id="changelog-section">
+                        <h2 style="margin-bottom: 25px; color: {current_theme['text']};">Version History</h2>
+                        
+                        <div class="changelog-container">
+                            <div class="version-badge">Version 1.013</div>
+                            <ul class="changelog-list">
+                                <li class="changelog-item">Added instant theme switching without app restart</li>
+                                <li class="changelog-item">Improved app closing speed and VBS wrapper cleanup</li>
+                                <li class="changelog-item">Added custom application icon support</li>
+                                <li class="changelog-item">Added new Changelog tab</li>
+                                <li class="changelog-item">Fixed tab navigation issues</li>
+                                <li class="changelog-item">Enhanced process management for VBS wrappers</li>
+                                <li class="changelog-item">Improved overall performance and stability</li>
+                            </ul>
+                        </div>
+
+                        <div class="changelog-container">
+                            <div class="version-badge">Version 1.011</div>
+                            <ul class="changelog-list">
+                                <li class="changelog-item">Added app description and news section</li>
+                                <li class="changelog-item">Improved text formatting and spacing</li>
+                                <li class="changelog-item">Enhanced UI responsiveness</li>
+                            </ul>
+                        </div>
+
+                        <div class="changelog-container">
+                            <div class="version-badge">Version 1.01</div>
+                            <ul class="changelog-list">
+                                <li class="changelog-item">Initial release with Google Translate bypass</li>
+                                <li class="changelog-item">Multiple theme support</li>
+                                <li class="changelog-item">Glass-morphism UI design</li>
+                                <li class="changelog-item">Basic tools and settings sections</li>
+                            </ul>
+                        </div>
+                    </div>
+
                     <!-- Settings Section -->
                     <div class="content-section" id="settings-section">
                         <h2 style="margin-bottom: 25px; color: {current_theme['text']};">Preferences</h2>
@@ -913,6 +1041,9 @@ def create_webview_app():
                                         <div class="theme-name">Purple Haze</div>
                                     </div>
                                 </div>
+                                <button class="bypass-button" style="width: 100%; margin-top: 20px;" onclick="applyTheme()">
+                                    Apply Theme
+                                </button>
                             </div>
 
                             <div class="setting-group">
@@ -952,7 +1083,33 @@ def create_webview_app():
                 }}, 500);
             }}
 
-            // Theme switching with loading screen
+            // Theme switching without restart
+            function applyTheme() {{
+                const activeTheme = document.querySelector('.theme-option.active');
+                if (!activeTheme) return;
+                
+                const theme = activeTheme.getAttribute('data-theme');
+                const themeName = activeTheme.querySelector('.theme-name').textContent;
+                
+                // Show loading screen
+                showThemeLoadingScreen(themeName);
+                
+                if (window.pywebview) {{
+                    pywebview.api.changeTheme(theme).then(result => {{
+                        if (result.status === 'theme_changed') {{
+                            // Refresh the page to apply new theme
+                            setTimeout(() => {{
+                                if (window.pywebview) {{
+                                    pywebview.api.refresh_theme().then(() => {{
+                                        location.reload();
+                                    }});
+                                }}
+                            }}, 1000);
+                        }}
+                    }});
+                }}
+            }}
+
             function showThemeLoadingScreen(themeName) {{
                 const loadingOverlay = document.getElementById('loadingOverlay');
                 const loadingText = loadingOverlay.querySelector('.loading-text');
@@ -1015,25 +1172,9 @@ def create_webview_app():
                 
                 themeOptions.forEach(option => {{
                     option.addEventListener('click', function() {{
-                        const theme = this.getAttribute('data-theme');
-                        const themeName = this.querySelector('.theme-name').textContent;
-                        
-                        // Show loading screen
-                        showThemeLoadingScreen(themeName);
-                        
                         // Update active state
                         themeOptions.forEach(opt => opt.classList.remove('active'));
                         this.classList.add('active');
-                        
-                        // Save theme and reload with delay to show loading screen
-                        if (window.pywebview) {{
-                            pywebview.api.changeTheme(theme);
-                            setTimeout(() => {{
-                                if (window.pywebview) {{
-                                    pywebview.api.restart_app();
-                                }}
-                            }}, 1500); // Show loading screen for 1.5 seconds
-                        }}
                     }});
                 }});
             }}
@@ -1109,15 +1250,24 @@ def create_webview_app():
     
     # Create webview window
     try:
-        window = webview.create_window(
-            'Sigmi Hub',
-            html=html_content,
-            x=x, y=y, width=width, height=height,
-            resizable=True,
-            frameless=True,
-            easy_drag=True,
-            js_api=BypassAPI()
-        )
+        window_kwargs = {
+            'title': 'Sigmi Hub',
+            'html': html_content,
+            'x': x, 
+            'y': y, 
+            'width': width, 
+            'height': height,
+            'resizable': True,
+            'frameless': True,
+            'easy_drag': True,
+            'js_api': BypassAPI()
+        }
+        
+        # Add icon if available
+        if icon_path:
+            window_kwargs['icon'] = icon_path
+            
+        window = webview.create_window(**window_kwargs)
         
     except Exception as e:
         print(f"Error creating window: {e}")
@@ -1131,6 +1281,9 @@ def create_webview_app():
             settings['window_position'] = {'x': geometry[0], 'y': geometry[1]}
             settings['window_size'] = {'width': size[0], 'height': size[1]}
             save_settings(settings)
+            
+            # Kill VBS wrappers when closing
+            kill_vbs_wrappers()
         except Exception as e:
             print(f"Error saving window position: {e}")
     
