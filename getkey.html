@@ -500,6 +500,78 @@
             gap: 5px;
         }
 
+        /* ============ AD SYSTEM STYLES ============ */
+        .ad-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ad-header {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 2px solid var(--accent-primary);
+        }
+
+        .ad-timer {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent-primary);
+            margin-top: 0.5rem;
+        }
+
+        .ad-iframe {
+            width: 100%;
+            height: calc(100% - 80px);
+            border: none;
+            background: white;
+        }
+
+        .ad-progress-container {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .ad-progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .ad-progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .ad-progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .ad-requirements {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 1rem;
+        }
+
         /* ============ SERVER SYSTEMS STYLES ============ */
         .notification-container {
             position: fixed;
@@ -605,7 +677,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 2001; /* Increased z-index */
+            z-index: 2001;
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
@@ -836,7 +908,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 2002; /* Higher than warning modal */
+            z-index: 2002;
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
@@ -1329,11 +1401,19 @@
         <div class="messages-list" id="messagesList"></div>
     </div>
     
-    <!-- Warning Modal (will be created dynamically) -->
-    
-    <!-- Broadcast Toast Container (will be created dynamically) -->
-    
-    <!-- Broadcast Modal (will be created dynamically) -->
+    <!-- Ad Progress Display -->
+    <div class="glass-card ad-progress-container" id="adProgressContainer" style="display: none;">
+        <div class="ad-progress-header">
+            <h3>Ad Progress</h3>
+            <span id="adProgressText">0/3 Ads Watched</span>
+        </div>
+        <div class="ad-progress-bar">
+            <div class="ad-progress-fill" id="adProgressFill"></div>
+        </div>
+        <div class="ad-requirements" id="adRequirements">
+            Watch 3 ads to generate your key
+        </div>
+    </div>
 
     <div class="modal-overlay" id="loginModal">
         <div class="modal-content">
@@ -1387,7 +1467,7 @@
                         </div>
                         <div class="task-content">
                             <h3 class="task-title">Task 1</h3>
-                            <p class="task-description">Shop, order or look at a message from our sponsors</p>
+                            <p class="task-description">Watch advertisement to support our sponsors</p>
                             <div class="task-status" id="task1-status">Click to Complete</div>
                         </div>
                     </div>
@@ -1398,7 +1478,7 @@
                         </div>
                         <div class="task-content">
                             <h3 class="task-title">Task 2</h3>
-                            <p class="task-description">Browse, read and check out articles from our sponsors</p>
+                            <p class="task-description">Watch advertisement to support our sponsors</p>
                             <div class="task-status" id="task2-status">Locked</div>
                         </div>
                     </div>
@@ -1409,7 +1489,7 @@
                         </div>
                         <div class="task-content">
                             <h3 class="task-title">Task 3</h3>
-                            <p class="task-description">Complete the final validation process to activate your key</p>
+                            <p class="task-description">Watch advertisement to support our sponsors</p>
                             <div class="task-status" id="task3-status">Locked</div>
                         </div>
                     </div>
@@ -1480,7 +1560,13 @@
             warningCheckInterval: null,
             messageCheckInterval: null,
             isBlacklisted: false,
-            existingKey: null
+            existingKey: null,
+            adProgress: {
+                completions: 0,
+                required: 3,
+                canGenerateKey: false
+            },
+            currentAdSession: null
         };
 
         // ============ DOM ELEMENTS ============
@@ -1503,6 +1589,226 @@
         const authorizedDeviceElement = document.getElementById('authorized-device');
         const keyStatusElement = document.getElementById('key-status');
         const deviceWarningElement = document.getElementById('device-warning');
+        const adProgressContainer = document.getElementById('adProgressContainer');
+        const adProgressFill = document.getElementById('adProgressFill');
+        const adProgressText = document.getElementById('adProgressText');
+        const adRequirements = document.getElementById('adRequirements');
+
+        // ============ AD SYSTEM ============
+        async function checkAdProgress() {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) return;
+
+                const response = await fetch(`${SERVER_URL}/api/ads/progress`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    state.adProgress.completions = data.adCompletions;
+                    state.adProgress.required = data.adsRequired;
+                    state.adProgress.canGenerateKey = data.canGenerateKey;
+                    
+                    updateAdProgressDisplay();
+                }
+            } catch (error) {
+                console.error('Error checking ad progress:', error);
+            }
+        }
+
+        function updateAdProgressDisplay() {
+            const progress = (state.adProgress.completions / state.adProgress.required) * 100;
+            
+            adProgressFill.style.width = `${progress}%`;
+            adProgressText.textContent = `${state.adProgress.completions}/${state.adProgress.required} Ads Watched`;
+            
+            if (state.adProgress.completions > 0) {
+                adProgressContainer.style.display = 'block';
+            }
+            
+            if (state.adProgress.canGenerateKey) {
+                adRequirements.textContent = '✓ Ad requirement met! You can now generate a key';
+                adRequirements.style.color = 'var(--success-color)';
+            } else {
+                const remaining = state.adProgress.required - state.adProgress.completions;
+                adRequirements.textContent = `Watch ${remaining} more ad${remaining !== 1 ? 's' : ''} to generate your key`;
+                adRequirements.style.color = 'var(--text-secondary)';
+            }
+        }
+
+        async function showAdForTask(taskId) {
+            if (state.adProgress.canGenerateKey) {
+                // If ads are already completed, just complete the task normally
+                completeTask(taskId);
+                return;
+            }
+
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) {
+                    showNotification('Please login first', 'error');
+                    return;
+                }
+
+                // Get ad session from server
+                const response = await fetch(`${SERVER_URL}/api/ads/session`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to get ad session');
+                }
+
+                const data = await response.json();
+                state.currentAdSession = data.sessionId;
+                
+                // Show ad modal
+                showAdModal(data.adContent, data.duration);
+                
+            } catch (error) {
+                console.error('Error starting ad:', error);
+                showNotification('Error loading advertisement', 'error');
+                // Fallback - complete task anyway for testing
+                completeTask(taskId);
+            }
+        }
+
+        function showAdModal(adContent, duration) {
+            const modal = document.createElement('div');
+            modal.id = 'ad-modal-overlay';
+            modal.className = 'ad-modal-overlay';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.95);
+                z-index: 9999;
+                display: flex;
+                flex-direction: column;
+            `;
+            
+            modal.innerHTML = `
+                <div class="ad-header">
+                    <h3>Advertisement Required</h3>
+                    <p>Please watch the ad to complete the task</p>
+                    <div class="ad-timer">
+                        Time remaining: <span id="global-ad-timer">${duration}</span>s
+                    </div>
+                </div>
+                <iframe 
+                    id="ad-iframe"
+                    srcdoc="${escapeHtml(adContent)}"
+                    style="width: 100%; height: calc(100% - 80px); border: none;"
+                    sandbox="allow-scripts allow-same-origin allow-forms"
+                ></iframe>
+            `;
+            
+            document.body.appendChild(modal);
+            document.body.style.overflow = 'hidden';
+            
+            // Start global countdown
+            startGlobalCountdown(duration);
+            
+            // Listen for ad completion message from iframe
+            window.addEventListener('message', handleAdMessage);
+        }
+
+        function startGlobalCountdown(duration) {
+            let timeLeft = duration;
+            const timerElement = document.getElementById('global-ad-timer');
+            
+            const countdown = setInterval(() => {
+                timeLeft--;
+                if (timerElement) timerElement.textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    // Auto-complete if no message received
+                    completeAdViewing(duration);
+                }
+            }, 1000);
+        }
+
+        function handleAdMessage(event) {
+            if (event.data.type === 'AD_COMPLETED') {
+                completeAdViewing(event.data.viewTime);
+            }
+        }
+
+        async function completeAdViewing(viewTime) {
+            try {
+                const token = getCookie('AuthToken');
+                
+                // Validate session first
+                await fetch(`${SERVER_URL}/api/ads/validate`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ sessionId: state.currentAdSession })
+                });
+
+                // Complete ad viewing
+                const response = await fetch(`${SERVER_URL}/api/ads/complete`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        sessionId: state.currentAdSession,
+                        viewTime: viewTime
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Update local state
+                    state.adProgress.completions = data.adCompletions;
+                    state.adProgress.canGenerateKey = data.canGenerateKey;
+                    
+                    updateAdProgressDisplay();
+                    
+                    // Close ad modal
+                    closeAdModal();
+                    
+                    // Complete the current task
+                    const currentTask = state.tasks.find(task => !task.completed);
+                    if (currentTask) {
+                        completeTask(currentTask.id);
+                    }
+                    
+                    showNotification(`Advertisement completed! ${data.adsRemaining} more required.`, 'success');
+                    
+                } else {
+                    throw new Error('Failed to complete ad');
+                }
+                
+            } catch (error) {
+                console.error('Error completing ad:', error);
+                showNotification('Error completing advertisement', 'error');
+                closeAdModal();
+            }
+        }
+
+        function closeAdModal() {
+            const modal = document.getElementById('ad-modal-overlay');
+            if (modal) {
+                modal.remove();
+            }
+            document.body.style.overflow = '';
+            window.removeEventListener('message', handleAdMessage);
+            state.currentAdSession = null;
+        }
 
         // ============ THEME MANAGEMENT ============
         function getTheme() {
@@ -1675,7 +1981,7 @@
             progressFill.style.width = `${progress}%`;
             progressPercentage.textContent = `${Math.round(progress)}%`;
             
-            if (completedTasks === state.tasks.length && !state.key) {
+            if (completedTasks === state.tasks.length && !state.key && state.adProgress.canGenerateKey) {
                 generateKey();
             }
             
@@ -1719,6 +2025,12 @@
             
             if (state.key || state.existingKey) {
                 showNotification('Tasks are disabled while you have an active key!', 'warning');
+                return;
+            }
+            
+            // Use ad system for task completion
+            if (!state.adProgress.canGenerateKey) {
+                showAdForTask(taskId);
                 return;
             }
             
@@ -2618,6 +2930,7 @@
             checkForBroadcasts();
             checkForWarnings();
             updateKeyStatus();
+            checkAdProgress();
             
             state.broadcastCheckInterval = setInterval(checkForBroadcasts, 2 * 60 * 1000);
             state.warningCheckInterval = setInterval(checkForWarnings, 5 * 60 * 1000);
