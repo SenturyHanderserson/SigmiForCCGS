@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OvO Dimensions</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background-color: #111;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: sans-serif;
+    }
+    h2 {
+      margin-bottom: 10px;
+      font-weight: 400;
+      color: #eee;
+      text-align: center;
+    }
+    iframe {
+      width: 90vw;
+      height: 90vh;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+    }
+  </style>
+</head>
+<body>
+  <iframe
+    id="embeddedSite"
+    src="https://quiz-50.github.io/action-games/ovo-dimensions/"
+    sandbox="allow-same-origin allow-scripts allow-forms"
+    referrerpolicy="no-referrer"
+    allow="fullscreen"
+  ></iframe>
+
+  <script>
+    // Prevent links in iframe from opening new tabs/windows
+    const iframe = document.getElementById('embeddedSite');
+    iframe.addEventListener('load', () => {
+      try {
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        const links = iframeDoc.querySelectorAll('a[target="_blank"], a[target="_new"]');
+        links.forEach(link => link.removeAttribute('target'));
+      } catch (e) {
+        console.warn('Cannot access iframe contents due to cross-origin restrictions.');
+      }
+    });
+  </script>
+</body>
+</html>
