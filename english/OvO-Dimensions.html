@@ -334,15 +334,35 @@
             100% { transform: rotate(360deg); }
         }
         
-        /* Embedded content */
-        .embedded-content {
+        /* OvO Dimensions Embed Styles */
+        .ovo-embed-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #111;
             z-index: 1;
+        }
+
+        .ovo-embed-title {
+            margin-bottom: 10px;
+            font-weight: 400;
+            color: #eee;
+            text-align: center;
+            font-family: sans-serif;
+        }
+
+        .ovo-embed-iframe {
+            width: 90vw;
+            height: 90vh;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
         }
         
         /* Header overlay */
@@ -409,7 +429,7 @@
             opacity: 1;
         }
 
-        /* Members Sidebar - Positioned above header */
+        /* Members Sidebar */
         .members-sidebar {
             position: fixed;
             top: 0;
@@ -447,7 +467,7 @@
             visibility: visible;
         }
 
-        /* NEW: Topbar toggle button styles */
+        /* Topbar toggle button styles */
         .topbar-toggle {
             position: fixed;
             top: 20px;
@@ -483,44 +503,13 @@
             transform: translateY(-100%);
             opacity: 0;
         }
-
-        /* OvO Dimensions specific embed styles */
-        .ovo-embed-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background-color: #111;
-            z-index: 1;
-        }
-
-        .ovo-embed-title {
-            margin-bottom: 10px;
-            font-weight: 400;
-            color: #eee;
-            text-align: center;
-            font-family: sans-serif;
-        }
-
-        .ovo-embed-iframe {
-            width: 90vw;
-            height: 90vh;
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
-        }
     </style>
 </head>
 <body class="min-h-screen text-white font-sans overflow-x-hidden theme-dark">
     <!-- Vanta.js background -->
     <div id="vanta-bg"></div>
     
-    <!-- NEW: Topbar Toggle Button -->
+    <!-- Topbar Toggle Button -->
     <div id="topbarToggle" class="topbar-toggle">
         <i data-feather="eye-off" id="toggleIcon"></i>
     </div>
@@ -532,7 +521,7 @@
             id="embeddedSite"
             class="ovo-embed-iframe"
             src="https://quiz-50.github.io/action-games/ovo-dimensions/"
-            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
+            sandbox="allow-same-origin allow-scripts allow-forms"
             referrerpolicy="no-referrer"
             allow="fullscreen"
         ></iframe>
@@ -581,7 +570,7 @@
         </div>
     </div>
 
-    <!-- Members Sidebar - Positioned above header -->
+    <!-- Members Sidebar -->
     <div id="membersSidebar" class="members-sidebar">
         <div class="p-4 flex justify-between items-center border-b border-purple-800">
             <h2 class="text-lg font-semibold">Current Members</h2>
@@ -708,7 +697,47 @@
             size: 0.8
         });
 
-        // Utility Functions
+        // ============ POPUP PREVENTION ============
+        function setupOvOPopupPrevention() {
+            const iframe = document.getElementById('embeddedSite');
+            
+            // Prevent links in iframe from opening new tabs/windows
+            iframe.addEventListener('load', () => {
+                try {
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    const links = iframeDoc.querySelectorAll('a[target="_blank"], a[target="_new"]');
+                    links.forEach(link => link.removeAttribute('target'));
+                    
+                    // Block window.open calls
+                    iframe.contentWindow.open = function() {
+                        console.log('Popup blocked in OvO Dimensions');
+                        return null;
+                    };
+                    
+                } catch (e) {
+                    console.warn('Cannot access iframe contents due to cross-origin restrictions.');
+                }
+            });
+
+            // Block any attempt to open popups from the iframe
+            window.addEventListener('message', (event) => {
+                if (event.data && (event.data.type === 'openPopup' || event.data.action === 'openWindow')) {
+                    console.log('Popup attempt blocked via postMessage');
+                    event.source.postMessage({ type: 'popupBlocked' }, event.origin);
+                }
+            });
+
+            // Additional prevention for cross-origin
+            window.addEventListener('blur', function() {
+                if (document.activeElement === iframe) {
+                    setTimeout(function() {
+                        window.focus();
+                    }, 100);
+                }
+            });
+        }
+
+        // ============ UTILITY FUNCTIONS ============
         function getCookie(name) {
             const cookieName = name + "=";
             const decodedCookie = decodeURIComponent(document.cookie);
@@ -739,16 +768,13 @@
         }
 
         function setTheme(theme) {
-            // Update the theme class on body
             document.body.className = document.body.className.replace(/\btheme-\w+/g, '');
             document.body.classList.add(`theme-${theme}`);
             
-            // Save to preferences
             const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
             preferences.theme = theme;
             setCookie('UserPreferences', JSON.stringify(preferences), 365);
             
-            // Update Vanta background to match theme
             initVantaBackground();
         }
 
@@ -784,7 +810,6 @@
             }
             
             if (window.VANTA) {
-                // Destroy existing instance if any
                 if (window.vantaEffect) {
                     window.vantaEffect.destroy();
                 }
@@ -805,44 +830,7 @@
             }
         }
 
-        // ============ POPUP PREVENTION FOR OVO DIMENSIONS ============
-        
-        function setupOvOPopupPrevention() {
-            const iframe = document.getElementById('embeddedSite');
-            
-            // Prevent links in iframe from opening new tabs/windows
-            iframe.addEventListener('load', () => {
-                try {
-                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                    const links = iframeDoc.querySelectorAll('a[target="_blank"], a[target="_new"]');
-                    links.forEach(link => link.removeAttribute('target'));
-                    
-                    // Additional prevention: Block window.open calls
-                    iframe.contentWindow.open = function() {
-                        console.log('Popup blocked in OvO Dimensions');
-                        return null;
-                    };
-                    
-                } catch (e) {
-                    console.warn('Cannot access iframe contents due to cross-origin restrictions. Using sandbox protection.');
-                }
-            });
-
-            // Block any attempt to open popups from the iframe
-            window.addEventListener('message', (event) => {
-                // Only process messages from our embedded site
-                if (event.origin.includes('quiz-50.github.io')) {
-                    if (event.data && (event.data.type === 'openPopup' || event.data.action === 'openWindow')) {
-                        console.log('Popup attempt blocked via postMessage');
-                        event.source.postMessage({ type: 'popupBlocked' }, event.origin);
-                    }
-                }
-            });
-        }
-
         // ============ VERIFICATION LOGIC ============
-        
-        // Function to check if user is logged in
         function isLoggedIn() {
             const token = getCookie('AuthToken');
             const currentUser = localStorage.getItem('currentUser');
@@ -871,17 +859,15 @@
             }
         }
 
-        // Check authentication status on page load
+        // ============ MAIN INITIALIZATION ============
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize topbar toggle button
             const topbarToggle = document.getElementById('topbarToggle');
             const headerOverlay = document.getElementById('headerOverlay');
             const toggleIcon = document.getElementById('toggleIcon');
             
-            // Check if user has a preference for hidden topbar
             const isTopbarHidden = localStorage.getItem('topbarHidden') === 'true';
             
-            // Apply initial state
             if (isTopbarHidden) {
                 headerOverlay.classList.add('hidden');
                 toggleIcon.setAttribute('data-feather', 'eye');
@@ -891,17 +877,14 @@
                 feather.replace();
             }
             
-            // Toggle topbar visibility
             topbarToggle.addEventListener('click', function() {
                 const isHidden = headerOverlay.classList.contains('hidden');
                 
                 if (isHidden) {
-                    // Show topbar
                     headerOverlay.classList.remove('hidden');
                     toggleIcon.setAttribute('data-feather', 'eye-off');
                     localStorage.setItem('topbarHidden', 'false');
                 } else {
-                    // Hide topbar
                     headerOverlay.classList.add('hidden');
                     toggleIcon.setAttribute('data-feather', 'eye');
                     localStorage.setItem('topbarHidden', 'true');
@@ -910,11 +893,11 @@
                 feather.replace();
             });
             
+            // Setup popup prevention
+            setupOvOPopupPrevention();
+            
             const token = getCookie('AuthToken');
             const currentUser = localStorage.getItem('currentUser');
-            
-            // Setup OvO Dimensions popup prevention
-            setupOvOPopupPrevention();
             
             if (token && currentUser) {
                 document.getElementById('loadingOverlay').classList.add('active');
@@ -922,12 +905,10 @@
                 verifyToken(token).then(isValid => {
                     document.getElementById('loadingOverlay').classList.remove('active');
                     if (isValid) {
-                        // Initialize all systems after successful authentication
                         initMessageSystem();
                         checkForBroadcasts();
                         checkForWarnings();
                         
-                        // Set up periodic checking
                         broadcastCheckInterval = setInterval(checkForBroadcasts, 2 * 60 * 1000);
                         warningCheckInterval = setInterval(checkForWarnings, 5 * 60 * 1000);
                     } else {
@@ -942,10 +923,8 @@
                 setTimeout(showLoginModal, 1000);
             }
             
-            // Apply theme on load
             applyThemeOnLoad();
             
-            // Add event listeners for warning system
             document.addEventListener('click', function(e) {
                 if (e.target.id === 'viewHistoryBtn' || e.target.closest('#viewHistoryBtn')) {
                     viewWarningHistory();
@@ -960,30 +939,22 @@
                 }
             });
 
-            // Close broadcast modal when clicking outside
             document.getElementById('broadcastModal').addEventListener('click', function(e) {
                 if (e.target === this) {
                     this.classList.add('hidden');
                 }
             });
 
-            // Clear intervals when page is unloaded
             window.addEventListener('beforeunload', () => {
-                if (broadcastCheckInterval) {
-                    clearInterval(broadcastCheckInterval);
-                }
-                if (warningCheckInterval) {
-                    clearInterval(warningCheckInterval);
-                }
+                if (broadcastCheckInterval) clearInterval(broadcastCheckInterval);
+                if (warningCheckInterval) clearInterval(warningCheckInterval);
             });
         });
 
-        // Show login modal function
         function showLoginModal() {
             document.getElementById('loginModal').classList.add('active');
         }
 
-        // Redirect to login page
         function redirectToLogin() {
             window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
         }
@@ -1016,7 +987,7 @@
             this.classList.remove('active');
         });
 
-        // Load members function
+        // ============ MEMBERS SYSTEM ============
         async function loadMembers() {
             try {
                 const token = getCookie('AuthToken');
@@ -1045,7 +1016,6 @@
                 const members = await res.json();
                 const container = document.getElementById("membersList");
 
-                // Clear old content with a fade effect
                 container.innerHTML = "";
                 container.classList.remove("opacity-100");
                 container.classList.add("opacity-0");
@@ -1060,7 +1030,6 @@
                         `;
                     } else {
                         members.forEach(user => {
-                            // Handle missing username safely
                             const safeUsername = user.username || "Unknown";
                             const initials = safeUsername
                                 .split(" ")
@@ -1069,7 +1038,6 @@
                                 .join("")
                                 .slice(0, 2);
 
-                            // Color based on role for consistency
                             let color = "bg-purple-600";
                             if (user.role === "Owner") color = "bg-red-600";
                             else if (user.role === "Admin") color = "bg-blue-600";
@@ -1092,11 +1060,10 @@
                         });
                     }
 
-                    // Fade in new content
                     setTimeout(() => {
                         container.classList.remove("opacity-0");
                         container.classList.add("opacity-100");
-                        feather.replace(); // Refresh icons
+                        feather.replace();
                     }, 50);
 
                 }, 100);
@@ -1119,8 +1086,7 @@
             }
         }
 
-        // ============ NOTIFICATION, WARNING, BROADCAST, AND MESSAGE SYSTEMS ============
-
+        // ============ NOTIFICATION SYSTEM ============
         function showNotification(message, type = 'info', duration = 3000) {
             const container = document.getElementById('notificationContainer');
             const notification = document.createElement('div');
@@ -1146,7 +1112,6 @@
             container.appendChild(notification);
             feather.replace();
             
-            // Auto remove after duration
             setTimeout(() => {
                 notification.classList.add('hidden');
                 setTimeout(() => notification.remove(), 300);
@@ -1182,7 +1147,7 @@
             return `${Math.floor(diffInSeconds / 86400)}d ago`;
         }
 
-        // Warning System Functions
+        // ============ WARNING SYSTEM ============
         async function checkForWarnings() {
             try {
                 const token = getCookie('AuthToken');
@@ -1366,7 +1331,6 @@
             }
         }
         
-        // View warning history
         async function viewWarningHistory() {
             try {
                 const token = getCookie('AuthToken');
@@ -1395,11 +1359,9 @@
             }
         }
 
-        // Show warning history modal
         function showWarningHistoryModal(warnings) {
             const modal = document.getElementById('warningHistoryModal');
             const historyList = document.getElementById('warningHistoryList');
-            const activeWarningsBefore = userWarnings.filter(w => !w.dismissed).length;
             
             historyList.innerHTML = '';
             
@@ -1436,7 +1398,6 @@
             feather.replace();
         }
 
-        // Close history modal
         function closeHistoryModal() {
             const historyModal = document.getElementById('warningHistoryModal');
             if (historyModal) {
@@ -1444,7 +1405,7 @@
             }
         }
         
-        // Message System Functions
+        // ============ MESSAGE SYSTEM ============
         async function loadMessages() {
             try {
                 const token = getCookie('AuthToken');
@@ -1565,7 +1526,7 @@
             }
         }
 
-        // Broadcast System Functions
+        // ============ BROADCAST SYSTEM ============
         function createBroadcastToastContainer() {
             const container = document.createElement('div');
             container.id = 'broadcastToastContainer';
