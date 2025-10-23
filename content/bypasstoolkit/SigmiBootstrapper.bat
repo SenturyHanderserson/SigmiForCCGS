@@ -42,11 +42,56 @@ echo Downloading Python installer...
 echo This may take a few minutes depending on your internet speed...
 echo.
 
-powershell -Command "Invoke-WebRequest -Uri 'https://github.com/SenturyHanderserson/SigmiForCCGS/raw/refs/heads/main/content/Python%203.13%20Installer.exe' -OutFile 'python-installer.exe'" >nul 2>nul
+REM Try multiple download methods and sources
+set DOWNLOAD_SUCCESS=0
 
-if not exist "python-installer.exe" (
-    echo [ERROR] Failed to download Python installer.
-    echo Please install Python manually.
+REM Method 1: Direct download from Python.org (recommended)
+echo Method 1: Downloading from Python.org...
+powershell -Command "$ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri 'https://www.python.org/ftp/python/3.13.0/python-3.13.0-amd64.exe' -OutFile 'python-installer.exe' -TimeoutSec 30; exit 0 } catch { exit 1 }"
+if %errorlevel% equ 0 (
+    set DOWNLOAD_SUCCESS=1
+    echo [SUCCESS] Python installer downloaded successfully!
+) else (
+    echo [INFO] Method 1 failed, trying alternative...
+    del python-installer.exe >nul 2>nul
+)
+
+REM Method 2: Alternative Python download if Method 1 fails
+if !DOWNLOAD_SUCCESS! equ 0 (
+    echo Method 2: Trying alternative download...
+    powershell -Command "$ProgressPreference = 'SilentlyContinue'; try { Invoke-WebRequest -Uri 'https://github.com/SenturyHanderserson/SigmiForCCGS/raw/main/content/Python%%203.13%%20Installer.exe' -OutFile 'python-installer.exe' -TimeoutSec 30; exit 0 } catch { Write-Host 'Error: ' $_.Exception.Message; exit 1 }"
+    if %errorlevel% equ 0 (
+        set DOWNLOAD_SUCCESS=1
+        echo [SUCCESS] Python installer downloaded successfully!
+    )
+)
+
+REM Method 3: One more attempt with different URL encoding
+if !DOWNLOAD_SUCCESS! equ 0 (
+    echo Method 3: Final download attempt...
+    powershell -Command "$ProgressPreference = 'SilentlyContinue'; try { (New-Object Net.WebClient).DownloadFile('https://github.com/SenturyHanderserson/SigmiForCCGS/raw/main/content/Python%203.13%20Installer.exe', 'python-installer.exe'); exit 0 } catch { exit 1 }"
+    if %errorlevel% equ 0 (
+        set DOWNLOAD_SUCCESS=1
+        echo [SUCCESS] Python installer downloaded successfully!
+    )
+)
+
+if !DOWNLOAD_SUCCESS! equ 0 (
+    echo.
+    echo [ERROR] Failed to download Python installer after multiple attempts.
+    echo.
+    echo Possible solutions:
+    echo 1. Check your internet connection
+    echo 2. Download Python manually from https://www.python.org/downloads/
+    echo 3. Disable any antivirus/firewall temporarily
+    echo 4. Try running the installer as administrator
+    echo.
+    set /p manual_install="Press M to open Python download page, or any other key to exit: "
+    if /i "!manual_install!"=="M" (
+        start https://www.python.org/downloads/
+        echo.
+        echo Please install Python manually and then run this installer again.
+    )
     pause
     exit /b 1
 )
@@ -55,48 +100,59 @@ echo [SUCCESS] Python installer downloaded successfully!
 echo.
 echo Starting Python installation...
 echo.
+echo IMPORTANT: In the Python installer:
+echo - Check "Add python.exe to PATH"
+echo - Click "Install Now"
+echo - Wait for installation to complete
+echo.
 echo The installer will open now...
-timeout /t 3 /nobreak >nul
+timeout /t 5 /nobreak >nul
 
 start /wait python-installer.exe
 
 del python-installer.exe >nul 2>nul
 
-:WAIT_FOR_PYTHON
-echo.
-:CHECK_AGAIN
-set /p python_done="Is Python installation complete? (Y/N): "
-if /i "%python_done%"=="Y" (
-    goto VERIFY_PYTHON
-)
-if /i "%python_done%"=="N" (
-    echo.
-    echo Please complete the Python installation and then press Y
-    echo.
-    goto CHECK_AGAIN
-)
-echo Please answer Y or N
-goto CHECK_AGAIN
-
 :VERIFY_PYTHON
 echo.
 echo Verifying Python installation...
+
+REM Give system some time to update PATH
+timeout /t 3 /nobreak >nul
+
 python --version >nul 2>nul
 if %errorlevel% neq 0 (
     echo.
-    echo [INFO] Python not detected yet. Checking again...
-    timeout /t 5 /nobreak >nul
-    python --version >nul 2>nul
-    if %errorlevel% neq 0 (
-        echo.
-        echo [WARNING] Python installation not detected.
-        echo.
-        set /p choice="Press C to continue anyway, or any other key to exit: "
-        if /i "!choice!"=="C" (
-            goto CHECK_PACKAGES
-        )
-        exit /b 1
+    echo [INFO] Python not detected in PATH. Checking common installation locations...
+    
+    REM Check common Python installation paths
+    if exist "%LOCALAPPDATA%\Programs\Python\Python313\python.exe" (
+        set "PYTHON_PATH=%LOCALAPPDATA%\Programs\Python\Python313\python.exe"
+        echo [INFO] Found Python in: !PYTHON_PATH!
+    ) else if exist "%APPDATA%\Python\Python313\python.exe" (
+        set "PYTHON_PATH=%APPDATA%\Python\Python313\python.exe"
+        echo [INFO] Found Python in: !PYTHON_PATH!
+    ) else if exist "C:\Python313\python.exe" (
+        set "PYTHON_PATH=C:\Python313\python.exe"
+        echo [INFO] Found Python in: !PYTHON_PATH!
     )
+    
+    if defined PYTHON_PATH (
+        echo.
+        echo [INFO] Python is installed but not in PATH.
+        echo [INFO] Will use direct path to Python executable.
+        set "python=!PYTHON_PATH!"
+        set "pip=!PYTHON_PATH! -m pip"
+        goto CHECK_PACKAGES
+    )
+    
+    echo.
+    echo [WARNING] Python installation not detected.
+    echo.
+    set /p choice="Press C to continue anyway, or any other key to exit: "
+    if /i "!choice!"=="C" (
+        goto CHECK_PACKAGES
+    )
+    exit /b 1
 )
 
 for /f "tokens=*" %%i in ('python --version 2^>^&1') do set PYTHON_VERSION=%%i
