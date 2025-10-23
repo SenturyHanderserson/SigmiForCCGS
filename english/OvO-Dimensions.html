@@ -349,17 +349,9 @@
             z-index: 1;
         }
 
-        .ovo-embed-title {
-            margin-bottom: 10px;
-            font-weight: 400;
-            color: #eee;
-            text-align: center;
-            font-family: sans-serif;
-        }
-
         .ovo-embed-iframe {
-            width: 90vw;
-            height: 90vh;
+            width: 95vw;
+            height: 95vh;
             border: none;
             border-radius: 12px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
@@ -516,7 +508,6 @@
     
     <!-- OvO Dimensions Embedded Content -->
     <div class="ovo-embed-container">
-        <h2 class="ovo-embed-title">OvO Dimensions</h2>
         <iframe
             id="embeddedSite"
             class="ovo-embed-iframe"
@@ -697,43 +688,105 @@
             size: 0.8
         });
 
-        // ============ POPUP PREVENTION ============
-        function setupOvOPopupPrevention() {
+        // ============ COMPREHENSIVE POPUP PREVENTION ============
+        function setupComprehensivePopupPrevention() {
             const iframe = document.getElementById('embeddedSite');
             
-            // Prevent links in iframe from opening new tabs/windows
+            // Block window.open globally
+            window.open = function() {
+                console.log('Popup blocked: window.open');
+                return null;
+            };
+            
+            // Block any new window creation attempts
+            window.addEventListener('beforeunload', function(e) {
+                // Don't prevent unloading for normal navigation, only block new windows
+            });
+            
+            // Block any attempts to open new tabs via keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Block Ctrl+N (new window)
+                if (e.ctrlKey && e.key === 'n') {
+                    e.preventDefault();
+                    console.log('Popup blocked: Ctrl+N');
+                    return false;
+                }
+                // Block Ctrl+Shift+N (new incognito window)
+                if (e.ctrlKey && e.shiftKey && e.key === 'N') {
+                    e.preventDefault();
+                    console.log('Popup blocked: Ctrl+Shift+N');
+                    return false;
+                }
+                // Block Ctrl+T (new tab)
+                if (e.ctrlKey && e.key === 't') {
+                    e.preventDefault();
+                    console.log('Popup blocked: Ctrl+T');
+                    return false;
+                }
+            });
+            
+            // Block any postMessage attempts to open popups
+            window.addEventListener('message', (event) => {
+                if (event.data && (event.data.type === 'openPopup' || 
+                    event.data.action === 'openWindow' || 
+                    event.data === 'openNewTab' ||
+                    event.data.command === 'openExternal')) {
+                    console.log('Popup blocked via postMessage:', event.data);
+                    event.source.postMessage({ type: 'popupBlocked' }, event.origin);
+                    return false;
+                }
+            });
+            
+            // Block any navigation that tries to open in new window
+            document.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A' && (e.target.target === '_blank' || e.target.target === '_new')) {
+                    e.preventDefault();
+                    console.log('Popup blocked: link with target _blank');
+                    return false;
+                }
+            });
+            
+            // Additional iframe-specific protection
             iframe.addEventListener('load', () => {
                 try {
+                    // Remove target attributes from all links in iframe
                     const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
                     const links = iframeDoc.querySelectorAll('a[target="_blank"], a[target="_new"]');
-                    links.forEach(link => link.removeAttribute('target'));
+                    links.forEach(link => {
+                        link.removeAttribute('target');
+                        link.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            console.log('Popup blocked: iframe link');
+                        });
+                    });
                     
-                    // Block window.open calls
+                    // Override window.open in iframe context
                     iframe.contentWindow.open = function() {
-                        console.log('Popup blocked in OvO Dimensions');
+                        console.log('Popup blocked in iframe: window.open');
                         return null;
                     };
                     
+                    // Block any form submissions that might open new windows
+                    const forms = iframeDoc.querySelectorAll('form');
+                    forms.forEach(form => {
+                        if (form.target === '_blank' || form.target === '_new') {
+                            form.removeAttribute('target');
+                        }
+                    });
+                    
                 } catch (e) {
-                    console.warn('Cannot access iframe contents due to cross-origin restrictions.');
+                    console.warn('Cannot access iframe contents due to cross-origin restrictions. Using global protection.');
                 }
             });
 
-            // Block any attempt to open popups from the iframe
-            window.addEventListener('message', (event) => {
-                if (event.data && (event.data.type === 'openPopup' || event.data.action === 'openWindow')) {
-                    console.log('Popup attempt blocked via postMessage');
-                    event.source.postMessage({ type: 'popupBlocked' }, event.origin);
-                }
-            });
-
-            // Additional prevention for cross-origin
-            window.addEventListener('blur', function() {
-                if (document.activeElement === iframe) {
-                    setTimeout(function() {
-                        window.focus();
-                    }, 100);
-                }
+            // Prevent window from being opened via window.open in any context
+            Object.defineProperty(window, 'open', {
+                value: function() {
+                    console.log('Popup blocked: window.open override');
+                    return null;
+                },
+                writable: false,
+                configurable: false
             });
         }
 
@@ -861,6 +914,9 @@
 
         // ============ MAIN INITIALIZATION ============
         document.addEventListener('DOMContentLoaded', function() {
+            // Setup comprehensive popup prevention FIRST
+            setupComprehensivePopupPrevention();
+            
             // Initialize topbar toggle button
             const topbarToggle = document.getElementById('topbarToggle');
             const headerOverlay = document.getElementById('headerOverlay');
@@ -892,9 +948,6 @@
                 
                 feather.replace();
             });
-            
-            // Setup popup prevention
-            setupOvOPopupPrevention();
             
             const token = getCookie('AuthToken');
             const currentUser = localStorage.getItem('currentUser');
@@ -959,7 +1012,7 @@
             window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
         }
 
-        // Settings button functionality
+        // Settings button functionality - refresh to settings page
         document.getElementById('settingsButton').addEventListener('click', function() {
             window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/settings';
         });
