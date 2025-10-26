@@ -42,13 +42,6 @@
             align-items: center;
             justify-content: center;
             z-index: 2000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-        .login-modal.active {
-            opacity: 1;
-            visibility: visible;
         }
         .login-content {
             background: linear-gradient(135deg, #6e3b9c 0%, #3b1d6c 50%, #1a0933 100%);
@@ -57,11 +50,6 @@
             max-width: 400px;
             width: 90%;
             text-align: center;
-            transform: scale(0.9);
-            transition: transform 0.3s ease;
-        }
-        .login-modal.active .login-content {
-            transform: scale(1);
         }
         .medal-icon {
             width: 80px;
@@ -89,7 +77,6 @@
             background-color: #10b981;
             color: white;
         }
-        /* Modal styles for trolling options */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -155,6 +142,9 @@
             font-weight: 600;
             margin-left: 0.5rem;
         }
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body class="min-h-screen gradient-bg text-white font-sans">
@@ -173,7 +163,7 @@
     </div>
 
     <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
         <div class="glassmorphism rounded-xl p-8 max-w-md w-full mx-4 text-center">
             <div class="loading-spinner mb-4"></div>
             <h2 class="text-2xl font-bold mb-2">Verifying session...</h2>
@@ -191,7 +181,6 @@
                 </button>
             </div>
             
-            <!-- Add sender type for broadcasts too -->
             <div class="mb-4">
                 <label class="block text-gray-300 mb-2">Send As</label>
                 <div class="flex space-x-4">
@@ -241,20 +230,19 @@
                 </button>
             </div>
             
-            <!-- Add sender type selection -->
             <div class="mb-4">
                 <label class="block text-gray-300 mb-2">Send As</label>
                 <div class="flex space-x-4">
                     <label class="flex items-center">
-                        <input type="radio" name="senderType" value="user" checked class="mr-2" onchange="toggleCustomSender()">
+                        <input type="radio" name="senderType" value="user" checked class="mr-2">
                         <span>My Account</span>
                     </label>
                     <label class="flex items-center">
-                        <input type="radio" name="senderType" value="system" class="mr-2" onchange="toggleCustomSender()">
+                        <input type="radio" name="senderType" value="system" class="mr-2">
                         <span>System</span>
                     </label>
                     <label class="flex items-center">
-                        <input type="radio" name="senderType" value="anonymous" class="mr-2" onchange="toggleCustomSender()">
+                        <input type="radio" name="senderType" value="anonymous" class="mr-2">
                         <span>Anonymous</span>
                     </label>
                 </div>
@@ -296,7 +284,6 @@
                 </button>
             </div>
             
-            <!-- Add sender type selection for warnings -->
             <div class="mb-4">
                 <label class="block text-gray-300 mb-2">Send As</label>
                 <div class="flex space-x-4">
@@ -381,7 +368,7 @@
     </div>
 
     <!-- Main Container -->
-    <div class="relative z-10 min-h-screen flex flex-col">
+    <div class="relative z-10 min-h-screen flex flex-col hidden" id="mainApp">
         <!-- Header -->
         <header class="glassmorphism p-4 shadow-lg">
             <div class="container mx-auto flex justify-between items-center">
@@ -399,7 +386,7 @@
         <!-- Main Content -->
         <main class="flex-1 container mx-auto p-4 md:p-6">
             <!-- User Info -->
-            <div id="userInfo" class="glassmorphism rounded-xl p-6 mb-6 hidden">
+            <div id="userInfo" class="glassmorphism rounded-xl p-6 mb-6">
                 <h2 class="text-xl font-semibold mb-4">Your Account</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -408,7 +395,7 @@
                     </div>
                     <div>
                         <p class="text-gray-300">Role</p>
-                        <p id="userRole" class="font-medium"></p>
+                        <p id="userRoleDisplay" class="font-medium"></p>
                     </div>
                 </div>
             </div>
@@ -462,8 +449,8 @@
                                    placeholder="Enter username">
                         </div>
                         <div>
-                            <label for="userRole" class="block text-gray-300 mb-2">New Role</label>
-                            <select id="userRole" required 
+                            <label for="userRoleSelect" class="block text-gray-300 mb-2">New Role</label>
+                            <select id="userRoleSelect" required 
                                     class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
                                 <option value="">Select a role</option>
                                 <option value="Member">Member</option>
@@ -517,40 +504,6 @@
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;");
-    }
-
-    // Function to check if user is logged in
-    function isLoggedIn() {
-        const token = getCookie('AuthToken');
-        const storedUser = localStorage.getItem('currentUser');
-        return !!(token && storedUser);
-    }
-
-    // Function to verify token with server
-    async function verifyToken(token) {
-        try {
-            const response = await fetch(`${SERVER_URL}/api/verify-token`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (response.status === 401) {
-                return false;
-            }
-            
-            if (!response.ok) {
-                return false;
-            }
-            
-            const data = await response.json();
-            return data.valid === true;
-        } catch (error) {
-            console.error('Token verification error:', error);
-            return false;
-        }
     }
 
     // Function to get user info
@@ -622,10 +575,6 @@
             checkbox.checked = false;
         });
     }
-    
-    function toggleCustomSender() {
-        // This can be expanded if you need custom sender names
-    }
 
     // Update the sendBroadcast function
     async function sendBroadcast() {
@@ -649,7 +598,7 @@
                 body: JSON.stringify({ 
                     message, 
                     duration,
-                    senderType // Add sender type to request
+                    senderType
                 })
             });
             
@@ -697,8 +646,8 @@
                 body: JSON.stringify({ 
                     message, 
                     recipients,
-                    duration: 168, // 1 week default
-                    senderType // Add sender type to request
+                    duration: 168,
+                    senderType
                 })
             });
             
@@ -745,7 +694,7 @@
                 body: JSON.stringify({ 
                     username, 
                     reason,
-                    senderType // Add sender type to request
+                    senderType
                 })
             });
             
@@ -1093,7 +1042,7 @@
     // Populate role select with available options
     async function populateRoleSelect() {
         const roles = await loadAvailableRoles();
-        const roleSelect = document.getElementById('userRole');
+        const roleSelect = document.getElementById('userRoleSelect');
         
         // Clear existing options except the first one
         while (roleSelect.options.length > 1) {
@@ -1111,7 +1060,7 @@
 
     // Update role help text based on selection
     function updateRoleHelp() {
-        const roleSelect = document.getElementById('userRole');
+        const roleSelect = document.getElementById('userRoleSelect');
         const roleHelp = document.getElementById('roleHelp');
         const selectedRole = roleSelect.value;
         
@@ -1162,7 +1111,7 @@
         e.preventDefault();
         
         const username = document.getElementById('roleUsername').value.trim();
-        const role = document.getElementById('userRole').value;
+        const role = document.getElementById('userRoleSelect').value;
         
         if (!username) {
             alert('Please enter a username');
@@ -1195,7 +1144,7 @@
         }
     });
 
-    // Check authentication status on page load - SIMPLIFIED VERSION
+    // Check authentication status on page load
     document.addEventListener('DOMContentLoaded', async function() {
         const token = getCookie('AuthToken');
         
@@ -1204,7 +1153,7 @@
             return;
         }
 
-        // Show loading overlay while verifying token
+        // Show loading overlay
         document.getElementById('loadingOverlay').classList.remove('hidden');
         
         try {
@@ -1226,19 +1175,19 @@
             localStorage.setItem('currentUser', userInfo.username);
             localStorage.setItem('currentUserRole', userInfo.role);
             
-            // Show user info
-            document.getElementById('userInfo').classList.remove('hidden');
+            // Show main app and hide login modal
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('loginModal').classList.add('hidden');
+            
+            // Update user info display
             document.getElementById('userUsername').textContent = userInfo.username;
-            document.getElementById('userRole').textContent = userInfo.role;
+            document.getElementById('userRoleDisplay').textContent = userInfo.role;
             
             // Load available roles and populate select
             await populateRoleSelect();
             
             // Load users list
             loadUsersList();
-            
-            // Hide login modal if it was showing
-            document.getElementById('loginModal').classList.remove('active');
             
         } catch (error) {
             console.error('Authentication error:', error);
@@ -1250,7 +1199,8 @@
 
     // Show login modal function
     function showLoginModal() {
-        document.getElementById('loginModal').classList.add('active');
+        document.getElementById('loginModal').classList.remove('hidden');
+        document.getElementById('mainApp').classList.add('hidden');
     }
 
     // Redirect to login page
@@ -1454,7 +1404,7 @@
     });
 
     // Add event listener for role select change
-    document.getElementById('userRole').addEventListener('change', updateRoleHelp);
+    document.getElementById('userRoleSelect').addEventListener('change', updateRoleHelp);
 
     // Cookie Functions
     function getCookie(name) {
