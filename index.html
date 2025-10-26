@@ -2336,6 +2336,48 @@ window.addEventListener('beforeunload', () => {
         }
 
 let isLoadingMembers = false;
+let rolesConfig = {};
+
+// Load roles configuration from backend
+async function loadRolesConfig() {
+    try {
+        const token = getCookie('AuthToken');
+        if (!token) return;
+
+        const res = await fetch(`${SERVER_URL}/api/roles`, {
+            method: "GET",
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.roles) {
+                rolesConfig = data.roles;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading roles config:', error);
+    }
+}
+
+// Get color for a role with fallback
+function getRoleColor(role) {
+    if (!role) return "bg-gray-600";
+    
+    const roleName = role.trim();
+    return rolesConfig[roleName]?.bgColor || "bg-gray-600";
+}
+
+// Get role description with fallback
+function getRoleDescription(role) {
+    if (!role) return "User role";
+    
+    const roleName = role.trim();
+    return rolesConfig[roleName]?.description || `${roleName} role`;
+}
 
 async function loadMembers() {
     if (isLoadingMembers) return;
@@ -2347,22 +2389,19 @@ async function loadMembers() {
             throw new Error("No authentication token found");
         }
 
-        const res = await fetch("https://proxyforsigmi.onrender.com/api/users", {
+        // Load roles config in background
+        loadRolesConfig();
+
+        const res = await fetch(`${SERVER_URL}/api/users`, {
             method: "GET",
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
-            },
-            credentials: "include"
+            }
         });
 
         if (!res.ok) {
             throw new Error("Failed to fetch members");
-        }
-
-        const contentType = res.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error("Invalid server response");
         }
 
         const members = await res.json();
@@ -2371,16 +2410,11 @@ async function loadMembers() {
         // Deduplication
         const seen = new Set();
         const uniqueMembers = members.filter(user => {
-            const identifier = user.id || user.username || user.email || "unknown";
+            const identifier = user.username || "unknown";
             if (seen.has(identifier)) return false;
             seen.add(identifier);
             return true;
         });
-
-        // Filter out deleted members
-        const activeMembers = uniqueMembers.filter(user =>
-            !user.deleted && !user.isDeleted && user.status !== 'deleted'
-        );
 
         // Clear with fade
         container.innerHTML = "";
@@ -2388,7 +2422,7 @@ async function loadMembers() {
         container.classList.add("opacity-0");
 
         setTimeout(() => {
-            if (activeMembers.length === 0) {
+            if (uniqueMembers.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-8 text-gray-400">
                         <i data-feather="users" class="w-12 h-12 mx-auto mb-4"></i>
@@ -2396,8 +2430,9 @@ async function loadMembers() {
                     </div>
                 `;
             } else {
-                activeMembers.forEach(user => {
+                uniqueMembers.forEach(user => {
                     const safeUsername = user.username || "Unknown";
+                    const userRole = user.role || "Member";
                     const initials = safeUsername
                         .split(" ")
                         .filter(word => word.length > 0)
@@ -2405,14 +2440,15 @@ async function loadMembers() {
                         .join("")
                         .slice(0, 2);
 
-                    let color = "bg-purple-600";
-                    if (user.role === "Owner") color = "bg-red-600";
-                    else if (user.role === "Admin") color = "bg-blue-600";
-                    else if (user.role === "VIP") color = "bg-yellow-600";
+                    const color = getRoleColor(userRole);
+                    const roleDescription = getRoleDescription(userRole);
 
                     const memberDiv = document.createElement("div");
-                    memberDiv.className = "flex items-center p-3 rounded-lg hover:bg-purple-800 hover:bg-opacity-50 transition-colors duration-200";
-                    memberDiv.title = `Role: ${user.role || 'Member'} | Joined: ${user.joined || 'Unknown'}`;
+                    memberDiv.className = "flex items-center p-3 rounded-lg hover:bg-purple-800 hover:bg-opacity-50 transition-colors duration-200 cursor-pointer group";
+                    memberDiv.title = `${roleDescription} | Joined: ${user.joined || 'Unknown'}`;
+                    
+                    // Add click handler to show user details
+                    memberDiv.onclick = () => showUserDetails(user);
 
                     memberDiv.innerHTML = `
                         <div class="w-10 h-10 rounded-full ${color} flex items-center justify-center mr-3 flex-shrink-0">
@@ -2420,9 +2456,13 @@ async function loadMembers() {
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="font-medium truncate">${safeUsername}</div>
-                            <div class="text-xs text-gray-400 capitalize">${user.role || 'Member'}</div>
+                            <div class="text-xs text-gray-400 capitalize">${userRole}</div>
+                        </div>
+                        <div class="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i data-feather="chevron-right" class="w-4 h-4 text-gray-400"></i>
                         </div>
                     `;
+                    
                     container.appendChild(memberDiv);
                 });
             }
@@ -2450,6 +2490,88 @@ async function loadMembers() {
     } finally {
         isLoadingMembers = false;
     }
+}
+
+// Optional: Function to show user details when clicked
+function showUserDetails(user) {
+    const userRole = user.role || "Member";
+    const roleConfig = rolesConfig[userRole] || {};
+    
+    const modalHtml = `
+        <div class="modal-overlay active" id="userDetailsModal">
+            <div class="modal-content">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">User Details</h2>
+                    <button onclick="closeModal('userDetailsModal')" class="p-1 rounded-full hover:bg-purple-700">
+                        <i data-feather="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 rounded-full ${getRoleColor(userRole)} flex items-center justify-center">
+                            <span class="text-lg font-bold text-white">
+                                ${(user.username || 'Unknown').split(' ').filter(w => w.length > 0).map(w => w[0].toUpperCase()).join('').slice(0, 2)}
+                            </span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold">${user.username || 'Unknown'}</h3>
+                            <span class="inline-block px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(userRole)} text-white">
+                                ${userRole}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <label class="text-gray-400">Joined</label>
+                            <p>${user.joined || 'Unknown'}</p>
+                        </div>
+                        <div>
+                            <label class="text-gray-400">Status</label>
+                            <p class="${user.blacklisted ? 'text-red-400' : 'text-green-400'}">
+                                ${user.blacklisted ? 'Blacklisted' : 'Active'}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    ${roleConfig.description ? `
+                    <div>
+                        <label class="text-gray-400 block mb-1">Role Description</label>
+                        <p class="text-sm">${roleConfig.description}</p>
+                    </div>
+                    ` : ''}
+                    
+                    ${user.blacklistReason ? `
+                    <div class="p-3 bg-red-900 bg-opacity-30 rounded-lg">
+                        <label class="text-red-300 block mb-1">Blacklist Reason</label>
+                        <p class="text-sm">${user.blacklistReason}</p>
+                    </div>
+                    ` : ''}
+                </div>
+                
+                <div class="flex space-x-2 mt-6">
+                    <button onclick="viewUserWarnings('${user.username}')" class="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded-lg">
+                        View Warnings
+                    </button>
+                    <button onclick="closeModal('userDetailsModal')" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to page
+    const existingModal = document.getElementById('userDetailsModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    const modalContainer = document.createElement('div');
+    modalContainer.innerHTML = modalHtml;
+    document.body.appendChild(modalContainer);
+    feather.replace();
 }
 
 
