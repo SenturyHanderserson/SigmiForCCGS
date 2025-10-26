@@ -2381,11 +2381,11 @@ function createProfileOverlay() {
     }
     
     const overlayHTML = `
-        <div id="profileOverlay" class="modal-overlay">
-            <div class="modal-content" style="max-width: 400px;">
+        <div id="profileOverlay" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[2000] hidden">
+            <div class="bg-gradient-to-br from-purple-900 via-purple-800 to-gray-900 rounded-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto transform scale-95 transition-transform duration-300">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold" id="profileUsername">User Profile</h2>
-                    <button onclick="closeProfileOverlay()" class="p-1 rounded-full hover:bg-purple-700">
+                    <button id="closeProfileOverlayBtn" class="p-1 rounded-full hover:bg-purple-700 transition-colors">
                         <i data-feather="x" class="w-5 h-5"></i>
                     </button>
                 </div>
@@ -2397,48 +2397,48 @@ function createProfileOverlay() {
                             <span id="profileInitials" class="text-sm font-bold text-white"></span>
                         </div>
                         <div class="flex-1">
-                            <div id="profileDisplayName" class="font-medium"></div>
+                            <div id="profileDisplayName" class="font-medium text-lg"></div>
                             <div id="profileRole" class="text-sm text-gray-300"></div>
                         </div>
                     </div>
                     
                     <!-- User Details -->
-                    <div class="glassmorphism p-3 rounded-lg space-y-2">
-                        <div class="flex justify-between">
+                    <div class="bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg p-4 space-y-2">
+                        <div class="flex justify-between items-center">
                             <span class="text-gray-300">Joined:</span>
-                            <span id="profileJoinDate" class="font-medium"></span>
+                            <span id="profileJoinDate" class="font-medium text-white"></span>
                         </div>
-                        <div class="flex justify-between">
+                        <div class="flex justify-between items-center">
                             <span class="text-gray-300">Status:</span>
                             <span id="profileStatus" class="font-medium"></span>
                         </div>
-                        <div class="flex justify-between">
+                        <div class="flex justify-between items-center">
                             <span class="text-gray-300">Warnings:</span>
-                            <span id="profileWarnings" class="font-medium">Loading...</span>
+                            <span id="profileWarnings" class="font-medium text-white">Loading...</span>
                         </div>
                     </div>
                     
                     <!-- Admin Actions (Only for Mods/Admins/Owners) -->
                     <div id="adminActions" class="hidden">
-                        <h3 class="text-lg font-semibold mb-3">Quick Actions</h3>
+                        <h3 class="text-lg font-semibold mb-3 text-white">Quick Actions</h3>
                         <div class="grid grid-cols-2 gap-2">
-                            <button onclick="adminSendMessage()" class="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center space-x-1" title="Send Message">
+                            <button id="adminMessageBtn" class="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center space-x-1 transition-colors" title="Send Message">
                                 <i data-feather="mail" class="w-4 h-4"></i>
                                 <span class="text-xs">Message</span>
                             </button>
-                            <button onclick="adminChangeRole()" class="p-2 bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center justify-center space-x-1" title="Change Role">
+                            <button id="adminRoleBtn" class="p-2 bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center justify-center space-x-1 transition-colors" title="Change Role">
                                 <i data-feather="users" class="w-4 h-4"></i>
                                 <span class="text-xs">Role</span>
                             </button>
-                            <button onclick="adminSendWarning()" class="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg flex items-center justify-center space-x-1" title="Send Warning">
+                            <button id="adminWarnBtn" class="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg flex items-center justify-center space-x-1 transition-colors" title="Send Warning">
                                 <i data-feather="alert-triangle" class="w-4 h-4"></i>
                                 <span class="text-xs">Warn</span>
                             </button>
-                            <button onclick="adminToggleBlacklist()" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg flex items-center justify-center space-x-1" title="Blacklist">
+                            <button id="adminBlacklistBtn" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg flex items-center justify-center space-x-1 transition-colors" title="Blacklist">
                                 <i data-feather="x-circle" class="w-4 h-4"></i>
                                 <span class="text-xs" id="blacklistText">Blacklist</span>
                             </button>
-                            <button onclick="adminDeleteUser()" class="p-2 bg-red-800 hover:bg-red-900 rounded-lg flex items-center justify-center space-x-1 col-span-2" title="Delete User">
+                            <button id="adminDeleteBtn" class="p-2 bg-red-800 hover:bg-red-900 rounded-lg flex items-center justify-center space-x-1 col-span-2 transition-colors" title="Delete User">
                                 <i data-feather="trash-2" class="w-4 h-4"></i>
                                 <span class="text-xs">Delete Account</span>
                             </button>
@@ -2451,6 +2451,14 @@ function createProfileOverlay() {
     
     document.body.insertAdjacentHTML('beforeend', overlayHTML);
     feather.replace();
+    
+    // Add event listeners
+    document.getElementById('closeProfileOverlayBtn').addEventListener('click', closeProfileOverlay);
+    document.getElementById('adminMessageBtn').addEventListener('click', adminSendMessage);
+    document.getElementById('adminRoleBtn').addEventListener('click', adminChangeRole);
+    document.getElementById('adminWarnBtn').addEventListener('click', adminSendWarning);
+    document.getElementById('adminBlacklistBtn').addEventListener('click', adminToggleBlacklist);
+    document.getElementById('adminDeleteBtn').addEventListener('click', adminDeleteUser);
 }
 
 // Open profile overlay
@@ -2511,15 +2519,29 @@ function openProfileOverlay(user) {
         adminActions.classList.add('hidden');
     }
     
-    // Show the overlay
-    overlay.classList.add('active');
+    // Show the overlay with animation
+    overlay.classList.remove('hidden');
+    setTimeout(() => {
+        overlay.classList.add('flex');
+        setTimeout(() => {
+            overlay.querySelector('.transform').classList.remove('scale-95');
+            overlay.querySelector('.transform').classList.add('scale-100');
+        }, 10);
+    }, 10);
 }
 
 // Close profile overlay
 function closeProfileOverlay() {
     const overlay = document.getElementById('profileOverlay');
     if (overlay) {
-        overlay.classList.remove('active');
+        const content = overlay.querySelector('.transform');
+        content.classList.remove('scale-100');
+        content.classList.add('scale-95');
+        
+        setTimeout(() => {
+            overlay.classList.remove('flex');
+            overlay.classList.add('hidden');
+        }, 300);
     }
     currentProfileUser = null;
 }
@@ -2574,11 +2596,16 @@ function adminChangeRole() {
     // Pre-fill role form
     document.getElementById('roleUsername').value = currentProfileUser.username;
     document.getElementById('userRoleSelect').value = currentProfileUser.role;
-    updateRoleHelp();
+    if (typeof updateRoleHelp === 'function') {
+        updateRoleHelp();
+    }
     
     // Scroll to role management section
-    document.getElementById('userRoleSelect').scrollIntoView({ behavior: 'smooth' });
-    document.getElementById('userRoleSelect').focus();
+    const roleSelect = document.getElementById('userRoleSelect');
+    if (roleSelect) {
+        roleSelect.scrollIntoView({ behavior: 'smooth' });
+        roleSelect.focus();
+    }
 }
 
 function adminSendWarning() {
@@ -2588,7 +2615,9 @@ function adminSendWarning() {
     // Pre-fill warning form
     document.getElementById('warnUsername').value = currentProfileUser.username;
     openModal('warnModal');
-    document.getElementById('warnMessage').focus();
+    setTimeout(() => {
+        document.getElementById('warnMessage').focus();
+    }, 100);
 }
 
 function adminToggleBlacklist() {
@@ -2596,7 +2625,9 @@ function adminToggleBlacklist() {
     
     if (currentProfileUser.blacklisted) {
         if (confirm(`Unblacklist ${currentProfileUser.username}?`)) {
-            unblacklistUser(currentProfileUser.username);
+            if (typeof unblacklistUser === 'function') {
+                unblacklistUser(currentProfileUser.username);
+            }
             closeProfileOverlay();
         }
     } else {
@@ -2612,7 +2643,9 @@ function adminToggleBlacklist() {
 function adminDeleteUser() {
     if (!currentProfileUser) return;
     closeProfileOverlay();
-    showRemoteDeleteModal(currentProfileUser.username, currentProfileUser.role);
+    if (typeof showRemoteDeleteModal === 'function') {
+        showRemoteDeleteModal(currentProfileUser.username, currentProfileUser.role);
+    }
 }
 
 // Updated loadMembers function with clickable profiles
@@ -2735,7 +2768,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
-
 			
 });
     </script>
