@@ -145,6 +145,46 @@
         .hidden {
             display: none !important;
         }
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+        .role-badge:hover {
+            transform: scale(1.05);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        .role-owner {
+            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+            color: white;
+        }
+        .role-admin {
+            background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+            color: white;
+        }
+        .role-moderator {
+            background: linear-gradient(135deg, #10B981 0%, #047857 100%);
+            color: white;
+        }
+        .role-member {
+            background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%);
+            color: white;
+        }
+        .user-card {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .user-card:hover {
+            border-color: rgba(139, 92, 246, 0.3);
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body class="min-h-screen gradient-bg text-white font-sans">
@@ -367,6 +407,43 @@
         </div>
     </div>
 
+    <!-- Role Assignment Modal -->
+    <div id="roleAssignmentModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Assign Role</h2>
+                <button onclick="closeModal('roleAssignmentModal')" class="p-1 rounded-full hover:bg-purple-700">
+                    <i data-feather="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <p class="text-gray-300 mb-2">Assign role to user:</p>
+                <p id="roleUsernameDisplay" class="font-bold text-lg text-purple-300"></p>
+                <p id="currentUserRole" class="text-sm text-gray-400"></p>
+            </div>
+            
+            <div class="mb-4">
+                <label for="roleSelect" class="block text-gray-300 mb-2">Select New Role</label>
+                <select id="roleSelect" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <option value="">Loading roles...</option>
+                </select>
+                <div id="roleHelp" class="text-sm text-gray-400 mt-2 hidden"></div>
+            </div>
+            
+            <div class="flex space-x-2">
+                <button onclick="closeModal('roleAssignmentModal')" 
+                        class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-medium flex-1">
+                    Cancel
+                </button>
+                <button onclick="confirmRoleAssignment()" 
+                        class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg font-medium flex-1">
+                    Assign Role
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Container -->
     <div class="relative z-10 min-h-screen flex flex-col hidden" id="mainApp">
         <!-- Header -->
@@ -400,7 +477,7 @@
                 </div>
             </div>
 
-            <!-- Trolling Options -->
+            <!-- Admin Tools -->
             <div class="glassmorphism rounded-xl p-6 mb-6">
                 <h2 class="text-xl font-semibold mb-4">Admin Tools</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -437,38 +514,6 @@
                 </form>
             </div>
 
-            <!-- Role Management -->
-            <div class="glassmorphism rounded-xl p-6 mb-6">
-                <h2 class="text-xl font-semibold mb-4">Role Management</h2>
-                <form id="roleForm" class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="roleUsername" class="block text-gray-300 mb-2">Username</label>
-                            <input type="text" id="roleUsername" required 
-                                   class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                   placeholder="Enter username">
-                        </div>
-                        <div>
-                            <label for="userRoleSelect" class="block text-gray-300 mb-2">New Role</label>
-                            <select id="userRoleSelect" required 
-                                    class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                                <option value="">Select a role</option>
-                                <option value="Member">Member</option>
-                                <option value="Moderator">Moderator</option>
-                                <option value="Admin">Admin</option>
-                                <option value="Owner">Owner</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div id="roleHelp" class="text-sm text-gray-400 hidden">
-                        <!-- Help text will be populated dynamically -->
-                    </div>
-                    <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-medium">
-                        Assign Role
-                    </button>
-                </form>
-            </div>
-
             <!-- Users List -->
             <div class="glassmorphism rounded-xl p-6">
                 <div class="flex justify-between items-center mb-6">
@@ -495,6 +540,8 @@
     // Global variables to track current user info
     let currentUser = '';
     let currentUserRole = '';
+    let selectedUserForRole = '';
+    let availableRoles = [];
 
     // Function to escape special characters for HTML attributes
     function escapeHtml(unsafe) {
@@ -1014,11 +1061,11 @@
     }
 
     // Role Management Functions
-    // Load available roles
+    // Load available roles from server
     async function loadAvailableRoles() {
         try {
             const token = getCookie('AuthToken');
-            const response = await fetch(`${SERVER_URL}/api/admin/roles`, {
+            const response = await fetch(`${SERVER_URL}/api/admin/roles/available`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -1027,40 +1074,70 @@
             });
             
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to load roles');
+                throw new Error('Failed to load available roles');
             }
             
             const data = await response.json();
-            return data.roles;
+            
+            // Convert the roles object to array format
+            if (data.roles && typeof data.roles === 'object') {
+                return Object.entries(data.roles).map(([value, config]) => ({
+                    value: value,
+                    label: value,
+                    description: config.description || `Role: ${value}`
+                }));
+            }
+            
+            return data.roles || [];
         } catch (error) {
             console.error('Load roles error:', error);
-            return [];
+            throw error;
         }
     }
 
     // Populate role select with available options
     async function populateRoleSelect() {
-        const roles = await loadAvailableRoles();
-        const roleSelect = document.getElementById('userRoleSelect');
-        
-        // Clear existing options except the first one
-        while (roleSelect.options.length > 1) {
-            roleSelect.remove(1);
+        try {
+            availableRoles = await loadAvailableRoles();
+            const roleSelect = document.getElementById('roleSelect');
+            
+            // Clear existing options
+            roleSelect.innerHTML = '<option value="">Select a role</option>';
+            
+            // Add available roles
+            availableRoles.forEach(role => {
+                const option = document.createElement('option');
+                option.value = role.value;
+                option.textContent = `${role.label} - ${role.description}`;
+                roleSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Populate roles error:', error);
+            const roleSelect = document.getElementById('roleSelect');
+            roleSelect.innerHTML = '<option value="">Error loading roles</option>';
+            throw error;
         }
-        
-        // Add available roles
-        roles.forEach(role => {
-            const option = document.createElement('option');
-            option.value = role.value;
-            option.textContent = `${role.label} - ${role.description}`;
-            roleSelect.appendChild(option);
-        });
     }
 
-    // Update role help text based on selection
-    function updateRoleHelp() {
-        const roleSelect = document.getElementById('userRoleSelect');
+    // Show role assignment modal
+    async function showRoleAssignmentModal(username, currentRole) {
+        selectedUserForRole = username;
+        
+        document.getElementById('roleUsernameDisplay').textContent = username;
+        document.getElementById('currentUserRole').textContent = 'Current Role: ' + currentRole;
+        
+        // Populate role select
+        await populateRoleSelect();
+        
+        // Update role help text when selection changes
+        document.getElementById('roleSelect').addEventListener('change', updateRoleAssignmentHelp);
+        
+        openModal('roleAssignmentModal');
+    }
+
+    // Update role help text for assignment modal
+    function updateRoleAssignmentHelp() {
+        const roleSelect = document.getElementById('roleSelect');
         const roleHelp = document.getElementById('roleHelp');
         const selectedRole = roleSelect.value;
         
@@ -1076,6 +1153,34 @@
             roleHelp.classList.remove('hidden');
         } else {
             roleHelp.classList.add('hidden');
+        }
+    }
+
+    // Confirm role assignment
+    async function confirmRoleAssignment() {
+        const role = document.getElementById('roleSelect').value;
+        
+        if (!role) {
+            alert('Please select a role');
+            return;
+        }
+        
+        if (!confirm(`Are you sure you want to assign the role "${role}" to user "${selectedUserForRole}"?`)) {
+            return;
+        }
+        
+        try {
+            const result = await assignRole(selectedUserForRole, role);
+            alert(`✅ ${result.message}\n\nUser: ${result.user.username}\nOld Role: ${result.user.oldRole}\nNew Role: ${result.user.newRole}`);
+            
+            closeModal('roleAssignmentModal');
+            
+            // Reload users list to reflect changes
+            loadUsersList();
+            
+        } catch (error) {
+            console.error('Role assignment error:', error);
+            alert(`❌ Error: ${error.message}`);
         }
     }
 
@@ -1105,44 +1210,6 @@
             throw error;
         }
     }
-
-    // Handle role form submission
-    document.getElementById('roleForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const username = document.getElementById('roleUsername').value.trim();
-        const role = document.getElementById('userRoleSelect').value;
-        
-        if (!username) {
-            alert('Please enter a username');
-            return;
-        }
-        
-        if (!role) {
-            alert('Please select a role');
-            return;
-        }
-        
-        if (!confirm(`Are you sure you want to assign the role "${role}" to user "${username}"?`)) {
-            return;
-        }
-        
-        try {
-            const result = await assignRole(username, role);
-            alert(`✅ ${result.message}\n\nUser: ${result.user.username}\nOld Role: ${result.user.oldRole}\nNew Role: ${result.user.newRole}`);
-            
-            // Reset form
-            this.reset();
-            document.getElementById('roleHelp').classList.add('hidden');
-            
-            // Reload users list to reflect changes
-            loadUsersList();
-            
-        } catch (error) {
-            console.error('Role assignment error:', error);
-            alert(`❌ Error: ${error.message}`);
-        }
-    });
 
     // Check authentication status on page load
     document.addEventListener('DOMContentLoaded', async function() {
@@ -1182,9 +1249,6 @@
             // Update user info display
             document.getElementById('userUsername').textContent = userInfo.username;
             document.getElementById('userRoleDisplay').textContent = userInfo.role;
-            
-            // Load available roles and populate select
-            await populateRoleSelect();
             
             // Load users list
             loadUsersList();
@@ -1243,6 +1307,10 @@
                     (currentUserRole === 'Owner' || 
                      (currentUserRole === 'Admin' && user.role !== 'Owner' && user.role !== 'Admin'));
                 
+                const canAssignRole = user.username !== currentUser && 
+                    (currentUserRole === 'Owner' || 
+                     (currentUserRole === 'Admin' && user.role !== 'Owner'));
+                
                 // Escape all dynamic values
                 const safeUsername = escapeHtml(user.username);
                 const safeRole = escapeHtml(user.role);
@@ -1250,36 +1318,39 @@
                 const safeBlacklistReason = user.blacklistReason ? escapeHtml(user.blacklistReason) : '';
                 
                 const deleteButton = canDelete ? 
-                    '<button onclick="showRemoteDeleteModal(\'' + safeUsername + '\', \'' + safeRole + '\')" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg" title="Delete Account"><i data-feather="trash-2" class="w-4 h-4"></i></button>' : '';
+                    '<button onclick="showRemoteDeleteModal(\'' + safeUsername + '\', \'' + safeRole + '\')" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 hover:scale-110" title="Delete Account"><i data-feather="trash-2" class="w-4 h-4"></i></button>' : '';
+                
+                const roleButton = canAssignRole ? 
+                    '<button onclick="showRoleAssignmentModal(\'' + safeUsername + '\', \'' + safeRole + '\')" class="p-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-all duration-200 hover:scale-110" title="Assign Role"><i data-feather="users" class="w-4 h-4"></i></button>' : '';
                 
                 const blacklistButton = user.blacklisted ? 
-                    '<button onclick="unblacklistUser(\'' + safeUsername + '\')" class="p-2 bg-green-600 hover:bg-green-700 rounded-lg"><i data-feather="check-circle" class="w-4 h-4"></i></button>' :
-                    '<button onclick="showBlacklistForm(\'' + safeUsername + '\')" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg"><i data-feather="x-circle" class="w-4 h-4"></i></button>';
+                    '<button onclick="unblacklistUser(\'' + safeUsername + '\')" class="p-2 bg-green-600 hover:bg-green-700 rounded-lg transition-all duration-200 hover:scale-110"><i data-feather="check-circle" class="w-4 h-4"></i></button>' :
+                    '<button onclick="showBlacklistForm(\'' + safeUsername + '\')" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 hover:scale-110"><i data-feather="x-circle" class="w-4 h-4"></i></button>';
                 
-                const roleBadges = 
-                    (user.role === 'Owner' ? '<span class="user-status-badge bg-purple-600">Owner</span>' : '') +
-                    (user.role === 'Admin' ? '<span class="user-status-badge bg-blue-600">Admin</span>' : '') +
-                    (user.role === 'Moderator' ? '<span class="user-status-badge bg-green-600">Moderator</span>' : '') +
-                    (user.role === 'Member' ? '<span class="user-status-badge bg-gray-600">Member</span>' : '');
+                // Get role badge class
+                const roleBadgeClass = `role-${user.role.toLowerCase()}`;
                 
                 const blacklistInfo = user.blacklisted ? '• Reason: ' + safeBlacklistReason : '';
                 
                 usersHTML += 
-                    '<div class="glassmorphism p-4 rounded-lg flex justify-between items-center">' +
-                        '<div>' +
-                            '<div class="flex items-center space-x-2">' +
-                                '<span class="font-medium">' + safeUsername + '</span>' +
+                    '<div class="glassmorphism p-4 rounded-lg flex justify-between items-center user-card">' +
+                        '<div class="flex-1">' +
+                            '<div class="flex items-center space-x-2 mb-2">' +
+                                '<span class="font-medium text-lg">' + safeUsername + '</span>' +
                                 '<span class="user-status-badge ' + (user.blacklisted ? 'status-blacklisted' : 'status-clean') + '">' +
                                     (user.blacklisted ? 'Blacklisted' : 'Clean') +
                                 '</span>' +
-                                roleBadges +
+                                '<span class="role-badge ' + roleBadgeClass + '" onclick="showRoleAssignmentModal(\'' + safeUsername + '\', \'' + safeRole + '\')" title="Click to change role">' +
+                                    safeRole +
+                                '</span>' +
                             '</div>' +
                             '<div class="text-sm text-gray-300">' +
-                                'Role: ' + safeRole + ' • Joined: ' + safeJoined + ' ' + blacklistInfo +
+                                'Joined: ' + safeJoined + ' ' + blacklistInfo +
                             '</div>' +
                         '</div>' +
                         '<div class="flex space-x-2">' +
-                            '<button onclick="viewUserWarnings(\'' + safeUsername + '\')" class="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg" title="View Warnings"><i data-feather="alert-triangle" class="w-4 h-4"></i></button>' +
+                            '<button onclick="viewUserWarnings(\'' + safeUsername + '\')" class="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg transition-all duration-200 hover:scale-110" title="View Warnings"><i data-feather="alert-triangle" class="w-4 h-4"></i></button>' +
+                            roleButton +
                             deleteButton +
                             blacklistButton +
                         '</div>' +
@@ -1402,9 +1473,6 @@
         // Redirect to login
         window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
     });
-
-    // Add event listener for role select change
-    document.getElementById('userRoleSelect').addEventListener('change', updateRoleHelp);
 
     // Cookie Functions
     function getCookie(name) {
