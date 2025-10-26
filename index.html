@@ -2366,28 +2366,248 @@ async function loadRolesConfig() {
 // Get color for a role with fallback
 function getRoleColor(role) {
     if (!role) return "bg-gray-600";
-    
     const roleName = role.trim();
     return rolesConfig[roleName]?.bgColor || "bg-gray-600";
 }
 
-// Get role description with fallback
-function getRoleDescription(role) {
-    if (!role) return "User role";
+// Create profile overlay modal
+function createProfileOverlay() {
+    if (document.getElementById('profileOverlay')) return;
     
-    const roleName = role.trim();
-    return rolesConfig[roleName]?.description || `${roleName} role`;
+    const overlayHTML = `
+        <div id="profileOverlay" class="modal-overlay">
+            <div class="modal-content" style="max-width: 400px;">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold" id="profileUsername">User Profile</h2>
+                    <button onclick="closeProfileOverlay()" class="p-1 rounded-full hover:bg-purple-700">
+                        <i data-feather="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <!-- User Info -->
+                    <div class="flex items-center space-x-3">
+                        <div id="profileAvatar" class="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0">
+                            <span id="profileInitials" class="text-sm font-bold text-white"></span>
+                        </div>
+                        <div class="flex-1">
+                            <div id="profileDisplayName" class="font-medium"></div>
+                            <div id="profileRole" class="text-sm text-gray-300"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- User Details -->
+                    <div class="glassmorphism p-3 rounded-lg space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-gray-300">Joined:</span>
+                            <span id="profileJoinDate" class="font-medium"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-300">Status:</span>
+                            <span id="profileStatus" class="font-medium"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-300">Warnings:</span>
+                            <span id="profileWarnings" class="font-medium"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Admin Actions (Only for Mods/Admins/Owners) -->
+                    <div id="adminActions" class="hidden">
+                        <h3 class="text-lg font-semibold mb-3">Quick Actions</h3>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="adminSendMessage()" class="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center space-x-1" title="Send Message">
+                                <i data-feather="mail" class="w-4 h-4"></i>
+                                <span class="text-xs">Message</span>
+                            </button>
+                            <button onclick="adminChangeRole()" class="p-2 bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center justify-center space-x-1" title="Change Role">
+                                <i data-feather="users" class="w-4 h-4"></i>
+                                <span class="text-xs">Role</span>
+                            </button>
+                            <button onclick="adminSendWarning()" class="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg flex items-center justify-center space-x-1" title="Send Warning">
+                                <i data-feather="alert-triangle" class="w-4 h-4"></i>
+                                <span class="text-xs">Warn</span>
+                            </button>
+                            <button onclick="adminToggleBlacklist()" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg flex items-center justify-center space-x-1" title="Blacklist">
+                                <i data-feather="x-circle" class="w-4 h-4"></i>
+                                <span class="text-xs" id="blacklistText">Blacklist</span>
+                            </button>
+                            <button onclick="adminDeleteUser()" class="p-2 bg-red-800 hover:bg-red-900 rounded-lg flex items-center justify-center space-x-1 col-span-2" title="Delete User">
+                                <i data-feather="trash-2" class="w-4 h-4"></i>
+                                <span class="text-xs">Delete Account</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', overlayHTML);
+    feather.replace();
 }
 
+// Global variables to track current profile
+let currentProfileUser = null;
+let currentUserRole = '';
+
+// Open profile overlay
+function openProfileOverlay(user) {
+    currentProfileUser = user;
+    const overlay = document.getElementById('profileOverlay');
+    if (!overlay) createProfileOverlay();
+    
+    // Populate user data
+    document.getElementById('profileUsername').textContent = user.username;
+    document.getElementById('profileDisplayName').textContent = user.username;
+    document.getElementById('profileRole').textContent = user.role;
+    document.getElementById('profileJoinDate').textContent = user.joined || 'Unknown';
+    
+    // Set status
+    const statusElement = document.getElementById('profileStatus');
+    if (user.blacklisted) {
+        statusElement.textContent = 'Blacklisted';
+        statusElement.className = 'font-medium text-red-400';
+    } else {
+        statusElement.textContent = 'Active';
+        statusElement.className = 'font-medium text-green-400';
+    }
+    
+    // Set avatar and initials
+    const initials = user.username.split(" ").filter(word => word.length > 0)
+        .map(word => word[0].toUpperCase()).join("").slice(0, 2);
+    document.getElementById('profileInitials').textContent = initials;
+    
+    const avatarElement = document.getElementById('profileAvatar');
+    const color = getRoleColor(user.role);
+    avatarElement.className = `w-12 h-12 rounded-full ${color} flex items-center justify-center flex-shrink-0`;
+    
+    // Load warnings count
+    loadUserWarningsCount(user.username);
+    
+    // Show/hide admin actions based on current user role
+    const adminActions = document.getElementById('adminActions');
+    const currentUser = localStorage.getItem('currentUser');
+    const currentUserRole = localStorage.getItem('currentUserRole');
+    
+    if (currentUserRole && ['Owner', 'Admin', 'Moderator'].includes(currentUserRole) && currentUser !== user.username) {
+        adminActions.classList.remove('hidden');
+        
+        // Update blacklist button text
+        const blacklistText = document.getElementById('blacklistText');
+        blacklistText.textContent = user.blacklisted ? 'Unblacklist' : 'Blacklist';
+    } else {
+        adminActions.classList.add('hidden');
+    }
+    
+    overlay.classList.add('active');
+}
+
+// Close profile overlay
+function closeProfileOverlay() {
+    const overlay = document.getElementById('profileOverlay');
+    if (overlay) {
+        overlay.classList.remove('active');
+    }
+    currentProfileUser = null;
+}
+
+// Load user warnings count
+async function loadUserWarningsCount(username) {
+    try {
+        const token = getCookie('AuthToken');
+        const response = await fetch(`${SERVER_URL}/api/admin/warnings/${encodeURIComponent(username)}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const warnings = await response.json();
+            const activeWarnings = warnings.filter(w => !w.dismissed);
+            document.getElementById('profileWarnings').textContent = activeWarnings.length;
+        } else {
+            document.getElementById('profileWarnings').textContent = '0';
+        }
+    } catch (error) {
+        console.error('Error loading warnings:', error);
+        document.getElementById('profileWarnings').textContent = '0';
+    }
+}
+
+// Admin action functions
+function adminSendMessage() {
+    if (!currentProfileUser) return;
+    closeProfileOverlay();
+    
+    // Open specific message modal with user pre-selected
+    openModal('specificMessageModal');
+    
+    // Wait for modal to open then select the user
+    setTimeout(() => {
+        const checkbox = document.querySelector(`input[value="${currentProfileUser.username}"]`);
+        if (checkbox) {
+            checkbox.checked = true;
+        }
+        document.getElementById('specificMessage').focus();
+    }, 100);
+}
+
+function adminChangeRole() {
+    if (!currentProfileUser) return;
+    closeProfileOverlay();
+    
+    // Pre-fill role form
+    document.getElementById('roleUsername').value = currentProfileUser.username;
+    document.getElementById('userRoleSelect').value = currentProfileUser.role;
+    updateRoleHelp();
+    
+    // Scroll to role management section
+    document.getElementById('userRoleSelect').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('userRoleSelect').focus();
+}
+
+function adminSendWarning() {
+    if (!currentProfileUser) return;
+    closeProfileOverlay();
+    
+    // Pre-fill warning form
+    document.getElementById('warnUsername').value = currentProfileUser.username;
+    openModal('warnModal');
+    document.getElementById('warnMessage').focus();
+}
+
+function adminToggleBlacklist() {
+    if (!currentProfileUser) return;
+    
+    if (currentProfileUser.blacklisted) {
+        if (confirm(`Unblacklist ${currentProfileUser.username}?`)) {
+            unblacklistUser(currentProfileUser.username);
+        }
+    } else {
+        // Pre-fill blacklist form
+        document.getElementById('username').value = currentProfileUser.username;
+        closeProfileOverlay();
+        document.getElementById('reason').focus();
+    }
+}
+
+function adminDeleteUser() {
+    if (!currentProfileUser) return;
+    closeProfileOverlay();
+    showRemoteDeleteModal(currentProfileUser.username, currentProfileUser.role);
+}
+
+// Updated loadMembers function with clickable profiles
 async function loadMembers() {
     if (isLoadingMembers) return;
     isLoadingMembers = true;
 
     try {
         const token = getCookie('AuthToken');
-        if (!token) {
-            throw new Error("No authentication token found");
-        }
+        if (!token) throw new Error("No authentication token found");
 
         // Load roles config in background
         loadRolesConfig();
@@ -2400,21 +2620,10 @@ async function loadMembers() {
             }
         });
 
-        if (!res.ok) {
-            throw new Error("Failed to fetch members");
-        }
+        if (!res.ok) throw new Error("Failed to fetch members");
 
         const members = await res.json();
         const container = document.getElementById("membersList");
-
-        // Deduplication
-        const seen = new Set();
-        const uniqueMembers = members.filter(user => {
-            const identifier = user.username || "unknown";
-            if (seen.has(identifier)) return false;
-            seen.add(identifier);
-            return true;
-        });
 
         // Clear with fade
         container.innerHTML = "";
@@ -2422,34 +2631,22 @@ async function loadMembers() {
         container.classList.add("opacity-0");
 
         setTimeout(() => {
-            if (uniqueMembers.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-8 text-gray-400">
-                        <i data-feather="users" class="w-12 h-12 mx-auto mb-4"></i>
-                        <p>No members found</p>
-                    </div>
-                `;
+            if (members.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-gray-400">No members found</div>`;
             } else {
-                uniqueMembers.forEach(user => {
+                members.forEach(user => {
                     const safeUsername = user.username || "Unknown";
                     const userRole = user.role || "Member";
-                    const initials = safeUsername
-                        .split(" ")
-                        .filter(word => word.length > 0)
-                        .map(word => word[0].toUpperCase())
-                        .join("")
-                        .slice(0, 2);
+                    const initials = safeUsername.split(" ").filter(word => word.length > 0)
+                        .map(word => word[0].toUpperCase()).join("").slice(0, 2);
 
                     const color = getRoleColor(userRole);
-                    const roleDescription = getRoleDescription(userRole);
 
                     const memberDiv = document.createElement("div");
                     memberDiv.className = "flex items-center p-3 rounded-lg hover:bg-purple-800 hover:bg-opacity-50 transition-colors duration-200 cursor-pointer group";
-                    memberDiv.title = `${roleDescription} | Joined: ${user.joined || 'Unknown'}`;
+                    memberDiv.title = `Click to view ${safeUsername}'s profile`;
+                    memberDiv.onclick = () => openProfileOverlay(user);
                     
-                    // Add click handler to show user details
-                    memberDiv.onclick = () => showUserDetails(user);
-
                     memberDiv.innerHTML = `
                         <div class="w-10 h-10 rounded-full ${color} flex items-center justify-center mr-3 flex-shrink-0">
                             <span class="text-sm font-bold text-white">${initials}</span>
@@ -2458,7 +2655,11 @@ async function loadMembers() {
                             <div class="font-medium truncate">${safeUsername}</div>
                             <div class="text-xs text-gray-400 capitalize">${userRole}</div>
                         </div>
-                        <div class="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            ${user.blacklisted ? 
+                                '<span class="text-red-400" title="Blacklisted"><i data-feather="x-circle" class="w-4 h-4"></i></span>' : 
+                                '<span class="text-green-400" title="Active"><i data-feather="check-circle" class="w-4 h-4"></i></span>'
+                            }
                             <i data-feather="chevron-right" class="w-4 h-4 text-gray-400"></i>
                         </div>
                     `;
@@ -2492,87 +2693,18 @@ async function loadMembers() {
     }
 }
 
-// Optional: Function to show user details when clicked
-function showUserDetails(user) {
-    const userRole = user.role || "Member";
-    const roleConfig = rolesConfig[userRole] || {};
+// Initialize profile overlay when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    createProfileOverlay();
     
-    const modalHtml = `
-        <div class="modal-overlay active" id="userDetailsModal">
-            <div class="modal-content">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold">User Details</h2>
-                    <button onclick="closeModal('userDetailsModal')" class="p-1 rounded-full hover:bg-purple-700">
-                        <i data-feather="x" class="w-5 h-5"></i>
-                    </button>
-                </div>
-                
-                <div class="space-y-4">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-16 h-16 rounded-full ${getRoleColor(userRole)} flex items-center justify-center">
-                            <span class="text-lg font-bold text-white">
-                                ${(user.username || 'Unknown').split(' ').filter(w => w.length > 0).map(w => w[0].toUpperCase()).join('').slice(0, 2)}
-                            </span>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-bold">${user.username || 'Unknown'}</h3>
-                            <span class="inline-block px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(userRole)} text-white">
-                                ${userRole}
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <label class="text-gray-400">Joined</label>
-                            <p>${user.joined || 'Unknown'}</p>
-                        </div>
-                        <div>
-                            <label class="text-gray-400">Status</label>
-                            <p class="${user.blacklisted ? 'text-red-400' : 'text-green-400'}">
-                                ${user.blacklisted ? 'Blacklisted' : 'Active'}
-                            </p>
-                        </div>
-                    </div>
-                    
-                    ${roleConfig.description ? `
-                    <div>
-                        <label class="text-gray-400 block mb-1">Role Description</label>
-                        <p class="text-sm">${roleConfig.description}</p>
-                    </div>
-                    ` : ''}
-                    
-                    ${user.blacklistReason ? `
-                    <div class="p-3 bg-red-900 bg-opacity-30 rounded-lg">
-                        <label class="text-red-300 block mb-1">Blacklist Reason</label>
-                        <p class="text-sm">${user.blacklistReason}</p>
-                    </div>
-                    ` : ''}
-                </div>
-                
-                <div class="flex space-x-2 mt-6">
-                    <button onclick="viewUserWarnings('${user.username}')" class="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded-lg">
-                        View Warnings
-                    </button>
-                    <button onclick="closeModal('userDetailsModal')" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg">
-                        Close
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    // Add modal to page
-    const existingModal = document.getElementById('userDetailsModal');
-    if (existingModal) {
-        existingModal.remove();
-    }
-    
-    const modalContainer = document.createElement('div');
-    modalContainer.innerHTML = modalHtml;
-    document.body.appendChild(modalContainer);
-    feather.replace();
-}
+    // Close overlay when clicking outside
+    document.addEventListener('click', function(event) {
+        const overlay = document.getElementById('profileOverlay');
+        if (overlay && event.target === overlay) {
+            closeProfileOverlay();
+        }
+    });
+});
 
 
 });
