@@ -497,979 +497,982 @@
         </main>
     </div>
 
-    <script>
-        // Initialize animations and icons
-        AOS.init();
-        feather.replace();
+<script>
+    // Initialize animations and icons
+    AOS.init();
+    feather.replace();
 
-        // Server URL
-        const SERVER_URL = "https://proxyforsigmi.onrender.com";
+    // Server URL
+    const SERVER_URL = "https://proxyforsigmi.onrender.com";
 
-        // Global variables to track current user info
-        let currentUser = '';
-        let currentUserRole = '';
+    // Global variables to track current user info
+    let currentUser = '';
+    let currentUserRole = '';
 
-        // Function to escape special characters for HTML attributes
-        function escapeHtml(unsafe) {
-            return unsafe
-                .replace(/'/g, "\\'")
-                .replace(/"/g, '\\"')
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;");
-        }
+    // Function to escape special characters for HTML attributes
+    function escapeHtml(unsafe) {
+        return unsafe
+            .replace(/'/g, "\\'")
+            .replace(/"/g, '\\"')
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
 
-        // Function to check if user is logged in
-        function isLoggedIn() {
-            const token = getCookie('AuthToken');
-            const storedUser = localStorage.getItem('currentUser');
-            return !!(token && storedUser);
-        }
+    // Function to check if user is logged in
+    function isLoggedIn() {
+        const token = getCookie('AuthToken');
+        const storedUser = localStorage.getItem('currentUser');
+        return !!(token && storedUser);
+    }
 
-        // Function to verify token with server
-        async function verifyToken(token) {
-            try {
-                const response = await fetch(`${SERVER_URL}/api/verify-token`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    return false;
+    // Function to verify token with server
+    async function verifyToken(token) {
+        try {
+            const response = await fetch(`${SERVER_URL}/api/verify-token`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
-                
-                const data = await response.json();
-                return data.valid === true;
-            } catch (error) {
-                console.error('Token verification error:', error);
+            });
+            
+            if (response.status === 401) {
                 return false;
             }
+            
+            if (!response.ok) {
+                return false;
+            }
+            
+            const data = await response.json();
+            return data.valid === true;
+        } catch (error) {
+            console.error('Token verification error:', error);
+            return false;
         }
+    }
 
-        // Function to get user info
-        async function getUserInfo(token) {
-            try {
-                const response = await fetch(`${SERVER_URL}/api/user-info`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to get user info');
+    // Function to get user info
+    async function getUserInfo(token) {
+        try {
+            const response = await fetch(`${SERVER_URL}/api/user-info`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
-                
-                return await response.json();
-            } catch (error) {
-                console.error('Get user info error:', error);
-                throw error;
-            }
-        }
-
-        // Modal functions
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.add('active');
-            
-            // If opening specific message modal, populate users list
-            if (modalId === 'specificMessageModal') {
-                populateRecipientsList();
-            }
-        }
-        
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
-        
-        // Populate recipients list for specific messages
-        function populateRecipientsList() {
-            const recipientsList = document.getElementById('recipientsList');
-            const users = JSON.parse(localStorage.getItem('allUsers') || '[]');
-            
-            recipientsList.innerHTML = '';
-            
-            users.forEach(user => {
-                const userDiv = document.createElement('div');
-                userDiv.className = 'user-checkbox';
-                userDiv.innerHTML = `
-                    <input type="checkbox" id="user-${user.username}" name="recipients" value="${escapeHtml(user.username)}" class="mr-2">
-                    <label for="user-${user.username}" class="cursor-pointer">${user.username} (${user.role})</label>
-                `;
-                recipientsList.appendChild(userDiv);
             });
+            
+            if (!response.ok) {
+                throw new Error('Failed to get user info');
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error('Get user info error:', error);
+            throw error;
+        }
+    }
+
+    // Modal functions
+    function openModal(modalId) {
+        document.getElementById(modalId).classList.add('active');
+        
+        // If opening specific message modal, populate users list
+        if (modalId === 'specificMessageModal') {
+            populateRecipientsList();
+        }
+    }
+    
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+    }
+    
+    // Populate recipients list for specific messages
+    function populateRecipientsList() {
+        const recipientsList = document.getElementById('recipientsList');
+        const users = JSON.parse(localStorage.getItem('allUsers') || '[]');
+        
+        recipientsList.innerHTML = '';
+        
+        users.forEach(user => {
+            const userDiv = document.createElement('div');
+            userDiv.className = 'user-checkbox';
+            userDiv.innerHTML = `
+                <input type="checkbox" id="user-${user.username}" name="recipients" value="${escapeHtml(user.username)}" class="mr-2">
+                <label for="user-${user.username}" class="cursor-pointer">${user.username} (${user.role})</label>
+            `;
+            recipientsList.appendChild(userDiv);
+        });
+    }
+    
+    // Select all users for messaging
+    function selectAllUsers() {
+        const checkboxes = document.querySelectorAll('input[name="recipients"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = true;
+        });
+    }
+    
+    // Deselect all users for messaging
+    function deselectAllUsers() {
+        const checkboxes = document.querySelectorAll('input[name="recipients"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+    }
+    
+    function toggleCustomSender() {
+        // This can be expanded if you need custom sender names
+    }
+
+    // Update the sendBroadcast function
+    async function sendBroadcast() {
+        const message = document.getElementById('broadcastMessage').value.trim();
+        const duration = parseInt(document.getElementById('broadcastDuration').value);
+        const senderType = document.querySelector('input[name="broadcastSenderType"]:checked').value;
+        
+        if (!message) {
+            alert('Please enter a message to broadcast');
+            return;
         }
         
-        // Select all users for messaging
-        function selectAllUsers() {
-            const checkboxes = document.querySelectorAll('input[name="recipients"]');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = true;
+        try {
+            const token = getCookie('AuthToken');
+            const response = await fetch(`${SERVER_URL}/api/broadcast`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    message, 
+                    duration,
+                    senderType // Add sender type to request
+                })
             });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to send broadcast');
+            }
+            
+            const result = await response.json();
+            alert(`Broadcast sent successfully as ${senderType}! It will be active for ${duration} hours.`);
+            closeModal('broadcastModal');
+            document.getElementById('broadcastMessage').value = '';
+            
+        } catch (error) {
+            console.error('Broadcast error:', error);
+            alert(`Error: ${error.message}`);
+        }
+    }
+
+    // Update the sendSpecificMessage function
+    async function sendSpecificMessage() {
+        const message = document.getElementById('specificMessage').value.trim();
+        const checkboxes = document.querySelectorAll('input[name="recipients"]:checked');
+        const recipients = Array.from(checkboxes).map(cb => cb.value);
+        const senderType = document.querySelector('input[name="senderType"]:checked').value;
+        
+        if (!message) {
+            alert('Please enter a message to send');
+            return;
         }
         
-        // Deselect all users for messaging
-        function deselectAllUsers() {
-            const checkboxes = document.querySelectorAll('input[name="recipients"]');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = false;
+        if (recipients.length === 0) {
+            alert('Please select at least one recipient');
+            return;
+        }
+        
+        try {
+            const token = getCookie('AuthToken');
+            const response = await fetch(`${SERVER_URL}/api/messages/send`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    message, 
+                    recipients,
+                    duration: 168, // 1 week default
+                    senderType // Add sender type to request
+                })
             });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to send message');
+            }
+            
+            const result = await response.json();
+            alert(`✅ Message sent as ${senderType} to ${result.recipients.length} user(s)!`);
+            closeModal('specificMessageModal');
+            document.getElementById('specificMessage').value = '';
+            deselectAllUsers();
+            
+        } catch (error) {
+            console.error('Message send error:', error);
+            alert(`❌ Error: ${error.message}`);
+        }
+    }
+    
+    async function sendWarning() {
+        const username = document.getElementById('warnUsername').value.trim();
+        const reason = document.getElementById('warnMessage').value.trim();
+        const senderType = document.querySelector('input[name="warnSenderType"]:checked').value;
+        
+        if (!username) {
+            alert('Please enter a username to warn');
+            return;
         }
         
-        function toggleCustomSender() {
-            // This can be expanded if you need custom sender names
-        }
-
-        // Update the sendBroadcast function
-        async function sendBroadcast() {
-            const message = document.getElementById('broadcastMessage').value.trim();
-            const duration = parseInt(document.getElementById('broadcastDuration').value);
-            const senderType = document.querySelector('input[name="broadcastSenderType"]:checked').value;
-            
-            if (!message) {
-                alert('Please enter a message to broadcast');
-                return;
-            }
-            
-            try {
-                const token = getCookie('AuthToken');
-                const response = await fetch(`${SERVER_URL}/api/broadcast`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ 
-                        message, 
-                        duration,
-                        senderType // Add sender type to request
-                    })
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to send broadcast');
-                }
-                
-                const result = await response.json();
-                alert(`Broadcast sent successfully as ${senderType}! It will be active for ${duration} hours.`);
-                closeModal('broadcastModal');
-                document.getElementById('broadcastMessage').value = '';
-                
-            } catch (error) {
-                console.error('Broadcast error:', error);
-                alert(`Error: ${error.message}`);
-            }
-        }
-
-        // Update the sendSpecificMessage function
-        async function sendSpecificMessage() {
-            const message = document.getElementById('specificMessage').value.trim();
-            const checkboxes = document.querySelectorAll('input[name="recipients"]:checked');
-            const recipients = Array.from(checkboxes).map(cb => cb.value);
-            const senderType = document.querySelector('input[name="senderType"]:checked').value;
-            
-            if (!message) {
-                alert('Please enter a message to send');
-                return;
-            }
-            
-            if (recipients.length === 0) {
-                alert('Please select at least one recipient');
-                return;
-            }
-            
-            try {
-                const token = getCookie('AuthToken');
-                const response = await fetch(`${SERVER_URL}/api/messages/send`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ 
-                        message, 
-                        recipients,
-                        duration: 168, // 1 week default
-                        senderType // Add sender type to request
-                    })
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to send message');
-                }
-                
-                const result = await response.json();
-                alert(`✅ Message sent as ${senderType} to ${result.recipients.length} user(s)!`);
-                closeModal('specificMessageModal');
-                document.getElementById('specificMessage').value = '';
-                deselectAllUsers();
-                
-            } catch (error) {
-                console.error('Message send error:', error);
-                alert(`❌ Error: ${error.message}`);
-            }
+        if (!reason) {
+            alert('Please enter a warning reason');
+            return;
         }
         
-        async function sendWarning() {
-            const username = document.getElementById('warnUsername').value.trim();
-            const reason = document.getElementById('warnMessage').value.trim();
-            const senderType = document.querySelector('input[name="warnSenderType"]:checked').value;
+        try {
+            const token = getCookie('AuthToken');
+            const response = await fetch(`${SERVER_URL}/api/warnings/issue`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    username, 
+                    reason,
+                    senderType // Add sender type to request
+                })
+            });
             
-            if (!username) {
-                alert('Please enter a username to warn');
-                return;
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to send warning');
             }
             
-            if (!reason) {
-                alert('Please enter a warning reason');
-                return;
-            }
+            const result = await response.json();
+            alert(`⚠️ Warning issued as ${senderType} to ${username}: "${reason}"\nWarning ID: ${result.warning.id}`);
+            closeModal('warnModal');
+            document.getElementById('warnUsername').value = '';
+            document.getElementById('warnMessage').value = '';
             
-            try {
-                const token = getCookie('AuthToken');
-                const response = await fetch(`${SERVER_URL}/api/warnings/issue`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ 
-                        username, 
-                        reason,
-                        senderType // Add sender type to request
-                    })
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to send warning');
-                }
-                
-                const result = await response.json();
-                alert(`⚠️ Warning issued as ${senderType} to ${username}: "${reason}"\nWarning ID: ${result.warning.id}`);
-                closeModal('warnModal');
-                document.getElementById('warnUsername').value = '';
-                document.getElementById('warnMessage').value = '';
-                
-            } catch (error) {
-                console.error('Warning error:', error);
-                alert(`❌ Error: ${error.message}`);
-            }
+        } catch (error) {
+            console.error('Warning error:', error);
+            alert(`❌ Error: ${error.message}`);
+        }
+    }
+    
+    async function viewUserWarnings(username) {
+        if (!username) {
+            alert('Please enter a username');
+            return;
         }
         
-        async function viewUserWarnings(username) {
-            if (!username) {
-                alert('Please enter a username');
-                return;
-            }
-            
-            try {
-                const token = getCookie('AuthToken');
-                const response = await fetch(`${SERVER_URL}/api/admin/warnings/${encodeURIComponent(username)}`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to fetch warnings');
+        try {
+            const token = getCookie('AuthToken');
+            const response = await fetch(`${SERVER_URL}/api/admin/warnings/${encodeURIComponent(username)}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
-                
-                const warnings = await response.json();
-                showWarningsModal(username, warnings);
-                
-            } catch (error) {
-                console.error('Fetch warnings error:', error);
-                alert(`Error: ${error.message}`);
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to fetch warnings');
             }
+            
+            const warnings = await response.json();
+            showWarningsModal(username, warnings);
+            
+        } catch (error) {
+            console.error('Fetch warnings error:', error);
+            alert(`Error: ${error.message}`);
         }
+    }
 
-        // Fixed showWarningsModal function with proper escaping
-        function showWarningsModal(username, warnings) {
-            // Count active and dismissed warnings
-            const activeWarnings = warnings.filter(w => !w.dismissed);
-            const dismissedWarnings = warnings.filter(w => w.dismissed);
-            
-            let warningsHTML = '';
-            
-            if (warnings.length === 0) {
-                warningsHTML = '<p class="text-gray-400 text-center py-4">No warnings found</p>';
-            } else {
-                warningsHTML = warnings.map(warning => {
-                    const isDismissed = warning.dismissed;
-                    const safeUsername = escapeHtml(username);
-                    const safeWarningId = escapeHtml(warning.id);
-                    const safeReason = escapeHtml(warning.reason);
-                    const safeIssuedBy = escapeHtml(warning.issuedBy);
-                    const safeOriginalIssuer = escapeHtml(warning.originalIssuer || '');
-                    const safeSenderType = escapeHtml(warning.senderType || 'user');
-                    const safeDismissedBy = escapeHtml(warning.dismissedBy || '');
+    // Fixed showWarningsModal function with proper escaping
+    function showWarningsModal(username, warnings) {
+        // Count active and dismissed warnings
+        const activeWarnings = warnings.filter(w => !w.dismissed);
+        const dismissedWarnings = warnings.filter(w => w.dismissed);
+        
+        let warningsHTML = '';
+        
+        if (warnings.length === 0) {
+            warningsHTML = '<p class="text-gray-400 text-center py-4">No warnings found</p>';
+        } else {
+            warningsHTML = warnings.map(warning => {
+                const isDismissed = warning.dismissed;
+                const safeUsername = escapeHtml(username);
+                const safeWarningId = escapeHtml(warning.id);
+                const safeReason = escapeHtml(warning.reason);
+                const safeIssuedBy = escapeHtml(warning.issuedBy);
+                const safeOriginalIssuer = escapeHtml(warning.originalIssuer || '');
+                const safeSenderType = escapeHtml(warning.senderType || 'user');
+                const safeDismissedBy = escapeHtml(warning.dismissedBy || '');
+                
+                const dismissedHTML = isDismissed ? 
+                    '<p class="text-sm text-green-300">Dismissed on ' + new Date(warning.dismissedAt).toLocaleDateString() + 
+                    (warning.dismissedBy ? ' by ' + safeDismissedBy : '') + '</p>' :
+                    '<p class="text-sm text-yellow-300">Active warning</p>';
                     
-                    const dismissedHTML = isDismissed ? 
-                        '<p class="text-sm text-green-300">Dismissed on ' + new Date(warning.dismissedAt).toLocaleDateString() + 
-                        (warning.dismissedBy ? ' by ' + safeDismissedBy : '') + '</p>' :
-                        '<p class="text-sm text-yellow-300">Active warning</p>';
-                        
-                    const dismissButton = !isDismissed ? 
-                        '<button onclick="dismissWarning(\'' + safeUsername + '\', \'' + safeWarningId + '\')" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-sm" title="Dismiss Warning"><i data-feather="check" class="w-3 h-3"></i></button>' :
-                        '';
-                        
-                    return '<div class="glassmorphism p-3 rounded-lg mb-2 ' + (isDismissed ? 'opacity-70' : '') + '">' +
-                        '<div class="flex justify-between items-start">' +
-                            '<div class="flex-1">' +
-                                '<p class="font-medium">' + safeReason + '</p>' +
-                                '<p class="text-sm text-gray-300">Issued by: ' + safeIssuedBy + 
-                                (warning.senderType === 'user' ? ' (' + safeOriginalIssuer + ')' : '') +
-                                ' on ' + new Date(warning.issuedAt).toLocaleDateString() + '</p>' +
-                                '<p class="text-xs text-gray-400">Type: ' + safeSenderType + '</p>' +
-                                dismissedHTML +
-                            '</div>' +
-                            '<div class="flex space-x-1 ml-2">' +
-                                dismissButton +
-                                '<button onclick="deleteWarning(\'' + safeUsername + '\', \'' + safeWarningId + '\')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm" title="Delete Warning Permanently"><i data-feather="trash-2" class="w-3 h-3"></i></button>' +
-                            '</div>' +
+                const dismissButton = !isDismissed ? 
+                    '<button onclick="dismissWarning(\'' + safeUsername + '\', \'' + safeWarningId + '\')" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-sm" title="Dismiss Warning"><i data-feather="check" class="w-3 h-3"></i></button>' :
+                    '';
+                    
+                return '<div class="glassmorphism p-3 rounded-lg mb-2 ' + (isDismissed ? 'opacity-70' : '') + '">' +
+                    '<div class="flex justify-between items-start">' +
+                        '<div class="flex-1">' +
+                            '<p class="font-medium">' + safeReason + '</p>' +
+                            '<p class="text-sm text-gray-300">Issued by: ' + safeIssuedBy + 
+                            (warning.senderType === 'user' ? ' (' + safeOriginalIssuer + ')' : '') +
+                            ' on ' + new Date(warning.issuedAt).toLocaleDateString() + '</p>' +
+                            '<p class="text-xs text-gray-400">Type: ' + safeSenderType + '</p>' +
+                            dismissedHTML +
                         '</div>' +
-                    '</div>';
-                }).join('');
-            }
-            
-            const safeUsername = escapeHtml(username);
-            const bulkActionsHTML = 
-                (warnings.length > 0 ? '<button onclick="deleteAllWarnings(\'' + safeUsername + '\', ' + warnings.length + ')" class="bg-red-600 hover:bg-red-700 text-white py-1 px-3 rounded text-sm">Delete All</button>' : '') +
-                (dismissedWarnings.length > 0 ? '<button onclick="deleteDismissedWarnings(\'' + safeUsername + '\', ' + dismissedWarnings.length + ')" class="bg-orange-600 hover:bg-orange-700 text-white py-1 px-3 rounded text-sm">Delete Dismissed</button>' : '');
-            
-            const modalHtml = 
-                '<div class="modal-overlay active" id="warningsModal">' +
-                    '<div class="modal-content" style="max-width: 600px;">' +
-                        '<div class="flex justify-between items-center mb-4">' +
-                            '<div>' +
-                                '<h2 class="text-xl font-bold">Warnings for ' + safeUsername + '</h2>' +
-                                '<div class="flex space-x-4 text-sm text-gray-300 mt-1">' +
-                                    '<span>Total: ' + warnings.length + '</span>' +
-                                    '<span class="text-yellow-400">Active: ' + activeWarnings.length + '</span>' +
-                                    '<span class="text-green-400">Dismissed: ' + dismissedWarnings.length + '</span>' +
-                                '</div>' +
-                            '</div>' +
-                            '<button onclick="closeModal(\'warningsModal\')" class="p-1 rounded-full hover:bg-purple-700">' +
-                                '<i data-feather="x" class="w-5 h-5"></i>' +
-                            '</button>' +
+                        '<div class="flex space-x-1 ml-2">' +
+                            dismissButton +
+                            '<button onclick="deleteWarning(\'' + safeUsername + '\', \'' + safeWarningId + '\')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm" title="Delete Warning Permanently"><i data-feather="trash-2" class="w-3 h-3"></i></button>' +
                         '</div>' +
-                        '<div class="flex space-x-2 mb-4">' +
-                            bulkActionsHTML +
-                        '</div>' +
-                        '<div class="max-h-64 overflow-y-auto">' +
-                            warningsHTML +
-                        '</div>' +
-                        '<button onclick="closeModal(\'warningsModal\')" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-medium w-full mt-4">Close</button>' +
                     '</div>' +
                 '</div>';
-            
-            // Add modal to page if it doesn't exist
-            if (!document.getElementById('warningsModal')) {
-                const modalContainer = document.createElement('div');
-                modalContainer.innerHTML = modalHtml;
-                document.body.appendChild(modalContainer);
-                feather.replace();
-            } else {
-                document.getElementById('warningsModal').innerHTML = modalHtml;
-                document.getElementById('warningsModal').classList.add('active');
-                feather.replace();
-            }
+            }).join('');
         }
         
-        // Delete a specific warning permanently
-        async function deleteWarning(username, warningId) {
-            if (!confirm('Permanently delete this warning for ' + username + '?\n\nThis action cannot be undone!')) {
-                return;
-            }
-            
-            try {
-                const token = getCookie('AuthToken');
-                const response = await fetch(`${SERVER_URL}/api/admin/warnings/${warningId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ username })
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to delete warning');
-                }
-                
-                const result = await response.json();
-                alert('✅ ' + result.message);
-                // Refresh the warnings view
-                viewUserWarnings(username);
-                
-            } catch (error) {
-                console.error('Delete warning error:', error);
-                alert('❌ Error: ' + error.message);
-            }
+        const safeUsername = escapeHtml(username);
+        const bulkActionsHTML = 
+            (warnings.length > 0 ? '<button onclick="deleteAllWarnings(\'' + safeUsername + '\', ' + warnings.length + ')" class="bg-red-600 hover:bg-red-700 text-white py-1 px-3 rounded text-sm">Delete All</button>' : '') +
+            (dismissedWarnings.length > 0 ? '<button onclick="deleteDismissedWarnings(\'' + safeUsername + '\', ' + dismissedWarnings.length + ')" class="bg-orange-600 hover:bg-orange-700 text-white py-1 px-3 rounded text-sm">Delete Dismissed</button>' : '');
+        
+        const modalHtml = 
+            '<div class="modal-overlay active" id="warningsModal">' +
+                '<div class="modal-content" style="max-width: 600px;">' +
+                    '<div class="flex justify-between items-center mb-4">' +
+                        '<div>' +
+                            '<h2 class="text-xl font-bold">Warnings for ' + safeUsername + '</h2>' +
+                            '<div class="flex space-x-4 text-sm text-gray-300 mt-1">' +
+                                '<span>Total: ' + warnings.length + '</span>' +
+                                '<span class="text-yellow-400">Active: ' + activeWarnings.length + '</span>' +
+                                '<span class="text-green-400">Dismissed: ' + dismissedWarnings.length + '</span>' +
+                            '</div>' +
+                        '</div>' +
+                        '<button onclick="closeModal(\'warningsModal\')" class="p-1 rounded-full hover:bg-purple-700">' +
+                            '<i data-feather="x" class="w-5 h-5"></i>' +
+                        '</button>' +
+                    '</div>' +
+                    '<div class="flex space-x-2 mb-4">' +
+                        bulkActionsHTML +
+                    '</div>' +
+                    '<div class="max-h-64 overflow-y-auto">' +
+                        warningsHTML +
+                    '</div>' +
+                    '<button onclick="closeModal(\'warningsModal\')" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-medium w-full mt-4">Close</button>' +
+                '</div>' +
+            '</div>';
+        
+        // Add modal to page if it doesn't exist
+        if (!document.getElementById('warningsModal')) {
+            const modalContainer = document.createElement('div');
+            modalContainer.innerHTML = modalHtml;
+            document.body.appendChild(modalContainer);
+            feather.replace();
+        } else {
+            document.getElementById('warningsModal').innerHTML = modalHtml;
+            document.getElementById('warningsModal').classList.add('active');
+            feather.replace();
         }
-
-        // Delete all warnings for a user
-        async function deleteAllWarnings(username, warningCount) {
-            if (!confirm('Delete ALL warnings for ' + username + '?\n\nThis will permanently remove ' + warningCount + ' warning(s) and cannot be undone!')) {
-                return;
-            }
-            
-            try {
-                const token = getCookie('AuthToken');
-                const response = await fetch(`${SERVER_URL}/api/admin/warnings/user/${encodeURIComponent(username)}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to delete warnings');
-                }
-                
-                const result = await response.json();
-                alert('✅ ' + result.message);
-                // Refresh the warnings view
-                viewUserWarnings(username);
-                
-            } catch (error) {
-                console.error('Delete all warnings error:', error);
-                alert('❌ Error: ' + error.message);
-            }
-        }
-
-        // Delete only dismissed warnings for a user
-        async function deleteDismissedWarnings(username, dismissedCount) {
-            if (!confirm('Delete all DISMISSED warnings for ' + username + '?\n\nThis will permanently remove ' + dismissedCount + ' dismissed warning(s) but keep active ones.')) {
-                return;
-            }
-            
-            try {
-                const token = getCookie('AuthToken');
-                const response = await fetch(`${SERVER_URL}/api/admin/warnings/user/${encodeURIComponent(username)}/dismissed`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to delete dismissed warnings');
-                }
-                
-                const result = await response.json();
-                alert('✅ ' + result.message);
-                // Refresh the warnings view
-                viewUserWarnings(username);
-                
-            } catch (error) {
-                console.error('Delete dismissed warnings error:', error);
-                alert('❌ Error: ' + error.message);
-            }
+    }
+    
+    // Delete a specific warning permanently
+    async function deleteWarning(username, warningId) {
+        if (!confirm('Permanently delete this warning for ' + username + '?\n\nThis action cannot be undone!')) {
+            return;
         }
         
-        async function dismissWarning(username, warningId) {
-            if (!confirm('Dismiss this warning for ' + username + '?')) {
-                return;
-            }
-            
-            try {
-                const token = getCookie('AuthToken');
-                const response = await fetch(`${SERVER_URL}/api/admin/warnings/${warningId}/dismiss`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ username })
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to dismiss warning');
-                }
-                
-                alert('Warning dismissed successfully');
-                // Refresh the warnings view
-                viewUserWarnings(username);
-                
-            } catch (error) {
-                console.error('Dismiss warning error:', error);
-                alert('Error: ' + error.message);
-            }
-        }
-
-        // Show remote delete confirmation modal
-        function showRemoteDeleteModal(username, userRole) {
-            document.getElementById('deleteUsernameDisplay').textContent = username;
-            document.getElementById('deleteUserRole').textContent = 'Role: ' + userRole;
-            document.getElementById('adminPassword').value = '';
-            openModal('remoteDeleteModal');
-        }
-
-        // Confirm and execute remote deletion
-        async function confirmRemoteDelete() {
-            const username = document.getElementById('deleteUsernameDisplay').textContent;
-            const password = document.getElementById('adminPassword').value.trim();
-            
-            if (!password) {
-                alert('Please enter your password to confirm deletion');
-                return;
-            }
-            
-            try {
-                const token = getCookie('AuthToken');
-                const response = await fetch(`${SERVER_URL}/api/admin/users/${encodeURIComponent(username)}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ password })
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to delete user');
-                }
-                
-                const result = await response.json();
-                alert('✅ ' + result.message);
-                closeModal('remoteDeleteModal');
-                
-                // Reload users list
-                loadUsersList();
-                
-            } catch (error) {
-                console.error('Delete user error:', error);
-                alert('❌ Error: ' + error.message);
-            }
-        }
-
-        // Role Management Functions
-        // Load available roles
-        async function loadAvailableRoles() {
-            try {
-                const token = getCookie('AuthToken');
-                const response = await fetch(`${SERVER_URL}/api/admin/roles`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to load roles');
-                }
-                
-                const data = await response.json();
-                return data.roles;
-            } catch (error) {
-                console.error('Load roles error:', error);
-                return [];
-            }
-        }
-
-        // Populate role select with available options
-        async function populateRoleSelect() {
-            const roles = await loadAvailableRoles();
-            const roleSelect = document.getElementById('userRole');
-            
-            // Clear existing options except the first one
-            while (roleSelect.options.length > 1) {
-                roleSelect.remove(1);
-            }
-            
-            // Add available roles
-            roles.forEach(role => {
-                const option = document.createElement('option');
-                option.value = role.value;
-                option.textContent = `${role.label} - ${role.description}`;
-                roleSelect.appendChild(option);
-            });
-        }
-
-        // Update role help text based on selection
-        function updateRoleHelp() {
-            const roleSelect = document.getElementById('userRole');
-            const roleHelp = document.getElementById('roleHelp');
-            const selectedRole = roleSelect.value;
-            
-            const helpTexts = {
-                'Member': 'Regular user with basic access permissions.',
-                'Moderator': 'Can manage warnings, reports, and user messages.',
-                'Admin': 'Full administrative access including blacklisting and role management (except Owner).',
-                'Owner': 'Full system control including Owner management. Use with extreme caution.'
-            };
-            
-            if (selectedRole && helpTexts[selectedRole]) {
-                roleHelp.textContent = helpTexts[selectedRole];
-                roleHelp.classList.remove('hidden');
-            } else {
-                roleHelp.classList.add('hidden');
-            }
-        }
-
-        // Assign role to user
-        async function assignRole(username, role) {
-            try {
-                const token = getCookie('AuthToken');
-                const response = await fetch(`${SERVER_URL}/api/admin/users/${encodeURIComponent(username)}/role`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ role })
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to assign role');
-                }
-                
-                const result = await response.json();
-                return result;
-                
-            } catch (error) {
-                console.error('Assign role error:', error);
-                throw error;
-            }
-        }
-
-        // Handle role form submission
-        document.getElementById('roleForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const username = document.getElementById('roleUsername').value.trim();
-            const role = document.getElementById('userRole').value;
-            
-            if (!username) {
-                alert('Please enter a username');
-                return;
-            }
-            
-            if (!role) {
-                alert('Please select a role');
-                return;
-            }
-            
-            if (!confirm(`Are you sure you want to assign the role "${role}" to user "${username}"?`)) {
-                return;
-            }
-            
-            try {
-                const result = await assignRole(username, role);
-                alert(`✅ ${result.message}\n\nUser: ${result.user.username}\nOld Role: ${result.user.oldRole}\nNew Role: ${result.user.newRole}`);
-                
-                // Reset form
-                this.reset();
-                document.getElementById('roleHelp').classList.add('hidden');
-                
-                // Reload users list to reflect changes
-                loadUsersList();
-                
-            } catch (error) {
-                console.error('Role assignment error:', error);
-                alert(`❌ Error: ${error.message}`);
-            }
-        });
-
-        // Check authentication status on page load
-        document.addEventListener('DOMContentLoaded', async function() {
+        try {
             const token = getCookie('AuthToken');
-            const storedUser = localStorage.getItem('currentUser');
+            const response = await fetch(`${SERVER_URL}/api/admin/warnings/${warningId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username })
+            });
             
-            if (token && storedUser) {
-                // Show loading overlay while verifying token
-                document.getElementById('loadingOverlay').classList.remove('hidden');
-                
-                try {
-                    // Verify token with server
-                    const isValid = await verifyToken(token);
-                    
-                    if (!isValid) {
-                        // Token is invalid, show login modal
-                        showLoginModal();
-                        return;
-                    }
-                    
-                    // Get user info to check permissions
-                    const userInfo = await getUserInfo(token);
-                    
-                    // Check if user has admin permissions
-                    if (userInfo.role !== "Owner" && userInfo.role !== "Admin") {
-                        alert("Insufficient permissions. Only admins can access this page.");
-                        window.location.href = "https://senturyhanderserson.github.io/SigmiForCCGS/";
-                        return;
-                    }
-                    
-                    // Set global user variables
-                    currentUser = userInfo.username;
-                    currentUserRole = userInfo.role;
-                    
-                    // Show user info
-                    document.getElementById('userInfo').classList.remove('hidden');
-                    document.getElementById('userUsername').textContent = userInfo.username;
-                    document.getElementById('userRole').textContent = userInfo.role;
-                    
-                    // Load available roles and populate select
-                    await populateRoleSelect();
-                    
-                    // Load users list
-                    loadUsersList();
-                    
-                } catch (error) {
-                    console.error('Authentication error:', error);
-                    showLoginModal();
-                } finally {
-                    document.getElementById('loadingOverlay').classList.add('hidden');
-                }
-            } else {
-                // No token found, show login modal
-                showLoginModal();
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to delete warning');
             }
+            
+            const result = await response.json();
+            alert('✅ ' + result.message);
+            // Refresh the warnings view
+            viewUserWarnings(username);
+            
+        } catch (error) {
+            console.error('Delete warning error:', error);
+            alert('❌ Error: ' + error.message);
+        }
+    }
+
+    // Delete all warnings for a user
+    async function deleteAllWarnings(username, warningCount) {
+        if (!confirm('Delete ALL warnings for ' + username + '?\n\nThis will permanently remove ' + warningCount + ' warning(s) and cannot be undone!')) {
+            return;
+        }
+        
+        try {
+            const token = getCookie('AuthToken');
+            const response = await fetch(`${SERVER_URL}/api/admin/warnings/user/${encodeURIComponent(username)}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to delete warnings');
+            }
+            
+            const result = await response.json();
+            alert('✅ ' + result.message);
+            // Refresh the warnings view
+            viewUserWarnings(username);
+            
+        } catch (error) {
+            console.error('Delete all warnings error:', error);
+            alert('❌ Error: ' + error.message);
+        }
+    }
+
+    // Delete only dismissed warnings for a user
+    async function deleteDismissedWarnings(username, dismissedCount) {
+        if (!confirm('Delete all DISMISSED warnings for ' + username + '?\n\nThis will permanently remove ' + dismissedCount + ' dismissed warning(s) but keep active ones.')) {
+            return;
+        }
+        
+        try {
+            const token = getCookie('AuthToken');
+            const response = await fetch(`${SERVER_URL}/api/admin/warnings/user/${encodeURIComponent(username)}/dismissed`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to delete dismissed warnings');
+            }
+            
+            const result = await response.json();
+            alert('✅ ' + result.message);
+            // Refresh the warnings view
+            viewUserWarnings(username);
+            
+        } catch (error) {
+            console.error('Delete dismissed warnings error:', error);
+            alert('❌ Error: ' + error.message);
+        }
+    }
+    
+    async function dismissWarning(username, warningId) {
+        if (!confirm('Dismiss this warning for ' + username + '?')) {
+            return;
+        }
+        
+        try {
+            const token = getCookie('AuthToken');
+            const response = await fetch(`${SERVER_URL}/api/admin/warnings/${warningId}/dismiss`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username })
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to dismiss warning');
+            }
+            
+            alert('Warning dismissed successfully');
+            // Refresh the warnings view
+            viewUserWarnings(username);
+            
+        } catch (error) {
+            console.error('Dismiss warning error:', error);
+            alert('Error: ' + error.message);
+        }
+    }
+
+    // Show remote delete confirmation modal
+    function showRemoteDeleteModal(username, userRole) {
+        document.getElementById('deleteUsernameDisplay').textContent = username;
+        document.getElementById('deleteUserRole').textContent = 'Role: ' + userRole;
+        document.getElementById('adminPassword').value = '';
+        openModal('remoteDeleteModal');
+    }
+
+    // Confirm and execute remote deletion
+    async function confirmRemoteDelete() {
+        const username = document.getElementById('deleteUsernameDisplay').textContent;
+        const password = document.getElementById('adminPassword').value.trim();
+        
+        if (!password) {
+            alert('Please enter your password to confirm deletion');
+            return;
+        }
+        
+        try {
+            const token = getCookie('AuthToken');
+            const response = await fetch(`${SERVER_URL}/api/admin/users/${encodeURIComponent(username)}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ password })
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to delete user');
+            }
+            
+            const result = await response.json();
+            alert('✅ ' + result.message);
+            closeModal('remoteDeleteModal');
+            
+            // Reload users list
+            loadUsersList();
+            
+        } catch (error) {
+            console.error('Delete user error:', error);
+            alert('❌ Error: ' + error.message);
+        }
+    }
+
+    // Role Management Functions
+    // Load available roles
+    async function loadAvailableRoles() {
+        try {
+            const token = getCookie('AuthToken');
+            const response = await fetch(`${SERVER_URL}/api/admin/roles`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to load roles');
+            }
+            
+            const data = await response.json();
+            return data.roles;
+        } catch (error) {
+            console.error('Load roles error:', error);
+            return [];
+        }
+    }
+
+    // Populate role select with available options
+    async function populateRoleSelect() {
+        const roles = await loadAvailableRoles();
+        const roleSelect = document.getElementById('userRole');
+        
+        // Clear existing options except the first one
+        while (roleSelect.options.length > 1) {
+            roleSelect.remove(1);
+        }
+        
+        // Add available roles
+        roles.forEach(role => {
+            const option = document.createElement('option');
+            option.value = role.value;
+            option.textContent = `${role.label} - ${role.description}`;
+            roleSelect.appendChild(option);
         });
+    }
 
-        // Show login modal function
-        function showLoginModal() {
-            document.getElementById('loginModal').classList.add('active');
+    // Update role help text based on selection
+    function updateRoleHelp() {
+        const roleSelect = document.getElementById('userRole');
+        const roleHelp = document.getElementById('roleHelp');
+        const selectedRole = roleSelect.value;
+        
+        const helpTexts = {
+            'Member': 'Regular user with basic access permissions.',
+            'Moderator': 'Can manage warnings, reports, and user messages.',
+            'Admin': 'Full administrative access including blacklisting and role management (except Owner).',
+            'Owner': 'Full system control including Owner management. Use with extreme caution.'
+        };
+        
+        if (selectedRole && helpTexts[selectedRole]) {
+            roleHelp.textContent = helpTexts[selectedRole];
+            roleHelp.classList.remove('hidden');
+        } else {
+            roleHelp.classList.add('hidden');
         }
+    }
 
-        // Redirect to login page
-        function redirectToLogin() {
-            window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
-        }
-
-        // Load users list with proper escaping
-        async function loadUsersList() {
-            try {
-                const token = getCookie('AuthToken');
-                const response = await fetch(`${SERVER_URL}/api/users`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to load users');
-                }
-                
-                const users = await response.json();
-                
-                // Store users for use in the specific message modal
-                localStorage.setItem('allUsers', JSON.stringify(users));
-                
-                const container = document.getElementById('usersList');
-                
-                if (users.length === 0) {
-                    container.innerHTML = '<p class="text-gray-400 text-center py-4">No users found</p>';
-                    return;
-                }
-                
-                // Use string concatenation with proper escaping
-                let usersHTML = '';
-                users.forEach(user => {
-                    const canDelete = user.username !== currentUser && 
-                        (currentUserRole === 'Owner' || 
-                         (currentUserRole === 'Admin' && user.role !== 'Owner' && user.role !== 'Admin'));
-                    
-                    // Escape all dynamic values
-                    const safeUsername = escapeHtml(user.username);
-                    const safeRole = escapeHtml(user.role);
-                    const safeJoined = escapeHtml(user.joined);
-                    const safeBlacklistReason = user.blacklistReason ? escapeHtml(user.blacklistReason) : '';
-                    
-                    const deleteButton = canDelete ? 
-                        '<button onclick="showRemoteDeleteModal(\'' + safeUsername + '\', \'' + safeRole + '\')" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg" title="Delete Account"><i data-feather="trash-2" class="w-4 h-4"></i></button>' : '';
-                    
-                    const blacklistButton = user.blacklisted ? 
-                        '<button onclick="unblacklistUser(\'' + safeUsername + '\')" class="p-2 bg-green-600 hover:bg-green-700 rounded-lg"><i data-feather="check-circle" class="w-4 h-4"></i></button>' :
-                        '<button onclick="showBlacklistForm(\'' + safeUsername + '\')" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg"><i data-feather="x-circle" class="w-4 h-4"></i></button>';
-                    
-                    const roleBadges = 
-                        (user.role === 'Owner' ? '<span class="user-status-badge bg-purple-600">Owner</span>' : '') +
-                        (user.role === 'Admin' ? '<span class="user-status-badge bg-blue-600">Admin</span>' : '') +
-                        (user.role === 'Moderator' ? '<span class="user-status-badge bg-green-600">Moderator</span>' : '') +
-                        (user.role === 'Member' ? '<span class="user-status-badge bg-gray-600">Member</span>' : '');
-                    
-                    const blacklistInfo = user.blacklisted ? '• Reason: ' + safeBlacklistReason : '';
-                    
-                    usersHTML += 
-                        '<div class="glassmorphism p-4 rounded-lg flex justify-between items-center">' +
-                            '<div>' +
-                                '<div class="flex items-center space-x-2">' +
-                                    '<span class="font-medium">' + safeUsername + '</span>' +
-                                    '<span class="user-status-badge ' + (user.blacklisted ? 'status-blacklisted' : 'status-clean') + '">' +
-                                        (user.blacklisted ? 'Blacklisted' : 'Clean') +
-                                    '</span>' +
-                                    roleBadges +
-                                '</div>' +
-                                '<div class="text-sm text-gray-300">' +
-                                    'Role: ' + safeRole + ' • Joined: ' + safeJoined + ' ' + blacklistInfo +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="flex space-x-2">' +
-                                '<button onclick="viewUserWarnings(\'' + safeUsername + '\')" class="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg" title="View Warnings"><i data-feather="alert-triangle" class="w-4 h-4"></i></button>' +
-                                deleteButton +
-                                blacklistButton +
-                            '</div>' +
-                        '</div>';
-                });
-                
-                container.innerHTML = usersHTML;
-                feather.replace();
-                
-            } catch (error) {
-                console.error('Failed to load users:', error);
-                document.getElementById('usersList').innerHTML = '<p class="text-red-300 text-center py-4">Error loading users: ' + error.message + '</p>';
-            }
-        }
-
-        // Show blacklist form with pre-filled username
-        function showBlacklistForm(username) {
-            document.getElementById('username').value = username;
-            document.getElementById('reason').focus();
-        }
-
-        // Blacklist user
-        async function blacklistUser(username, reason) {
-            try {
-                const token = getCookie('AuthToken');
-                const response = await fetch(`${SERVER_URL}/api/blacklist/${encodeURIComponent(username)}`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ reason })
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to blacklist user');
-                }
-                
-                const result = await response.json();
-                alert('User ' + username + ' has been blacklisted: ' + result.blacklistReason);
-                
-                // Reload users list
-                loadUsersList();
-                
-            } catch (error) {
-                console.error('Blacklist error:', error);
-                alert('Error: ' + error.message);
-            }
-        }
-
-        // Unblacklist user
-        async function unblacklistUser(username) {
-            if (!confirm('Are you sure you want to unblacklist ' + username + '?')) {
-                return;
+    // Assign role to user
+    async function assignRole(username, role) {
+        try {
+            const token = getCookie('AuthToken');
+            const response = await fetch(`${SERVER_URL}/api/admin/users/${encodeURIComponent(username)}/role`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ role })
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to assign role');
             }
             
-            try {
-                const token = getCookie('AuthToken');
-                const response = await fetch(`${SERVER_URL}/api/unblacklist/${encodeURIComponent(username)}`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to unblacklist user');
-                }
-                
-                alert('User ' + username + ' has been unblacklisted');
-                
-                // Reload users list
-                loadUsersList();
-                
-            } catch (error) {
-                console.error('Unblacklist error:', error);
-                alert('Error: ' + error.message);
-            }
+            const result = await response.json();
+            return result;
+            
+        } catch (error) {
+            console.error('Assign role error:', error);
+            throw error;
         }
+    }
 
-        // Handle blacklist form submission
-        document.getElementById('blacklistForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const username = document.getElementById('username').value.trim();
-            const reason = document.getElementById('reason').value.trim();
-            
-            if (!username) {
-                alert('Please enter a username');
-                return;
-            }
-            
-            if (!reason) {
-                alert('Please enter a reason for blacklisting');
-                return;
-            }
-            
-            blacklistUser(username, reason);
+    // Handle role form submission
+    document.getElementById('roleForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('roleUsername').value.trim();
+        const role = document.getElementById('userRole').value;
+        
+        if (!username) {
+            alert('Please enter a username');
+            return;
+        }
+        
+        if (!role) {
+            alert('Please select a role');
+            return;
+        }
+        
+        if (!confirm(`Are you sure you want to assign the role "${role}" to user "${username}"?`)) {
+            return;
+        }
+        
+        try {
+            const result = await assignRole(username, role);
+            alert(`✅ ${result.message}\n\nUser: ${result.user.username}\nOld Role: ${result.user.oldRole}\nNew Role: ${result.user.newRole}`);
             
             // Reset form
             this.reset();
-        });
-
-        // Refresh users list
-        document.getElementById('refreshUsers').addEventListener('click', function() {
+            document.getElementById('roleHelp').classList.add('hidden');
+            
+            // Reload users list to reflect changes
             loadUsersList();
-        });
-
-        // Logout button
-        document.getElementById('logoutButton').addEventListener('click', function() {
-            // Clear auth data
-            document.cookie = 'AuthToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-            localStorage.removeItem('currentUser');
             
-            // Redirect to login
-            window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
-        });
-
-        // Add event listener for role select change
-        document.getElementById('userRole').addEventListener('change', updateRoleHelp);
-
-        // Cookie Functions
-        function getCookie(name) {
-            const cookieName = name + "=";
-            const decodedCookie = decodeURIComponent(document.cookie);
-            const cookieArray = decodedCookie.split(';');
-            
-            for(let i = 0; i < cookieArray.length; i++) {
-                let cookie = cookieArray[i];
-                while (cookie.charAt(0) === ' ') {
-                    cookie = cookie.substring(1);
-                }
-                if (cookie.indexOf(cookieName) === 0) {
-                    return cookie.substring(cookieName.length, cookie.length);
-                }
-            }
-            return "";
+        } catch (error) {
+            console.error('Role assignment error:', error);
+            alert(`❌ Error: ${error.message}`);
         }
-    </script>
+    });
+
+    // Check authentication status on page load - SIMPLIFIED VERSION
+    document.addEventListener('DOMContentLoaded', async function() {
+        const token = getCookie('AuthToken');
+        
+        if (!token) {
+            showLoginModal();
+            return;
+        }
+
+        // Show loading overlay while verifying token
+        document.getElementById('loadingOverlay').classList.remove('hidden');
+        
+        try {
+            // Get user info first to check permissions
+            const userInfo = await getUserInfo(token);
+            
+            // Check if user has admin permissions
+            if (userInfo.role !== "Owner" && userInfo.role !== "Admin") {
+                alert("Insufficient permissions. Only admins can access this page.");
+                window.location.href = "https://senturyhanderserson.github.io/SigmiForCCGS/";
+                return;
+            }
+            
+            // Set global user variables
+            currentUser = userInfo.username;
+            currentUserRole = userInfo.role;
+            
+            // Store user info in localStorage for persistence
+            localStorage.setItem('currentUser', userInfo.username);
+            localStorage.setItem('currentUserRole', userInfo.role);
+            
+            // Show user info
+            document.getElementById('userInfo').classList.remove('hidden');
+            document.getElementById('userUsername').textContent = userInfo.username;
+            document.getElementById('userRole').textContent = userInfo.role;
+            
+            // Load available roles and populate select
+            await populateRoleSelect();
+            
+            // Load users list
+            loadUsersList();
+            
+            // Hide login modal if it was showing
+            document.getElementById('loginModal').classList.remove('active');
+            
+        } catch (error) {
+            console.error('Authentication error:', error);
+            showLoginModal();
+        } finally {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+    });
+
+    // Show login modal function
+    function showLoginModal() {
+        document.getElementById('loginModal').classList.add('active');
+    }
+
+    // Redirect to login page
+    function redirectToLogin() {
+        window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
+    }
+
+    // Load users list with proper escaping
+    async function loadUsersList() {
+        try {
+            const token = getCookie('AuthToken');
+            const response = await fetch(`${SERVER_URL}/api/users`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to load users');
+            }
+            
+            const users = await response.json();
+            
+            // Store users for use in the specific message modal
+            localStorage.setItem('allUsers', JSON.stringify(users));
+            
+            const container = document.getElementById('usersList');
+            
+            if (users.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-center py-4">No users found</p>';
+                return;
+            }
+            
+            // Use string concatenation with proper escaping
+            let usersHTML = '';
+            users.forEach(user => {
+                const canDelete = user.username !== currentUser && 
+                    (currentUserRole === 'Owner' || 
+                     (currentUserRole === 'Admin' && user.role !== 'Owner' && user.role !== 'Admin'));
+                
+                // Escape all dynamic values
+                const safeUsername = escapeHtml(user.username);
+                const safeRole = escapeHtml(user.role);
+                const safeJoined = escapeHtml(user.joined);
+                const safeBlacklistReason = user.blacklistReason ? escapeHtml(user.blacklistReason) : '';
+                
+                const deleteButton = canDelete ? 
+                    '<button onclick="showRemoteDeleteModal(\'' + safeUsername + '\', \'' + safeRole + '\')" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg" title="Delete Account"><i data-feather="trash-2" class="w-4 h-4"></i></button>' : '';
+                
+                const blacklistButton = user.blacklisted ? 
+                    '<button onclick="unblacklistUser(\'' + safeUsername + '\')" class="p-2 bg-green-600 hover:bg-green-700 rounded-lg"><i data-feather="check-circle" class="w-4 h-4"></i></button>' :
+                    '<button onclick="showBlacklistForm(\'' + safeUsername + '\')" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg"><i data-feather="x-circle" class="w-4 h-4"></i></button>';
+                
+                const roleBadges = 
+                    (user.role === 'Owner' ? '<span class="user-status-badge bg-purple-600">Owner</span>' : '') +
+                    (user.role === 'Admin' ? '<span class="user-status-badge bg-blue-600">Admin</span>' : '') +
+                    (user.role === 'Moderator' ? '<span class="user-status-badge bg-green-600">Moderator</span>' : '') +
+                    (user.role === 'Member' ? '<span class="user-status-badge bg-gray-600">Member</span>' : '');
+                
+                const blacklistInfo = user.blacklisted ? '• Reason: ' + safeBlacklistReason : '';
+                
+                usersHTML += 
+                    '<div class="glassmorphism p-4 rounded-lg flex justify-between items-center">' +
+                        '<div>' +
+                            '<div class="flex items-center space-x-2">' +
+                                '<span class="font-medium">' + safeUsername + '</span>' +
+                                '<span class="user-status-badge ' + (user.blacklisted ? 'status-blacklisted' : 'status-clean') + '">' +
+                                    (user.blacklisted ? 'Blacklisted' : 'Clean') +
+                                '</span>' +
+                                roleBadges +
+                            '</div>' +
+                            '<div class="text-sm text-gray-300">' +
+                                'Role: ' + safeRole + ' • Joined: ' + safeJoined + ' ' + blacklistInfo +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="flex space-x-2">' +
+                            '<button onclick="viewUserWarnings(\'' + safeUsername + '\')" class="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg" title="View Warnings"><i data-feather="alert-triangle" class="w-4 h-4"></i></button>' +
+                            deleteButton +
+                            blacklistButton +
+                        '</div>' +
+                    '</div>';
+            });
+            
+            container.innerHTML = usersHTML;
+            feather.replace();
+            
+        } catch (error) {
+            console.error('Failed to load users:', error);
+            document.getElementById('usersList').innerHTML = '<p class="text-red-300 text-center py-4">Error loading users: ' + error.message + '</p>';
+        }
+    }
+
+    // Show blacklist form with pre-filled username
+    function showBlacklistForm(username) {
+        document.getElementById('username').value = username;
+        document.getElementById('reason').focus();
+    }
+
+    // Blacklist user
+    async function blacklistUser(username, reason) {
+        try {
+            const token = getCookie('AuthToken');
+            const response = await fetch(`${SERVER_URL}/api/blacklist/${encodeURIComponent(username)}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ reason })
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to blacklist user');
+            }
+            
+            const result = await response.json();
+            alert('User ' + username + ' has been blacklisted: ' + result.blacklistReason);
+            
+            // Reload users list
+            loadUsersList();
+            
+        } catch (error) {
+            console.error('Blacklist error:', error);
+            alert('Error: ' + error.message);
+        }
+    }
+
+    // Unblacklist user
+    async function unblacklistUser(username) {
+        if (!confirm('Are you sure you want to unblacklist ' + username + '?')) {
+            return;
+        }
+        
+        try {
+            const token = getCookie('AuthToken');
+            const response = await fetch(`${SERVER_URL}/api/unblacklist/${encodeURIComponent(username)}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to unblacklist user');
+            }
+            
+            alert('User ' + username + ' has been unblacklisted');
+            
+            // Reload users list
+            loadUsersList();
+            
+        } catch (error) {
+            console.error('Unblacklist error:', error);
+            alert('Error: ' + error.message);
+        }
+    }
+
+    // Handle blacklist form submission
+    document.getElementById('blacklistForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('username').value.trim();
+        const reason = document.getElementById('reason').value.trim();
+        
+        if (!username) {
+            alert('Please enter a username');
+            return;
+        }
+        
+        if (!reason) {
+            alert('Please enter a reason for blacklisting');
+            return;
+        }
+        
+        blacklistUser(username, reason);
+        
+        // Reset form
+        this.reset();
+    });
+
+    // Refresh users list
+    document.getElementById('refreshUsers').addEventListener('click', function() {
+        loadUsersList();
+    });
+
+    // Logout button
+    document.getElementById('logoutButton').addEventListener('click', function() {
+        // Clear auth data
+        document.cookie = 'AuthToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('currentUserRole');
+        localStorage.removeItem('allUsers');
+        
+        // Redirect to login
+        window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
+    });
+
+    // Add event listener for role select change
+    document.getElementById('userRole').addEventListener('change', updateRoleHelp);
+
+    // Cookie Functions
+    function getCookie(name) {
+        const cookieName = name + "=";
+        const decodedCookie = decodeURIComponent(document.cookie);
+        const cookieArray = decodedCookie.split(';');
+        
+        for(let i = 0; i < cookieArray.length; i++) {
+            let cookie = cookieArray[i];
+            while (cookie.charAt(0) === ' ') {
+                cookie = cookie.substring(1);
+            }
+            if (cookie.indexOf(cookieName) === 0) {
+                return cookie.substring(cookieName.length, cookie.length);
+            }
+        }
+        return "";
+    }
+</script>
 </body>
 </html>
