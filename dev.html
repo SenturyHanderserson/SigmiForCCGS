@@ -450,6 +450,38 @@
                 </form>
             </div>
 
+            <!-- Role Management -->
+            <div class="glassmorphism rounded-xl p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4">Role Management</h2>
+                <form id="roleForm" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="roleUsername" class="block text-gray-300 mb-2">Username</label>
+                            <input type="text" id="roleUsername" required 
+                                   class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                   placeholder="Enter username">
+                        </div>
+                        <div>
+                            <label for="userRole" class="block text-gray-300 mb-2">New Role</label>
+                            <select id="userRole" required 
+                                    class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                <option value="">Select a role</option>
+                                <option value="Member">Member</option>
+                                <option value="Moderator">Moderator</option>
+                                <option value="Admin">Admin</option>
+                                <option value="Owner">Owner</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="roleHelp" class="text-sm text-gray-400 hidden">
+                        <!-- Help text will be populated dynamically -->
+                    </div>
+                    <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-medium">
+                        Assign Role
+                    </button>
+                </form>
+            </div>
+
             <!-- Users List -->
             <div class="glassmorphism rounded-xl p-6">
                 <div class="flex justify-between items-center mb-6">
@@ -1028,6 +1060,137 @@
             }
         }
 
+        // Role Management Functions
+        // Load available roles
+        async function loadAvailableRoles() {
+            try {
+                const token = getCookie('AuthToken');
+                const response = await fetch(`${SERVER_URL}/api/admin/roles`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to load roles');
+                }
+                
+                const data = await response.json();
+                return data.roles;
+            } catch (error) {
+                console.error('Load roles error:', error);
+                return [];
+            }
+        }
+
+        // Populate role select with available options
+        async function populateRoleSelect() {
+            const roles = await loadAvailableRoles();
+            const roleSelect = document.getElementById('userRole');
+            
+            // Clear existing options except the first one
+            while (roleSelect.options.length > 1) {
+                roleSelect.remove(1);
+            }
+            
+            // Add available roles
+            roles.forEach(role => {
+                const option = document.createElement('option');
+                option.value = role.value;
+                option.textContent = `${role.label} - ${role.description}`;
+                roleSelect.appendChild(option);
+            });
+        }
+
+        // Update role help text based on selection
+        function updateRoleHelp() {
+            const roleSelect = document.getElementById('userRole');
+            const roleHelp = document.getElementById('roleHelp');
+            const selectedRole = roleSelect.value;
+            
+            const helpTexts = {
+                'Member': 'Regular user with basic access permissions.',
+                'Moderator': 'Can manage warnings, reports, and user messages.',
+                'Admin': 'Full administrative access including blacklisting and role management (except Owner).',
+                'Owner': 'Full system control including Owner management. Use with extreme caution.'
+            };
+            
+            if (selectedRole && helpTexts[selectedRole]) {
+                roleHelp.textContent = helpTexts[selectedRole];
+                roleHelp.classList.remove('hidden');
+            } else {
+                roleHelp.classList.add('hidden');
+            }
+        }
+
+        // Assign role to user
+        async function assignRole(username, role) {
+            try {
+                const token = getCookie('AuthToken');
+                const response = await fetch(`${SERVER_URL}/api/admin/users/${encodeURIComponent(username)}/role`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ role })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to assign role');
+                }
+                
+                const result = await response.json();
+                return result;
+                
+            } catch (error) {
+                console.error('Assign role error:', error);
+                throw error;
+            }
+        }
+
+        // Handle role form submission
+        document.getElementById('roleForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('roleUsername').value.trim();
+            const role = document.getElementById('userRole').value;
+            
+            if (!username) {
+                alert('Please enter a username');
+                return;
+            }
+            
+            if (!role) {
+                alert('Please select a role');
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to assign the role "${role}" to user "${username}"?`)) {
+                return;
+            }
+            
+            try {
+                const result = await assignRole(username, role);
+                alert(`✅ ${result.message}\n\nUser: ${result.user.username}\nOld Role: ${result.user.oldRole}\nNew Role: ${result.user.newRole}`);
+                
+                // Reset form
+                this.reset();
+                document.getElementById('roleHelp').classList.add('hidden');
+                
+                // Reload users list to reflect changes
+                loadUsersList();
+                
+            } catch (error) {
+                console.error('Role assignment error:', error);
+                alert(`❌ Error: ${error.message}`);
+            }
+        });
+
         // Check authentication status on page load
         document.addEventListener('DOMContentLoaded', async function() {
             const token = getCookie('AuthToken');
@@ -1065,6 +1228,9 @@
                     document.getElementById('userInfo').classList.remove('hidden');
                     document.getElementById('userUsername').textContent = userInfo.username;
                     document.getElementById('userRole').textContent = userInfo.role;
+                    
+                    // Load available roles and populate select
+                    await populateRoleSelect();
                     
                     // Load users list
                     loadUsersList();
@@ -1141,7 +1307,9 @@
                     
                     const roleBadges = 
                         (user.role === 'Owner' ? '<span class="user-status-badge bg-purple-600">Owner</span>' : '') +
-                        (user.role === 'Admin' ? '<span class="user-status-badge bg-blue-600">Admin</span>' : '');
+                        (user.role === 'Admin' ? '<span class="user-status-badge bg-blue-600">Admin</span>' : '') +
+                        (user.role === 'Moderator' ? '<span class="user-status-badge bg-green-600">Moderator</span>' : '') +
+                        (user.role === 'Member' ? '<span class="user-status-badge bg-gray-600">Member</span>' : '');
                     
                     const blacklistInfo = user.blacklisted ? '• Reason: ' + safeBlacklistReason : '';
                     
@@ -1281,6 +1449,9 @@
             // Redirect to login
             window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
         });
+
+        // Add event listener for role select change
+        document.getElementById('userRole').addEventListener('change', updateRoleHelp);
 
         // Cookie Functions
         function getCookie(name) {
