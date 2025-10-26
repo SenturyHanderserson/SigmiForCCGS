@@ -2337,6 +2337,8 @@ window.addEventListener('beforeunload', () => {
 
 let isLoadingMembers = false;
 let rolesConfig = {};
+let currentProfileUser = null;
+let currentUserRole = '';
 
 // Load roles configuration from backend
 async function loadRolesConfig() {
@@ -2372,7 +2374,11 @@ function getRoleColor(role) {
 
 // Create profile overlay modal
 function createProfileOverlay() {
-    if (document.getElementById('profileOverlay')) return;
+    // Remove existing overlay if any
+    const existingOverlay = document.getElementById('profileOverlay');
+    if (existingOverlay) {
+        existingOverlay.remove();
+    }
     
     const overlayHTML = `
         <div id="profileOverlay" class="modal-overlay">
@@ -2408,7 +2414,7 @@ function createProfileOverlay() {
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-300">Warnings:</span>
-                            <span id="profileWarnings" class="font-medium"></span>
+                            <span id="profileWarnings" class="font-medium">Loading...</span>
                         </div>
                     </div>
                     
@@ -2447,15 +2453,20 @@ function createProfileOverlay() {
     feather.replace();
 }
 
-// Global variables to track current profile
-let currentProfileUser = null;
-let currentUserRole = '';
-
 // Open profile overlay
 function openProfileOverlay(user) {
+    // Ensure overlay exists
+    if (!document.getElementById('profileOverlay')) {
+        createProfileOverlay();
+    }
+    
     currentProfileUser = user;
     const overlay = document.getElementById('profileOverlay');
-    if (!overlay) createProfileOverlay();
+    
+    if (!overlay) {
+        console.error('Profile overlay not found');
+        return;
+    }
     
     // Populate user data
     document.getElementById('profileUsername').textContent = user.username;
@@ -2500,6 +2511,7 @@ function openProfileOverlay(user) {
         adminActions.classList.add('hidden');
     }
     
+    // Show the overlay
     overlay.classList.add('active');
 }
 
@@ -2585,12 +2597,15 @@ function adminToggleBlacklist() {
     if (currentProfileUser.blacklisted) {
         if (confirm(`Unblacklist ${currentProfileUser.username}?`)) {
             unblacklistUser(currentProfileUser.username);
+            closeProfileOverlay();
         }
     } else {
         // Pre-fill blacklist form
         document.getElementById('username').value = currentProfileUser.username;
         closeProfileOverlay();
-        document.getElementById('reason').focus();
+        setTimeout(() => {
+            document.getElementById('reason').focus();
+        }, 100);
     }
 }
 
@@ -2611,6 +2626,11 @@ async function loadMembers() {
 
         // Load roles config in background
         loadRolesConfig();
+
+        // Ensure profile overlay is created
+        if (!document.getElementById('profileOverlay')) {
+            createProfileOverlay();
+        }
 
         const res = await fetch(`${SERVER_URL}/api/users`, {
             method: "GET",
@@ -2645,7 +2665,10 @@ async function loadMembers() {
                     const memberDiv = document.createElement("div");
                     memberDiv.className = "flex items-center p-3 rounded-lg hover:bg-purple-800 hover:bg-opacity-50 transition-colors duration-200 cursor-pointer group";
                     memberDiv.title = `Click to view ${safeUsername}'s profile`;
-                    memberDiv.onclick = () => openProfileOverlay(user);
+                    memberDiv.onclick = (e) => {
+                        e.stopPropagation(); // Prevent event bubbling
+                        openProfileOverlay(user);
+                    };
                     
                     memberDiv.innerHTML = `
                         <div class="w-10 h-10 rounded-full ${color} flex items-center justify-center mr-3 flex-shrink-0">
@@ -2693,7 +2716,7 @@ async function loadMembers() {
     }
 }
 
-// Initialize profile overlay when page loads
+// Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
     createProfileOverlay();
     
@@ -2704,9 +2727,13 @@ document.addEventListener('DOMContentLoaded', function() {
             closeProfileOverlay();
         }
     });
-});
-
-
+    
+    // Also close with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeProfileOverlay();
+        }
+    });
 });
     </script>
 </body>
