@@ -1772,42 +1772,85 @@
             this.classList.remove('active');
         });
 
-        // Load members function
+let isLoadingMembers = false;
+
 async function loadMembers() {
+    if (isLoadingMembers) return;
+    isLoadingMembers = true;
+
     try {
         const token = getCookie('AuthToken');
         if (!token) {
             throw new Error("No authentication token found");
         }
 
-        const res = await fetch("https://proxyforsigmi.onrender.com/api/users", {
-            method: "GET",
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            credentials: "include"
-        });
+        // Fetch members and roles in parallel
+        const [membersRes, rolesRes] = await Promise.all([
+            fetch("https://proxyforsigmi.onrender.com/api/users", {
+                method: "GET",
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                credentials: "include"
+            }),
+            fetch("https://proxyforsigmi.onrender.com/api/roles", {
+                method: "GET",
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                credentials: "include"
+            })
+        ]);
 
-        if (!res.ok) {
-            throw new Error(`Failed to fetch members: ${res.status} ${res.statusText}`);
+        if (!membersRes.ok) {
+            throw new Error("Failed to fetch members");
         }
 
-        const contentType = res.headers.get('content-type');
+        const contentType = membersRes.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
-            throw new Error("Server returned non-JSON response");
+            throw new Error("Invalid server response");
         }
 
-        const members = await res.json();
+        const members = await membersRes.json();
         const container = document.getElementById("membersList");
 
-        // Clear old content with a fade effect
+        // Process roles data from server
+        let roleColors = {};
+        if (rolesRes.ok) {
+            const rolesData = await rolesRes.json();
+            if (rolesData.roles && typeof rolesData.roles === 'object') {
+                Object.entries(rolesData.roles).forEach(([roleName, roleConfig]) => {
+                    // Use bgColor property from your roles.json structure
+                    if (roleConfig.bgColor) {
+                        roleColors[roleName] = roleConfig.bgColor;
+                    }
+                });
+            }
+        }
+
+        // Deduplication
+        const seen = new Set();
+        const uniqueMembers = members.filter(user => {
+            const identifier = user.id || user.username || user.email || "unknown";
+            if (seen.has(identifier)) return false;
+            seen.add(identifier);
+            return true;
+        });
+
+        // Filter out deleted members
+        const activeMembers = uniqueMembers.filter(user =>
+            !user.deleted && !user.isDeleted && user.status !== 'deleted'
+        );
+
+        // Clear with fade
         container.innerHTML = "";
         container.classList.remove("opacity-100");
         container.classList.add("opacity-0");
 
         setTimeout(() => {
-            if (!Array.isArray(members) || members.length === 0) {
+            if (activeMembers.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-8 text-gray-400">
                         <i data-feather="users" class="w-12 h-12 mx-auto mb-4"></i>
@@ -1815,9 +1858,9 @@ async function loadMembers() {
                     </div>
                 `;
             } else {
-                members.forEach(user => {
-                    // Handle missing username safely
+                activeMembers.forEach(user => {
                     const safeUsername = user.username || "Unknown";
+                    const userRole = user.role || 'Member';
                     const initials = safeUsername
                         .split(" ")
                         .filter(word => word.length > 0)
@@ -1825,41 +1868,34 @@ async function loadMembers() {
                         .join("")
                         .slice(0, 2);
 
-                    // Color based on role for consistency
-                    let color = "bg-purple-600";
-                    if (user.role === "Owner") color = "bg-red-600";
-                    else if (user.role === "Admin") color = "bg-blue-600";
-                    else if (user.role === "VIP") color = "bg-yellow-600";
+                    // Get color from server configuration using bgColor property
+                    const colorClass = roleColors[userRole] || "bg-gray-600";
 
                     const memberDiv = document.createElement("div");
                     memberDiv.className = "flex items-center p-3 rounded-lg hover:bg-purple-800 hover:bg-opacity-50 transition-colors duration-200";
-                    memberDiv.title = `Role: ${user.role || 'Member'} | Joined: ${user.joined || 'Unknown'}`;
+                    memberDiv.title = `Role: ${userRole} | Joined: ${user.joined || 'Unknown'}`;
 
                     memberDiv.innerHTML = `
-                        <div class="w-10 h-10 rounded-full ${color} flex items-center justify-center mr-3 flex-shrink-0">
+                        <div class="w-10 h-10 rounded-full ${colorClass} flex items-center justify-center mr-3 flex-shrink-0">
                             <span class="text-sm font-bold text-white">${initials}</span>
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="font-medium truncate">${safeUsername}</div>
-                            <div class="text-xs text-gray-400 capitalize">${user.role || 'Member'}</div>
+                            <div class="text-xs text-gray-400 capitalize">${userRole}</div>
                         </div>
                     `;
                     container.appendChild(memberDiv);
                 });
             }
 
-            // Fade in new content
             setTimeout(() => {
                 container.classList.remove("opacity-0");
                 container.classList.add("opacity-100");
-                feather.replace(); // Refresh icons
+                feather.replace();
             }, 50);
-
         }, 100);
 
     } catch (err) {
-        console.error("[ERROR] Failed to load members:", err);
-
         const container = document.getElementById("membersList");
         container.innerHTML = `
             <div class="text-center py-8 text-red-300">
@@ -1872,6 +1908,8 @@ async function loadMembers() {
             </div>
         `;
         feather.replace();
+    } finally {
+        isLoadingMembers = false;
     }
 }
 
