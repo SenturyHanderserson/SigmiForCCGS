@@ -1510,108 +1510,146 @@
             this.classList.remove('active');
         });
 
-        // Load members function
-        async function loadMembers() {
-            try {
-                const token = getCookie('AuthToken');
-                if (!token) {
-                    throw new Error("No authentication token found");
-                }
+let isLoadingMembers = false;
 
-                const res = await fetch("https://proxyforsigmi.onrender.com/api/users", {
-                    method: "GET",
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: "include"
-                });
+async function loadMembers() {
+    if (isLoadingMembers) return;
+    isLoadingMembers = true;
 
-                if (!res.ok) {
-                    throw new Error(`Failed to fetch members: ${res.status} ${res.statusText}`);
-                }
+    try {
+        const token = getCookie('AuthToken');
+        if (!token) {
+            throw new Error("No authentication token found");
+        }
 
-                const contentType = res.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error("Server returned non-JSON response");
-                }
+        // Fetch members and roles in parallel
+        const [membersRes, rolesRes] = await Promise.all([
+            fetch("https://proxyforsigmi.onrender.com/api/users", {
+                method: "GET",
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                credentials: "include"
+            }),
+            fetch("https://proxyforsigmi.onrender.com/api/roles", {
+                method: "GET",
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                credentials: "include"
+            })
+        ]);
 
-                const members = await res.json();
-                const container = document.getElementById("membersList");
+        if (!membersRes.ok) {
+            throw new Error("Failed to fetch members");
+        }
 
-                // Clear old content with a fade effect
-                container.innerHTML = "";
-                container.classList.remove("opacity-100");
-                container.classList.add("opacity-0");
+        const contentType = membersRes.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error("Invalid server response");
+        }
 
-                setTimeout(() => {
-                    if (!Array.isArray(members) || members.length === 0) {
-                        container.innerHTML = `
-                            <div class="text-center py-8 text-gray-400">
-                                <i data-feather="users" class="w-12 h-12 mx-auto mb-4"></i>
-                                <p>No members found</p>
-                            </div>
-                        `;
-                    } else {
-                        members.forEach(user => {
-                            // Handle missing username safely
-                            const safeUsername = user.username || "Unknown";
-                            const initials = safeUsername
-                                .split(" ")
-                                .filter(word => word.length > 0)
-                                .map(word => word[0].toUpperCase())
-                                .join("")
-                                .slice(0, 2);
+        const members = await membersRes.json();
+        const container = document.getElementById("membersList");
 
-                            // Color based on role for consistency
-                            let color = "bg-purple-600";
-                            if (user.role === "Owner") color = "bg-red-600";
-                            else if (user.role === "Admin") color = "bg-blue-600";
-                            else if (user.role === "VIP") color = "bg-yellow-600";
-
-                            const memberDiv = document.createElement("div");
-                            memberDiv.className = "flex items-center p-3 rounded-lg hover:bg-purple-800 hover:bg-opacity-50 transition-colors duration-200";
-                            memberDiv.title = `Role: ${user.role || 'Member'} | Joined: ${user.joined || 'Unknown'}`;
-
-                            memberDiv.innerHTML = `
-                                <div class="w-10 h-10 rounded-full ${color} flex items-center justify-center mr-3 flex-shrink-0">
-                                    <span class="text-sm font-bold text-white">${initials}</span>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="font-medium truncate">${safeUsername}</div>
-                                    <div class="text-xs text-gray-400 capitalize">${user.role || 'Member'}</div>
-                                </div>
-                            `;
-                            container.appendChild(memberDiv);
-                        });
+        // Process roles data from server
+        let roleColors = {};
+        if (rolesRes.ok) {
+            const rolesData = await rolesRes.json();
+            if (rolesData.roles && typeof rolesData.roles === 'object') {
+                Object.entries(rolesData.roles).forEach(([roleName, roleConfig]) => {
+                    // Use bgColor property from your roles.json structure
+                    if (roleConfig.bgColor) {
+                        roleColors[roleName] = roleConfig.bgColor;
                     }
-
-                    // Fade in new content
-                    setTimeout(() => {
-                        container.classList.remove("opacity-0");
-                        container.classList.add("opacity-100");
-                        feather.replace(); // Refresh icons
-                    }, 50);
-
-                }, 100);
-
-            } catch (err) {
-                console.error("[ERROR] Failed to load members:", err);
-
-                const container = document.getElementById("membersList");
-                container.innerHTML = `
-                    <div class="text-center py-8 text-red-300">
-                        <i data-feather="alert-triangle" class="w-12 h-12 mx-auto mb-4"></i>
-                        <p class="font-medium">Failed to load members</p>
-                        <p class="text-sm mt-2">${err.message}</p>
-                        <button onclick="loadMembers()" class="mt-4 px-4 py-2 bg-purple-700 rounded-lg hover:bg-purple-600 transition-colors">
-                            Try Again
-                        </button>
-                    </div>
-                `;
-                feather.replace();
+                });
             }
         }
+
+        // Deduplication
+        const seen = new Set();
+        const uniqueMembers = members.filter(user => {
+            const identifier = user.id || user.username || user.email || "unknown";
+            if (seen.has(identifier)) return false;
+            seen.add(identifier);
+            return true;
+        });
+
+        // Filter out deleted members
+        const activeMembers = uniqueMembers.filter(user =>
+            !user.deleted && !user.isDeleted && user.status !== 'deleted'
+        );
+
+        // Clear with fade
+        container.innerHTML = "";
+        container.classList.remove("opacity-100");
+        container.classList.add("opacity-0");
+
+        setTimeout(() => {
+            if (activeMembers.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-400">
+                        <i data-feather="users" class="w-12 h-12 mx-auto mb-4"></i>
+                        <p>No members found</p>
+                    </div>
+                `;
+            } else {
+                activeMembers.forEach(user => {
+                    const safeUsername = user.username || "Unknown";
+                    const userRole = user.role || 'Member';
+                    const initials = safeUsername
+                        .split(" ")
+                        .filter(word => word.length > 0)
+                        .map(word => word[0].toUpperCase())
+                        .join("")
+                        .slice(0, 2);
+
+                    // Get color from server configuration using bgColor property
+                    const colorClass = roleColors[userRole] || "bg-gray-600";
+
+                    const memberDiv = document.createElement("div");
+                    memberDiv.className = "flex items-center p-3 rounded-lg hover:bg-purple-800 hover:bg-opacity-50 transition-colors duration-200";
+                    memberDiv.title = `Role: ${userRole} | Joined: ${user.joined || 'Unknown'}`;
+
+                    memberDiv.innerHTML = `
+                        <div class="w-10 h-10 rounded-full ${colorClass} flex items-center justify-center mr-3 flex-shrink-0">
+                            <span class="text-sm font-bold text-white">${initials}</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-medium truncate">${safeUsername}</div>
+                            <div class="text-xs text-gray-400 capitalize">${userRole}</div>
+                        </div>
+                    `;
+                    container.appendChild(memberDiv);
+                });
+            }
+
+            setTimeout(() => {
+                container.classList.remove("opacity-0");
+                container.classList.add("opacity-100");
+                feather.replace();
+            }, 50);
+        }, 100);
+
+    } catch (err) {
+        const container = document.getElementById("membersList");
+        container.innerHTML = `
+            <div class="text-center py-8 text-red-300">
+                <i data-feather="alert-triangle" class="w-12 h-12 mx-auto mb-4"></i>
+                <p class="font-medium">Failed to load members</p>
+                <p class="text-sm mt-2">${err.message}</p>
+                <button onclick="loadMembers()" class="mt-4 px-4 py-2 bg-purple-700 rounded-lg hover:bg-purple-600 transition-colors">
+                    Try Again
+                </button>
+            </div>
+        `;
+        feather.replace();
+    } finally {
+        isLoadingMembers = false;
+    }
+}
 
         // Refresh icons after page load
         document.addEventListener('DOMContentLoaded', function() {
