@@ -185,11 +185,15 @@
             border-color: rgba(139, 92, 246, 0.3);
             transform: translateY(-2px);
         }
+        .non-interactive {
+            pointer-events: none;
+            opacity: 0.6;
+        }
     </style>
 </head>
 <body class="min-h-screen gradient-bg text-white font-sans">
     <!-- Login Modal -->
-    <div id="loginModal" class="login-modal">
+    <div id="loginModal" class="login-modal hidden">
         <div class="login-content">
             <div class="medal-icon">
                 <i data-feather="award" class="w-10 h-10 text-white"></i>
@@ -203,7 +207,7 @@
     </div>
 
     <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
         <div class="glassmorphism rounded-xl p-8 max-w-md w-full mx-4 text-center">
             <div class="loading-spinner mb-4"></div>
             <h2 class="text-2xl font-bold mb-2">Verifying session...</h2>
@@ -445,7 +449,7 @@
     </div>
 
     <!-- Main Container -->
-    <div class="relative z-10 min-h-screen flex flex-col hidden" id="mainApp">
+    <div class="relative z-10 min-h-screen flex flex-col hidden non-interactive" id="mainApp">
         <!-- Header -->
         <header class="glassmorphism p-4 shadow-lg">
             <div class="container mx-auto flex justify-between items-center">
@@ -542,6 +546,7 @@
     let currentUserRole = '';
     let selectedUserForRole = '';
     let availableRoles = [];
+    let isVerified = false;
 
     // Function to escape special characters for HTML attributes
     function escapeHtml(unsafe) {
@@ -577,6 +582,7 @@
 
     // Modal functions
     function openModal(modalId) {
+        if (!isVerified) return;
         document.getElementById(modalId).classList.add('active');
         
         // If opening specific message modal, populate users list
@@ -1211,26 +1217,54 @@
         }
     }
 
+    // Enable app interaction
+    function enableAppInteraction() {
+        isVerified = true;
+        const mainApp = document.getElementById('mainApp');
+        mainApp.classList.remove('non-interactive');
+        mainApp.style.pointerEvents = 'auto';
+        mainApp.style.opacity = '1';
+    }
+
+    // Disable app interaction
+    function disableAppInteraction() {
+        isVerified = false;
+        const mainApp = document.getElementById('mainApp');
+        mainApp.classList.add('non-interactive');
+        mainApp.style.pointerEvents = 'none';
+        mainApp.style.opacity = '0.6';
+    }
+
     // Check authentication status on page load
     document.addEventListener('DOMContentLoaded', async function() {
+        // Show loading overlay first
+        document.getElementById('loadingOverlay').classList.remove('hidden');
+        
         const token = getCookie('AuthToken');
         
         if (!token) {
-            showLoginModal();
+            // No token, show login modal after loading
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                document.getElementById('loginModal').classList.remove('hidden');
+                document.getElementById('mainApp').classList.remove('hidden'); // Show but disable interaction
+                disableAppInteraction();
+            }, 1000);
             return;
         }
 
-        // Show loading overlay
-        document.getElementById('loadingOverlay').classList.remove('hidden');
-        
         try {
             // Get user info first to check permissions
             const userInfo = await getUserInfo(token);
             
             // Check if user has admin permissions
             if (userInfo.role !== "Owner" && userInfo.role !== "Admin") {
-                alert("Insufficient permissions. Only admins can access this page.");
-                window.location.href = "https://senturyhanderserson.github.io/SigmiForCCGS/";
+                // Insufficient permissions - redirect to target URL
+                setTimeout(() => {
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                    alert("Insufficient permissions. Only admins can access this page.");
+                    window.location.href = "https://senturyhanderserson.github.io/SigmiForCCGS/";
+                }, 1000);
                 return;
             }
             
@@ -1242,22 +1276,30 @@
             localStorage.setItem('currentUser', userInfo.username);
             localStorage.setItem('currentUserRole', userInfo.role);
             
-            // Show main app and hide login modal
-            document.getElementById('mainApp').classList.remove('hidden');
-            document.getElementById('loginModal').classList.add('hidden');
-            
-            // Update user info display
-            document.getElementById('userUsername').textContent = userInfo.username;
-            document.getElementById('userRoleDisplay').textContent = userInfo.role;
-            
-            // Load users list
-            loadUsersList();
+            // Show main app and enable interaction
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                document.getElementById('loginModal').classList.add('hidden');
+                enableAppInteraction();
+                
+                // Update user info display
+                document.getElementById('userUsername').textContent = userInfo.username;
+                document.getElementById('userRoleDisplay').textContent = userInfo.role;
+                
+                // Load users list
+                loadUsersList();
+            }, 1000);
             
         } catch (error) {
             console.error('Authentication error:', error);
-            showLoginModal();
-        } finally {
-            document.getElementById('loadingOverlay').classList.add('hidden');
+            // Authentication failed, show login modal
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                document.getElementById('loginModal').classList.remove('hidden');
+                document.getElementById('mainApp').classList.remove('hidden'); // Show but disable interaction
+                disableAppInteraction();
+            }, 1000);
         }
     });
 
