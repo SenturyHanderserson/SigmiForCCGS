@@ -2385,8 +2385,9 @@ async function loadMembers() {
             const rolesData = await rolesRes.json();
             if (rolesData.roles && typeof rolesData.roles === 'object') {
                 Object.entries(rolesData.roles).forEach(([roleName, roleConfig]) => {
-                    if (roleConfig.color) {
-                        roleColors[roleName] = roleConfig.color;
+                    // Use bgColor property from your roles.json structure
+                    if (roleConfig.bgColor) {
+                        roleColors[roleName] = roleConfig.bgColor;
                     }
                 });
             }
@@ -2430,7 +2431,7 @@ async function loadMembers() {
                         .join("")
                         .slice(0, 2);
 
-                    // Get color from server configuration - no fallback
+                    // Get color from server configuration using bgColor property
                     const colorClass = roleColors[userRole] || "bg-gray-600";
 
                     const memberDiv = document.createElement("div");
