@@ -2347,26 +2347,50 @@ async function loadMembers() {
             throw new Error("No authentication token found");
         }
 
-        const res = await fetch("https://proxyforsigmi.onrender.com/api/users", {
-            method: "GET",
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            credentials: "include"
-        });
+        // Fetch members and roles in parallel
+        const [membersRes, rolesRes] = await Promise.all([
+            fetch("https://proxyforsigmi.onrender.com/api/users", {
+                method: "GET",
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                credentials: "include"
+            }),
+            fetch("https://proxyforsigmi.onrender.com/api/roles", {
+                method: "GET",
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                credentials: "include"
+            })
+        ]);
 
-        if (!res.ok) {
+        if (!membersRes.ok) {
             throw new Error("Failed to fetch members");
         }
 
-        const contentType = res.headers.get('content-type');
+        const contentType = membersRes.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
             throw new Error("Invalid server response");
         }
 
-        const members = await res.json();
+        const members = await membersRes.json();
         const container = document.getElementById("membersList");
+
+        // Process roles data from server
+        let roleColors = {};
+        if (rolesRes.ok) {
+            const rolesData = await rolesRes.json();
+            if (rolesData.roles && typeof rolesData.roles === 'object') {
+                Object.entries(rolesData.roles).forEach(([roleName, roleConfig]) => {
+                    if (roleConfig.color) {
+                        roleColors[roleName] = roleConfig.color;
+                    }
+                });
+            }
+        }
 
         // Deduplication
         const seen = new Set();
@@ -2398,6 +2422,7 @@ async function loadMembers() {
             } else {
                 activeMembers.forEach(user => {
                     const safeUsername = user.username || "Unknown";
+                    const userRole = user.role || 'Member';
                     const initials = safeUsername
                         .split(" ")
                         .filter(word => word.length > 0)
@@ -2405,22 +2430,20 @@ async function loadMembers() {
                         .join("")
                         .slice(0, 2);
 
-                    let color = "bg-purple-600";
-                    if (user.role === "Owner") color = "bg-red-600";
-                    else if (user.role === "Admin") color = "bg-blue-600";
-                    else if (user.role === "VIP") color = "bg-yellow-600";
+                    // Get color from server configuration - no fallback
+                    const colorClass = roleColors[userRole] || "bg-gray-600";
 
                     const memberDiv = document.createElement("div");
                     memberDiv.className = "flex items-center p-3 rounded-lg hover:bg-purple-800 hover:bg-opacity-50 transition-colors duration-200";
-                    memberDiv.title = `Role: ${user.role || 'Member'} | Joined: ${user.joined || 'Unknown'}`;
+                    memberDiv.title = `Role: ${userRole} | Joined: ${user.joined || 'Unknown'}`;
 
                     memberDiv.innerHTML = `
-                        <div class="w-10 h-10 rounded-full ${color} flex items-center justify-center mr-3 flex-shrink-0">
+                        <div class="w-10 h-10 rounded-full ${colorClass} flex items-center justify-center mr-3 flex-shrink-0">
                             <span class="text-sm font-bold text-white">${initials}</span>
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="font-medium truncate">${safeUsername}</div>
-                            <div class="text-xs text-gray-400 capitalize">${user.role || 'Member'}</div>
+                            <div class="text-xs text-gray-400 capitalize">${userRole}</div>
                         </div>
                     `;
                     container.appendChild(memberDiv);
