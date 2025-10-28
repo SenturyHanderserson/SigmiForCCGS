@@ -729,6 +729,7 @@
     let isVerified = false;
     let roleColors = {}; // Store role colors from server
     let users = []; // Global users array
+    let allRoles = {}; // Store all roles from server
 
     // Function to escape special characters for HTML attributes
     function escapeHtml(unsafe) {
@@ -762,8 +763,8 @@
         }
     }
 
-    // Function to load role configuration from server
-    async function loadRoleConfig() {
+    // Function to load ALL roles from server
+    async function loadAllRoles() {
         try {
             const token = getCookie('AuthToken');
             const response = await fetch(`${SERVER_URL}/api/roles`, {
@@ -775,14 +776,50 @@
             });
             
             if (!response.ok) {
-                throw new Error('Failed to load role configuration');
+                throw new Error('Failed to load roles');
             }
             
             const data = await response.json();
-            return data.roles || {};
+            allRoles = data.roles || {};
+            return allRoles;
         } catch (error) {
-            console.error('Load role config error:', error);
+            console.error('Load all roles error:', error);
             return {};
+        }
+    }
+
+    // Function to load available roles for assignment
+    async function loadAvailableRoles() {
+        try {
+            const token = getCookie('AuthToken');
+            const response = await fetch(`${SERVER_URL}/api/admin/roles/available`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to load available roles');
+            }
+            
+            const data = await response.json();
+            
+            // Convert the roles object to array format
+            if (data.roles && typeof data.roles === 'object') {
+                return Object.entries(data.roles).map(([value, config]) => ({
+                    value: value,
+                    label: value,
+                    description: config.description || `Role: ${value}`,
+                    color: config.color || '#6b7280'
+                }));
+            }
+            
+            return data.roles || [];
+        } catch (error) {
+            console.error('Load roles error:', error);
+            throw error;
         }
     }
 
@@ -1318,42 +1355,6 @@
         }
     }
 
-    // Role Management Functions
-    // Load available roles from server
-    async function loadAvailableRoles() {
-        try {
-            const token = getCookie('AuthToken');
-            const response = await fetch(`${SERVER_URL}/api/admin/roles/available`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error('Failed to load available roles');
-            }
-            
-            const data = await response.json();
-            
-            // Convert the roles object to array format
-            if (data.roles && typeof data.roles === 'object') {
-                return Object.entries(data.roles).map(([value, config]) => ({
-                    value: value,
-                    label: value,
-                    description: config.description || `Role: ${value}`,
-                    color: config.color || '#6b7280'
-                }));
-            }
-            
-            return data.roles || [];
-        } catch (error) {
-            console.error('Load roles error:', error);
-            throw error;
-        }
-    }
-
     // Populate role select with available options
     async function populateRoleSelect() {
         try {
@@ -1363,6 +1364,11 @@
             // Clear existing options
             roleSelect.innerHTML = '<option value="">Select a role</option>';
             
+            if (availableRoles.length === 0) {
+                roleSelect.innerHTML = '<option value="">No roles available for assignment</option>';
+                return;
+            }
+            
             // Add available roles
             availableRoles.forEach(role => {
                 const option = document.createElement('option');
@@ -1370,11 +1376,14 @@
                 option.textContent = `${role.label} - ${role.description}`;
                 roleSelect.appendChild(option);
             });
+            
+            // Update role help text when selection changes
+            updateRoleAssignmentHelp();
+            
         } catch (error) {
             console.error('Populate roles error:', error);
             const roleSelect = document.getElementById('roleSelect');
             roleSelect.innerHTML = '<option value="">Error loading roles</option>';
-            throw error;
         }
     }
 
@@ -1391,11 +1400,8 @@
         document.getElementById('roleUsernameDisplay').textContent = username;
         document.getElementById('currentUserRole').textContent = 'Current Role: ' + currentRole;
         
-        // Populate role select
+        // Populate role select with fresh data from server
         await populateRoleSelect();
-        
-        // Update role help text when selection changes
-        document.getElementById('roleSelect').addEventListener('change', updateRoleAssignmentHelp);
         
         openModal('roleAssignmentModal');
     }
@@ -1406,15 +1412,9 @@
         const roleHelp = document.getElementById('roleHelp');
         const selectedRole = roleSelect.value;
         
-        const helpTexts = {
-            'Member': 'Regular user with basic access permissions.',
-            'Moderator': 'Can manage warnings, reports, and user messages.',
-            'Admin': 'Full administrative access including blacklisting and role management (except Owner).',
-            'Owner': 'Full system control including Owner management. Use with extreme caution.'
-        };
-        
-        if (selectedRole && helpTexts[selectedRole]) {
-            roleHelp.textContent = helpTexts[selectedRole];
+        if (selectedRole && allRoles[selectedRole]) {
+            const roleConfig = allRoles[selectedRole];
+            roleHelp.textContent = roleConfig.description || `Role: ${selectedRole}`;
             roleHelp.classList.remove('hidden');
         } else {
             roleHelp.classList.add('hidden');
@@ -1531,9 +1531,12 @@
             currentUser = userInfo.username;
             currentUserRole = userInfo.role;
             
-            // Load role configuration and apply colors
-            const roleConfig = await loadRoleConfig();
-            applyRoleColors(roleConfig);
+            // Load ALL roles from server first
+            const allRolesData = await loadAllRoles();
+            allRoles = allRolesData;
+            
+            // Apply role colors
+            applyRoleColors(allRoles);
             
             // Store user info in localStorage for persistence
             localStorage.setItem('currentUser', userInfo.username);
@@ -1824,6 +1827,7 @@
             
             const data = await response.json();
             currentRoles = data.roles || {};
+            allRoles = currentRoles; // Update global allRoles
             displayRolesList(currentRoles);
             
         } catch (error) {
@@ -2106,7 +2110,7 @@
             closeModal('roleCreationModal');
             resetRoleForm();
             
-            // Refresh roles list
+            // Refresh roles list and update global roles
             await loadRolesList();
             
         } catch (error) {
