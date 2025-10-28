@@ -156,26 +156,19 @@
             cursor: pointer;
             transition: all 0.2s ease;
             border: 2px solid transparent;
+            color: white;
         }
         .role-badge:hover {
             transform: scale(1.05);
             border-color: rgba(255, 255, 255, 0.3);
         }
-        .role-owner {
-            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
-            color: white;
+        .role-badge.owner-protected {
+            cursor: not-allowed;
+            opacity: 0.8;
         }
-        .role-admin {
-            background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
-            color: white;
-        }
-        .role-moderator {
-            background: linear-gradient(135deg, #10B981 0%, #047857 100%);
-            color: white;
-        }
-        .role-member {
-            background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%);
-            color: white;
+        .role-badge.owner-protected:hover {
+            transform: none;
+            border-color: transparent;
         }
         .user-card {
             transition: all 0.3s ease;
@@ -188,14 +181,6 @@
         .non-interactive {
             pointer-events: none;
             opacity: 0.6;
-        }
-        .role-badge.owner-protected {
-            cursor: not-allowed;
-            opacity: 0.8;
-        }
-        .role-badge.owner-protected:hover {
-            transform: none;
-            border-color: transparent;
         }
     </style>
 </head>
@@ -555,6 +540,7 @@
     let selectedUserForRole = '';
     let availableRoles = [];
     let isVerified = false;
+    let roleColors = {}; // Store role colors from server
 
     // Function to escape special characters for HTML attributes
     function escapeHtml(unsafe) {
@@ -586,6 +572,71 @@
             console.error('Get user info error:', error);
             throw error;
         }
+    }
+
+    // Function to load role configuration from server
+    async function loadRoleConfig() {
+        try {
+            const token = getCookie('AuthToken');
+            const response = await fetch(`${SERVER_URL}/api/roles`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to load role configuration');
+            }
+            
+            const data = await response.json();
+            return data.roles || {};
+        } catch (error) {
+            console.error('Load role config error:', error);
+            return {};
+        }
+    }
+
+    // Function to apply role colors dynamically
+    function applyRoleColors(roleConfig) {
+        // Clear previous dynamic styles
+        const existingStyle = document.getElementById('dynamic-role-styles');
+        if (existingStyle) {
+            existingStyle.remove();
+        }
+
+        // Create new style element
+        const style = document.createElement('style');
+        style.id = 'dynamic-role-styles';
+        
+        let css = '';
+        
+        // Generate CSS for each role
+        for (const [roleName, config] of Object.entries(roleConfig)) {
+            if (config.color) {
+                const normalizedRole = roleName.toLowerCase().replace(/\s+/g, '-');
+                css += `
+                    .role-${normalizedRole} {
+                        background: ${config.color};
+                        color: white;
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                    }
+                `;
+                
+                // Store color for later use
+                roleColors[roleName] = config.color;
+            }
+        }
+        
+        style.textContent = css;
+        document.head.appendChild(style);
+    }
+
+    // Function to get role badge class
+    function getRoleBadgeClass(roleName) {
+        const normalizedRole = roleName.toLowerCase().replace(/\s+/g, '-');
+        return `role-${normalizedRole}`;
     }
 
     // Modal functions
@@ -1098,7 +1149,8 @@
                 return Object.entries(data.roles).map(([value, config]) => ({
                     value: value,
                     label: value,
-                    description: config.description || `Role: ${value}`
+                    description: config.description || `Role: ${value}`,
+                    color: config.color || '#6b7280'
                 }));
             }
             
@@ -1286,6 +1338,10 @@
             currentUser = userInfo.username;
             currentUserRole = userInfo.role;
             
+            // Load role configuration and apply colors
+            const roleConfig = await loadRoleConfig();
+            applyRoleColors(roleConfig);
+            
             // Store user info in localStorage for persistence
             localStorage.setItem('currentUser', userInfo.username);
             localStorage.setItem('currentUserRole', userInfo.role);
@@ -1384,8 +1440,8 @@
                     '<button onclick="unblacklistUser(\'' + safeUsername + '\')" class="p-2 bg-green-600 hover:bg-green-700 rounded-lg transition-all duration-200 hover:scale-110"><i data-feather="check-circle" class="w-4 h-4"></i></button>' :
                     '<button onclick="showBlacklistForm(\'' + safeUsername + '\')" class="p-2 bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 hover:scale-110"><i data-feather="x-circle" class="w-4 h-4"></i></button>';
                 
-                // Get role badge class
-                const roleBadgeClass = `role-${user.role.toLowerCase()}`;
+                // Get role badge class using dynamic role configuration
+                const roleBadgeClass = getRoleBadgeClass(user.role);
                 
                 // Add owner-protected class for non-Owners viewing Owner roles
                 const roleBadgeExtraClass = (user.role === "Owner" && currentUserRole !== "Owner") ? 'owner-protected' : '';
