@@ -788,7 +788,7 @@
         }
     }
 
-    // Function to load available roles for assignment
+    // Function to load available roles for assignment - FIXED VERSION
     async function loadAvailableRoles() {
         try {
             const token = getCookie('AuthToken');
@@ -806,14 +806,16 @@
             
             const data = await response.json();
             
-            // Convert the roles object to array format
+            // Convert the roles object to array format for dropdown
             if (data.roles && typeof data.roles === 'object') {
-                return Object.entries(data.roles).map(([value, config]) => ({
-                    value: value,
-                    label: value,
-                    description: config.description || `Role: ${value}`,
-                    color: config.color || '#6b7280'
+                const rolesArray = Object.entries(data.roles).map(([roleName, config]) => ({
+                    value: roleName,
+                    label: roleName,
+                    description: config.description || `Role: ${roleName}`,
+                    color: config.color || '#6b7280',
+                    weight: config.weight || 0
                 }));
+                return rolesArray;
             }
             
             return data.roles || [];
@@ -877,6 +879,11 @@
         // If opening role management modal, load roles
         if (modalId === 'roleManagementModal') {
             loadRolesList();
+        }
+        
+        // If opening role assignment modal, populate roles dropdown
+        if (modalId === 'roleAssignmentModal') {
+            populateRoleSelect();
         }
     }
     
@@ -1355,7 +1362,7 @@
         }
     }
 
-    // Populate role select with available options
+    // Populate role select with available options - FIXED VERSION
     async function populateRoleSelect() {
         try {
             availableRoles = await loadAvailableRoles();
@@ -1369,7 +1376,7 @@
                 return;
             }
             
-            // Add available roles
+            // Add available roles with proper formatting
             availableRoles.forEach(role => {
                 const option = document.createElement('option');
                 option.value = role.value;
@@ -2045,7 +2052,7 @@
         document.getElementById('colorPresets').classList.add('hidden');
     }
 
-    // Create new role
+    // Create new role - UPDATED WITH PERMISSION CHECKING
     async function createNewRole() {
         const roleName = document.getElementById('newRoleName').value.trim();
         const description = document.getElementById('roleDescription').value.trim();
@@ -2068,6 +2075,15 @@
         if (!colorRegex.test(color)) {
             alert('Invalid color format. Please use hex format (#RRGGBB)');
             return;
+        }
+        
+        // Check if current user can create this role based on weight
+        const currentUserRoleConfig = allRoles[currentUserRole];
+        if (currentUserRoleConfig && currentUserRoleConfig.weight !== undefined) {
+            if (weight >= currentUserRoleConfig.weight) {
+                alert(`You cannot create roles with weight ${weight} or higher. Your current role weight is ${currentUserRoleConfig.weight}.`);
+                return;
+            }
         }
         
         // Map permission sets
@@ -2112,6 +2128,7 @@
             
             // Refresh roles list and update global roles
             await loadRolesList();
+            await loadAllRoles(); // Reload all roles to get the new one
             
         } catch (error) {
             console.error('Create role error:', error);
