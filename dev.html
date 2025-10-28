@@ -189,6 +189,14 @@
             pointer-events: none;
             opacity: 0.6;
         }
+        .role-badge.owner-protected {
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+        .role-badge.owner-protected:hover {
+            transform: none;
+            border-color: transparent;
+        }
     </style>
 </head>
 <body class="min-h-screen gradient-bg text-white font-sans">
@@ -1127,6 +1135,12 @@
 
     // Show role assignment modal
     async function showRoleAssignmentModal(username, currentRole) {
+        // Prevent changing Owner roles for non-Owners
+        if (currentRole === "Owner" && currentUserRole !== "Owner") {
+            alert("❌ Error: Only Owners can modify other Owner roles");
+            return;
+        }
+        
         selectedUserForRole = username;
         
         document.getElementById('roleUsernameDisplay').textContent = username;
@@ -1349,6 +1363,7 @@
                     (currentUserRole === 'Owner' || 
                      (currentUserRole === 'Admin' && user.role !== 'Owner' && user.role !== 'Admin'));
                 
+                // Prevent non-Owners from assigning roles to Owners
                 const canAssignRole = user.username !== currentUser && 
                     (currentUserRole === 'Owner' || 
                      (currentUserRole === 'Admin' && user.role !== 'Owner'));
@@ -1372,6 +1387,9 @@
                 // Get role badge class
                 const roleBadgeClass = `role-${user.role.toLowerCase()}`;
                 
+                // Add owner-protected class for non-Owners viewing Owner roles
+                const roleBadgeExtraClass = (user.role === "Owner" && currentUserRole !== "Owner") ? 'owner-protected' : '';
+                
                 const blacklistInfo = user.blacklisted ? '• Reason: ' + safeBlacklistReason : '';
                 
                 usersHTML += 
@@ -1382,7 +1400,9 @@
                                 '<span class="user-status-badge ' + (user.blacklisted ? 'status-blacklisted' : 'status-clean') + '">' +
                                     (user.blacklisted ? 'Blacklisted' : 'Clean') +
                                 '</span>' +
-                                '<span class="role-badge ' + roleBadgeClass + '" onclick="showRoleAssignmentModal(\'' + safeUsername + '\', \'' + safeRole + '\')" title="Click to change role">' +
+                                '<span class="role-badge ' + roleBadgeClass + ' ' + roleBadgeExtraClass + '" ' + 
+                                    (canAssignRole ? 'onclick="showRoleAssignmentModal(\'' + safeUsername + '\', \'' + safeRole + '\')" title="Click to change role"' : 
+                                    (user.role === "Owner" && currentUserRole !== "Owner" ? 'title="Only Owners can modify Owner roles"' : 'title="Cannot change role"')) + '>' +
                                     safeRole +
                                 '</span>' +
                             '</div>' +
