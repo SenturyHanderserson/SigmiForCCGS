@@ -237,6 +237,16 @@
         #roleManagementModal {
             z-index: 2000 !important;
         }
+        
+        /* Cosmetic role badge */
+        .cosmetic-badge {
+            background-color: #8b5cf6;
+            color: white;
+        }
+        
+        .cosmetic-role {
+            border-left: 4px solid #8b5cf6;
+        }
     </style>
 </head>
 <body class="min-h-screen gradient-bg text-white font-sans">
@@ -334,6 +344,17 @@
                             <option value="full">Full Access</option>
                         </select>
                     </div>
+                </div>
+                
+                <!-- COSMETIC ROLE OPTION -->
+                <div class="mb-4">
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" id="roleCosmetic" class="rounded border-gray-700 bg-gray-800 text-purple-500 focus:ring-purple-500">
+                        <span class="text-gray-300">Cosmetic Role</span>
+                    </label>
+                    <p class="text-xs text-gray-400 mt-1">
+                        Cosmetic roles can only be assigned by roles with weight 60 or higher
+                    </p>
                 </div>
                 
                 <div id="roleCreationHelp" class="p-3 bg-blue-900 bg-opacity-30 border border-blue-700 rounded-lg text-sm text-blue-200">
@@ -806,15 +827,28 @@
             
             const data = await response.json();
             
-            // Convert the roles object to array format for dropdown
+            // Get current user's weight for cosmetic role filtering
+            const currentUserRoleConfig = allRoles[currentUserRole];
+            const currentUserWeight = currentUserRoleConfig?.weight || 0;
+            
+            // Convert the roles object to array format for dropdown, filtering cosmetic roles
             if (data.roles && typeof data.roles === 'object') {
-                const rolesArray = Object.entries(data.roles).map(([roleName, config]) => ({
-                    value: roleName,
-                    label: roleName,
-                    description: config.description || `Role: ${roleName}`,
-                    color: config.color || '#6b7280',
-                    weight: config.weight || 0
-                }));
+                const rolesArray = Object.entries(data.roles)
+                    .filter(([roleName, config]) => {
+                        // Filter out cosmetic roles if user doesn't have sufficient weight
+                        if (config.cosmetic && currentUserWeight < 60) {
+                            return false;
+                        }
+                        return true;
+                    })
+                    .map(([roleName, config]) => ({
+                        value: roleName,
+                        label: roleName,
+                        description: config.description || `Role: ${roleName}`,
+                        color: config.color || '#6b7280',
+                        weight: config.weight || 0,
+                        cosmetic: config.cosmetic || false
+                    }));
                 return rolesArray;
             }
             
@@ -1421,7 +1455,14 @@
         
         if (selectedRole && allRoles[selectedRole]) {
             const roleConfig = allRoles[selectedRole];
-            roleHelp.textContent = roleConfig.description || `Role: ${selectedRole}`;
+            let helpText = roleConfig.description || `Role: ${selectedRole}`;
+            
+            // Add cosmetic role warning if applicable
+            if (roleConfig.cosmetic) {
+                helpText += ' (Cosmetic - requires weight 60+ to assign)';
+            }
+            
+            roleHelp.textContent = helpText;
             roleHelp.classList.remove('hidden');
         } else {
             roleHelp.classList.add('hidden');
@@ -1844,7 +1885,7 @@
         }
     }
 
-    // Display roles in management modal - UPDATED WITH WEIGHT-BASED DELETE PERMISSIONS
+    // Display roles in management modal - UPDATED WITH COSMETIC BADGE
     function displayRolesList(roles) {
         const container = document.getElementById('rolesList');
         
@@ -1865,11 +1906,12 @@
             const safeColor = escapeHtml(roleConfig.color || '#6b7280');
             const weight = roleConfig.weight || 0;
             const userCount = users.filter(u => u.role === roleName).length;
+            const isCosmetic = roleConfig.cosmetic || false;
             
             const currentUserRoleConfig = allRoles[currentUserRole];
             const currentUserWeight = currentUserRoleConfig?.weight || 0;
             
-            // NEW: Check if current user can delete this role based on weight
+            // Check if current user can delete this role based on weight
             const canDelete = currentUserRole === 'Owner' || 
                 (currentUserWeight >= weight && 
                  roleName !== 'Owner' && 
@@ -1878,7 +1920,7 @@
             const canEdit = currentUserRole === 'Owner' || (currentUserRole === 'Admin' && roleName !== 'Owner');
             
             rolesHTML += `
-                <div class="glassmorphism p-4 rounded-lg role-management-item">
+                <div class="glassmorphism p-4 rounded-lg role-management-item ${isCosmetic ? 'cosmetic-role' : ''}">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3">
                             <div class="w-6 h-6 rounded-full border-2 border-white" style="background-color: ${safeColor};"></div>
@@ -1886,6 +1928,7 @@
                                 <div class="flex items-center space-x-2">
                                     <span class="font-semibold">${safeRoleName}</span>
                                     <span class="text-xs px-2 py-1 rounded-full bg-gray-700">Weight: ${weight}</span>
+                                    ${isCosmetic ? '<span class="text-xs px-2 py-1 rounded-full cosmetic-badge">Cosmetic</span>' : ''}
                                     <span class="text-xs px-2 py-1 rounded-full ${userCount > 0 ? 'bg-blue-600' : 'bg-gray-600'}">
                                         ${userCount} user(s)
                                     </span>
@@ -2077,13 +2120,14 @@
         document.getElementById('colorPresets').classList.add('hidden');
     }
 
-    // Create new role - UPDATED WITH PERMISSION CHECKING
+    // Create new role - UPDATED WITH COSMETIC OPTION
     async function createNewRole() {
         const roleName = document.getElementById('newRoleName').value.trim();
         const description = document.getElementById('roleDescription').value.trim();
         const color = document.getElementById('roleColorHex').value;
         const weight = parseInt(document.getElementById('roleWeight').value) || 2;
         const permissions = document.getElementById('rolePermissions').value;
+        const cosmetic = document.getElementById('roleCosmetic').checked; // GET COSMETIC VALUE
         
         if (!roleName) {
             alert('Please enter a role name');
@@ -2135,7 +2179,8 @@
                     description: description || `Custom role: ${roleName}`,
                     permissions: selectedPermissions,
                     weight: weight,
-                    canAssign: ['Member'] // Default - can assign Member role
+                    canAssign: ['Member'], // Default - can assign Member role
+                    cosmetic: cosmetic // ADD COSMETIC FLAG
                 })
             });
             
@@ -2167,6 +2212,7 @@
         document.getElementById('roleDescription').value = '';
         document.getElementById('roleWeight').value = '2';
         document.getElementById('rolePermissions').value = 'basic';
+        document.getElementById('roleCosmetic').checked = false; // RESET COSMETIC CHECKBOX
         setRandomColor();
     }
 
