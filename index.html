@@ -1350,7 +1350,7 @@
                     games: document.querySelector('input[data-section="games"]').checked ? 
                         ['arcade', 'allgames', 'strategy', 'multiplayer'] : [],
                     external: document.querySelector('input[data-section="external"]').checked ? 
-                        ['roblox', 'minecraft'] : []
+                        ['robloxexternal', 'minecraftexternal'] : []
                 };
                 
                 setCookie('UserPreferences', JSON.stringify(preferences), 365);
@@ -1598,7 +1598,9 @@
                'arcade': 'Classic arcade games collection',
                 'allgames': 'Complete games library',
                 'strategy': 'Strategy and puzzle games',
-                'multiplayer': 'Multiplayer gaming experiences'
+                'multiplayer': 'Multiplayer gaming experiences',
+                'robloxexternal': 'Allows you to play Roblox unblocked!',
+                'minecraftexternal': 'Allows you to play Minecraft unblocked!'
             };
             
             items.forEach(item => {
