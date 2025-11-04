@@ -177,7 +177,7 @@
             opacity: 1;
         }
         
-        /* Loading spinner */
+        /* Loading spinner - FIXED */
         .loading-spinner {
             display: inline-block;
             position: relative;
@@ -877,10 +877,16 @@
         </div>
     </div>
 
-    <!-- Loading Overlay - For auto-login verification -->
-    <div id="loadingOverlay" class="modal-overlay">
+    <!-- Loading Overlay - For auto-login verification - FIXED: Added hidden class -->
+    <div id="loadingOverlay" class="modal-overlay hidden">
         <div class="glass rounded-xl p-8 max-w-md w-full mx-4 text-center">
-            <div class="loading-spinner mb-4"></div>
+            <!-- FIXED: Added proper loading spinner structure -->
+            <div class="loading-spinner mb-4">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
             <h2 class="text-2xl font-bold mb-2">Verifying session...</h2>
             <p class="text-gray-300">Please wait while we verify your session</p>
         </div>
@@ -1071,6 +1077,65 @@
         const pollsPerPage = 8;
         let canCreatePolls = false;
         const SERVER_URL = 'https://proxyforsigmi.onrender.com';
+
+        // NEW: Function to verify token and handle session
+        async function verifyTokenAndLoad() {
+            const token = getCookie('AuthToken');
+            const currentUser = localStorage.getItem('currentUser');
+            
+            if (token && currentUser) {
+                // Show loading overlay
+                document.getElementById('loadingOverlay').classList.remove('hidden');
+                
+                try {
+                    // Verify token with server
+                    const isValid = await verifyToken(token);
+                    
+                    if (isValid) {
+                        // Token is valid, hide loading overlay and load polls
+                        document.getElementById('loadingOverlay').classList.add('hidden');
+                        await loadPolls();
+                    } else {
+                        // Token is invalid, show login modal
+                        document.getElementById('loadingOverlay').classList.add('hidden');
+                        document.getElementById('loginModal').classList.add('active');
+                        // Clear invalid token
+                        setCookie('AuthToken', '', -1);
+                        localStorage.removeItem('currentUser');
+                    }
+                } catch (error) {
+                    console.error('Token verification failed:', error);
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                    document.getElementById('loginModal').classList.add('active');
+                }
+            } else {
+                // No token, show login modal
+                document.getElementById('loginModal').classList.add('active');
+            }
+        }
+
+        // NEW: Function to verify token with server
+        async function verifyToken(token) {
+            try {
+                const response = await fetch(`${SERVER_URL}/api/verify-token`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    return false;
+                }
+                
+                const data = await response.json();
+                return data.valid === true;
+            } catch (error) {
+                console.error('Token verification error:', error);
+                return false;
+            }
+        }
 
         // Implement missing functions from the first code block
         function setCookie(name, value) {
@@ -2643,8 +2708,8 @@
             setTimeout(initVantaBackground, 500);
             createParticles();
             
-            // Initialize polls system
-            loadPolls();
+            // NEW: Initialize session verification and loading
+            verifyTokenAndLoad();
             
             // Set up form submission
             document.getElementById('createPollForm').addEventListener('submit', submitPollForm);
