@@ -145,6 +145,7 @@
             border: 1px solid var(--glass-border);
             border-radius: 16px;
             overflow: hidden;
+            position: relative;
         }
         
         .content-card:hover {
@@ -526,12 +527,13 @@
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
         }
 
-        /* Expanded FAB Menu */
+        /* Expanded FAB Menu - FIXED POSITIONING */
         .fab-expanded {
             position: fixed;
-            bottom: 2rem;
+            bottom: 6rem;
             right: 2rem;
             z-index: 45;
+            display: none;
         }
 
         .fab-menu-item {
@@ -561,10 +563,14 @@
         /* Report button styling */
         .report-fab {
             background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            bottom: 4rem;
+            right: 0;
         }
 
         .polls-fab {
             background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            bottom: 8rem;
+            right: 0;
         }
 
         /* Enhanced glass morphism effects */
@@ -614,6 +620,58 @@
 
         .btn-glow:hover {
             box-shadow: 0 0 20px rgba(142, 68, 173, 0.6);
+        }
+
+        /* Coming Soon Overlay */
+        .coming-soon-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(26, 9, 51, 0.85);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .content-card:hover .coming-soon-overlay {
+            opacity: 1;
+        }
+
+        .coming-soon-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 15px rgba(142, 68, 173, 0.4);
+        }
+
+        .coming-soon-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #fff 0%, #d8d8d8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .coming-soon-subtext {
+            font-size: 0.85rem;
+            color: #d8d8d8;
+            text-align: center;
+            max-width: 80%;
         }
     </style>
 </head>
@@ -967,13 +1025,13 @@
             <i data-feather="plus" class="w-6 h-6"></i>
         </div>
 
-        <!-- Expanded FAB Menu -->
-        <div class="fab-expanded" id="fabExpandedMenu" style="display: none;">
-            <div class="fab-menu-item report-fab" id="reportFab" title="Report Issue">
-                <i data-feather="alert-triangle" class="w-5 h-5 text-white"></i>
-            </div>
+        <!-- Expanded FAB Menu - FIXED POSITIONING -->
+        <div class="fab-expanded" id="fabExpandedMenu">
             <div class="fab-menu-item polls-fab" id="pollsFab" title="Vote on Polls">
                 <i data-feather="bar-chart-2" class="w-5 h-5 text-white"></i>
+            </div>
+            <div class="fab-menu-item report-fab" id="reportFab" title="Report Issue">
+                <i data-feather="alert-triangle" class="w-5 h-5 text-white"></i>
             </div>
         </div>
     </div>
@@ -1112,7 +1170,7 @@
         let warningCheckInterval = null;
         let isFabExpanded = false;
 
-        // FAB Menu Functions
+        // FAB Menu Functions - UPDATED POSITIONING
         function toggleFabMenu() {
             const fabBtn = document.getElementById('fabBtn');
             const fabExpandedMenu = document.getElementById('fabExpandedMenu');
@@ -1123,16 +1181,16 @@
                 // Expand the menu
                 fabExpandedMenu.style.display = 'block';
                 
-                // Animate report button (position 1)
-                setTimeout(() => {
-                    reportFab.classList.add('visible');
-                    reportFab.style.transform = 'translateY(-70px)';
-                }, 50);
-                
-                // Animate polls button (position 2)
+                // Animate polls button (position 1 - top)
                 setTimeout(() => {
                     pollsFab.classList.add('visible');
                     pollsFab.style.transform = 'translateY(-140px)';
+                }, 50);
+                
+                // Animate report button (position 2 - middle)
+                setTimeout(() => {
+                    reportFab.classList.add('visible');
+                    reportFab.style.transform = 'translateY(-70px)';
                 }, 150);
                 
                 // Rotate main button
@@ -1141,11 +1199,11 @@
                 isFabExpanded = true;
             } else {
                 // Collapse the menu
-                reportFab.classList.remove('visible');
                 pollsFab.classList.remove('visible');
+                reportFab.classList.remove('visible');
                 
-                reportFab.style.transform = 'translateY(0)';
                 pollsFab.style.transform = 'translateY(0)';
+                reportFab.style.transform = 'translateY(0)';
                 
                 // Reset main button rotation
                 fabBtn.style.transform = 'rotate(0deg)';
@@ -1546,13 +1604,27 @@
             items.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'content-card glass-card rounded-xl p-6 cursor-pointer hover:shadow-lg transition-all duration-300 card-hover';
+                
+                // Check if this item has a page mapping
+                const hasPageMapping = PAGE_MAPPING[item] || 
+                    (title === 'External Games' && PAGE_MAPPING[`external_${item}`]);
+                
                 card.innerHTML = `
                     <h3 class="text-xl font-semibold mb-2 capitalize">${item}</h3>
                     <p class="text-gray-300 mb-4">${itemDescriptions[item] || 'Click to access this content'}</p>
                     <div class="flex items-center text-purple-300">
-                        <span>Open</span>
-                        <i data-feather="arrow-right" class="w-4 h-4 ml-2"></i>
+                        <span>${hasPageMapping ? 'Open' : 'Coming Soon'}</span>
+                        <i data-feather="${hasPageMapping ? 'arrow-right' : 'clock'}" class="w-4 h-4 ml-2"></i>
                     </div>
+                    ${!hasPageMapping ? `
+                    <div class="coming-soon-overlay">
+                        <div class="coming-soon-icon">
+                            <i data-feather="clock" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <div class="coming-soon-text">Coming Soon</div>
+                        <div class="coming-soon-subtext">This feature is currently in development</div>
+                    </div>
+                    ` : ''}
                 `;
                 
                 card.addEventListener('click', () => {
@@ -1617,34 +1689,78 @@
             document.getElementById('loadingModal').classList.remove('hidden');
         }
 
-        // Load Members Function
+        // Load Members Function - UPDATED WITH YOUR VERSION
+        let isLoadingMembers = false;
+
         async function loadMembers() {
+            if (isLoadingMembers) return;
+            isLoadingMembers = true;
+
             try {
                 const token = getCookie('AuthToken');
                 if (!token) {
                     throw new Error("No authentication token found");
                 }
 
-                const response = await fetch("https://proxyforsigmi.onrender.com/api/users", {
-                    method: "GET",
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: "include"
-                });
+                // Fetch members and roles in parallel
+                const [membersRes, rolesRes] = await Promise.all([
+                    fetch("https://proxyforsigmi.onrender.com/api/users", {
+                        method: "GET",
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        credentials: "include"
+                    }),
+                    fetch("https://proxyforsigmi.onrender.com/api/roles", {
+                        method: "GET",
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        credentials: "include"
+                    })
+                ]);
 
-                if (!response.ok) {
+                if (!membersRes.ok) {
                     throw new Error("Failed to fetch members");
                 }
 
-                const contentType = response.headers.get('content-type');
+                const contentType = membersRes.headers.get('content-type');
                 if (!contentType || !contentType.includes('application/json')) {
                     throw new Error("Invalid server response");
                 }
 
-                const members = await response.json();
+                const members = await membersRes.json();
                 const container = document.getElementById("membersList");
+
+                // Process roles data from server
+                let roleColors = {};
+                if (rolesRes.ok) {
+                    const rolesData = await rolesRes.json();
+                    if (rolesData.roles && typeof rolesData.roles === 'object') {
+                        Object.entries(rolesData.roles).forEach(([roleName, roleConfig]) => {
+                            // Use bgColor property from your roles.json structure
+                            if (roleConfig.bgColor) {
+                                roleColors[roleName] = roleConfig.bgColor;
+                            }
+                        });
+                    }
+                }
+
+                // Deduplication
+                const seen = new Set();
+                const uniqueMembers = members.filter(user => {
+                    const identifier = user.id || user.username || user.email || "unknown";
+                    if (seen.has(identifier)) return false;
+                    seen.add(identifier);
+                    return true;
+                });
+
+                // Filter out deleted members
+                const activeMembers = uniqueMembers.filter(user =>
+                    !user.deleted && !user.isDeleted && user.status !== 'deleted'
+                );
 
                 // Clear with fade
                 container.innerHTML = "";
@@ -1652,7 +1768,7 @@
                 container.classList.add("opacity-0");
 
                 setTimeout(() => {
-                    if (members.length === 0) {
+                    if (activeMembers.length === 0) {
                         container.innerHTML = `
                             <div class="text-center py-8 text-gray-400">
                                 <i data-feather="users" class="w-12 h-12 mx-auto mb-4"></i>
@@ -1660,7 +1776,7 @@
                             </div>
                         `;
                     } else {
-                        members.forEach(user => {
+                        activeMembers.forEach(user => {
                             const safeUsername = user.username || "Unknown";
                             const userRole = user.role || 'Member';
                             const initials = safeUsername
@@ -1670,12 +1786,15 @@
                                 .join("")
                                 .slice(0, 2);
 
+                            // Get color from server configuration using bgColor property
+                            const colorClass = roleColors[userRole] || "bg-gray-600";
+
                             const memberDiv = document.createElement("div");
                             memberDiv.className = "flex items-center p-3 rounded-lg hover:bg-purple-800 hover:bg-opacity-50 transition-colors duration-200";
                             memberDiv.title = `Role: ${userRole} | Joined: ${user.joined || 'Unknown'}`;
 
                             memberDiv.innerHTML = `
-                                <div class="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center mr-3 flex-shrink-0">
+                                <div class="w-10 h-10 rounded-full ${colorClass} flex items-center justify-center mr-3 flex-shrink-0">
                                     <span class="text-sm font-bold text-white">${initials}</span>
                                 </div>
                                 <div class="flex-1 min-w-0">
@@ -1707,6 +1826,8 @@
                     </div>
                 `;
                 feather.replace();
+            } finally {
+                isLoadingMembers = false;
             }
         }
     </script>
