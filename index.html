@@ -1607,9 +1607,9 @@
                 const card = document.createElement('div');
                 card.className = 'content-card glass-card rounded-xl p-6 cursor-pointer hover:shadow-lg transition-all duration-300 card-hover';
                 
+
                 // Check if this item has a page mapping
-                const hasPageMapping = PAGE_MAPPING[item] || 
-                    (title === 'External Games' && PAGE_MAPPING[`external_${item}`]);
+                const hasPageMapping = PAGE_MAPPING[item];
                 
                 card.innerHTML = `
                     <h3 class="text-xl font-semibold mb-2 capitalize">${item}</h3>
