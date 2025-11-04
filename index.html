@@ -527,52 +527,6 @@
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
         }
 
-        /* Expanded FAB Menu - FIXED POSITIONING */
-        .fab-expanded {
-            position: fixed;
-            bottom: 6rem;
-            right: 2rem;
-            z-index: 45;
-            display: none;
-        }
-
-        .fab-menu-item {
-            position: absolute;
-            width: 3rem;
-            height: 3rem;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            opacity: 0;
-            transform: scale(0) translateY(0);
-        }
-
-        .fab-menu-item.visible {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-        }
-
-        .fab-menu-item:hover {
-            transform: scale(1.1) translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-        }
-
-        /* Report button styling */
-        .report-fab {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            bottom: -4rem;
-            right: 0;
-        }
-
-        .polls-fab {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            bottom: -4rem;
-            right: 0;
-        }
-
         /* Enhanced glass morphism effects */
         .glass-header {
             background: rgba(92, 50, 168, 0.15);
@@ -1024,16 +978,6 @@
         <div class="fab btn-primary" id="fabBtn" title="Quick Actions">
             <i data-feather="plus" class="w-6 h-6"></i>
         </div>
-
-        <!-- Expanded FAB Menu - FIXED POSITIONING -->
-        <div class="fab-expanded" id="fabExpandedMenu">
-            <div class="fab-menu-item polls-fab" id="pollsFab" title="Vote on Polls">
-                <i data-feather="bar-chart-2" class="w-5 h-5 text-white"></i>
-            </div>
-            <div class="fab-menu-item report-fab" id="reportFab" title="Report Issue">
-                <i data-feather="alert-triangle" class="w-5 h-5 text-white"></i>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -1168,82 +1112,641 @@
         let activeBroadcasts = [];
         let broadcastCheckInterval = null;
         let warningCheckInterval = null;
-        let isFabExpanded = false;
 
-        // FAB Menu Functions - UPDATED POSITIONING
-        function toggleFabMenu() {
-            const fabBtn = document.getElementById('fabBtn');
-            const fabExpandedMenu = document.getElementById('fabExpandedMenu');
-            const reportFab = document.getElementById('reportFab');
-            const pollsFab = document.getElementById('pollsFab');
-
-            if (!isFabExpanded) {
-                // Expand the menu
-                fabExpandedMenu.style.display = 'block';
+        // Warning System Functions
+        async function checkForWarnings() {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) return;
                 
-                // Animate polls button (position 1 - top)
-                setTimeout(() => {
-                    pollsFab.classList.add('visible');
-                    pollsFab.style.transform = 'translateY(-140px)';
-                }, 50);
+                const response = await fetch(`${SERVER_URL}/api/check-warnings`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
                 
-                // Animate report button (position 2 - middle)
-                setTimeout(() => {
-                    reportFab.classList.add('visible');
-                    reportFab.style.transform = 'translateY(-70px)';
-                }, 150);
-                
-                // Rotate main button
-                fabBtn.style.transform = 'rotate(45deg)';
-                
-                isFabExpanded = true;
-            } else {
-                // Collapse the menu
-                pollsFab.classList.remove('visible');
-                reportFab.classList.remove('visible');
-                
-                pollsFab.style.transform = 'translateY(0)';
-                reportFab.style.transform = 'translateY(0)';
-                
-                // Reset main button rotation
-                fabBtn.style.transform = 'rotate(0deg)';
-                
-                // Hide menu after animation
-                setTimeout(() => {
-                    fabExpandedMenu.style.display = 'none';
-                }, 400);
-                
-                isFabExpanded = false;
+                if (response.ok) {
+                    const data = await response.json();
+                    // Update the global userWarnings array
+                    userWarnings = data.warnings || [];
+                    
+                    // Show modal if there are active warnings
+                    if (data.hasWarnings && userWarnings.length > 0) {
+                        showWarningModal(userWarnings);
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking for warnings:', error);
             }
         }
 
-        function handleReportIssue() {
-            // Redirect to down.html
-            window.location.href = 'down.html';
+        async function dismissWarning(warningId) {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) {
+                    showNotification('Authentication required', 'error');
+                    return false;
+                }
+                
+                const response = await fetch(`${SERVER_URL}/api/warnings/${warningId}/dismiss`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Update the specific warning in userWarnings array
+                    const warningIndex = userWarnings.findIndex(w => w.id === warningId);
+                    if (warningIndex !== -1) {
+                        userWarnings[warningIndex] = {
+                            ...userWarnings[warningIndex],
+                            dismissed: true,
+                            dismissedAt: data.warning.dismissedAt,
+                            dismissedBy: data.warning.dismissedBy
+                        };
+                    }
+                    
+                    // Refresh the warning modal with updated warnings
+                    showWarningModal(userWarnings);
+                    
+                    showNotification(data.message || 'Warning dismissed successfully', 'success');
+                    return true;
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to dismiss warning');
+                }
+            } catch (error) {
+                console.error('Error dismissing warning:', error);
+                showNotification(error.message || 'Failed to dismiss warning', 'error');
+                return false;
+            }
         }
 
-        function handleVoteOnPolls() {
-            // Redirect to polls.html
-            window.location.href = 'polls.html';
-        }
-
-        // Close FAB menu when clicking outside
-        document.addEventListener('click', function(e) {
-            const fabBtn = document.getElementById('fabBtn');
-            const fabExpandedMenu = document.getElementById('fabExpandedMenu');
+        function showWarningModal(warnings) {
+            const modal = document.getElementById('warningModal');
+            const warningList = document.getElementById('warningList');
+            const warningCount = document.getElementById('warningCount');
+            const modalTitle = document.getElementById('warningModalTitle');
+            const closeWarningBtn = document.getElementById('closeWarningBtn');
+            const dismissAllBtn = document.getElementById('dismissAllBtn');
             
-            if (isFabExpanded && 
-                !fabBtn.contains(e.target) && 
-                !fabExpandedMenu.contains(e.target)) {
-                toggleFabMenu();
+            // Clear previous warnings
+            warningList.innerHTML = '';
+            
+            // Filter active warnings (not dismissed)
+            const activeWarnings = warnings.filter(w => !w.dismissed);
+            
+            // Update counts and title
+            warningCount.textContent = `${activeWarnings.length} active warning${activeWarnings.length !== 1 ? 's' : ''}`;
+            modalTitle.textContent = `Warnings (${activeWarnings.length})`;
+            
+            // Show/hide buttons based on active warnings
+            if (activeWarnings.length === 0) {
+                dismissAllBtn.classList.add('hidden');
+                closeWarningBtn.classList.remove('hidden');
+            } else {
+                dismissAllBtn.classList.remove('hidden');
+                closeWarningBtn.classList.add('hidden');
+            }
+            
+            // Populate warnings list with ONLY active warnings
+            activeWarnings.forEach((warning, index) => {
+                const warningElement = document.createElement('div');
+                warningElement.className = 'p-3 rounded-lg bg-red-900 bg-opacity-30 border border-red-700 mb-3';
+                warningElement.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-medium">Warning #${index + 1}</span>
+                        <span class="text-xs px-2 py-1 bg-red-700 rounded">Active</span>
+                    </div>
+                    <p class="text-sm mb-2">${warning.reason}</p>
+                    <div class="flex justify-between items-center text-xs text-gray-400">
+                        <span>By: ${warning.issuedBy}</span>
+                        <span>${new Date(warning.issuedAt).toLocaleDateString()}</span>
+                    </div>
+                    <button onclick="dismissWarning('${warning.id}')" class="w-full mt-2 py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-medium">
+                        Dismiss This Warning
+                    </button>
+                `;
+                warningList.appendChild(warningElement);
+            });
+            
+            // Show message if no active warnings
+            if (activeWarnings.length === 0) {
+                warningList.innerHTML = `
+                    <div class="text-center py-4">
+                        <i data-feather="check-circle" class="w-12 h-12 text-green-400 mx-auto mb-2"></i>
+                        <p class="text-green-300 font-medium">All warnings have been dismissed</p>
+                        <p class="text-gray-400 text-sm mt-1">You can now close this window</p>
+                    </div>
+                `;
+            }
+            
+            modal.classList.remove('hidden');
+            feather.replace();
+        }
+
+        async function dismissAllWarnings() {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) {
+                    showNotification('Authentication required', 'error');
+                    return;
+                }
+                
+                const activeWarnings = userWarnings.filter(w => !w.dismissed);
+                if (activeWarnings.length === 0) {
+                    showNotification('No active warnings to dismiss', 'info');
+                    return;
+                }
+                
+                const response = await fetch(`${SERVER_URL}/api/warnings/dismiss-all`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Update all warnings locally
+                    userWarnings.forEach(warning => {
+                        if (!warning.dismissed) {
+                            warning.dismissed = true;
+                            warning.dismissedAt = new Date().toISOString();
+                            warning.dismissedBy = localStorage.getItem('currentUser');
+                        }
+                    });
+                    
+                    // Refresh the warning modal
+                    showWarningModal(userWarnings);
+                    
+                    showNotification(data.message || `Dismissed ${data.dismissedCount} warning(s)`, 'success');
+                    
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to dismiss warnings');
+                }
+            } catch (error) {
+                console.error('Error dismissing all warnings:', error);
+                showNotification(error.message || 'Failed to dismiss all warnings', 'error');
+            }
+        }
+
+        function closeWarningModal() {
+            const activeWarnings = userWarnings.filter(w => !w.dismissed);
+            
+            if (activeWarnings.length === 0) {
+                document.getElementById('warningModal').classList.add('hidden');
+                showNotification('Warning modal closed', 'info');
+            } else {
+                showNotification(`You still have ${activeWarnings.length} active warning(s) to dismiss`, 'warning');
+            }
+        }
+
+        async function viewWarningHistory() {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) return;
+                
+                const response = await fetch(`${SERVER_URL}/api/warnings/history`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showWarningHistoryModal(data.warnings);
+                }
+            } catch (error) {
+                console.error('Error fetching warning history:', error);
+                showNotification('Failed to load warning history', 'error');
+            }
+        }
+
+        function showWarningHistoryModal(warnings) {
+            const activeWarningsBefore = userWarnings.filter(w => !w.dismissed).length;
+            
+            const historyHTML = `
+                <div id="warningHistoryModal" class="fixed inset-0 z-[2001] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm">
+                    <div class="glass rounded-xl p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold">Warning History</h2>
+                            <button onclick="closeHistoryModal(${activeWarningsBefore})" class="p-1 rounded-full hover:bg-purple-700">
+                                <i data-feather="x" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                        <div class="space-y-4">
+                            ${warnings.length > 0 ? warnings.map(warning => `
+                                <div class="p-4 rounded-lg ${warning.dismissed ? 'bg-green-900 bg-opacity-30' : 'bg-red-900 bg-opacity-30'}">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <p class="font-medium">${warning.reason}</p>
+                                            <p class="text-sm text-gray-400 mt-1">
+                                                Issued by ${warning.issuedBy} on ${new Date(warning.issuedAt).toLocaleDateString()}
+                                                ${warning.dismissedAt ? `<br>Dismissed on ${new Date(warning.dismissedAt).toLocaleDateString()} by ${warning.dismissedBy}` : ''}
+                                            </p>
+                                        </div>
+                                        <span class="px-2 py-1 rounded text-xs ${warning.dismissed ? 'bg-green-700' : 'bg-red-700'}">
+                                            ${warning.dismissed ? 'Dismissed' : 'Active'}
+                                        </span>
+                                    </div>
+                                    ${!warning.dismissed ? `
+                                        <button onclick="dismissWarning('${warning.id}')" class="w-full mt-2 py-2 bg-red-700 hover:bg-red-600 rounded text-sm">
+                                            Dismiss This Warning
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            `).join('') : '<p class="text-gray-400 text-center py-8">No warning history found</p>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = historyHTML;
+            document.body.appendChild(tempDiv);
+            feather.replace();
+        }
+
+        function closeHistoryModal(activeWarningsBefore) {
+            const historyModal = document.getElementById('warningHistoryModal');
+            if (historyModal) {
+                historyModal.remove();
+            }
+            
+            // Check if there are still active warnings
+            const activeWarningsNow = userWarnings.filter(w => !w.dismissed).length;
+            
+            // If warnings still exist and the count hasn't changed, reopen the main warning modal
+            if (activeWarningsNow > 0 && activeWarningsNow === activeWarningsBefore) {
+                setTimeout(() => {
+                    showWarningModal(userWarnings);
+                }, 300);
+            }
+        }
+
+        // Broadcast System Functions
+        async function checkForBroadcasts() {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) return;
+                
+                const response = await fetch(`${SERVER_URL}/api/broadcasts`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch broadcasts');
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.broadcasts.length > 0) {
+                    // Get user's dismissed broadcasts from local storage
+                    const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
+                    
+                    // Process all broadcasts, not just the first one
+                    data.broadcasts.forEach(broadcast => {
+                        if (!dismissedBroadcasts.includes(broadcast.id) && 
+                            !activeBroadcasts.some(ab => ab.id === broadcast.id)) {
+                            activeBroadcasts.push(broadcast);
+                            showBroadcastToast(broadcast);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error checking for broadcasts:', error);
+            }
+        }
+
+        function createBroadcastToastContainer() {
+            const container = document.createElement('div');
+            container.id = 'broadcastToastContainer';
+            container.className = 'fixed bottom-4 right-4 z-[1000] max-w-md';
+            document.body.appendChild(container);
+            return container;
+        }
+
+        function showBroadcastToast(broadcast) {
+            const toastContainer = document.getElementById('broadcastToastContainer') || createBroadcastToastContainer();
+            
+            const toast = document.createElement('div');
+            toast.className = 'broadcast-toast glass p-4 rounded-lg mb-2 transform translate-y-20 transition-transform duration-300';
+            toast.dataset.broadcastId = broadcast.id;
+            
+            toast.innerHTML = `
+                <div class="flex items-start">
+                    <div class="mr-3 mt-0.5">
+                        <i data-feather="bell" class="w-5 h-5 text-yellow-400"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold mb-1">New Announcement</h3>
+                        <p class="text-sm text-gray-300">${truncateText(broadcast.message, 100)}</p>
+                    </div>
+                    <button onclick="hideBroadcastToast('${broadcast.id}')" class="ml-3 text-gray-400 hover:text-white">
+                        <i data-feather="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <div class="mt-2 flex justify-end">
+                    <button onclick="showBroadcastModal('${broadcast.id}')" class="text-sm text-purple-300 hover:text-purple-100 mr-3">
+                        View Details
+                    </button>
+                    <button onclick="dismissBroadcast('${broadcast.id}')" class="text-sm text-gray-400 hover:text-white">
+                        Dismiss
+                    </button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            feather.replace();
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-20');
+                toast.classList.add('translate-y-0');
+            }, 100);
+            
+            // Auto hide after 15 seconds
+            setTimeout(() => {
+                hideBroadcastToast(broadcast.id);
+            }, 15000);
+        }
+
+        function hideBroadcastToast(broadcastId) {
+            const toast = document.querySelector(`.broadcast-toast[data-broadcast-id="${broadcastId}"]`);
+            if (toast) {
+                toast.classList.remove('translate-y-0');
+                toast.classList.add('translate-y-20');
+                
+                setTimeout(() => {
+                    toast.remove();
+                    // Remove from active broadcasts
+                    activeBroadcasts = activeBroadcasts.filter(b => b.id !== broadcastId);
+                }, 300);
+            }
+        }
+
+        function showBroadcastModal(broadcastId) {
+            const broadcast = activeBroadcasts.find(b => b.id === broadcastId);
+            if (!broadcast) return;
+            
+            const modal = document.getElementById('broadcastModal');
+            const message = document.getElementById('broadcastMessage');
+            const author = document.getElementById('broadcastAuthor');
+            const time = document.getElementById('broadcastTime');
+            
+            message.textContent = broadcast.message;
+            author.textContent = `From: ${broadcast.createdBy}`;
+            time.textContent = formatTime(new Date(broadcast.createdAt));
+            
+            modal.dataset.broadcastId = broadcastId;
+            modal.classList.remove('hidden');
+            
+            // Hide the specific toast
+            hideBroadcastToast(broadcastId);
+        }
+
+        async function dismissBroadcast(broadcastId) {
+            try {
+                const token = getCookie('AuthToken');
+                if (token) {
+                    await fetch(`${SERVER_URL}/api/broadcasts/${broadcastId}/dismiss`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                }
+                
+                // Store dismissed broadcast in local storage
+                const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
+                if (!dismissedBroadcasts.includes(broadcastId)) {
+                    dismissedBroadcasts.push(broadcastId);
+                    localStorage.setItem('dismissedBroadcasts', JSON.stringify(dismissedBroadcasts));
+                }
+                
+                // Hide modal if it's for this broadcast
+                const modal = document.getElementById('broadcastModal');
+                if (modal.dataset.broadcastId === broadcastId) {
+                    modal.classList.add('hidden');
+                }
+                
+                // Hide toast and remove from active broadcasts
+                hideBroadcastToast(broadcastId);
+                
+            } catch (error) {
+                console.error('Error dismissing broadcast:', error);
+            }
+        }
+
+        // Message System Functions
+        async function loadMessages() {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) return;
+                
+                const response = await fetch(`${SERVER_URL}/api/messages`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayMessages(data.messages);
+                }
+            } catch (error) {
+                console.error('Error loading messages:', error);
+            }
+        }
+
+        function displayMessages(messages) {
+            const container = document.getElementById('messageContainer');
+            const messagesList = document.getElementById('messagesList');
+            const messageHeader = document.getElementById('messageHeader');
+            
+            messagesList.innerHTML = '';
+            
+            if (!messages || messages.length === 0) {
+                container.classList.add('hidden');
+                messageHeader.style.display = 'none';
+                return;
+            }
+            
+            // Show container and header
+            container.classList.remove('hidden');
+            messageHeader.style.display = 'block';
+            
+            messages.forEach((message, index) => {
+                setTimeout(() => {
+                    const messageElement = createMessageElement(message);
+                    messagesList.appendChild(messageElement);
+                }, index * 100);
+            });
+            
+            feather.replace();
+        }
+
+        function createMessageElement(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'glass rounded-lg p-4 mb-3 message-entry';
+            messageDiv.style.animation = 'slideInLeft 0.3s ease-out';
+            messageDiv.id = `message-${message.id}`;
+            
+            const timeAgo = getTimeAgo(message.createdAt);
+            
+            messageDiv.innerHTML = `
+                <div class="flex justify-between items-start mb-2">
+                    <div class="flex items-center">
+                        <i data-feather="mail" class="w-4 h-4 mr-2 text-purple-400"></i>
+                        <span class="font-medium text-sm">${escapeHtml(message.from)}</span>
+                    </div>
+                    <span class="text-xs text-gray-400">${timeAgo}</span>
+                </div>
+                <p class="text-sm text-gray-300 mb-3">${escapeHtml(message.message)}</p>
+                <div class="flex justify-end">
+                    <button onclick="dismissMessage('${message.id}')" 
+                            class="text-xs bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded transition-colors">
+                        Dismiss
+                    </button>
+                </div>
+            `;
+            
+            return messageDiv;
+        }
+
+        async function dismissMessage(messageId) {
+            try {
+                const token = getCookie('AuthToken');
+                if (!token) {
+                    showNotification('Authentication required', 'error');
+                    return;
+                }
+                
+                const response = await fetch(`${SERVER_URL}/api/messages/${messageId}/dismiss`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    // Remove message with animation
+                    const messageElement = document.getElementById(`message-${messageId}`);
+                    if (messageElement) {
+                        messageElement.style.animation = 'slideOutLeft 0.3s ease-in';
+                        setTimeout(() => {
+                            messageElement.remove();
+                            checkRemainingMessages();
+                        }, 300);
+                    }
+                    showNotification('Message dismissed', 'success');
+                } else {
+                    showNotification('Failed to dismiss message', 'error');
+                }
+            } catch (error) {
+                console.error('Error dismissing message:', error);
+                showNotification('Error dismissing message', 'error');
+            }
+        }
+        
+        function checkRemainingMessages() {
+            const messagesList = document.getElementById('messagesList');
+            const messageHeader = document.getElementById('messageHeader');
+            const container = document.getElementById('messageContainer');
+            
+            if (messagesList.children.length === 0) {
+                container.classList.add('hidden');
+                messageHeader.style.display = 'none';
+            }
+        }
+
+        function getTimeAgo(timestamp) {
+            const now = new Date();
+            const messageTime = new Date(timestamp);
+            const diffInSeconds = Math.floor((now - messageTime) / 1000);
+            
+            if (diffInSeconds < 60) return 'just now';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+            return `${Math.floor(diffInSeconds / 86400)}d ago`;
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Helper functions
+        function truncateText(text, maxLength) {
+            if (text.length <= maxLength) return text;
+            return text.substr(0, maxLength) + '...';
+        }
+
+        function formatTime(date) {
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function isLoggedIn() {
+            const token = getCookie('AuthToken');
+            const currentUser = localStorage.getItem('currentUser');
+            return !!(token && currentUser);
+        }
+
+        // Initialize systems when user is authenticated
+        function initWarningSystem() {
+            // Check for warnings after a short delay
+            setTimeout(checkForWarnings, 2000);
+            
+            // Set up periodic checking (every 5 minutes)
+            warningCheckInterval = setInterval(checkForWarnings, 5 * 60 * 1000);
+        }
+
+        function initBroadcastSystem() {
+            // Check for broadcasts immediately
+            checkForBroadcasts();
+            
+            // Set up periodic checking (every 2 minutes)
+            broadcastCheckInterval = setInterval(checkForBroadcasts, 2 * 60 * 1000);
+        }
+
+        function initMessageSystem() {
+            // Check for messages after a short delay
+            setTimeout(loadMessages, 1000);
+            
+            // Set up periodic checking (every 3 minutes)
+            setInterval(loadMessages, 3 * 60 * 1000);
+        }
+
+        // Clear intervals when page is unloaded
+        window.addEventListener('beforeunload', () => {
+            if (broadcastCheckInterval) {
+                clearInterval(broadcastCheckInterval);
+            }
+            if (warningCheckInterval) {
+                clearInterval(warningCheckInterval);
             }
         });
-
-        // Broadcast Modal Functions
-        function hideBroadcastModal() {
-            const modal = document.getElementById('broadcastModal');
-            modal.classList.add('hidden');
-        }
 
         // Initialize AOS and Feather Icons
         document.addEventListener('DOMContentLoaded', function() {
@@ -1275,6 +1778,11 @@
                             document.getElementById('loadingOverlay').classList.add('hidden');
                             loadDashboard();
                             loadMembers(); // Load members after authentication
+                            
+                            // Initialize all systems after successful authentication
+                            initWarningSystem();
+                            initBroadcastSystem();
+                            initMessageSystem();
                         } else {
                             // Token is invalid, show auth modal
                             document.getElementById('loadingOverlay').classList.add('hidden');
@@ -1350,7 +1858,7 @@
                     games: document.querySelector('input[data-section="games"]').checked ? 
                         ['arcade', 'allgames', 'strategy', 'multiplayer'] : [],
                     external: document.querySelector('input[data-section="external"]').checked ? 
-                        ['robloxexternal', 'minecraftexternal'] : []
+                        ['roblox', 'minecraft'] : []
                 };
                 
                 setCookie('UserPreferences', JSON.stringify(preferences), 365);
@@ -1402,6 +1910,12 @@
                             document.getElementById('usernameDisplay').textContent = data.user;
                             loadDashboard();
                             loadMembers();
+                            
+                            // Initialize all systems after successful login
+                            initWarningSystem();
+                            initBroadcastSystem();
+                            initMessageSystem();
+                            
                             showNotification('Login successful!', 'success');
                         } else {
                             document.getElementById('loadingModal').classList.add('hidden');
@@ -1454,6 +1968,12 @@
                             document.getElementById('usernameDisplay').textContent = data.user;
                             loadDashboard();
                             loadMembers();
+                            
+                            // Initialize all systems after successful signup
+                            initWarningSystem();
+                            initBroadcastSystem();
+                            initMessageSystem();
+                            
                             showNotification('Account created successfully!', 'success');
                         } else {
                             document.getElementById('loadingModal').classList.add('hidden');
@@ -1467,6 +1987,40 @@
                 } else {
                     showNotification('Please fill in all required fields', 'warning');
                 }
+            });
+
+            // Warning Modal Event Listeners
+            document.addEventListener('click', function(e) {
+                if (e.target.id === 'viewHistoryBtn' || e.target.closest('#viewHistoryBtn')) {
+                    viewWarningHistory();
+                }
+                
+                if (e.target.id === 'dismissAllBtn' || e.target.closest('#dismissAllBtn')) {
+                    dismissAllWarnings();
+                }
+                
+                if (e.target.id === 'closeWarningBtn' || e.target.closest('#closeWarningBtn')) {
+                    closeWarningModal();
+                }
+            });
+
+            // Broadcast Modal Event Listeners
+            document.getElementById('closeBroadcastModal').addEventListener('click', function() {
+                const modal = document.getElementById('broadcastModal');
+                const broadcastId = modal.dataset.broadcastId;
+                if (broadcastId) {
+                    dismissBroadcast(broadcastId);
+                }
+                modal.classList.add('hidden');
+            });
+
+            document.getElementById('acknowledgeBroadcast').addEventListener('click', function() {
+                const modal = document.getElementById('broadcastModal');
+                const broadcastId = modal.dataset.broadcastId;
+                if (broadcastId) {
+                    dismissBroadcast(broadcastId);
+                }
+                modal.classList.add('hidden');
             });
 
             // Sidebar Toggle
@@ -1484,22 +2038,9 @@
             });
 
             // Floating Action Button
-            document.getElementById('fabBtn').addEventListener('click', toggleFabMenu);
-
-            // FAB Menu Items
-            document.getElementById('reportFab').addEventListener('click', function() {
-                handleReportIssue();
-                toggleFabMenu();
+            document.getElementById('fabBtn').addEventListener('click', function() {
+                showNotification('Coming soon! This feature is under development.', 'info');
             });
-
-            document.getElementById('pollsFab').addEventListener('click', function() {
-                handleVoteOnPolls();
-                toggleFabMenu();
-            });
-
-            // Broadcast Modal Close Button
-            document.getElementById('closeBroadcastModal').addEventListener('click', hideBroadcastModal);
-            document.getElementById('acknowledgeBroadcast').addEventListener('click', hideBroadcastModal);
         });
 
         // Function to verify token with server
@@ -1543,23 +2084,22 @@
             
             // Add sections based on preferences
             if (preferences.hacks && preferences.hacks.length > 0) {
-                const section = createSection('Hacks', 'code', preferences.hacks, 'Explore various game modifications and tools');
+                const section = createSection('Hacks', 'code', preferences.hacks);
                 dashboard.appendChild(section);
             }
             
             if (preferences.bypasses && preferences.bypasses.length > 0) {
-                const section = createSection('Bypasses', 'unlock', preferences.bypasses, 'Tools to bypass restrictions and access blocked content');
+                const section = createSection('Bypasses', 'unlock', preferences.bypasses);
                 dashboard.appendChild(section);
             }
             
             if (preferences.games && preferences.games.length > 0) {
-                const section = createSection('Games', 'gamepad', preferences.games, 'Enjoy a collection of unblocked browser games');
+                const section = createSection('Games', 'gamepad', preferences.games);
                 dashboard.appendChild(section);
-                loadMembers();
             }
             
             if (preferences.external && preferences.external.length > 0) {
-                const section = createSection('External Games', 'external-link', preferences.external, 'Access popular external gaming platforms');
+                const section = createSection('External Games', 'external-link', preferences.external);
                 dashboard.appendChild(section);
             }
             
@@ -1567,7 +2107,7 @@
             feather.replace();
         }
         
-        function createSection(title, icon, items, description) {
+        function createSection(title, icon, items) {
             const section = document.createElement('div');
             section.className = 'section';
             
@@ -1575,58 +2115,22 @@
             sectionHeader.className = 'flex items-center mb-6';
             sectionHeader.innerHTML = `
                 <i data-feather="${icon}" class="w-8 h-8 mr-3"></i>
-                <div>
-                    <h2 class="text-2xl font-bold">${title}</h2>
-                    <p class="text-gray-300">${description}</p>
-                </div>
+                <h2 class="text-2xl font-bold">${title}</h2>
             `;
             
             const grid = document.createElement('div');
             grid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
             
-            // Different descriptions for each item
-            const itemDescriptions = {
-                'roblox': 'Roblox game modifications and scripts',
-                'minecraft': 'Minecraft clients and utility tools',
-                'blooket': 'Blooket game enhancements and hacks',
-                'mathsonline': 'MathsOnline bypass methods',
-                'autoclicker': 'Auto-clicker tools and bypasses',
-                'linewize': 'Linewize network bypass solutions',
-               'vpn': 'VPN solutions for unrestricted access',
-              'microsoft': 'Microsoft Store unblocking methods',
-               'admin': 'Admin access tools and utilities',
-               'arcade': 'Classic arcade games collection',
-                'allgames': 'Complete games library',
-                'strategy': 'Strategy and puzzle games',
-                'multiplayer': 'Multiplayer gaming experiences',
-                'robloxexternal': 'Allows you to play Roblox unblocked!',
-                'minecraftexternal': 'Allows you to play Minecraft unblocked!'
-            };
-            
             items.forEach(item => {
                 const card = document.createElement('div');
-                card.className = 'content-card glass-card rounded-xl p-6 cursor-pointer hover:shadow-lg transition-all duration-300 card-hover';
-                
-
-                // Check if this item has a page mapping
-                const hasPageMapping = PAGE_MAPPING[item];
-                
+                card.className = 'content-card glass rounded-xl p-6 cursor-pointer hover:shadow-lg transition-all duration-300';
                 card.innerHTML = `
                     <h3 class="text-xl font-semibold mb-2 capitalize">${item}</h3>
-                    <p class="text-gray-300 mb-4">${itemDescriptions[item] || 'Click to access this content'}</p>
+                    <p class="text-gray-300 mb-4">Click to access ${item} content</p>
                     <div class="flex items-center text-purple-300">
-                        <span>${hasPageMapping ? 'Open' : 'Coming Soon'}</span>
-                        <i data-feather="${hasPageMapping ? 'arrow-right' : 'clock'}" class="w-4 h-4 ml-2"></i>
+                        <span>Open</span>
+                        <i data-feather="arrow-right" class="w-4 h-4 ml-2"></i>
                     </div>
-                    ${!hasPageMapping ? `
-                    <div class="coming-soon-overlay">
-                        <div class="coming-soon-icon">
-                            <i data-feather="clock" class="w-6 h-6 text-white"></i>
-                        </div>
-                        <div class="coming-soon-text">Coming Soon</div>
-                        <div class="coming-soon-subtext">This feature is currently in development</div>
-                    </div>
-                    ` : ''}
                 `;
                 
                 card.addEventListener('click', () => {
@@ -1663,14 +2167,14 @@
             'roblox': 'roblox',
             'minecraft': 'minecraft',
             'blooket': 'blooket',
-          //  'mathsonline': 'mathsonline',
+            'mathsonline': 'mathsonline',
             'autoclicker': 'Autoclicker',
             
             // Bypasses pages
             'linewize': 'linewize',
-          //  'vpn': 'vpn',
-          //  'microsoft': 'microsoft',
-          //  'admin': 'admin',
+            'vpn': 'vpn',
+            'microsoft': 'microsoft',
+            'admin': 'admin',
             
             // Games pages
             'arcade': 'maths',
@@ -1679,8 +2183,8 @@
             'multiplayer': 'mathematics#multiplayer',
             
             // External games pages
-          //  'external_roblox': 'external-roblox',
-            //'external_minecraft': 'external-minecraft'
+            'external_roblox': 'external-roblox',
+            'external_minecraft': 'external-minecraft'
         };
 
         // Function to show loading modal (for initial login/signup)
@@ -1691,7 +2195,7 @@
             document.getElementById('loadingModal').classList.remove('hidden');
         }
 
-        // Load Members Function - UPDATED WITH YOUR VERSION
+        // Load Members Function
         let isLoadingMembers = false;
 
         async function loadMembers() {
