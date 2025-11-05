@@ -465,6 +465,11 @@
         .notification.warning {
             background: linear-gradient(135deg, #f7971e, #ffd200);
         }
+
+        /* Role-specific styling */
+        .role-admin { border-left-color: #ef4444; }
+        .role-moderator { border-left-color: #f59e0b; }
+        .role-owner { border-left-color: #dc2626; }
     </style>
 </head>
 <body class="min-h-screen text-white font-sans overflow-x-hidden theme-dark">
@@ -753,13 +758,38 @@
                 </form>
             </section>
 
-            <!-- Reports List (Admin Only) -->
+            <!-- Reports List (Admin/Moderator) -->
             <section id="adminSection" class="glass rounded-xl p-6 hidden" data-aos="fade-left" data-aos-delay="200">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold gradient-text">Reports Management</h2>
-                    <button onclick="refreshReports()" class="p-2 rounded-lg bg-purple-700 hover:bg-purple-600">
-                        <i data-feather="refresh-cw" class="w-5 h-5"></i>
-                    </button>
+                    <div class="flex space-x-2">
+                        <button onclick="refreshReports()" class="p-2 rounded-lg bg-purple-700 hover:bg-purple-600">
+                            <i data-feather="refresh-cw" class="w-5 h-5"></i>
+                        </button>
+                        <button onclick="exportReports()" class="p-2 rounded-lg bg-green-600 hover:bg-green-500">
+                            <i data-feather="download" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Report Filters -->
+                <div class="mb-4 flex flex-wrap gap-2">
+                    <select id="statusFilter" onchange="filterReports()" class="px-3 py-1 rounded-lg bg-purple-800 border border-purple-600 text-sm">
+                        <option value="all">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                    <select id="typeFilter" onchange="filterReports()" class="px-3 py-1 rounded-lg bg-purple-800 border border-purple-600 text-sm">
+                        <option value="all">All Types</option>
+                        <option value="game_blocked">Game Blocked</option>
+                        <option value="not_loading">Not Loading</option>
+                        <option value="crashing">Crashing</option>
+                        <option value="performance">Performance</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <input type="text" id="searchFilter" onkeyup="filterReports()" placeholder="Search..." class="px-3 py-1 rounded-lg bg-purple-800 border border-purple-600 text-sm flex-1 min-w-[120px]">
                 </div>
                 
                 <div class="space-y-4 max-h-96 overflow-y-auto" id="reportsList">
@@ -769,7 +799,12 @@
 
             <!-- User Reports -->
             <section id="userReportsSection" class="glass rounded-xl p-6" data-aos="fade-up" data-aos-delay="300">
-                <h2 class="text-2xl font-bold mb-6 gradient-text">My Reports</h2>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold gradient-text">My Reports</h2>
+                    <button onclick="loadUserReports()" class="p-2 rounded-lg bg-purple-700 hover:bg-purple-600">
+                        <i data-feather="refresh-cw" class="w-5 h-5"></i>
+                    </button>
+                </div>
                 <div class="space-y-4 max-h-96 overflow-y-auto" id="userReportsList">
                     <!-- User reports will be loaded here -->
                 </div>
@@ -786,6 +821,7 @@
         let activeBroadcasts = [];
         let broadcastCheckInterval = null;
         let warningCheckInterval = null;
+        let allReports = [];
 
         // Utility functions
         function getCookie(name) {
@@ -1347,9 +1383,7 @@
                 gameName: document.getElementById('gameName').value,
                 issueType: document.getElementById('issueType').value,
                 description: document.getElementById('description').value,
-                steps: document.getElementById('steps').value,
-                reporter: currentUser,
-                timestamp: new Date().toISOString()
+                steps: document.getElementById('steps').value
             };
 
             try {
@@ -1367,7 +1401,7 @@
                     showNotification('Report submitted successfully!', 'success');
                     document.getElementById('reportForm').reset();
                     loadUserReports();
-                    if (userRole === 'Admin' || userRole === 'Owner') {
+                    if (userRole === 'Admin' || userRole === 'Owner' || userRole === 'Moderator') {
                         loadAllReports();
                     }
                 } else {
@@ -1434,7 +1468,7 @@
             feather.replace();
         }
 
-        // Admin functions
+        // Admin/Moderator functions
         async function loadAllReports() {
             try {
                 const token = getCookie('AuthToken');
@@ -1446,7 +1480,8 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    displayAllReports(data.reports);
+                    allReports = data.reports || [];
+                    displayAllReports(allReports);
                 }
             } catch (error) {
                 console.error('Error loading reports:', error);
@@ -1467,12 +1502,20 @@
                 return;
             }
 
-            container.innerHTML = reports.map(report => `
-                <div class="report-item glass rounded-lg p-4">
+            container.innerHTML = reports.map(report => {
+                const reporterRole = report.reporterRole || 'Member';
+                const roleClass = `role-${reporterRole.toLowerCase()}`;
+                
+                return `
+                <div class="report-item glass rounded-lg p-4 ${roleClass}">
                     <div class="flex justify-between items-start mb-2">
                         <div>
                             <h3 class="font-semibold">${report.gameName}</h3>
-                            <p class="text-sm text-gray-400">By: ${report.reporter} • ${new Date(report.timestamp).toLocaleString()}</p>
+                            <p class="text-sm text-gray-400">
+                                By: ${report.reporter} 
+                                <span class="ml-2 px-2 py-1 bg-purple-600 rounded text-xs">${reporterRole}</span>
+                                • ${new Date(report.timestamp).toLocaleString()}
+                            </p>
                         </div>
                         <span class="status-badge status-${report.status || 'pending'}">
                             ${(report.status || 'pending').charAt(0).toUpperCase() + (report.status || 'pending').slice(1)}
@@ -1480,6 +1523,7 @@
                     </div>
                     <p class="text-sm text-gray-300 mb-2">${report.description}</p>
                     ${report.steps ? `<p class="text-sm text-gray-400 mb-2"><strong>Steps:</strong> ${report.steps}</p>` : ''}
+                    ${report.adminNotes ? `<p class="text-sm text-yellow-400 mb-2"><strong>Admin Notes:</strong> ${report.adminNotes}</p>` : ''}
                     <div class="flex justify-between items-center">
                         <span class="text-xs text-gray-400">Type: ${report.issueType.replace(/_/g, ' ')}</span>
                         <div class="admin-actions flex space-x-2">
@@ -1489,15 +1533,47 @@
                             <button onclick="updateReportStatus('${report.id}', 'resolved')" class="text-xs bg-green-600 hover:bg-green-700 px-2 py-1 rounded">
                                 Resolve
                             </button>
+                            <button onclick="updateReportStatus('${report.id}', 'closed')" class="text-xs bg-gray-600 hover:bg-gray-700 px-2 py-1 rounded">
+                                Close
+                            </button>
+                            ${userRole === 'Admin' || userRole === 'Owner' ? `
                             <button onclick="deleteReport('${report.id}')" class="text-xs bg-red-600 hover:bg-red-700 px-2 py-1 rounded">
                                 Delete
                             </button>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
 
             feather.replace();
+        }
+
+        function filterReports() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+            
+            let filteredReports = allReports;
+            
+            if (statusFilter !== 'all') {
+                filteredReports = filteredReports.filter(report => report.status === statusFilter);
+            }
+            
+            if (typeFilter !== 'all') {
+                filteredReports = filteredReports.filter(report => report.issueType === typeFilter);
+            }
+            
+            if (searchFilter) {
+                filteredReports = filteredReports.filter(report => 
+                    report.gameName.toLowerCase().includes(searchFilter) ||
+                    report.description.toLowerCase().includes(searchFilter) ||
+                    report.reporter.toLowerCase().includes(searchFilter)
+                );
+            }
+            
+            displayAllReports(filteredReports);
         }
 
         async function updateReportStatus(reportId, status) {
@@ -1539,15 +1615,32 @@
                     showNotification('Report deleted', 'success');
                     loadAllReports();
                 } else {
-                    showNotification('Failed to delete report', 'error');
+                    const error = await response.json();
+                    showNotification(error.error || 'Failed to delete report', 'error');
                 }
             } catch (error) {
                 showNotification('Network error', 'error');
             }
         }
 
+        function exportReports() {
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + "Game Name,Issue Type,Description,Reporter,Status,Timestamp\n"
+                + allReports.map(report => 
+                    `"${report.gameName}","${report.issueType}","${report.description}","${report.reporter}","${report.status}","${report.timestamp}"`
+                ).join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `reports_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         function refreshReports() {
-            if (userRole === 'Admin' || userRole === 'Owner') {
+            if (userRole === 'Admin' || userRole === 'Owner' || userRole === 'Moderator') {
                 loadAllReports();
             }
             loadUserReports();
@@ -1586,8 +1679,8 @@
                             
                             document.getElementById('userInfo').textContent = `${currentUser} (${userRole})`;
                             
-                            // Show admin section if applicable
-                            if (userRole === 'Admin' || userRole === 'Owner') {
+                            // Show admin section for Admin/Owner/Moderator
+                            if (userRole === 'Admin' || userRole === 'Owner' || userRole === 'Moderator') {
                                 document.getElementById('adminSection').classList.remove('hidden');
                                 loadAllReports();
                             }
