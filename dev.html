@@ -247,6 +247,41 @@
         .cosmetic-role {
             border-left: 4px solid #8b5cf6;
         }
+
+        /* Moderator cooldown styles */
+        .cooldown-indicator {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            border-radius: 8px;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .cooldown-active {
+            color: #ef4444;
+        }
+        
+        .cooldown-available {
+            color: #10b981;
+        }
+        
+        .limit-info {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            border-radius: 8px;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .action-disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        
+        .cooldown-timer {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body class="min-h-screen gradient-bg text-white font-sans">
@@ -422,6 +457,11 @@
                 </button>
             </div>
             
+            <!-- Moderator cooldown info -->
+            <div id="broadcastCooldownInfo" class="hidden">
+                <!-- Will be populated with cooldown info for moderators -->
+            </div>
+            
             <div class="mb-4">
                 <label class="block text-gray-300 mb-2">Send As</label>
                 <div class="flex space-x-4">
@@ -456,7 +496,7 @@
                 </select>
             </div>
             
-            <button onclick="sendBroadcast()" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-medium w-full">
+            <button onclick="sendBroadcast()" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-medium w-full" id="sendBroadcastBtn">
                 Send Broadcast
             </button>
         </div>
@@ -469,6 +509,11 @@
                 <button onclick="closeModal('specificMessageModal')" class="p-1 rounded-full hover:bg-purple-700">
                     <i data-feather="x" class="w-5 h-5"></i>
                 </button>
+            </div>
+            
+            <!-- Moderator cooldown and limit info -->
+            <div id="messageCooldownInfo" class="hidden">
+                <!-- Will be populated with cooldown info for moderators -->
             </div>
             
             <div class="mb-4">
@@ -510,7 +555,7 @@
                 </button>
             </div>
             
-            <button onclick="sendSpecificMessage()" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-medium w-full">
+            <button onclick="sendSpecificMessage()" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg font-medium w-full" id="sendMessageBtn">
                 Send Message
             </button>
         </div>
@@ -523,6 +568,11 @@
                 <button onclick="closeModal('warnModal')" class="p-1 rounded-full hover:bg-purple-700">
                     <i data-feather="x" class="w-5 h-5"></i>
                 </button>
+            </div>
+            
+            <!-- Moderator cooldown info -->
+            <div id="warnCooldownInfo" class="hidden">
+                <!-- Will be populated with cooldown info for moderators -->
             </div>
             
             <div class="mb-4">
@@ -551,7 +601,7 @@
                 <label for="warnMessage" class="block text-gray-300 mb-2">Warning Message</label>
                 <textarea id="warnMessage" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="4" placeholder="Enter warning message"></textarea>
             </div>
-            <button onclick="sendWarning()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-medium w-full">
+            <button onclick="sendWarning()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-medium w-full" id="sendWarnBtn">
                 Send Warning
             </button>
         </div>
@@ -654,6 +704,9 @@
                     <h1 class="text-2xl font-bold">Admin Management</h1>
                 </div>
                 <div class="flex items-center space-x-4">
+                    <button id="refreshCooldowns" class="p-2 rounded-full hover:bg-purple-700 transition" title="Refresh Cooldowns">
+                        <i data-feather="refresh-cw"></i>
+                    </button>
                     <button id="logoutButton" class="p-2 rounded-full hover:bg-purple-700 transition">
                         <i data-feather="log-out"></i>
                     </button>
@@ -674,6 +727,37 @@
                     <div>
                         <p class="text-gray-300">Role</p>
                         <p id="userRoleDisplay" class="font-medium"></p>
+                    </div>
+                </div>
+                
+                <!-- Moderator Cooldowns Display -->
+                <div id="moderatorCooldowns" class="mt-4 hidden">
+                    <h3 class="text-lg font-semibold mb-2">Action Cooldowns</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <div class="cooldown-indicator">
+                            <div class="flex justify-between">
+                                <span>Warnings:</span>
+                                <span id="warnCooldown" class="cooldown-available">Available</span>
+                            </div>
+                        </div>
+                        <div class="cooldown-indicator">
+                            <div class="flex justify-between">
+                                <span>Blacklist:</span>
+                                <span id="blacklistCooldown" class="cooldown-available">Available</span>
+                            </div>
+                        </div>
+                        <div class="cooldown-indicator">
+                            <div class="flex justify-between">
+                                <span>Unblacklist:</span>
+                                <span id="unblacklistCooldown" class="cooldown-available">Available</span>
+                            </div>
+                        </div>
+                        <div class="cooldown-indicator">
+                            <div class="flex justify-between">
+                                <span>Bulk Messages:</span>
+                                <span id="messageCooldown" class="cooldown-available">Available</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -704,6 +788,12 @@
             <!-- Blacklist Form -->
             <div class="glassmorphism rounded-xl p-6 mb-6">
                 <h2 class="text-xl font-semibold mb-4">Blacklist User</h2>
+                
+                <!-- Moderator cooldown info for blacklist -->
+                <div id="blacklistCooldownInfo" class="hidden mb-4">
+                    <!-- Will be populated with cooldown info for moderators -->
+                </div>
+                
                 <form id="blacklistForm" class="space-y-4">
                     <div>
                         <label for="username" class="block text-gray-300 mb-2">Username</label>
@@ -713,7 +803,7 @@
                         <label for="reason" class="block text-gray-300 mb-2">Reason</label>
                         <textarea id="reason" required class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="3"></textarea>
                     </div>
-                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-medium">
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-lg font-medium" id="blacklistBtn">
                         Blacklist User
                     </button>
                 </form>
@@ -751,6 +841,13 @@
     let roleColors = {}; // Store role colors from server
     let users = []; // Global users array
     let allRoles = {}; // Store all roles from server
+    let moderatorCooldowns = {
+        warnings: 0,
+        blacklists: 0,
+        unblacklists: 0,
+        bulkMessages: 0
+    };
+    let cooldownInterval;
 
     // Function to escape special characters for HTML attributes
     function escapeHtml(unsafe) {
@@ -900,6 +997,210 @@
         return `role-${normalizedRole}`;
     }
 
+    // Function to check if user is moderator
+    function isModerator(role) {
+        return role === "Moderator";
+    }
+
+    // Function to check if user is admin or owner
+    function isAdminOrOwner(role) {
+        return role === "Admin" || role === "Owner";
+    }
+
+    // Function to get moderator cooldowns
+    async function getModeratorCooldowns() {
+        if (!isModerator(currentUserRole)) return;
+
+        try {
+            const token = getCookie('AuthToken');
+            const response = await fetch(`${SERVER_URL}/api/moderator/cooldowns`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to get cooldowns');
+            }
+            
+            const data = await response.json();
+            moderatorCooldowns = data.cooldowns;
+            updateCooldownDisplays();
+            return data.cooldowns;
+        } catch (error) {
+            console.error('Get cooldowns error:', error);
+            return moderatorCooldowns;
+        }
+    }
+
+    // Function to update cooldown displays
+    function updateCooldownDisplays() {
+        if (!isModerator(currentUserRole)) return;
+
+        // Update main cooldown display
+        const warnCooldownEl = document.getElementById('warnCooldown');
+        const blacklistCooldownEl = document.getElementById('blacklistCooldown');
+        const unblacklistCooldownEl = document.getElementById('unblacklistCooldown');
+        const messageCooldownEl = document.getElementById('messageCooldown');
+
+        if (warnCooldownEl) {
+            warnCooldownEl.textContent = moderatorCooldowns.warnings > 0 ? 
+                `${moderatorCooldowns.warnings}m` : 'Available';
+            warnCooldownEl.className = moderatorCooldowns.warnings > 0 ? 
+                'cooldown-timer cooldown-active' : 'cooldown-timer cooldown-available';
+        }
+
+        if (blacklistCooldownEl) {
+            blacklistCooldownEl.textContent = moderatorCooldowns.blacklists > 0 ? 
+                `${moderatorCooldowns.blacklists}m` : 'Available';
+            blacklistCooldownEl.className = moderatorCooldowns.blacklists > 0 ? 
+                'cooldown-timer cooldown-active' : 'cooldown-timer cooldown-available';
+        }
+
+        if (unblacklistCooldownEl) {
+            unblacklistCooldownEl.textContent = moderatorCooldowns.unblacklists > 0 ? 
+                `${moderatorCooldowns.unblacklists}m` : 'Available';
+            unblacklistCooldownEl.className = moderatorCooldowns.unblacklists > 0 ? 
+                'cooldown-timer cooldown-active' : 'cooldown-timer cooldown-available';
+        }
+
+        if (messageCooldownEl) {
+            messageCooldownEl.textContent = moderatorCooldowns.bulkMessages > 0 ? 
+                `${moderatorCooldowns.bulkMessages}m` : 'Available';
+            messageCooldownEl.className = moderatorCooldowns.bulkMessages > 0 ? 
+                'cooldown-timer cooldown-active' : 'cooldown-timer cooldown-available';
+        }
+
+        // Update modal cooldown displays
+        updateModalCooldownDisplays();
+    }
+
+    // Function to update modal cooldown displays
+    function updateModalCooldownDisplays() {
+        // Warn modal
+        const warnCooldownInfo = document.getElementById('warnCooldownInfo');
+        const sendWarnBtn = document.getElementById('sendWarnBtn');
+        
+        if (warnCooldownInfo && sendWarnBtn) {
+            if (moderatorCooldowns.warnings > 0) {
+                warnCooldownInfo.innerHTML = `
+                    <div class="cooldown-indicator">
+                        <div class="flex items-center">
+                            <i data-feather="clock" class="w-4 h-4 mr-2"></i>
+                            <span>Warning cooldown: <span class="cooldown-timer cooldown-active">${moderatorCooldowns.warnings} minutes remaining</span></span>
+                        </div>
+                        <p class="text-xs text-gray-300 mt-1">Moderators can only send warnings every 10 minutes</p>
+                    </div>
+                `;
+                warnCooldownInfo.classList.remove('hidden');
+                sendWarnBtn.classList.add('action-disabled');
+            } else {
+                warnCooldownInfo.innerHTML = `
+                    <div class="cooldown-indicator">
+                        <div class="flex items-center">
+                            <i data-feather="check-circle" class="w-4 h-4 mr-2 text-green-400"></i>
+                            <span>Warning action: <span class="cooldown-timer cooldown-available">Available</span></span>
+                        </div>
+                        <p class="text-xs text-gray-300 mt-1">You can send warnings now</p>
+                    </div>
+                `;
+                warnCooldownInfo.classList.remove('hidden');
+                sendWarnBtn.classList.remove('action-disabled');
+            }
+        }
+
+        // Blacklist form
+        const blacklistCooldownInfo = document.getElementById('blacklistCooldownInfo');
+        const blacklistBtn = document.getElementById('blacklistBtn');
+        
+        if (blacklistCooldownInfo && blacklistBtn) {
+            if (moderatorCooldowns.blacklists > 0) {
+                blacklistCooldownInfo.innerHTML = `
+                    <div class="cooldown-indicator">
+                        <div class="flex items-center">
+                            <i data-feather="clock" class="w-4 h-4 mr-2"></i>
+                            <span>Blacklist cooldown: <span class="cooldown-timer cooldown-active">${moderatorCooldowns.blacklists} minutes remaining</span></span>
+                        </div>
+                        <p class="text-xs text-gray-300 mt-1">Moderators can only blacklist once per day</p>
+                    </div>
+                `;
+                blacklistCooldownInfo.classList.remove('hidden');
+                blacklistBtn.classList.add('action-disabled');
+            } else {
+                blacklistCooldownInfo.innerHTML = `
+                    <div class="cooldown-indicator">
+                        <div class="flex items-center">
+                            <i data-feather="check-circle" class="w-4 h-4 mr-2 text-green-400"></i>
+                            <span>Blacklist action: <span class="cooldown-timer cooldown-available">Available</span></span>
+                        </div>
+                        <p class="text-xs text-gray-300 mt-1">You can blacklist users now</p>
+                    </div>
+                `;
+                blacklistCooldownInfo.classList.remove('hidden');
+                blacklistBtn.classList.remove('action-disabled');
+            }
+        }
+
+        // Message modal
+        const messageCooldownInfo = document.getElementById('messageCooldownInfo');
+        const sendMessageBtn = document.getElementById('sendMessageBtn');
+        
+        if (messageCooldownInfo && sendMessageBtn) {
+            if (moderatorCooldowns.bulkMessages > 0) {
+                messageCooldownInfo.innerHTML = `
+                    <div class="cooldown-indicator">
+                        <div class="flex items-center">
+                            <i data-feather="clock" class="w-4 h-4 mr-2"></i>
+                            <span>Message cooldown: <span class="cooldown-timer cooldown-active">${moderatorCooldowns.bulkMessages} minutes remaining</span></span>
+                        </div>
+                        <p class="text-xs text-gray-300 mt-1">Moderators can only send bulk messages every 5 minutes</p>
+                    </div>
+                `;
+                messageCooldownInfo.classList.remove('hidden');
+                sendMessageBtn.classList.add('action-disabled');
+            } else {
+                messageCooldownInfo.innerHTML = `
+                    <div class="limit-info">
+                        <div class="flex items-center">
+                            <i data-feather="check-circle" class="w-4 h-4 mr-2 text-green-400"></i>
+                            <span>Message action: <span class="cooldown-timer cooldown-available">Available</span></span>
+                        </div>
+                        <p class="text-xs text-gray-300 mt-1">Moderators can send messages to up to 5 users at once</p>
+                    </div>
+                `;
+                messageCooldownInfo.classList.remove('hidden');
+                sendMessageBtn.classList.remove('action-disabled');
+            }
+        }
+
+        // Broadcast modal
+        const broadcastCooldownInfo = document.getElementById('broadcastCooldownInfo');
+        const sendBroadcastBtn = document.getElementById('sendBroadcastBtn');
+        
+        if (broadcastCooldownInfo && sendBroadcastBtn) {
+            if (isModerator(currentUserRole)) {
+                broadcastCooldownInfo.innerHTML = `
+                    <div class="limit-info">
+                        <div class="flex items-center">
+                            <i data-feather="alert-circle" class="w-4 h-4 mr-2 text-yellow-400"></i>
+                            <span>Broadcast: <span class="cooldown-timer">Moderator Restricted</span></span>
+                        </div>
+                        <p class="text-xs text-gray-300 mt-1">Only Admins and Owners can send broadcast messages</p>
+                    </div>
+                `;
+                broadcastCooldownInfo.classList.remove('hidden');
+                sendBroadcastBtn.classList.add('action-disabled');
+            } else {
+                broadcastCooldownInfo.classList.add('hidden');
+                sendBroadcastBtn.classList.remove('action-disabled');
+            }
+        }
+
+        feather.replace();
+    }
+
     // Modal functions
     function openModal(modalId) {
         if (!isVerified) return;
@@ -919,6 +1220,9 @@
         if (modalId === 'roleAssignmentModal') {
             populateRoleSelect();
         }
+        
+        // Update cooldown displays for modals
+        updateModalCooldownDisplays();
     }
     
     function closeModal(modalId) {
@@ -961,6 +1265,12 @@
 
     // Update the sendBroadcast function
     async function sendBroadcast() {
+        // Check if moderator trying to send broadcast
+        if (isModerator(currentUserRole)) {
+            alert('Moderators cannot send broadcast messages. Only Admins and Owners have this permission.');
+            return;
+        }
+        
         const message = document.getElementById('broadcastMessage').value.trim();
         const duration = parseInt(document.getElementById('broadcastDuration').value);
         const senderType = document.querySelector('input[name="broadcastSenderType"]:checked').value;
@@ -1018,6 +1328,27 @@
             return;
         }
         
+        // Check moderator restrictions
+        if (isModerator(currentUserRole)) {
+            // Check cooldown
+            if (moderatorCooldowns.bulkMessages > 0) {
+                alert(`You cannot send bulk messages yet. Cooldown: ${moderatorCooldowns.bulkMessages} minutes remaining.`);
+                return;
+            }
+            
+            // Check recipient limit
+            if (recipients.length > 5) {
+                alert('Moderators can only send messages to 5 or fewer users at once.');
+                return;
+            }
+            
+            // Check sender type
+            if (senderType === "system") {
+                alert('Moderators cannot send messages as system.');
+                return;
+            }
+        }
+        
         try {
             const token = getCookie('AuthToken');
             const response = await fetch(`${SERVER_URL}/api/messages/send`, {
@@ -1045,6 +1376,11 @@
             document.getElementById('specificMessage').value = '';
             deselectAllUsers();
             
+            // Refresh cooldowns if moderator
+            if (isModerator(currentUserRole)) {
+                setTimeout(getModeratorCooldowns, 1000);
+            }
+            
         } catch (error) {
             console.error('Message send error:', error);
             alert(`❌ Error: ${error.message}`);
@@ -1064,6 +1400,33 @@
         if (!reason) {
             alert('Please enter a warning reason');
             return;
+        }
+        
+        // Check moderator restrictions
+        if (isModerator(currentUserRole)) {
+            // Check cooldown
+            if (moderatorCooldowns.warnings > 0) {
+                alert(`You cannot send warnings yet. Cooldown: ${moderatorCooldowns.warnings} minutes remaining.`);
+                return;
+            }
+            
+            // Check sender type
+            if (senderType === "system") {
+                alert('Moderators cannot send warnings as system.');
+                return;
+            }
+            
+            // Check if target user exists and has appropriate role
+            const targetUser = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+            if (targetUser) {
+                const currentUserWeight = getRoleWeight(currentUserRole);
+                const targetUserWeight = getRoleWeight(targetUser.role);
+                
+                if (targetUserWeight >= currentUserWeight) {
+                    alert(`You can only warn users with roles lower than yours. Target user role: ${targetUser.role}`);
+                    return;
+                }
+            }
         }
         
         try {
@@ -1091,6 +1454,11 @@
             closeModal('warnModal');
             document.getElementById('warnUsername').value = '';
             document.getElementById('warnMessage').value = '';
+            
+            // Refresh cooldowns if moderator
+            if (isModerator(currentUserRole)) {
+                setTimeout(getModeratorCooldowns, 1000);
+            }
             
         } catch (error) {
             console.error('Warning error:', error);
@@ -1524,6 +1892,12 @@
         }
     }
 
+    // Get role weight
+    function getRoleWeight(roleName) {
+        const roleConfig = allRoles[roleName];
+        return roleConfig ? (roleConfig.weight || 0) : 0;
+    }
+
     // Enable app interaction
     function enableAppInteraction() {
         isVerified = true;
@@ -1565,11 +1939,11 @@
             const userInfo = await getUserInfo(token);
             
             // Check if user has admin permissions
-            if (userInfo.role !== "Owner" && userInfo.role !== "Admin") {
+            if (userInfo.role !== "Owner" && userInfo.role !== "Admin" && userInfo.role !== "Moderator") {
                 // Insufficient permissions - redirect to target URL
                 setTimeout(() => {
                     document.getElementById('loadingOverlay').classList.add('hidden');
-                    alert("Insufficient permissions. Only admins can access this page.");
+                    alert("Insufficient permissions. Only admins and moderators can access this page.");
                     window.location.href = "https://senturyhanderserson.github.io/SigmiForCCGS/";
                 }, 1000);
                 return;
@@ -1600,6 +1974,14 @@
                 // Update user info display
                 document.getElementById('userUsername').textContent = userInfo.username;
                 document.getElementById('userRoleDisplay').textContent = userInfo.role;
+                
+                // Show moderator cooldowns if user is moderator
+                if (isModerator(currentUserRole)) {
+                    document.getElementById('moderatorCooldowns').classList.remove('hidden');
+                    getModeratorCooldowns();
+                    // Start cooldown refresh interval
+                    cooldownInterval = setInterval(getModeratorCooldowns, 30000); // Refresh every 30 seconds
+                }
                 
                 // Load users list
                 loadUsersList();
@@ -1661,12 +2043,14 @@
             users.forEach(user => {
                 const canDelete = user.username !== currentUser && 
                     (currentUserRole === 'Owner' || 
-                     (currentUserRole === 'Admin' && user.role !== 'Owner' && user.role !== 'Admin'));
+                     (currentUserRole === 'Admin' && user.role !== 'Owner' && user.role !== 'Admin') ||
+                     (isModerator(currentUserRole) && user.role !== 'Owner' && user.role !== 'Admin' && getRoleWeight(user.role) < getRoleWeight(currentUserRole)));
                 
                 // Prevent non-Owners from assigning roles to Owners
                 const canAssignRole = user.username !== currentUser && 
                     (currentUserRole === 'Owner' || 
-                     (currentUserRole === 'Admin' && user.role !== 'Owner'));
+                     (currentUserRole === 'Admin' && user.role !== 'Owner') ||
+                     (isModerator(currentUserRole) && user.role !== 'Owner' && user.role !== 'Admin' && getRoleWeight(user.role) < getRoleWeight(currentUserRole)));
                 
                 // Escape all dynamic values
                 const safeUsername = escapeHtml(user.username);
@@ -1736,6 +2120,33 @@
 
     // Blacklist user
     async function blacklistUser(username, reason) {
+        // Check moderator restrictions
+        if (isModerator(currentUserRole)) {
+            // Check cooldown
+            if (moderatorCooldowns.blacklists > 0) {
+                alert(`You cannot blacklist users yet. Cooldown: ${moderatorCooldowns.blacklists} minutes remaining.`);
+                return;
+            }
+            
+            // Check if target user exists and has appropriate role
+            const targetUser = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+            if (targetUser) {
+                const currentUserWeight = getRoleWeight(currentUserRole);
+                const targetUserWeight = getRoleWeight(targetUser.role);
+                
+                if (targetUserWeight >= currentUserWeight) {
+                    alert(`You can only blacklist users with roles lower than yours. Target user role: ${targetUser.role}`);
+                    return;
+                }
+                
+                // Moderators cannot blacklist admins
+                if (targetUser.role === "Admin") {
+                    alert('Moderators cannot blacklist admin accounts.');
+                    return;
+                }
+            }
+        }
+        
         try {
             const token = getCookie('AuthToken');
             const response = await fetch(`${SERVER_URL}/api/blacklist/${encodeURIComponent(username)}`, {
@@ -1758,6 +2169,11 @@
             // Reload users list
             loadUsersList();
             
+            // Refresh cooldowns if moderator
+            if (isModerator(currentUserRole)) {
+                setTimeout(getModeratorCooldowns, 1000);
+            }
+            
         } catch (error) {
             console.error('Blacklist error:', error);
             alert('Error: ' + error.message);
@@ -1768,6 +2184,27 @@
     async function unblacklistUser(username) {
         if (!confirm('Are you sure you want to unblacklist ' + username + '?')) {
             return;
+        }
+        
+        // Check moderator restrictions
+        if (isModerator(currentUserRole)) {
+            // Check cooldown
+            if (moderatorCooldowns.unblacklists > 0) {
+                alert(`You cannot unblacklist users yet. Cooldown: ${moderatorCooldowns.unblacklists} minutes remaining.`);
+                return;
+            }
+            
+            // Check if target user exists and has appropriate role
+            const targetUser = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+            if (targetUser) {
+                const currentUserWeight = getRoleWeight(currentUserRole);
+                const targetUserWeight = getRoleWeight(targetUser.role);
+                
+                if (targetUserWeight > currentUserWeight) {
+                    alert(`You can only unblacklist users with roles lower or equal to yours. Target user role: ${targetUser.role}`);
+                    return;
+                }
+            }
         }
         
         try {
@@ -1789,6 +2226,11 @@
             
             // Reload users list
             loadUsersList();
+            
+            // Refresh cooldowns if moderator
+            if (isModerator(currentUserRole)) {
+                setTimeout(getModeratorCooldowns, 1000);
+            }
             
         } catch (error) {
             console.error('Unblacklist error:', error);
@@ -1824,6 +2266,13 @@
         loadUsersList();
     });
 
+    // Refresh cooldowns
+    document.getElementById('refreshCooldowns').addEventListener('click', function() {
+        if (isModerator(currentUserRole)) {
+            getModeratorCooldowns();
+        }
+    });
+
     // Logout button
     document.getElementById('logoutButton').addEventListener('click', function() {
         // Clear auth data
@@ -1831,6 +2280,11 @@
         localStorage.removeItem('currentUser');
         localStorage.removeItem('currentUserRole');
         localStorage.removeItem('allUsers');
+        
+        // Clear cooldown interval
+        if (cooldownInterval) {
+            clearInterval(cooldownInterval);
+        }
         
         // Redirect to login
         window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
