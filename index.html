@@ -673,6 +673,132 @@
             text-align: center;
             max-width: 80%;
         }
+
+        /* Tutorial System Styles */
+        .tutorial-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        .tutorial-step {
+            position: absolute;
+            z-index: 10000;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .tutorial-arrow {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            z-index: 10001;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .tutorial-arrow svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+        
+        .tutorial-bubble {
+            background: linear-gradient(135deg, #8e44ad 0%, #6c5ce7 100%);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            max-width: 280px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            position: relative;
+            z-index: 10002;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .tutorial-bubble:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+        
+        .tutorial-bubble.top:after {
+            border-width: 10px 10px 0 10px;
+            border-color: #8e44ad transparent transparent transparent;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .tutorial-bubble.bottom:after {
+            border-width: 0 10px 10px 10px;
+            border-color: transparent transparent #8e44ad transparent;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .tutorial-bubble.left:after {
+            border-width: 10px 10px 10px 0;
+            border-color: transparent #8e44ad transparent transparent;
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .tutorial-bubble.right:after {
+            border-width: 10px 0 10px 10px;
+            border-color: transparent transparent transparent #8e44ad;
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .tutorial-next-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            margin-top: 10px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .tutorial-next-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .tutorial-skip-btn {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            margin-top: 8px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
+        .tutorial-skip-btn:hover {
+            color: white;
+        }
+        
+        .highlight-element {
+            box-shadow: 0 0 0 4px rgba(142, 68, 173, 0.5);
+            border-radius: 8px;
+            position: relative;
+            z-index: 10003;
+            transition: box-shadow 0.3s ease;
+        }
     </style>
 </head>
 <body class="min-h-screen text-white font-sans">
@@ -1044,6 +1170,11 @@
         let broadcastCheckInterval = null;
         let warningCheckInterval = null;
         let isFabExpanded = false;
+        
+        // Tutorial System Variables
+        let tutorialActive = false;
+        let tutorialStep = 0;
+        let tutorialElements = {};
 
         function getCookie(name) {
             const cookieName = name + "=";
@@ -1066,6 +1197,281 @@
             // 10 years in seconds
             const maxAge = 10 * 365 * 24 * 60 * 60;
             document.cookie = `${name}=${value}; Max-Age=${maxAge}; path=/; SameSite=Strict`;
+        }
+
+        // Check if user is logged in
+        function isLoggedIn() {
+            const token = getCookie('AuthToken');
+            const currentUser = localStorage.getItem('currentUser');
+            return !!(token && currentUser);
+        }
+
+        // Tutorial System Functions
+        function checkTutorialEligibility() {
+            // Check if user is signed in and doesn't have the HasDoneSuggestion cookie
+            const hasDoneSuggestion = getCookie('HasDoneSuggestion');
+            const isLoggedIn = isLoggedIn();
+            
+            if (isLoggedIn && !hasDoneSuggestion) {
+                // Wait for all elements to load
+                setTimeout(() => {
+                    startTutorial();
+                }, 1000);
+            }
+        }
+
+        function startTutorial() {
+            tutorialActive = true;
+            tutorialStep = 0;
+            
+            // Create tutorial overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'tutorial-overlay';
+            overlay.id = 'tutorialOverlay';
+            document.body.appendChild(overlay);
+            
+            // Store tutorial elements
+            tutorialElements = {
+                fabBtn: document.getElementById('fabBtn'),
+                pollsFab: document.getElementById('pollsFab'),
+                overlay: overlay
+            };
+            
+            // Start with step 1
+            showTutorialStep(1);
+        }
+
+        function showTutorialStep(step) {
+            tutorialStep = step;
+            
+            // Clear any existing tutorial elements
+            document.querySelectorAll('.tutorial-step, .tutorial-arrow, .highlight-element').forEach(el => {
+                if (el.id !== 'tutorialOverlay') {
+                    el.remove();
+                }
+            });
+            
+            switch(step) {
+                case 1:
+                    showFabTutorial();
+                    break;
+                case 2:
+                    showPollsTutorial();
+                    break;
+                case 3:
+                    completeTutorial();
+                    break;
+            }
+        }
+
+        function showFabTutorial() {
+            const fabBtn = tutorialElements.fabBtn;
+            
+            // Highlight the FAB button
+            fabBtn.classList.add('highlight-element');
+            
+            // Create arrow pointing to FAB
+            const arrow = createArrow(fabBtn, 'bottom');
+            
+            // Create tutorial bubble
+            const bubble = createBubble(
+                'Check out the polls feature to vote on community topics!',
+                'bottom',
+                fabBtn,
+                { x: 0, y: 100 }
+            );
+            
+            // Add next button
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'tutorial-next-btn';
+            nextBtn.textContent = 'Next';
+            nextBtn.onclick = () => {
+                // If FAB is not expanded, expand it first
+                if (!isFabExpanded) {
+                    toggleFabMenu();
+                }
+                setTimeout(() => showTutorialStep(2), 500);
+            };
+            
+            bubble.appendChild(nextBtn);
+            
+            // Add skip button
+            const skipBtn = document.createElement('div');
+            skipBtn.className = 'tutorial-skip-btn';
+            skipBtn.textContent = 'Skip Tutorial';
+            skipBtn.onclick = skipTutorial;
+            bubble.appendChild(skipBtn);
+        }
+
+        function showPollsTutorial() {
+            const pollsFab = tutorialElements.pollsFab;
+            
+            // Remove highlight from FAB
+            tutorialElements.fabBtn.classList.remove('highlight-element');
+            
+            // Highlight the polls button
+            pollsFab.classList.add('highlight-element');
+            
+            // Create arrow pointing to polls button
+            const arrow = createArrow(pollsFab, 'left');
+            
+            // Create tutorial bubble
+            const bubble = createBubble(
+                'Click here to explore and vote on community polls!',
+                'left',
+                pollsFab,
+                { x: -150, y: 0 }
+            );
+            
+            // Add next button
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'tutorial-next-btn';
+            nextBtn.textContent = 'Got it!';
+            nextBtn.onclick = () => {
+                setCookie('HasDoneSuggestion', 'true');
+                showTutorialStep(3);
+            };
+            
+            bubble.appendChild(nextBtn);
+            
+            // Add skip button
+            const skipBtn = document.createElement('div');
+            skipBtn.className = 'tutorial-skip-btn';
+            skipBtn.textContent = 'Skip Tutorial';
+            skipBtn.onclick = skipTutorial;
+            bubble.appendChild(skipBtn);
+            
+            // Add event listener to handle FAB collapse
+            const fabBtn = tutorialElements.fabBtn;
+            const originalToggleFabMenu = toggleFabMenu;
+            
+            // Override the toggleFabMenu function temporarily
+            window.toggleFabMenu = function() {
+                originalToggleFabMenu();
+                
+                // If FAB is collapsed during this step, go back to step 1
+                if (!isFabExpanded && tutorialStep === 2) {
+                    showTutorialStep(1);
+                }
+            };
+        }
+
+        function completeTutorial() {
+            // Clean up tutorial elements
+            document.querySelectorAll('.tutorial-step, .tutorial-arrow, .highlight-element, #tutorialOverlay').forEach(el => {
+                el.remove();
+            });
+            
+            // Remove any overridden functions
+            window.toggleFabMenu = toggleFabMenu;
+            
+            tutorialActive = false;
+            showNotification('Tutorial completed! You can now explore polls.', 'success');
+        }
+
+        function skipTutorial() {
+            // Set cookie so tutorial doesn't show again
+            setCookie('HasDoneSuggestion', 'true');
+            
+            // Clean up tutorial elements
+            document.querySelectorAll('.tutorial-step, .tutorial-arrow, .highlight-element, #tutorialOverlay').forEach(el => {
+                el.remove();
+            });
+            
+            // Remove any overridden functions
+            window.toggleFabMenu = toggleFabMenu;
+            
+            // Remove highlights
+            tutorialElements.fabBtn.classList.remove('highlight-element');
+            if (tutorialElements.pollsFab) {
+                tutorialElements.pollsFab.classList.remove('highlight-element');
+            }
+            
+            tutorialActive = false;
+            showNotification('Tutorial skipped. You can access polls from the + button.', 'info');
+        }
+
+        function createArrow(targetElement, direction) {
+            const arrow = document.createElement('div');
+            arrow.className = 'tutorial-arrow';
+            
+            // Position arrow based on direction
+            const targetRect = targetElement.getBoundingClientRect();
+            
+            let arrowHTML = '';
+            let arrowX, arrowY;
+            
+            switch(direction) {
+                case 'top':
+                    arrowX = targetRect.left + targetRect.width/2 - 40;
+                    arrowY = targetRect.top - 100;
+                    arrowHTML = '<svg viewBox="0 0 100 100"><path d="M50,10 L60,40 L75,40 L45,75 L15,40 L30,40 Z" fill="#8e44ad"/></svg>';
+                    break;
+                case 'bottom':
+                    arrowX = targetRect.left + targetRect.width/2 - 40;
+                    arrowY = targetRect.bottom + 20;
+                    arrowHTML = '<svg viewBox="0 0 100 100"><path d="M50,90 L60,60 L75,60 L45,25 L15,60 L30,60 Z" fill="#8e44ad"/></svg>';
+                    break;
+                case 'left':
+                    arrowX = targetRect.left - 100;
+                    arrowY = targetRect.top + targetRect.height/2 - 40;
+                    arrowHTML = '<svg viewBox="0 0 100 100"><path d="M10,50 L40,60 L40,75 L75,45 L40,15 L40,30 Z" fill="#8e44ad"/></svg>';
+                    break;
+                case 'right':
+                    arrowX = targetRect.right + 20;
+                    arrowY = targetRect.top + targetRect.height/2 - 40;
+                    arrowHTML = '<svg viewBox="0 0 100 100"><path d="M90,50 L60,60 L60,75 L25,45 L60,15 L60,30 Z" fill="#8e44ad"/></svg>';
+                    break;
+            }
+            
+            arrow.style.left = arrowX + 'px';
+            arrow.style.top = arrowY + 'px';
+            arrow.innerHTML = arrowHTML;
+            
+            document.body.appendChild(arrow);
+            return arrow;
+        }
+
+        function createBubble(text, direction, targetElement, offset = {x: 0, y: 0}) {
+            const bubble = document.createElement('div');
+            bubble.className = `tutorial-bubble ${direction}`;
+            
+            // Position bubble based on direction and target element
+            const targetRect = targetElement.getBoundingClientRect();
+            
+            let bubbleX, bubbleY;
+            
+            switch(direction) {
+                case 'top':
+                    bubbleX = targetRect.left + targetRect.width/2;
+                    bubbleY = targetRect.top - 120;
+                    break;
+                case 'bottom':
+                    bubbleX = targetRect.left + targetRect.width/2;
+                    bubbleY = targetRect.bottom + 100;
+                    break;
+                case 'left':
+                    bubbleX = targetRect.left - 280;
+                    bubbleY = targetRect.top + targetRect.height/2;
+                    break;
+                case 'right':
+                    bubbleX = targetRect.right + 120;
+                    bubbleY = targetRect.top + targetRect.height/2;
+                    break;
+            }
+            
+            // Apply offset
+            bubbleX += offset.x;
+            bubbleY += offset.y;
+            
+            bubble.style.left = bubbleX + 'px';
+            bubble.style.top = bubbleY + 'px';
+            bubble.style.transform = 'translate(-50%, -50%)';
+            
+            bubble.innerHTML = `<div>${text}</div>`;
+            
+            document.body.appendChild(bubble);
+            return bubble;
         }
 
         // Theme Management Functions
@@ -1223,6 +1629,11 @@
         }
 
         function handleVoteOnPolls() {
+            // Set the cookie when polls button is pressed
+            if (!getCookie('HasDoneSuggestion')) {
+                setCookie('HasDoneSuggestion', 'true');
+            }
+            
             // Redirect to polls.html
             window.location.href = 'polls.html';
         }
@@ -1234,7 +1645,8 @@
             
             if (isFabExpanded && 
                 !fabBtn.contains(e.target) && 
-                !fabExpandedMenu.contains(e.target)) {
+                !fabExpandedMenu.contains(e.target) &&
+                !tutorialActive) {
                 toggleFabMenu();
             }
         });
@@ -1271,8 +1683,8 @@
                         userWarnings[warningIndex] = {
                             ...userWarnings[warningIndex],
                             dismissed: true,
-                            dismissedAt: data.warning.dismissedAt,
-                            dismissedBy: data.warning.dismissedBy
+                            dismissedAt = data.warning.dismissedAt,
+                            dismissedBy = data.warning.dismissedBy
                         };
                     }
                     
@@ -1875,13 +2287,6 @@
             warningCheckInterval = setInterval(checkForWarnings, 5 * 60 * 1000);
         }
 
-        // Check if user is logged in
-        function isLoggedIn() {
-            const token = getCookie('AuthToken');
-            const currentUser = localStorage.getItem('currentUser');
-            return !!(token && currentUser);
-        }
-
         // Add this function to check for blacklist cookie
         function checkBlacklistCookie() {
             const blacklistCookie = getCookie('blacklist');
@@ -1949,6 +2354,9 @@
                             initMessageSystem();
                             initWarningSystem();
                             initBroadcastSystem();
+                            
+                            // Check if tutorial should be shown
+                            checkTutorialEligibility();
                         } else {
                             // Token is invalid, show auth modal
                             document.getElementById('loadingOverlay').classList.add('hidden');
@@ -2082,6 +2490,9 @@
                             initWarningSystem();
                             initBroadcastSystem();
                             
+                            // Check if tutorial should be shown
+                            checkTutorialEligibility();
+                            
                             showNotification('Login successful!', 'success');
                         } else {
                             document.getElementById('loadingModal').classList.add('hidden');
@@ -2139,6 +2550,9 @@
                             initMessageSystem();
                             initWarningSystem();
                             initBroadcastSystem();
+                            
+                            // Check if tutorial should be shown
+                            checkTutorialEligibility();
                             
                             showNotification('Account created successfully!', 'success');
                         } else {
