@@ -11,132 +11,667 @@
     <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
     <link class="favicon" rel="icon" type="image/x-icon" href="https://quiz-50.github.io/media/drive.ico">
     <style>
-        /* Existing styles remain the same... */
+        /* Theme Variables */
+        body {
+            --bg-primary: #1a0933;
+            --bg-secondary: #3b1d6c;
+            --bg-tertiary: #6e3b9c;
+            --text-primary: #ffffff;
+            --text-secondary: #d8d8d8;
+            --accent-primary: #8e44ad;
+            --accent-secondary: #6c5ce7;
+            --glass-bg: rgba(92, 50, 168, 0.2);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Theme Classes */
+        .theme-dark {
+            --bg-primary: #1a0933 !important;
+            --bg-secondary: #3b1d6c !important;
+            --bg-tertiary: #6e3b9c !important;
+            --text-primary: #ffffff !important;
+            --text-secondary: #d8d8d8 !important;
+            --accent-primary: #8e44ad !important;
+            --accent-secondary: #6c5ce7 !important;
+            --glass-bg: rgba(92, 50, 168, 0.2) !important;
+            --glass-border: rgba(255, 255, 255, 0.1) !important;
+        }
         
-        /* Tutorial System Styles */
-        .tutorial-overlay {
+        .theme-light {
+            --bg-primary: #f8f9fa !important;
+            --bg-secondary: #e9ecef !important;
+            --bg-tertiary: #dee2e6 !important;
+            --text-primary: #212529 !important;   
+            --text-secondary: #495057 !important; 
+            --accent-primary: #6f42c1 !important;
+            --accent-secondary: #6610f2 !important;
+            --glass-bg: rgba(255, 255, 255, 0.7) !important;
+            --glass-border: rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .theme-light p:not(.text-transparent),
+        .theme-light span:not(.text-transparent),
+        .theme-light h1:not(.text-transparent),
+        .theme-light h2:not(.text-transparent),
+        .theme-light h3:not(.text-transparent),
+        .theme-light h4:not(.text-transparent),
+        .theme-light h5:not(.text-transparent),
+        .theme-light h6:not(.text-transparent),
+        .theme-light li:not(.text-transparent),
+        .theme-light a:not(.text-transparent),
+        .theme-light div:not(.text-transparent) {
+            color: var(--text-primary) !important;
+        }
+        
+        .theme-light .text-secondary,
+        .theme-light small,
+        .theme-light .muted {
+            color: var(--text-secondary) !important;
+        }
+
+        .theme-amoled {
+            --bg-primary: #000000 !important;
+            --bg-secondary: #111111 !important;
+            --bg-tertiary: #222222 !important;
+            --text-primary: #ffffff !important;
+            --text-secondary: #cccccc !important;
+            --accent-primary: #8e44ad !important;
+            --accent-secondary: #9b59b6 !important;
+            --glass-bg: rgba(0, 0, 0, 0.8) !important;
+            --glass-border: rgba(255, 255, 255, 0.05) !important;
+        }
+        
+        .theme-blue {
+            --bg-primary: #0a1931 !important;
+            --bg-secondary: #1a3c6e !important;
+            --bg-tertiary: #2a5ca9 !important;
+            --text-primary: #ffffff !important;
+            --text-secondary: #d8d8d8 !important;
+            --accent-primary: #2563eb !important;
+            --accent-secondary: #3b82f6 !important;
+            --glass-bg: rgba(37, 99, 235, 0.3) !important;
+            --glass-border: rgba(255, 255, 255, 0.15) !important;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
+            color: var(--text-primary);
+            transition: background 0.5s ease, color 0.3s ease;
+            min-height: 100vh;
+        }
+
+        #vanta-bg {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            z-index: -1;
+        }
+        
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(142, 68, 173, 0.3);
+        }
+        
+        .content-card {
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            border-color: var(--glass-border);
+        }
+        
+        .opacity-0 { 
+            opacity: 0; 
+            transition: opacity 0.3s ease; 
+        }
+        
+        .opacity-100 { 
+            opacity: 1; 
+            transition: opacity 0.3s ease; 
+        }
+        
+        /* Notification system */
+        .notification-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            width: 100%;
+            max-width: 24rem;
+        }
+        
+        .notification {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateX(0);
+            transition: all 0.3s ease;
+        }
+        
+        .notification.hidden {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        
+        .notification-icon {
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+        
+        .notification-content {
+            flex-grow: 1;
+        }
+        
+        .notification-close {
+            margin-left: 0.75rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+        
+        .notification-close:hover {
+            opacity: 1;
+        }
+        
+        /* Loading spinner */
+        .balls-loader {
+            display: inline-block;
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+        
+        .balls-loader div {
+            position: absolute;
+            top: 33px;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: var(--accent-primary);
+            animation-timing-function: cubic-bezier(0, 1, 1, 0);
+        }
+        
+        .balls-loader div:nth-child(1) {
+            left: 8px;
+            animation: balls-loader1 0.6s infinite;
+        }
+        
+        .balls-loader div:nth-child(2) {
+            left: 8px;
+            animation: balls-loader2 0.6s infinite;
+        }
+        
+        .balls-loader div:nth-child(3) {
+            left: 32px;
+            animation: balls-loader2 0.6s infinite;
+        }
+        
+        .section-selector {
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        
+        .section-selector:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            border-color: var(--glass-border);
+        }
+        
+        .section-selector.selected {
+            border: 2px solid var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(142, 68, 173, 0.3);
+        }
+        
+        .balls-loader div:nth-child(4) {
+            left: 56px;
+            animation: balls-loader3 0.6s infinite;
+        }
+        
+        @keyframes balls-loader1 {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes balls-loader3 {
+            0% { transform: scale(1); }
+            100% { transform: scale(0); }
+        }
+        
+        @keyframes balls-loader2 {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(24px, 0); }
+        }
+        
+        /* Loading overlay for main content */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: rgba(0, 0, 0, 0.7);
-            z-index: 9999;
+            backdrop-filter: blur(5px);
             display: flex;
             justify-content: center;
             align-items: center;
-            backdrop-filter: blur(5px);
+            z-index: 100;
+            transition: opacity 0.3s ease;
         }
-        
-        .tutorial-step {
-            position: absolute;
-            z-index: 10000;
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;	
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
-        
-        .tutorial-arrow {
-            position: absolute;
-            width: 80px;
-            height: 80px;
-            z-index: 10001;
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+        @keyframes slideOutLeft {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
         }
-        
-        .tutorial-arrow svg {
-            width: 100%;
-            height: 100%;
-            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+
+        .message-entry {
+            border-left: 3px solid var(--accent-primary);
         }
-        
-        .tutorial-bubble {
-            background: linear-gradient(135deg, #8e44ad 0%, #6c5ce7 100%);
+
+        /* Message Styles */
+        .message-container {
+            position: fixed;
+            top: 70px;
+            left: 20px;
+            z-index: 1001;
+            width: 350px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .message-alert {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
             color: white;
-            padding: 16px 20px;
-            border-radius: 12px;
-            max-width: 280px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-            position: relative;
-            z-index: 10002;
-            transition: all 0.3s ease;
-            font-size: 14px;
-            line-height: 1.5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border-left: 4px solid #ff8c00;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
         }
-        
-        .tutorial-bubble:after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 0;
-            border-style: solid;
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
         }
-        
-        .tutorial-bubble.top:after {
-            border-width: 10px 10px 0 10px;
-            border-color: #8e44ad transparent transparent transparent;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
+
+        .message-sender {
+            font-weight: bold;
+            font-size: 0.9em;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
-        
-        .tutorial-bubble.bottom:after {
-            border-width: 0 10px 10px 10px;
-            border-color: transparent transparent #8e44ad transparent;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
+
+        .message-time {
+            font-size: 0.8em;
+            opacity: 0.9;
+            color: #e0e0e0;
         }
-        
-        .tutorial-bubble.left:after {
-            border-width: 10px 10px 10px 0;
-            border-color: transparent #8e44ad transparent transparent;
-            right: -10px;
-            top: 50%;
-            transform: translateY(-50%);
+
+        .message-content {
+            font-size: 0.95em;
+            line-height: 1.4;
+            margin-bottom: 10px;
+            word-wrap: break-word;
         }
-        
-        .tutorial-bubble.right:after {
-            border-width: 10px 0 10px 10px;
-            border-color: transparent transparent transparent #8e44ad;
-            left: -10px;
-            top: 50%;
-            transform: translateY(-50%);
+
+        .message-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
         }
-        
-        .tutorial-next-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
-            margin-top: 10px;
+
+        .message-btn {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.8em;
             cursor: pointer;
-            font-size: 12px;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
         }
-        
-        .tutorial-next-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
+
+        .message-dismiss {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .message-dismiss:hover {
+            background: rgba(255,255,255,0.3);
             transform: translateY(-1px);
         }
-        
-        .tutorial-skip-btn {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 12px;
-            margin-top: 8px;
-            cursor: pointer;
-            text-decoration: underline;
+
+        .no-messages {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
         }
-        
-        .tutorial-skip-btn:hover {
+
+        /* Message Animation Styles */
+        .message-container {
+            position: fixed;
+            top: 70px;
+            left: 20px;
+            z-index: 1001;
+            width: 350px;
+            max-height: 80vh;
+            overflow-y: auto;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .message-alert {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
             color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border-left: 4px solid #ff8c00;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            transform: translateX(0);
+            opacity: 1;
+            transition: all 0.5s ease;
+        }
+
+        /* Animation keyframes */
+        @keyframes slideInFromLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOutToLeft {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(-100%);
+            }
+        }
+
+        .message-slide-in {
+            animation: slideInFromLeft 0.5s ease forwards;
+        }
+
+        .message-slide-out {
+            animation: slideOutToLeft 0.5s ease forwards;
+        }
+
+        .broadcast-toast {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 24rem;
+        }
+                        
+        /* Pulse animation for new items */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
         
-        .highlight-element {
-            box-shadow: 0 0 0 4px rgba(142, 68, 173, 0.5);
-            border-radius: 8px;
-            position: relative;
-            z-index: 10003;
-            transition: box-shadow 0.3s ease;
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(142, 68, 173, 0.6);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(142, 68, 173, 0.8);
+        }
+        
+        /* Floating action button */
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 40;
+            transition: all 0.3s ease;
+        }
+        
+        .fab:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Expanded FAB Menu - FIXED POSITIONING */
+        .fab-expanded {
+            position: fixed;
+            bottom: 6rem;
+            right: 2rem;
+            z-index: 45;
+            display: none;
+        }
+
+        .fab-menu-item {
+            position: absolute;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0;
+            transform: scale(0) translateY(0);
+        }
+
+        .fab-menu-item.visible {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+
+        .fab-menu-item:hover {
+            transform: scale(1.1) translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Report button styling */
+        .report-fab {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            bottom: -4rem;
+            right: 0;
+        }
+
+        .polls-fab {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            bottom: -4rem;
+            right: 0;
+        }
+
+        /* Enhanced glass morphism effects */
+        .glass-header {
+            background: rgba(92, 50, 168, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-sidebar {
+            background: rgba(92, 50, 168, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Enhanced backgrounds */
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
+        }
+
+        .tile-bg {
+            background: linear-gradient(135deg, rgba(142, 68, 173, 0.1) 0%, rgba(108, 92, 231, 0.1) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Enhanced card hover effects */
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Enhanced text effects */
+        .text-glow {
+            text-shadow: 0 0 10px rgba(142, 68, 173, 0.5);
+        }
+
+        /* Enhanced button styles */
+        .btn-glow {
+            box-shadow: 0 0 15px rgba(142, 68, 173, 0.4);
+        }
+
+        .btn-glow:hover {
+            box-shadow: 0 0 20px rgba(142, 68, 173, 0.6);
+        }
+
+        /* Coming Soon Overlay */
+        .coming-soon-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(26, 9, 51, 0.85);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .content-card:hover .coming-soon-overlay {
+            opacity: 1;
+        }
+
+        .coming-soon-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 15px rgba(142, 68, 173, 0.4);
+        }
+
+        .coming-soon-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #fff 0%, #d8d8d8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .coming-soon-subtext {
+            font-size: 0.85rem;
+            color: #d8d8d8;
+            text-align: center;
+            max-width: 80%;
         }
     </style>
 </head>
@@ -509,11 +1044,6 @@
         let broadcastCheckInterval = null;
         let warningCheckInterval = null;
         let isFabExpanded = false;
-        
-        // Tutorial System Variables
-        let tutorialActive = false;
-        let tutorialStep = 0;
-        let tutorialElements = {};
 
         function getCookie(name) {
             const cookieName = name + "=";
@@ -536,274 +1066,6 @@
             // 10 years in seconds
             const maxAge = 10 * 365 * 24 * 60 * 60;
             document.cookie = `${name}=${value}; Max-Age=${maxAge}; path=/; SameSite=Strict`;
-        }
-
-        // Tutorial System Functions
-        function checkTutorialEligibility() {
-            // Check if user is signed in and doesn't have the HasDoneSuggestion cookie
-            const hasDoneSuggestion = getCookie('HasDoneSuggestion');
-            const isLoggedIn = isLoggedIn();
-            
-            if (isLoggedIn && !hasDoneSuggestion) {
-                // Wait for all elements to load
-                setTimeout(() => {
-                    startTutorial();
-                }, 1000);
-            }
-        }
-
-        function startTutorial() {
-            tutorialActive = true;
-            tutorialStep = 0;
-            
-            // Create tutorial overlay
-            const overlay = document.createElement('div');
-            overlay.className = 'tutorial-overlay';
-            overlay.id = 'tutorialOverlay';
-            document.body.appendChild(overlay);
-            
-            // Store tutorial elements
-            tutorialElements = {
-                fabBtn: document.getElementById('fabBtn'),
-                pollsFab: document.getElementById('pollsFab'),
-                overlay: overlay
-            };
-            
-            // Start with step 1
-            showTutorialStep(1);
-        }
-
-        function showTutorialStep(step) {
-            tutorialStep = step;
-            
-            // Clear any existing tutorial elements
-            document.querySelectorAll('.tutorial-step, .tutorial-arrow, .highlight-element').forEach(el => {
-                if (el.id !== 'tutorialOverlay') {
-                    el.remove();
-                }
-            });
-            
-            switch(step) {
-                case 1:
-                    showFabTutorial();
-                    break;
-                case 2:
-                    showPollsTutorial();
-                    break;
-                case 3:
-                    completeTutorial();
-                    break;
-            }
-        }
-
-        function showFabTutorial() {
-            const fabBtn = tutorialElements.fabBtn;
-            
-            // Highlight the FAB button
-            fabBtn.classList.add('highlight-element');
-            
-            // Create arrow pointing to FAB
-            const arrow = createArrow(fabBtn, 'bottom');
-            
-            // Create tutorial bubble
-            const bubble = createBubble(
-                'Check out the polls feature to vote on community topics!',
-                'bottom',
-                fabBtn,
-                { x: 0, y: 100 }
-            );
-            
-            // Add next button
-            const nextBtn = document.createElement('button');
-            nextBtn.className = 'tutorial-next-btn';
-            nextBtn.textContent = 'Next';
-            nextBtn.onclick = () => {
-                // If FAB is not expanded, expand it first
-                if (!isFabExpanded) {
-                    toggleFabMenu();
-                }
-                setTimeout(() => showTutorialStep(2), 500);
-            };
-            
-            bubble.appendChild(nextBtn);
-            
-            // Add skip button
-            const skipBtn = document.createElement('div');
-            skipBtn.className = 'tutorial-skip-btn';
-            skipBtn.textContent = 'Skip Tutorial';
-            skipBtn.onclick = skipTutorial;
-            bubble.appendChild(skipBtn);
-        }
-
-        function showPollsTutorial() {
-            const pollsFab = tutorialElements.pollsFab;
-            
-            // Remove highlight from FAB
-            tutorialElements.fabBtn.classList.remove('highlight-element');
-            
-            // Highlight the polls button
-            pollsFab.classList.add('highlight-element');
-            
-            // Create arrow pointing to polls button
-            const arrow = createArrow(pollsFab, 'left');
-            
-            // Create tutorial bubble
-            const bubble = createBubble(
-                'Click here to explore and vote on community polls!',
-                'left',
-                pollsFab,
-                { x: -150, y: 0 }
-            );
-            
-            // Add next button
-            const nextBtn = document.createElement('button');
-            nextBtn.className = 'tutorial-next-btn';
-            nextBtn.textContent = 'Got it!';
-            nextBtn.onclick = () => {
-                setCookie('HasDoneSuggestion', 'true');
-                showTutorialStep(3);
-            };
-            
-            bubble.appendChild(nextBtn);
-            
-            // Add skip button
-            const skipBtn = document.createElement('div');
-            skipBtn.className = 'tutorial-skip-btn';
-            skipBtn.textContent = 'Skip Tutorial';
-            skipBtn.onclick = skipTutorial;
-            bubble.appendChild(skipBtn);
-            
-            // Add event listener to handle FAB collapse
-            const fabBtn = tutorialElements.fabBtn;
-            const originalToggleFabMenu = toggleFabMenu;
-            
-            // Override the toggleFabMenu function temporarily
-            window.toggleFabMenu = function() {
-                originalToggleFabMenu();
-                
-                // If FAB is collapsed during this step, go back to step 1
-                if (!isFabExpanded && tutorialStep === 2) {
-                    showTutorialStep(1);
-                }
-            };
-        }
-
-        function completeTutorial() {
-            // Clean up tutorial elements
-            document.querySelectorAll('.tutorial-step, .tutorial-arrow, .highlight-element, #tutorialOverlay').forEach(el => {
-                el.remove();
-            });
-            
-            // Remove any overridden functions
-            window.toggleFabMenu = toggleFabMenu;
-            
-            tutorialActive = false;
-            showNotification('Tutorial completed! You can now explore polls.', 'success');
-        }
-
-        function skipTutorial() {
-            // Set cookie so tutorial doesn't show again
-            setCookie('HasDoneSuggestion', 'true');
-            
-            // Clean up tutorial elements
-            document.querySelectorAll('.tutorial-step, .tutorial-arrow, .highlight-element, #tutorialOverlay').forEach(el => {
-                el.remove();
-            });
-            
-            // Remove any overridden functions
-            window.toggleFabMenu = toggleFabMenu;
-            
-            // Remove highlights
-            tutorialElements.fabBtn.classList.remove('highlight-element');
-            if (tutorialElements.pollsFab) {
-                tutorialElements.pollsFab.classList.remove('highlight-element');
-            }
-            
-            tutorialActive = false;
-            showNotification('Tutorial skipped. You can access polls from the + button.', 'info');
-        }
-
-        function createArrow(targetElement, direction) {
-            const arrow = document.createElement('div');
-            arrow.className = 'tutorial-arrow';
-            
-            // Position arrow based on direction
-            const targetRect = targetElement.getBoundingClientRect();
-            
-            let arrowHTML = '';
-            let arrowX, arrowY;
-            
-            switch(direction) {
-                case 'top':
-                    arrowX = targetRect.left + targetRect.width/2 - 40;
-                    arrowY = targetRect.top - 100;
-                    arrowHTML = '<svg viewBox="0 0 100 100"><path d="M50,10 L60,40 L75,40 L45,75 L15,40 L30,40 Z" fill="#8e44ad"/></svg>';
-                    break;
-                case 'bottom':
-                    arrowX = targetRect.left + targetRect.width/2 - 40;
-                    arrowY = targetRect.bottom + 20;
-                    arrowHTML = '<svg viewBox="0 0 100 100"><path d="M50,90 L60,60 L75,60 L45,25 L15,60 L30,60 Z" fill="#8e44ad"/></svg>';
-                    break;
-                case 'left':
-                    arrowX = targetRect.left - 100;
-                    arrowY = targetRect.top + targetRect.height/2 - 40;
-                    arrowHTML = '<svg viewBox="0 0 100 100"><path d="M10,50 L40,60 L40,75 L75,45 L40,15 L40,30 Z" fill="#8e44ad"/></svg>';
-                    break;
-                case 'right':
-                    arrowX = targetRect.right + 20;
-                    arrowY = targetRect.top + targetRect.height/2 - 40;
-                    arrowHTML = '<svg viewBox="0 0 100 100"><path d="M90,50 L60,60 L60,75 L25,45 L60,15 L60,30 Z" fill="#8e44ad"/></svg>';
-                    break;
-            }
-            
-            arrow.style.left = arrowX + 'px';
-            arrow.style.top = arrowY + 'px';
-            arrow.innerHTML = arrowHTML;
-            
-            document.body.appendChild(arrow);
-            return arrow;
-        }
-
-        function createBubble(text, direction, targetElement, offset = {x: 0, y: 0}) {
-            const bubble = document.createElement('div');
-            bubble.className = `tutorial-bubble ${direction}`;
-            
-            // Position bubble based on direction and target element
-            const targetRect = targetElement.getBoundingClientRect();
-            
-            let bubbleX, bubbleY;
-            
-            switch(direction) {
-                case 'top':
-                    bubbleX = targetRect.left + targetRect.width/2;
-                    bubbleY = targetRect.top - 120;
-                    break;
-                case 'bottom':
-                    bubbleX = targetRect.left + targetRect.width/2;
-                    bubbleY = targetRect.bottom + 100;
-                    break;
-                case 'left':
-                    bubbleX = targetRect.left - 280;
-                    bubbleY = targetRect.top + targetRect.height/2;
-                    break;
-                case 'right':
-                    bubbleX = targetRect.right + 120;
-                    bubbleY = targetRect.top + targetRect.height/2;
-                    break;
-            }
-            
-            // Apply offset
-            bubbleX += offset.x;
-            bubbleY += offset.y;
-            
-            bubble.style.left = bubbleX + 'px';
-            bubble.style.top = bubbleY + 'px';
-            bubble.style.transform = 'translate(-50%, -50%)';
-            
-            bubble.innerHTML = `<div>${text}</div>`;
-            
-            document.body.appendChild(bubble);
-            return bubble;
         }
 
         // Theme Management Functions
@@ -961,11 +1223,6 @@
         }
 
         function handleVoteOnPolls() {
-            // Set the cookie when polls button is pressed
-            if (!getCookie('HasDoneSuggestion')) {
-                setCookie('HasDoneSuggestion', 'true');
-            }
-            
             // Redirect to polls.html
             window.location.href = 'polls.html';
         }
@@ -977,8 +1234,7 @@
             
             if (isFabExpanded && 
                 !fabBtn.contains(e.target) && 
-                !fabExpandedMenu.contains(e.target) &&
-                !tutorialActive) {
+                !fabExpandedMenu.contains(e.target)) {
                 toggleFabMenu();
             }
         });
@@ -1693,9 +1949,6 @@
                             initMessageSystem();
                             initWarningSystem();
                             initBroadcastSystem();
-                            
-                            // Check if tutorial should be shown
-                            checkTutorialEligibility();
                         } else {
                             // Token is invalid, show auth modal
                             document.getElementById('loadingOverlay').classList.add('hidden');
@@ -1829,9 +2082,6 @@
                             initWarningSystem();
                             initBroadcastSystem();
                             
-                            // Check if tutorial should be shown
-                            checkTutorialEligibility();
-                            
                             showNotification('Login successful!', 'success');
                         } else {
                             document.getElementById('loadingModal').classList.add('hidden');
@@ -1889,9 +2139,6 @@
                             initMessageSystem();
                             initWarningSystem();
                             initBroadcastSystem();
-                            
-                            // Check if tutorial should be shown
-                            checkTutorialEligibility();
                             
                             showNotification('Account created successfully!', 'success');
                         } else {
