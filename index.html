@@ -673,6 +673,122 @@
             text-align: center;
             max-width: 80%;
         }
+
+        /* Tutorial System Styles */
+        .tutorial-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tutorial-step {
+            position: relative;
+            max-width: 400px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--glass-border);
+            text-align: center;
+        }
+
+        .tutorial-arrow {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            z-index: 10000;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .tutorial-arrow svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .tutorial-arrow .arrow-text {
+            position: absolute;
+            white-space: nowrap;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .tutorial-arrow.pointing-right {
+            transform: rotate(0deg);
+        }
+
+        .tutorial-arrow.pointing-left {
+            transform: rotate(180deg);
+        }
+
+        .tutorial-arrow.pointing-up {
+            transform: rotate(-90deg);
+        }
+
+        .tutorial-arrow.pointing-down {
+            transform: rotate(90deg);
+        }
+
+        .tutorial-arrow .arrow-text.top {
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 8px;
+        }
+
+        .tutorial-arrow .arrow-text.bottom {
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 8px;
+        }
+
+        .tutorial-arrow .arrow-text.left {
+            right: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-right: 8px;
+        }
+
+        .tutorial-arrow .arrow-text.right {
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-left: 8px;
+        }
+
+        .tutorial-highlight {
+            position: relative;
+            z-index: 10001;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .tutorial-skip {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tutorial-skip:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
     </style>
 </head>
 <body class="min-h-screen text-white font-sans">
@@ -681,6 +797,25 @@
     
     <!-- Notification container -->
     <div class="notification-container" id="notificationContainer"></div>
+    
+    <!-- Tutorial Overlay -->
+    <div id="tutorialOverlay" class="tutorial-overlay hidden">
+        <div class="tutorial-step" id="tutorialStep">
+            <h3 class="text-xl font-bold mb-3" id="tutorialTitle">Welcome to Sigmi Team!</h3>
+            <p class="text-gray-300 mb-4" id="tutorialDescription">Let's explore some key features to get you started.</p>
+            <button id="tutorialNext" class="btn-primary py-2 px-6 rounded-lg font-medium mr-2">Next</button>
+            <button id="tutorialSkip" class="tutorial-skip">Skip Tutorial</button>
+        </div>
+    </div>
+    
+    <!-- Tutorial Arrow -->
+    <div id="tutorialArrow" class="tutorial-arrow hidden">
+        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M30 5L55 30L30 55L5 30L30 5Z" fill="#8e44ad" stroke="#6c5ce7" stroke-width="2"/>
+            <path d="M30 15L40 25H35V45H25V25H20L30 15Z" fill="white"/>
+        </svg>
+        <div class="arrow-text" id="tutorialArrowText">Click here</div>
+    </div>
     
     <!-- Warning Modal -->
     <div id="warningModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
@@ -1044,6 +1179,11 @@
         let broadcastCheckInterval = null;
         let warningCheckInterval = null;
         let isFabExpanded = false;
+        
+        // Tutorial system variables
+        let tutorialStep = 0;
+        let isTutorialActive = false;
+        let tutorialElements = [];
 
         function getCookie(name) {
             const cookieName = name + "=";
@@ -1066,6 +1206,173 @@
             // 10 years in seconds
             const maxAge = 10 * 365 * 24 * 60 * 60;
             document.cookie = `${name}=${value}; Max-Age=${maxAge}; path=/; SameSite=Strict`;
+        }
+
+        // Tutorial System Functions
+        function shouldShowTutorial() {
+            // Check if user has the HasDoneSuggestion cookie
+            return !getCookie('HasDoneSuggestion');
+        }
+
+        function startTutorial() {
+            if (!shouldShowTutorial()) return;
+            
+            isTutorialActive = true;
+            tutorialStep = 0;
+            
+            // Show tutorial overlay
+            document.getElementById('tutorialOverlay').classList.remove('hidden');
+            
+            // Start with the first step
+            showTutorialStep(0);
+        }
+
+        function showTutorialStep(step) {
+            tutorialStep = step;
+            
+            const tutorialOverlay = document.getElementById('tutorialOverlay');
+            const tutorialStepEl = document.getElementById('tutorialStep');
+            const tutorialTitle = document.getElementById('tutorialTitle');
+            const tutorialDescription = document.getElementById('tutorialDescription');
+            const tutorialNext = document.getElementById('tutorialNext');
+            const tutorialArrow = document.getElementById('tutorialArrow');
+            const tutorialArrowText = document.getElementById('tutorialArrowText');
+            
+            // Remove any existing highlights
+            tutorialElements.forEach(el => {
+                el.classList.remove('tutorial-highlight');
+            });
+            tutorialElements = [];
+            
+            // Hide arrow initially
+            tutorialArrow.classList.add('hidden');
+            
+            switch(step) {
+                case 0:
+                    // Introduction step
+                    tutorialTitle.textContent = "Welcome to Sigmi Team!";
+                    tutorialDescription.textContent = "Let's explore some key features to get you started.";
+                    tutorialNext.textContent = "Next";
+                    
+                    // Position tutorial step in center
+                    tutorialStepEl.style.position = 'relative';
+                    tutorialStepEl.style.top = 'auto';
+                    tutorialStepEl.style.left = 'auto';
+                    tutorialStepEl.style.transform = 'none';
+                    break;
+                    
+                case 1:
+                    // Point to FAB button
+                    const fabBtn = document.getElementById('fabBtn');
+                    if (!fabBtn) {
+                        // If FAB button isn't available, skip to next step
+                        showTutorialStep(2);
+                        return;
+                    }
+                    
+                    tutorialTitle.textContent = "Quick Actions Menu";
+                    tutorialDescription.textContent = "Tap the plus button to access quick actions like polls and reporting issues.";
+                    tutorialNext.textContent = "Next";
+                    
+                    // Position tutorial step near FAB button
+                    const fabRect = fabBtn.getBoundingClientRect();
+                    tutorialStepEl.style.position = 'absolute';
+                    tutorialStepEl.style.top = `${fabRect.top - tutorialStepEl.offsetHeight - 20}px`;
+                    tutorialStepEl.style.left = `${fabRect.left - tutorialStepEl.offsetWidth / 2 + fabRect.width / 2}px`;
+                    tutorialStepEl.style.transform = 'translateX(-50%)';
+                    
+                    // Highlight FAB button
+                    fabBtn.classList.add('tutorial-highlight');
+                    tutorialElements.push(fabBtn);
+                    
+                    // Show arrow pointing to FAB
+                    tutorialArrow.classList.remove('hidden');
+                    tutorialArrow.classList.add('pointing-up');
+                    tutorialArrow.style.top = `${fabRect.top - 80}px`;
+                    tutorialArrow.style.left = `${fabRect.left + fabRect.width / 2}px`;
+                    tutorialArrowText.textContent = "Tap the plus button";
+                    tutorialArrowText.className = 'arrow-text bottom';
+                    break;
+                    
+                case 2:
+                    // Point to polls button in expanded FAB menu
+                    const pollsFab = document.getElementById('pollsFab');
+                    if (!pollsFab) {
+                        // If polls button isn't available, end tutorial
+                        endTutorial();
+                        return;
+                    }
+                    
+                    // Make sure FAB menu is expanded
+                    if (!isFabExpanded) {
+                        toggleFabMenu();
+                    }
+                    
+                    tutorialTitle.textContent = "Check Out Polls";
+                    tutorialDescription.textContent = "Tap the polls button to vote on community polls and share your opinion.";
+                    tutorialNext.textContent = "Got it!";
+                    
+                    // Position tutorial step near polls button
+                    const pollsRect = pollsFab.getBoundingClientRect();
+                    tutorialStepEl.style.position = 'absolute';
+                    tutorialStepEl.style.top = `${pollsRect.top - tutorialStepEl.offsetHeight - 20}px`;
+                    tutorialStepEl.style.left = `${pollsRect.left - tutorialStepEl.offsetWidth / 2 + pollsRect.width / 2}px`;
+                    tutorialStepEl.style.transform = 'translateX(-50%)';
+                    
+                    // Highlight polls button
+                    pollsFab.classList.add('tutorial-highlight');
+                    tutorialElements.push(pollsFab);
+                    
+                    // Show arrow pointing to polls button
+                    tutorialArrow.classList.remove('hidden');
+                    tutorialArrow.classList.add('pointing-up');
+                    tutorialArrow.style.top = `${pollsRect.top - 80}px`;
+                    tutorialArrow.style.left = `${pollsRect.left + pollsRect.width / 2}px`;
+                    tutorialArrowText.textContent = "Check out polls";
+                    tutorialArrowText.className = 'arrow-text bottom';
+                    
+                    // Add event listener to polls button to complete tutorial when clicked
+                    const completeTutorialOnPollsClick = function() {
+                        setCookie('HasDoneSuggestion', 'true');
+                        endTutorial();
+                    };
+                    
+                    // Remove any existing event listeners and add new one
+                    pollsFab.removeEventListener('click', completeTutorialOnPollsClick);
+                    pollsFab.addEventListener('click', completeTutorialOnPollsClick);
+                    break;
+                    
+                default:
+                    // End tutorial
+                    endTutorial();
+                    return;
+            }
+        }
+
+        function nextTutorialStep() {
+            showTutorialStep(tutorialStep + 1);
+        }
+
+        function endTutorial() {
+            isTutorialActive = false;
+            document.getElementById('tutorialOverlay').classList.add('hidden');
+            document.getElementById('tutorialArrow').classList.add('hidden');
+            
+            // Remove highlights
+            tutorialElements.forEach(el => {
+                el.classList.remove('tutorial-highlight');
+            });
+            tutorialElements = [];
+            
+            // Collapse FAB menu if it's expanded
+            if (isFabExpanded) {
+                toggleFabMenu();
+            }
+        }
+
+        function skipTutorial() {
+            setCookie('HasDoneSuggestion', 'true');
+            endTutorial();
         }
 
         // Theme Management Functions
@@ -1197,6 +1504,13 @@
                 fabBtn.style.transform = 'rotate(45deg)';
                 
                 isFabExpanded = true;
+                
+                // If tutorial is active and we're on step 2, update the arrow position
+                if (isTutorialActive && tutorialStep === 2) {
+                    setTimeout(() => {
+                        showTutorialStep(2);
+                    }, 400);
+                }
             } else {
                 // Collapse the menu
                 pollsFab.classList.remove('visible');
@@ -1214,6 +1528,11 @@
                 }, 400);
                 
                 isFabExpanded = false;
+                
+                // If tutorial is active and we're on step 2, go back to step 1
+                if (isTutorialActive && tutorialStep === 2) {
+                    showTutorialStep(1);
+                }
             }
         }
 
@@ -1223,6 +1542,9 @@
         }
 
         function handleVoteOnPolls() {
+            // Set the cookie to mark tutorial as completed
+            setCookie('HasDoneSuggestion', 'true');
+            
             // Redirect to polls.html
             window.location.href = 'polls.html';
         }
@@ -1234,7 +1556,8 @@
             
             if (isFabExpanded && 
                 !fabBtn.contains(e.target) && 
-                !fabExpandedMenu.contains(e.target)) {
+                !fabExpandedMenu.contains(e.target) &&
+                !isTutorialActive) {
                 toggleFabMenu();
             }
         });
@@ -1729,7 +2052,7 @@
             
             setTimeout(() => {
                 toast.classList.remove('translate-y-20');
-                toast.classList.add('translate-y-0');
+                toast.classList.add('translateY-0');
             }, 100);
             
             // Auto hide after 15 seconds
@@ -1742,7 +2065,7 @@
         function hideBroadcastToast(broadcastId) {
             const toast = document.querySelector(`.broadcast-toast[data-broadcast-id="${broadcastId}"]`);
             if (toast) {
-                toast.classList.remove('translate-y-0');
+                toast.classList.remove('translateY-0');
                 toast.classList.add('translate-y-20');
                 
                 setTimeout(() => {
@@ -1949,6 +2272,12 @@
                             initMessageSystem();
                             initWarningSystem();
                             initBroadcastSystem();
+                            
+                            // Check if we should show the tutorial
+                            if (shouldShowTutorial()) {
+                                // Wait a bit for everything to load, then start tutorial
+                                setTimeout(startTutorial, 1000);
+                            }
                         } else {
                             // Token is invalid, show auth modal
                             document.getElementById('loadingOverlay').classList.add('hidden');
@@ -1971,9 +2300,13 @@
                 }
             }
             
+            // Tutorial Event Listeners
+            document.getElementById('tutorialNext').addEventListener('click', nextTutorialStep);
+            document.getElementById('tutorialSkip').addEventListener('click', skipTutorial);
+            
             // Terms Modal Buttons
             document.getElementById('agreeBtn').addEventListener('click', function() {
-                setCookie('AcceptedTerms', 'true', 365);
+                setCookie('AcceptedTerms', 'true');
                 document.getElementById('termsModal').classList.add('hidden');
                 document.getElementById('customizeModal').classList.remove('hidden');
             });
@@ -2082,6 +2415,12 @@
                             initWarningSystem();
                             initBroadcastSystem();
                             
+                            // Check if we should show the tutorial
+                            if (shouldShowTutorial()) {
+                                // Wait a bit for everything to load, then start tutorial
+                                setTimeout(startTutorial, 1000);
+                            }
+                            
                             showNotification('Login successful!', 'success');
                         } else {
                             document.getElementById('loadingModal').classList.add('hidden');
@@ -2139,6 +2478,12 @@
                             initMessageSystem();
                             initWarningSystem();
                             initBroadcastSystem();
+                            
+                            // Check if we should show the tutorial
+                            if (shouldShowTutorial()) {
+                                // Wait a bit for everything to load, then start tutorial
+                                setTimeout(startTutorial, 1000);
+                            }
                             
                             showNotification('Account created successfully!', 'success');
                         } else {
