@@ -11,6 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
     <link class="favicon" rel="icon" type="image/x-icon" href="https://quiz-50.github.io/media/drive.ico">
     <style>
+        /* All previous theme and component styles remain the same */
         /* Theme Variables */
         body {
             --bg-primary: #1a0933;
@@ -674,120 +675,105 @@
             max-width: 80%;
         }
 
-        /* Tutorial System Styles */
-        .tutorial-overlay {
+        /* Recommendation System Styles */
+        .recommendation-arrow {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .tutorial-step {
-            position: relative;
-            max-width: 400px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            border: 1px solid var(--glass-border);
-            text-align: center;
-        }
-
-        .tutorial-arrow {
-            position: absolute;
             width: 60px;
             height: 60px;
-            z-index: 10000;
+            z-index: 9998;
             transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
         }
 
-        .tutorial-arrow svg {
+        .recommendation-arrow svg {
             width: 100%;
             height: 100%;
             filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
         }
 
-        .tutorial-arrow .arrow-text {
+        .recommendation-arrow .arrow-text {
             position: absolute;
             white-space: nowrap;
             font-size: 14px;
             font-weight: 600;
             color: white;
             text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 4px 8px;
+            border-radius: 4px;
+            backdrop-filter: blur(10px);
         }
 
-        .tutorial-arrow.pointing-right {
+        .recommendation-arrow.pointing-right {
             transform: rotate(0deg);
         }
 
-        .tutorial-arrow.pointing-left {
+        .recommendation-arrow.pointing-left {
             transform: rotate(180deg);
         }
 
-        .tutorial-arrow.pointing-up {
+        .recommendation-arrow.pointing-up {
             transform: rotate(-90deg);
         }
 
-        .tutorial-arrow.pointing-down {
+        .recommendation-arrow.pointing-down {
             transform: rotate(90deg);
         }
 
-        .tutorial-arrow .arrow-text.top {
+        .recommendation-arrow .arrow-text.top {
             bottom: 100%;
             left: 50%;
             transform: translateX(-50%);
             margin-bottom: 8px;
         }
 
-        .tutorial-arrow .arrow-text.bottom {
+        .recommendation-arrow .arrow-text.bottom {
             top: 100%;
             left: 50%;
             transform: translateX(-50%);
             margin-top: 8px;
         }
 
-        .tutorial-arrow .arrow-text.left {
+        .recommendation-arrow .arrow-text.left {
             right: 100%;
             top: 50%;
             transform: translateY(-50%);
             margin-right: 8px;
         }
 
-        .tutorial-arrow .arrow-text.right {
+        .recommendation-arrow .arrow-text.right {
             left: 100%;
             top: 50%;
             transform: translateY(-50%);
             margin-left: 8px;
         }
 
-        .tutorial-highlight {
+        .recommendation-highlight {
             position: relative;
-            z-index: 10001;
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 255, 255, 0.5);
+            z-index: 9999;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5), 0 0 20px rgba(255, 255, 255, 0.3);
             border-radius: 12px;
             transition: all 0.3s ease;
         }
 
-        .tutorial-skip {
-            background: rgba(255, 255, 255, 0.1);
+        .recommendation-dismiss {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            color: var(--text-primary);
             padding: 8px 16px;
             border-radius: 8px;
-            margin-top: 16px;
             cursor: pointer;
+            z-index: 9999;
+            backdrop-filter: blur(10px);
             transition: all 0.2s ease;
         }
 
-        .tutorial-skip:hover {
-            background: rgba(255, 255, 255, 0.2);
+        .recommendation-dismiss:hover {
+            background: rgba(0, 0, 0, 0.8);
         }
     </style>
 </head>
@@ -798,24 +784,19 @@
     <!-- Notification container -->
     <div class="notification-container" id="notificationContainer"></div>
     
-    <!-- Tutorial Overlay -->
-    <div id="tutorialOverlay" class="tutorial-overlay hidden">
-        <div class="tutorial-step" id="tutorialStep">
-            <h3 class="text-xl font-bold mb-3" id="tutorialTitle">Welcome to Sigmi Team!</h3>
-            <p class="text-gray-300 mb-4" id="tutorialDescription">Let's explore some key features to get you started.</p>
-            <button id="tutorialNext" class="btn-primary py-2 px-6 rounded-lg font-medium mr-2">Next</button>
-            <button id="tutorialSkip" class="tutorial-skip">Skip Tutorial</button>
-        </div>
-    </div>
-    
-    <!-- Tutorial Arrow -->
-    <div id="tutorialArrow" class="tutorial-arrow hidden">
+    <!-- Recommendation Arrow -->
+    <div id="recommendationArrow" class="recommendation-arrow hidden">
         <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M30 5L55 30L30 55L5 30L30 5Z" fill="#8e44ad" stroke="#6c5ce7" stroke-width="2"/>
             <path d="M30 15L40 25H35V45H25V25H20L30 15Z" fill="white"/>
         </svg>
-        <div class="arrow-text" id="tutorialArrowText">Click here</div>
+        <div class="arrow-text" id="recommendationArrowText">Click here</div>
     </div>
+
+    <!-- Dismiss Recommendation Button -->
+    <button id="recommendationDismiss" class="recommendation-dismiss hidden">
+        Dismiss Suggestions
+    </button>
     
     <!-- Warning Modal -->
     <div id="warningModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
@@ -1180,10 +1161,11 @@
         let warningCheckInterval = null;
         let isFabExpanded = false;
         
-        // Tutorial system variables
-        let tutorialStep = 0;
-        let isTutorialActive = false;
-        let tutorialElements = [];
+        // Recommendation system variables
+        let isRecommendationActive = false;
+        let recommendationStep = 0;
+        let recommendationElements = [];
+        let recommendationUpdateInterval = null;
 
         function getCookie(name) {
             const cookieName = name + "=";
@@ -1208,98 +1190,69 @@
             document.cookie = `${name}=${value}; Max-Age=${maxAge}; path=/; SameSite=Strict`;
         }
 
-        // Tutorial System Functions
-        function shouldShowTutorial() {
+        // Recommendation System Functions
+        function shouldShowRecommendation() {
             // Check if user has the HasDoneSuggestion cookie
             return !getCookie('HasDoneSuggestion');
         }
 
-        function startTutorial() {
-            if (!shouldShowTutorial()) return;
+        function startRecommendation() {
+            if (!shouldShowRecommendation()) return;
             
-            isTutorialActive = true;
-            tutorialStep = 0;
+            isRecommendationActive = true;
+            recommendationStep = 0;
             
-            // Show tutorial overlay
-            document.getElementById('tutorialOverlay').classList.remove('hidden');
+            // Show recommendation arrow and dismiss button
+            document.getElementById('recommendationArrow').classList.remove('hidden');
+            document.getElementById('recommendationDismiss').classList.remove('hidden');
             
             // Start with the first step
-            showTutorialStep(0);
+            showRecommendationStep(0);
+            
+            // Set up interval to update arrow position when scrolling
+            recommendationUpdateInterval = setInterval(updateRecommendationPosition, 100);
         }
 
-        function showTutorialStep(step) {
-            tutorialStep = step;
+        function showRecommendationStep(step) {
+            recommendationStep = step;
             
-            const tutorialOverlay = document.getElementById('tutorialOverlay');
-            const tutorialStepEl = document.getElementById('tutorialStep');
-            const tutorialTitle = document.getElementById('tutorialTitle');
-            const tutorialDescription = document.getElementById('tutorialDescription');
-            const tutorialNext = document.getElementById('tutorialNext');
-            const tutorialArrow = document.getElementById('tutorialArrow');
-            const tutorialArrowText = document.getElementById('tutorialArrowText');
+            const recommendationArrow = document.getElementById('recommendationArrow');
+            const recommendationArrowText = document.getElementById('recommendationArrowText');
             
             // Remove any existing highlights
-            tutorialElements.forEach(el => {
-                el.classList.remove('tutorial-highlight');
+            recommendationElements.forEach(el => {
+                el.classList.remove('recommendation-highlight');
             });
-            tutorialElements = [];
-            
-            // Hide arrow initially
-            tutorialArrow.classList.add('hidden');
+            recommendationElements = [];
             
             switch(step) {
                 case 0:
-                    // Introduction step
-                    tutorialTitle.textContent = "Welcome to Sigmi Team!";
-                    tutorialDescription.textContent = "Let's explore some key features to get you started.";
-                    tutorialNext.textContent = "Next";
-                    
-                    // Position tutorial step in center
-                    tutorialStepEl.style.position = 'relative';
-                    tutorialStepEl.style.top = 'auto';
-                    tutorialStepEl.style.left = 'auto';
-                    tutorialStepEl.style.transform = 'none';
-                    break;
-                    
-                case 1:
                     // Point to FAB button
                     const fabBtn = document.getElementById('fabBtn');
                     if (!fabBtn) {
                         // If FAB button isn't available, skip to next step
-                        showTutorialStep(2);
+                        showRecommendationStep(1);
                         return;
                     }
                     
-                    tutorialTitle.textContent = "Quick Actions Menu";
-                    tutorialDescription.textContent = "Tap the plus button to access quick actions like polls and reporting issues.";
-                    tutorialNext.textContent = "Next";
-                    
-                    // Position tutorial step near FAB button
-                    const fabRect = fabBtn.getBoundingClientRect();
-                    tutorialStepEl.style.position = 'absolute';
-                    tutorialStepEl.style.top = `${fabRect.top - tutorialStepEl.offsetHeight - 20}px`;
-                    tutorialStepEl.style.left = `${fabRect.left - tutorialStepEl.offsetWidth / 2 + fabRect.width / 2}px`;
-                    tutorialStepEl.style.transform = 'translateX(-50%)';
-                    
                     // Highlight FAB button
-                    fabBtn.classList.add('tutorial-highlight');
-                    tutorialElements.push(fabBtn);
+                    fabBtn.classList.add('recommendation-highlight');
+                    recommendationElements.push(fabBtn);
                     
-                    // Show arrow pointing to FAB
-                    tutorialArrow.classList.remove('hidden');
-                    tutorialArrow.classList.add('pointing-up');
-                    tutorialArrow.style.top = `${fabRect.top - 80}px`;
-                    tutorialArrow.style.left = `${fabRect.left + fabRect.width / 2}px`;
-                    tutorialArrowText.textContent = "Tap the plus button";
-                    tutorialArrowText.className = 'arrow-text bottom';
+                    // Position arrow pointing to FAB
+                    recommendationArrow.classList.add('pointing-up');
+                    recommendationArrowText.textContent = "Check out quick actions";
+                    recommendationArrowText.className = 'arrow-text bottom';
+                    
+                    updateArrowPosition(fabBtn, 'top');
                     break;
                     
-                case 2:
+                case 1:
                     // Point to polls button in expanded FAB menu
                     const pollsFab = document.getElementById('pollsFab');
                     if (!pollsFab) {
-                        // If polls button isn't available, end tutorial
-                        endTutorial();
+                        // If polls button isn't available, end recommendation
+                        endRecommendation();
                         return;
                     }
                     
@@ -1308,61 +1261,106 @@
                         toggleFabMenu();
                     }
                     
-                    tutorialTitle.textContent = "Check Out Polls";
-                    tutorialDescription.textContent = "Tap the polls button to vote on community polls and share your opinion.";
-                    tutorialNext.textContent = "Got it!";
-                    
-                    // Position tutorial step near polls button
-                    const pollsRect = pollsFab.getBoundingClientRect();
-                    tutorialStepEl.style.position = 'absolute';
-                    tutorialStepEl.style.top = `${pollsRect.top - tutorialStepEl.offsetHeight - 20}px`;
-                    tutorialStepEl.style.left = `${pollsRect.left - tutorialStepEl.offsetWidth / 2 + pollsRect.width / 2}px`;
-                    tutorialStepEl.style.transform = 'translateX(-50%)';
-                    
                     // Highlight polls button
-                    pollsFab.classList.add('tutorial-highlight');
-                    tutorialElements.push(pollsFab);
+                    pollsFab.classList.add('recommendation-highlight');
+                    recommendationElements.push(pollsFab);
                     
-                    // Show arrow pointing to polls button
-                    tutorialArrow.classList.remove('hidden');
-                    tutorialArrow.classList.add('pointing-up');
-                    tutorialArrow.style.top = `${pollsRect.top - 80}px`;
-                    tutorialArrow.style.left = `${pollsRect.left + pollsRect.width / 2}px`;
-                    tutorialArrowText.textContent = "Check out polls";
-                    tutorialArrowText.className = 'arrow-text bottom';
+                    // Position arrow pointing to polls button
+                    recommendationArrow.classList.add('pointing-up');
+                    recommendationArrowText.textContent = "Vote on community polls";
+                    recommendationArrowText.className = 'arrow-text bottom';
                     
-                    // Add event listener to polls button to complete tutorial when clicked
-                    const completeTutorialOnPollsClick = function() {
+                    updateArrowPosition(pollsFab, 'top');
+                    
+                    // Add event listener to polls button to complete recommendation when clicked
+                    const completeRecommendationOnPollsClick = function() {
                         setCookie('HasDoneSuggestion', 'true');
-                        endTutorial();
+                        endRecommendation();
                     };
                     
                     // Remove any existing event listeners and add new one
-                    pollsFab.removeEventListener('click', completeTutorialOnPollsClick);
-                    pollsFab.addEventListener('click', completeTutorialOnPollsClick);
+                    pollsFab.removeEventListener('click', completeRecommendationOnPollsClick);
+                    pollsFab.addEventListener('click', completeRecommendationOnPollsClick);
                     break;
                     
                 default:
-                    // End tutorial
-                    endTutorial();
+                    // End recommendation
+                    endRecommendation();
                     return;
             }
         }
 
-        function nextTutorialStep() {
-            showTutorialStep(tutorialStep + 1);
+        function updateArrowPosition(targetElement, position) {
+            const recommendationArrow = document.getElementById('recommendationArrow');
+            const rect = targetElement.getBoundingClientRect();
+            
+            let arrowTop, arrowLeft;
+            
+            switch(position) {
+                case 'top':
+                    arrowTop = rect.top - 80;
+                    arrowLeft = rect.left + rect.width / 2;
+                    break;
+                case 'bottom':
+                    arrowTop = rect.bottom + 20;
+                    arrowLeft = rect.left + rect.width / 2;
+                    break;
+                case 'left':
+                    arrowTop = rect.top + rect.height / 2;
+                    arrowLeft = rect.left - 80;
+                    break;
+                case 'right':
+                    arrowTop = rect.top + rect.height / 2;
+                    arrowLeft = rect.right + 20;
+                    break;
+                default:
+                    arrowTop = rect.top - 80;
+                    arrowLeft = rect.left + rect.width / 2;
+            }
+            
+            recommendationArrow.style.top = `${arrowTop}px`;
+            recommendationArrow.style.left = `${arrowLeft}px`;
         }
 
-        function endTutorial() {
-            isTutorialActive = false;
-            document.getElementById('tutorialOverlay').classList.add('hidden');
-            document.getElementById('tutorialArrow').classList.add('hidden');
+        function updateRecommendationPosition() {
+            if (!isRecommendationActive) return;
+            
+            switch(recommendationStep) {
+                case 0:
+                    const fabBtn = document.getElementById('fabBtn');
+                    if (fabBtn) {
+                        updateArrowPosition(fabBtn, 'top');
+                    }
+                    break;
+                case 1:
+                    const pollsFab = document.getElementById('pollsFab');
+                    if (pollsFab) {
+                        updateArrowPosition(pollsFab, 'top');
+                    }
+                    break;
+            }
+        }
+
+        function nextRecommendationStep() {
+            showRecommendationStep(recommendationStep + 1);
+        }
+
+        function endRecommendation() {
+            isRecommendationActive = false;
+            document.getElementById('recommendationArrow').classList.add('hidden');
+            document.getElementById('recommendationDismiss').classList.add('hidden');
             
             // Remove highlights
-            tutorialElements.forEach(el => {
-                el.classList.remove('tutorial-highlight');
+            recommendationElements.forEach(el => {
+                el.classList.remove('recommendation-highlight');
             });
-            tutorialElements = [];
+            recommendationElements = [];
+            
+            // Clear update interval
+            if (recommendationUpdateInterval) {
+                clearInterval(recommendationUpdateInterval);
+                recommendationUpdateInterval = null;
+            }
             
             // Collapse FAB menu if it's expanded
             if (isFabExpanded) {
@@ -1370,9 +1368,10 @@
             }
         }
 
-        function skipTutorial() {
+        function dismissRecommendation() {
             setCookie('HasDoneSuggestion', 'true');
-            endTutorial();
+            endRecommendation();
+            showNotification('Suggestions dismissed', 'info');
         }
 
         // Theme Management Functions
@@ -1505,10 +1504,10 @@
                 
                 isFabExpanded = true;
                 
-                // If tutorial is active and we're on step 2, update the arrow position
-                if (isTutorialActive && tutorialStep === 2) {
+                // If recommendation is active and we're on step 1, update the arrow position
+                if (isRecommendationActive && recommendationStep === 1) {
                     setTimeout(() => {
-                        showTutorialStep(2);
+                        showRecommendationStep(1);
                     }, 400);
                 }
             } else {
@@ -1529,9 +1528,9 @@
                 
                 isFabExpanded = false;
                 
-                // If tutorial is active and we're on step 2, go back to step 1
-                if (isTutorialActive && tutorialStep === 2) {
-                    showTutorialStep(1);
+                // If recommendation is active and we're on step 1, go back to step 0
+                if (isRecommendationActive && recommendationStep === 1) {
+                    showRecommendationStep(0);
                 }
             }
         }
@@ -1542,7 +1541,7 @@
         }
 
         function handleVoteOnPolls() {
-            // Set the cookie to mark tutorial as completed
+            // Set the cookie to mark recommendation as completed
             setCookie('HasDoneSuggestion', 'true');
             
             // Redirect to polls.html
@@ -1557,7 +1556,7 @@
             if (isFabExpanded && 
                 !fabBtn.contains(e.target) && 
                 !fabExpandedMenu.contains(e.target) &&
-                !isTutorialActive) {
+                !isRecommendationActive) {
                 toggleFabMenu();
             }
         });
@@ -2273,10 +2272,10 @@
                             initWarningSystem();
                             initBroadcastSystem();
                             
-                            // Check if we should show the tutorial
-                            if (shouldShowTutorial()) {
-                                // Wait a bit for everything to load, then start tutorial
-                                setTimeout(startTutorial, 1000);
+                            // Check if we should show the recommendation
+                            if (shouldShowRecommendation()) {
+                                // Wait a bit for everything to load, then start recommendation
+                                setTimeout(startRecommendation, 1000);
                             }
                         } else {
                             // Token is invalid, show auth modal
@@ -2300,9 +2299,8 @@
                 }
             }
             
-            // Tutorial Event Listeners
-            document.getElementById('tutorialNext').addEventListener('click', nextTutorialStep);
-            document.getElementById('tutorialSkip').addEventListener('click', skipTutorial);
+            // Recommendation Event Listeners
+            document.getElementById('recommendationDismiss').addEventListener('click', dismissRecommendation);
             
             // Terms Modal Buttons
             document.getElementById('agreeBtn').addEventListener('click', function() {
@@ -2415,10 +2413,10 @@
                             initWarningSystem();
                             initBroadcastSystem();
                             
-                            // Check if we should show the tutorial
-                            if (shouldShowTutorial()) {
-                                // Wait a bit for everything to load, then start tutorial
-                                setTimeout(startTutorial, 1000);
+                            // Check if we should show the recommendation
+                            if (shouldShowRecommendation()) {
+                                // Wait a bit for everything to load, then start recommendation
+                                setTimeout(startRecommendation, 1000);
                             }
                             
                             showNotification('Login successful!', 'success');
@@ -2479,10 +2477,10 @@
                             initWarningSystem();
                             initBroadcastSystem();
                             
-                            // Check if we should show the tutorial
-                            if (shouldShowTutorial()) {
-                                // Wait a bit for everything to load, then start tutorial
-                                setTimeout(startTutorial, 1000);
+                            // Check if we should show the recommendation
+                            if (shouldShowRecommendation()) {
+                                // Wait a bit for everything to load, then start recommendation
+                                setTimeout(startRecommendation, 1000);
                             }
                             
                             showNotification('Account created successfully!', 'success');
@@ -2886,6 +2884,9 @@
             }
             if (warningCheckInterval) {
                 clearInterval(warningCheckInterval);
+            }
+            if (recommendationUpdateInterval) {
+                clearInterval(recommendationUpdateInterval);
             }
         });
     </script>
