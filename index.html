@@ -11,7 +11,6 @@
     <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
     <link class="favicon" rel="icon" type="image/x-icon" href="https://quiz-50.github.io/media/drive.ico">
     <style>
-        /* All previous theme and component styles remain the same */
         /* Theme Variables */
         body {
             --bg-primary: #1a0933;
@@ -674,107 +673,6 @@
             text-align: center;
             max-width: 80%;
         }
-
-        /* Recommendation System Styles */
-        .recommendation-arrow {
-            position: fixed;
-            width: 60px;
-            height: 60px;
-            z-index: 9998;
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            pointer-events: none;
-        }
-
-        .recommendation-arrow svg {
-            width: 100%;
-            height: 100%;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-        }
-
-        .recommendation-arrow .arrow-text {
-            position: absolute;
-            white-space: nowrap;
-            font-size: 14px;
-            font-weight: 600;
-            color: white;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-            background: rgba(0, 0, 0, 0.7);
-            padding: 4px 8px;
-            border-radius: 4px;
-            backdrop-filter: blur(10px);
-        }
-
-        .recommendation-arrow.pointing-right {
-            transform: rotate(0deg);
-        }
-
-        .recommendation-arrow.pointing-left {
-            transform: rotate(180deg);
-        }
-
-        .recommendation-arrow.pointing-up {
-            transform: rotate(-90deg);
-        }
-
-        .recommendation-arrow.pointing-down {
-            transform: rotate(90deg);
-        }
-
-        .recommendation-arrow .arrow-text.top {
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            margin-bottom: 8px;
-        }
-
-        .recommendation-arrow .arrow-text.bottom {
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            margin-top: 8px;
-        }
-
-        .recommendation-arrow .arrow-text.left {
-            right: 100%;
-            top: 50%;
-            transform: translateY(-50%);
-            margin-right: 8px;
-        }
-
-        .recommendation-arrow .arrow-text.right {
-            left: 100%;
-            top: 50%;
-            transform: translateY(-50%);
-            margin-left: 8px;
-        }
-
-        .recommendation-highlight {
-            position: relative;
-            z-index: 9999;
-            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5), 0 0 20px rgba(255, 255, 255, 0.3);
-            border-radius: 12px;
-            transition: all 0.3s ease;
-        }
-
-        .recommendation-dismiss {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            z-index: 9999;
-            backdrop-filter: blur(10px);
-            transition: all 0.2s ease;
-        }
-
-        .recommendation-dismiss:hover {
-            background: rgba(0, 0, 0, 0.8);
-        }
     </style>
 </head>
 <body class="min-h-screen text-white font-sans">
@@ -783,15 +681,6 @@
     
     <!-- Notification container -->
     <div class="notification-container" id="notificationContainer"></div>
-    
-    <!-- Recommendation Arrow -->
-    <div id="recommendationArrow" class="recommendation-arrow hidden">
-        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M30 5L55 30L30 55L5 30L30 5Z" fill="#8e44ad" stroke="#6c5ce7" stroke-width="2"/>
-            <path d="M30 15L40 25H35V45H25V25H20L30 15Z" fill="white"/>
-        </svg>
-        <div class="arrow-text" id="recommendationArrowText">Click here</div>
-    </div>
     
     <!-- Warning Modal -->
     <div id="warningModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
@@ -1155,12 +1044,6 @@
         let broadcastCheckInterval = null;
         let warningCheckInterval = null;
         let isFabExpanded = false;
-        
-        // Recommendation system variables
-        let isRecommendationActive = false;
-        let recommendationStep = 0;
-        let recommendationElements = [];
-        let recommendationUpdateInterval = null;
 
         function getCookie(name) {
             const cookieName = name + "=";
@@ -1183,182 +1066,6 @@
             // 10 years in seconds
             const maxAge = 10 * 365 * 24 * 60 * 60;
             document.cookie = `${name}=${value}; Max-Age=${maxAge}; path=/; SameSite=Strict`;
-        }
-
-        // Recommendation System Functions
-        function shouldShowRecommendation() {
-            // Check if user has the HasDoneSuggestion cookie
-            return !getCookie('HasDoneSuggestion');
-        }
-
-        function startRecommendation() {
-            if (!shouldShowRecommendation()) return;
-            
-            isRecommendationActive = true;
-            recommendationStep = 0;
-            
-            // Show recommendation arrow
-            document.getElementById('recommendationArrow').classList.remove('hidden');
-            
-            // Start with the first step
-            showRecommendationStep(0);
-            
-            // Set up interval to update arrow position when scrolling
-            recommendationUpdateInterval = setInterval(updateRecommendationPosition, 100);
-        }
-
-        function showRecommendationStep(step) {
-            recommendationStep = step;
-            
-            const recommendationArrow = document.getElementById('recommendationArrow');
-            const recommendationArrowText = document.getElementById('recommendationArrowText');
-            
-            // Remove any existing highlights
-            recommendationElements.forEach(el => {
-                el.classList.remove('recommendation-highlight');
-            });
-            recommendationElements = [];
-            
-            switch(step) {
-                case 0:
-                    // Point to FAB button
-                    const fabBtn = document.getElementById('fabBtn');
-                    if (!fabBtn) {
-                        // If FAB button isn't available, skip to next step
-                        showRecommendationStep(1);
-                        return;
-                    }
-                    
-                    // Highlight FAB button
-                    fabBtn.classList.add('recommendation-highlight');
-                    recommendationElements.push(fabBtn);
-                    
-                    // Position arrow pointing to FAB
-                    recommendationArrow.classList.add('pointing-up');
-                    recommendationArrowText.textContent = "Check out quick actions";
-                    recommendationArrowText.className = 'arrow-text bottom';
-                    
-                    updateArrowPosition(fabBtn, 'top');
-                    break;
-                    
-                case 1:
-                    // Point to polls button in expanded FAB menu
-                    const pollsFab = document.getElementById('pollsFab');
-                    if (!pollsFab) {
-                        // If polls button isn't available, end recommendation
-                        endRecommendation();
-                        return;
-                    }
-                    
-                    // Make sure FAB menu is expanded
-                    if (!isFabExpanded) {
-                        toggleFabMenu();
-                    }
-                    
-                    // Highlight polls button
-                    pollsFab.classList.add('recommendation-highlight');
-                    recommendationElements.push(pollsFab);
-                    
-                    // Position arrow pointing to polls button
-                    recommendationArrow.classList.add('pointing-up');
-                    recommendationArrowText.textContent = "Vote on community polls";
-                    recommendationArrowText.className = 'arrow-text bottom';
-                    
-                    updateArrowPosition(pollsFab, 'top');
-                    
-                    // Add event listener to polls button to complete recommendation when clicked
-                    const completeRecommendationOnPollsClick = function() {
-                        setCookie('HasDoneSuggestion', 'true');
-                        endRecommendation();
-                    };
-                    
-                    // Remove any existing event listeners and add new one
-                    pollsFab.removeEventListener('click', completeRecommendationOnPollsClick);
-                    pollsFab.addEventListener('click', completeRecommendationOnPollsClick);
-                    break;
-                    
-                default:
-                    // End recommendation
-                    endRecommendation();
-                    return;
-            }
-        }
-
-        function updateArrowPosition(targetElement, position) {
-            const recommendationArrow = document.getElementById('recommendationArrow');
-            const rect = targetElement.getBoundingClientRect();
-            
-            let arrowTop, arrowLeft;
-            
-            switch(position) {
-                case 'top':
-                    arrowTop = rect.top - 80;
-                    arrowLeft = rect.left + rect.width / 2;
-                    break;
-                case 'bottom':
-                    arrowTop = rect.bottom + 20;
-                    arrowLeft = rect.left + rect.width / 2;
-                    break;
-                case 'left':
-                    arrowTop = rect.top + rect.height / 2;
-                    arrowLeft = rect.left - 80;
-                    break;
-                case 'right':
-                    arrowTop = rect.top + rect.height / 2;
-                    arrowLeft = rect.right + 20;
-                    break;
-                default:
-                    arrowTop = rect.top - 80;
-                    arrowLeft = rect.left + rect.width / 2;
-            }
-            
-            recommendationArrow.style.top = `${arrowTop}px`;
-            recommendationArrow.style.left = `${arrowLeft}px`;
-        }
-
-        function updateRecommendationPosition() {
-            if (!isRecommendationActive) return;
-            
-            switch(recommendationStep) {
-                case 0:
-                    const fabBtn = document.getElementById('fabBtn');
-                    if (fabBtn) {
-                        updateArrowPosition(fabBtn, 'top');
-                    }
-                    break;
-                case 1:
-                    const pollsFab = document.getElementById('pollsFab');
-                    if (pollsFab) {
-                        updateArrowPosition(pollsFab, 'top');
-                    }
-                    break;
-            }
-        }
-
-        function nextRecommendationStep() {
-            showRecommendationStep(recommendationStep + 1);
-        }
-
-        function endRecommendation() {
-            isRecommendationActive = false;
-            document.getElementById('recommendationArrow').classList.add('hidden');
-            
-            // Remove highlights
-            recommendationElements.forEach(el => {
-                el.classList.remove('recommendation-highlight');
-            });
-            recommendationElements = [];
-            
-            // Clear update interval
-            if (recommendationUpdateInterval) {
-                clearInterval(recommendationUpdateInterval);
-                recommendationUpdateInterval = null;
-            }
-            
-            // Collapse FAB menu if it's expanded
-            if (isFabExpanded) {
-                toggleFabMenu();
-            }
         }
 
         // Theme Management Functions
@@ -1490,13 +1197,6 @@
                 fabBtn.style.transform = 'rotate(45deg)';
                 
                 isFabExpanded = true;
-                
-                // If recommendation is active and we're on step 0, move to step 1
-                if (isRecommendationActive && recommendationStep === 0) {
-                    setTimeout(() => {
-                        showRecommendationStep(1);
-                    }, 400);
-                }
             } else {
                 // Collapse the menu
                 pollsFab.classList.remove('visible');
@@ -1514,11 +1214,6 @@
                 }, 400);
                 
                 isFabExpanded = false;
-                
-                // If recommendation is active and we're on step 1, go back to step 0
-                if (isRecommendationActive && recommendationStep === 1) {
-                    showRecommendationStep(0);
-                }
             }
         }
 
@@ -1528,9 +1223,6 @@
         }
 
         function handleVoteOnPolls() {
-            // Set the cookie to mark recommendation as completed
-            setCookie('HasDoneSuggestion', 'true');
-            
             // Redirect to polls.html
             window.location.href = 'polls.html';
         }
@@ -1542,8 +1234,7 @@
             
             if (isFabExpanded && 
                 !fabBtn.contains(e.target) && 
-                !fabExpandedMenu.contains(e.target) &&
-                !isRecommendationActive) {
+                !fabExpandedMenu.contains(e.target)) {
                 toggleFabMenu();
             }
         });
@@ -2038,7 +1729,7 @@
             
             setTimeout(() => {
                 toast.classList.remove('translate-y-20');
-                toast.classList.add('translateY-0');
+                toast.classList.add('translate-y-0');
             }, 100);
             
             // Auto hide after 15 seconds
@@ -2051,7 +1742,7 @@
         function hideBroadcastToast(broadcastId) {
             const toast = document.querySelector(`.broadcast-toast[data-broadcast-id="${broadcastId}"]`);
             if (toast) {
-                toast.classList.remove('translateY-0');
+                toast.classList.remove('translate-y-0');
                 toast.classList.add('translate-y-20');
                 
                 setTimeout(() => {
@@ -2258,12 +1949,6 @@
                             initMessageSystem();
                             initWarningSystem();
                             initBroadcastSystem();
-                            
-                            // Check if we should show the recommendation
-                            if (shouldShowRecommendation()) {
-                                // Wait a bit for everything to load, then start recommendation
-                                setTimeout(startRecommendation, 1000);
-                            }
                         } else {
                             // Token is invalid, show auth modal
                             document.getElementById('loadingOverlay').classList.add('hidden');
@@ -2288,7 +1973,7 @@
             
             // Terms Modal Buttons
             document.getElementById('agreeBtn').addEventListener('click', function() {
-                setCookie('AcceptedTerms', 'true');
+                setCookie('AcceptedTerms', 'true', 365);
                 document.getElementById('termsModal').classList.add('hidden');
                 document.getElementById('customizeModal').classList.remove('hidden');
             });
@@ -2397,12 +2082,6 @@
                             initWarningSystem();
                             initBroadcastSystem();
                             
-                            // Check if we should show the recommendation
-                            if (shouldShowRecommendation()) {
-                                // Wait a bit for everything to load, then start recommendation
-                                setTimeout(startRecommendation, 1000);
-                            }
-                            
                             showNotification('Login successful!', 'success');
                         } else {
                             document.getElementById('loadingModal').classList.add('hidden');
@@ -2460,12 +2139,6 @@
                             initMessageSystem();
                             initWarningSystem();
                             initBroadcastSystem();
-                            
-                            // Check if we should show the recommendation
-                            if (shouldShowRecommendation()) {
-                                // Wait a bit for everything to load, then start recommendation
-                                setTimeout(startRecommendation, 1000);
-                            }
                             
                             showNotification('Account created successfully!', 'success');
                         } else {
@@ -2868,9 +2541,6 @@
             }
             if (warningCheckInterval) {
                 clearInterval(warningCheckInterval);
-            }
-            if (recommendationUpdateInterval) {
-                clearInterval(recommendationUpdateInterval);
             }
         });
     </script>
