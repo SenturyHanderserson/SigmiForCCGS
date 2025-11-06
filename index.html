@@ -1678,15 +1678,15 @@
                     const data = await response.json();
                     
                     // Update the specific warning in userWarnings array
-                    const warningIndex = userWarnings.findIndex(w => w.id === warningId);
-                    if (warningIndex !== -1) {
-                        userWarnings[warningIndex] = {
-                            ...userWarnings[warningIndex],
-                            dismissed: true,
-                            dismissedAt = data.warning.dismissedAt,
-                            dismissedBy = data.warning.dismissedBy
-                        };
-                    }
+                                const warningIndex = userWarnings.findIndex(w => w.id === warningId);
+                                    if (warningIndex !== -1) {
+                                        userWarnings[warningIndex] = {
+                                            ...userWarnings[warningIndex],
+                                            dismissed: true,
+                                            dismissedAt: data.warning.dismissedAt,  // This line had the comma error
+                                            dismissedBy: data.warning.dismissedBy
+                                        };
+                        }
                     
                     // Refresh the warning modal with updated warnings
                     showWarningModal(userWarnings);
