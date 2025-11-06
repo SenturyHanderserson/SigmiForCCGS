@@ -792,11 +792,6 @@
         </svg>
         <div class="arrow-text" id="recommendationArrowText">Click here</div>
     </div>
-
-    <!-- Dismiss Recommendation Button -->
-    <button id="recommendationDismiss" class="recommendation-dismiss hidden">
-        Dismiss Suggestions
-    </button>
     
     <!-- Warning Modal -->
     <div id="warningModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
@@ -1202,9 +1197,8 @@
             isRecommendationActive = true;
             recommendationStep = 0;
             
-            // Show recommendation arrow and dismiss button
+            // Show recommendation arrow
             document.getElementById('recommendationArrow').classList.remove('hidden');
-            document.getElementById('recommendationDismiss').classList.remove('hidden');
             
             // Start with the first step
             showRecommendationStep(0);
@@ -1348,7 +1342,6 @@
         function endRecommendation() {
             isRecommendationActive = false;
             document.getElementById('recommendationArrow').classList.add('hidden');
-            document.getElementById('recommendationDismiss').classList.add('hidden');
             
             // Remove highlights
             recommendationElements.forEach(el => {
@@ -1366,12 +1359,6 @@
             if (isFabExpanded) {
                 toggleFabMenu();
             }
-        }
-
-        function dismissRecommendation() {
-            setCookie('HasDoneSuggestion', 'true');
-            endRecommendation();
-            showNotification('Suggestions dismissed', 'info');
         }
 
         // Theme Management Functions
@@ -1504,8 +1491,8 @@
                 
                 isFabExpanded = true;
                 
-                // If recommendation is active and we're on step 1, update the arrow position
-                if (isRecommendationActive && recommendationStep === 1) {
+                // If recommendation is active and we're on step 0, move to step 1
+                if (isRecommendationActive && recommendationStep === 0) {
                     setTimeout(() => {
                         showRecommendationStep(1);
                     }, 400);
@@ -2298,9 +2285,6 @@
                     document.getElementById('authModal').classList.remove('hidden');
                 }
             }
-            
-            // Recommendation Event Listeners
-            document.getElementById('recommendationDismiss').addEventListener('click', dismissRecommendation);
             
             // Terms Modal Buttons
             document.getElementById('agreeBtn').addEventListener('click', function() {
