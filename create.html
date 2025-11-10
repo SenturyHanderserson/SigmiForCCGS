@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Upload - Moderator Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #8e44ad 0%, #6c5ce7 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(142, 68, 173, 0.3);
+        }
+        
+        .image-preview {
+            max-width: 200px;
+            max-height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-purple-900 to-blue-900 text-white font-sans">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="glass rounded-xl p-6 mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold">Game Upload Panel</h1>
+                    <p class="text-gray-300">Upload and manage games for the platform</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="userInfo" class="text-gray-300"></span>
+                    <button onclick="logout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Form -->
+        <div class="glass rounded-xl p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-6">Upload New Game</h2>
+            
+            <form id="uploadForm" class="space-y-6">
+                <!-- Basic Information -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Game Title *</label>
+                        <input type="text" id="title" required 
+                               class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Game URL *</label>
+                        <input type="url" id="gameUrl" required 
+                               class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500"
+                               placeholder="https://example.com/game">
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Description *</label>
+                    <textarea id="description" required rows="3"
+                              class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500"
+                              placeholder="Describe the game..."></textarea>
+                </div>
+
+                <!-- Game Details -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Rating</label>
+                        <input type="number" id="rating" min="0" max="5" step="0.1" value="4.0"
+                               class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Play Count</label>
+                        <input type="number" id="playCount" min="0" value="0"
+                               class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Category</label>
+                        <select id="category" multiple
+                                class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500">
+                            <option value="new">New</option>
+                            <option value="popular">Popular</option>
+                            <option value="action">Action</option>
+                            <option value="adventure">Adventure</option>
+                            <option value="strategy">Strategy</option>
+                            <option value="puzzle">Puzzle</option>
+                            <option value="multiplayer">Multiplayer</option>
+                            <option value="sandbox">Sandbox</option>
+                            <option value="simulation">Simulation</option>
+                            <option value="shooter">Shooter</option>
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1">Hold Ctrl/Cmd to select multiple categories</p>
+                    </div>
+                </div>
+
+                <!-- Image Upload -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Game Image</label>
+                    <div class="flex items-center space-x-4">
+                        <input type="file" id="imageUpload" accept="image/*" 
+                               class="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500">
+                        <div id="imagePreview" class="hidden">
+                            <img id="previewImage" class="image-preview">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Authentication Toggle -->
+                <div class="flex items-center space-x-3">
+                    <input type="checkbox" id="requiresAuth" class="w-4 h-4">
+                    <label for="requiresAuth" class="text-sm font-medium">
+                        This game requires server authentication
+                    </label>
+                </div>
+                <p class="text-xs text-gray-400">
+                    If checked, the game will use the provided URL directly. If unchecked, a custom game page will be created.
+                </p>
+
+                <!-- Submit Button -->
+                <div class="flex justify-end">
+                    <button type="submit" 
+                            class="btn-primary px-6 py-3 rounded-lg font-medium flex items-center space-x-2">
+                        <i data-feather="upload"></i>
+                        <span>Upload Game</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Existing Games -->
+        <div class="glass rounded-xl p-6">
+            <h2 class="text-2xl font-bold mb-6">Existing Games</h2>
+            <div id="gamesList" class="space-y-4">
+                <!-- Games will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="glass rounded-xl p-8 text-center">
+            <div class="loading-spinner border-4 border-gray-300 border-t-purple-500 rounded-full w-12 h-12 animate-spin mx-auto mb-4"></div>
+            <h3 class="text-xl font-semibold">Processing...</h3>
+            <p class="text-gray-300">Please wait while we upload your game</p>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <script>
+        const SERVER_URL = 'https://proxyforsigmi.onrender.com';
+        let authToken = '';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            feather.replace();
+            checkAuth();
+            loadExistingGames();
+            setupEventListeners();
+        });
+
+        // Check authentication
+        function checkAuth() {
+            authToken = localStorage.getItem('authToken');
+            const currentUser = localStorage.getItem('currentUser');
+            const userRole = localStorage.getItem('userRole');
+
+            if (!authToken || !currentUser) {
+                window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
+                return;
+            }
+
+            // Check if user is moderator or admin
+            if (userRole !== 'Moderator' && userRole !== 'Admin' && userRole !== 'Owner') {
+                alert('Insufficient permissions. Moderator access required.');
+                window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
+                return;
+            }
+
+            document.getElementById('userInfo').textContent = `${currentUser} (${userRole})`;
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Image preview
+            document.getElementById('imageUpload').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const previewContainer = document.getElementById('imagePreview');
+                        const previewImage = document.getElementById('previewImage');
+                        previewImage.src = e.target.result;
+                        previewContainer.classList.remove('hidden');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Form submission
+            document.getElementById('uploadForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                uploadGame();
+            });
+        }
+
+        // Upload game
+        async function uploadGame() {
+            const formData = new FormData(document.getElementById('uploadForm'));
+            const imageFile = document.getElementById('imageUpload').files[0];
+
+            // Get category values
+            const categorySelect = document.getElementById('category');
+            const categories = Array.from(categorySelect.selectedOptions).map(option => option.value);
+
+            const gameData = {
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                gameUrl: document.getElementById('gameUrl').value,
+                requiresAuth: document.getElementById('requiresAuth').checked,
+                rating: parseFloat(document.getElementById('rating').value),
+                playCount: parseInt(document.getElementById('playCount').value),
+                category: categories.length > 0 ? categories : ['new']
+            };
+
+            // Handle image
+            if (imageFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    gameData.image = e.target.result;
+                    submitGame(gameData);
+                };
+                reader.readAsDataURL(imageFile);
+            } else {
+                submitGame(gameData);
+            }
+        }
+
+        // Submit game to server
+        async function submitGame(gameData) {
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`${SERVER_URL}/api/games/upload`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(gameData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showNotification('Game uploaded successfully!', 'success');
+                    resetForm();
+                    loadExistingGames();
+                } else {
+                    throw new Error(data.error || 'Upload failed');
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                showNotification(error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Load existing games
+        async function loadExistingGames() {
+            try {
+                const response = await fetch(`${SERVER_URL}/api/games`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displayGames(data.games);
+                } else {
+                    throw new Error('Failed to load games');
+                }
+            } catch (error) {
+                console.error('Error loading games:', error);
+                showNotification('Failed to load existing games', 'error');
+            }
+        }
+
+        // Display games in list
+        function displayGames(games) {
+            const container = document.getElementById('gamesList');
+            
+            if (games.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-center py-8">No games uploaded yet</p>';
+                return;
+            }
+
+            container.innerHTML = games.map(game => `
+                <div class="glass rounded-lg p-4 flex justify-between items-center">
+                    <div class="flex items-center space-x-4">
+                        <img src="${game.image}" alt="${game.title}" class="w-16 h-16 object-cover rounded-lg">
+                        <div>
+                            <h3 class="font-semibold">${game.title}</h3>
+                            <p class="text-sm text-gray-300">${game.description}</p>
+                            <div class="flex items-center space-x-4 text-xs text-gray-400 mt-1">
+                                <span>Rating: ${game.rating}/5</span>
+                                <span>Plays: ${game.playCount}</span>
+                                <span>Categories: ${game.category.join(', ')}</span>
+                                <span>Auth: ${game.requiresAuth ? 'Yes' : 'No'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="deleteGame(${game.id})" 
+                                class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm transition-colors">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Delete game
+        async function deleteGame(gameId) {
+            if (!confirm('Are you sure you want to delete this game?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${SERVER_URL}/api/games/${gameId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    showNotification('Game deleted successfully', 'success');
+                    loadExistingGames();
+                } else {
+                    const data = await response.json();
+                    throw new Error(data.error || 'Delete failed');
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                showNotification(error.message, 'error');
+            }
+        }
+
+        // Reset form
+        function resetForm() {
+            document.getElementById('uploadForm').reset();
+            document.getElementById('imagePreview').classList.add('hidden');
+            document.getElementById('previewImage').src = '';
+        }
+
+        // Show/hide loading
+        function showLoading(show) {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.toggle('hidden', !show);
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            
+            const bgColor = type === 'success' ? 'bg-green-600' : 
+                          type === 'error' ? 'bg-red-600' : 'bg-blue-600';
+            
+            notification.className = `${bgColor} text-white px-6 py-4 rounded-lg shadow-lg transform transition-transform duration-300`;
+            notification.style.transform = 'translateX(100%)';
+            notification.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                        <i data-feather="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Auto remove
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 5000);
+            
+            feather.replace();
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('userRole');
+            window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
+        }
+    </script>
+</body>
+</html>
