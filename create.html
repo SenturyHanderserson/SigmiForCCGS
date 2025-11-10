@@ -30,6 +30,20 @@
             object-fit: cover;
             border-radius: 8px;
         }
+        
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #8e44ad;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-purple-900 to-blue-900 text-white font-sans">
@@ -39,7 +53,7 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-3xl font-bold">Game Upload Panel</h1>
-                    <p class="text-gray-300">Upload and manage games for the platform</p>
+                    <p class="text-gray-300">Upload and manage games for SigmiForCCGS</p>
                 </div>
                 <div class="flex items-center space-x-4">
                     <span id="userInfo" class="text-gray-300"></span>
@@ -60,7 +74,8 @@
                     <div>
                         <label class="block text-sm font-medium mb-2">Game Title *</label>
                         <input type="text" id="title" required 
-                               class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500">
+                               class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500"
+                               placeholder="Enter game title">
                     </div>
                     
                     <div>
@@ -132,7 +147,7 @@
                     </label>
                 </div>
                 <p class="text-xs text-gray-400">
-                    If checked, the game will use the provided URL directly. If unchecked, a custom game page will be created.
+                    If checked, the game will use the provided URL directly. If unchecked, a custom game page will be created in the /english folder.
                 </p>
 
                 <!-- Submit Button -->
@@ -150,7 +165,10 @@
         <div class="glass rounded-xl p-6">
             <h2 class="text-2xl font-bold mb-6">Existing Games</h2>
             <div id="gamesList" class="space-y-4">
-                <!-- Games will be loaded here -->
+                <div class="text-center py-8 text-gray-400">
+                    <i data-feather="loader" class="w-8 h-8 mx-auto mb-2 animate-spin"></i>
+                    <p>Loading games...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -158,7 +176,7 @@
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
         <div class="glass rounded-xl p-8 text-center">
-            <div class="loading-spinner border-4 border-gray-300 border-t-purple-500 rounded-full w-12 h-12 animate-spin mx-auto mb-4"></div>
+            <div class="loading-spinner mx-auto mb-4"></div>
             <h3 class="text-xl font-semibold">Processing...</h3>
             <p class="text-gray-300">Please wait while we upload your game</p>
         </div>
@@ -305,6 +323,7 @@
             } catch (error) {
                 console.error('Error loading games:', error);
                 showNotification('Failed to load existing games', 'error');
+                document.getElementById('gamesList').innerHTML = '<p class="text-gray-400 text-center py-8">Error loading games</p>';
             }
         }
 
