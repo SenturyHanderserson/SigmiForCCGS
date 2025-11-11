@@ -44,178 +44,293 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .login-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .login-content {
+            background: linear-gradient(135deg, #6e3b9c 0%, #3b1d6c 50%, #1a0933 100%);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
     </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-purple-900 to-blue-900 text-white font-sans">
-    <div class="container mx-auto px-4 py-8">
-        <!-- Header -->
-        <div class="glass rounded-xl p-6 mb-8">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h1 class="text-3xl font-bold">Game Upload Panel</h1>
-                    <p class="text-gray-300">Upload and manage games for SigmiForCCGS</p>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span id="userInfo" class="text-gray-300"></span>
-                    <button onclick="logout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors">
-                        Logout
-                    </button>
+    <!-- Login Modal -->
+    <div id="loginModal" class="login-modal">
+        <div class="login-content">
+            <div class="medal-icon w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                <i data-feather="award" class="w-10 h-10 text-white"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-4">Authentication Required</h2>
+            <p class="text-gray-300 mb-6">You need to be logged in to access the game upload panel.</p>
+            <button onclick="redirectToLogin()" class="btn-primary py-3 px-6 rounded-lg font-medium w-full mb-4">
+                Sign In
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content (Hidden until authenticated) -->
+    <div id="mainContent" class="hidden">
+        <div class="container mx-auto px-4 py-8">
+            <!-- Header -->
+            <div class="glass rounded-xl p-6 mb-8">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-3xl font-bold">Game Upload Panel</h1>
+                        <p class="text-gray-300">Upload and manage games for SigmiForCCGS</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span id="userInfo" class="text-gray-300"></span>
+                        <button onclick="logout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors">
+                            Logout
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Upload Form -->
-        <div class="glass rounded-xl p-6 mb-8">
-            <h2 class="text-2xl font-bold mb-6">Upload New Game</h2>
-            
-            <form id="uploadForm" class="space-y-6">
-                <!-- Basic Information -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Game Title *</label>
-                        <input type="text" id="title" required 
-                               class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500"
-                               placeholder="Enter game title">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Game URL *</label>
-                        <input type="url" id="gameUrl" required 
-                               class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500"
-                               placeholder="https://example.com/game">
-                    </div>
-                </div>
-
-                <!-- Description -->
-                <div>
-                    <label class="block text-sm font-medium mb-2">Description *</label>
-                    <textarea id="description" required rows="3"
-                              class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500"
-                              placeholder="Describe the game..."></textarea>
-                </div>
-
-                <!-- Game Details -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Rating</label>
-                        <input type="number" id="rating" min="0" max="5" step="0.1" value="4.0"
-                               class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Play Count</label>
-                        <input type="number" id="playCount" min="0" value="0"
-                               class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Category</label>
-                        <select id="category" multiple
-                                class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500">
-                            <option value="new">New</option>
-                            <option value="popular">Popular</option>
-                            <option value="action">Action</option>
-                            <option value="adventure">Adventure</option>
-                            <option value="strategy">Strategy</option>
-                            <option value="puzzle">Puzzle</option>
-                            <option value="multiplayer">Multiplayer</option>
-                            <option value="sandbox">Sandbox</option>
-                            <option value="simulation">Simulation</option>
-                            <option value="shooter">Shooter</option>
-                        </select>
-                        <p class="text-xs text-gray-400 mt-1">Hold Ctrl/Cmd to select multiple categories</p>
-                    </div>
-                </div>
-
-                <!-- Image Upload -->
-                <div>
-                    <label class="block text-sm font-medium mb-2">Game Image</label>
-                    <div class="flex items-center space-x-4">
-                        <input type="file" id="imageUpload" accept="image/*" 
-                               class="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500">
-                        <div id="imagePreview" class="hidden">
-                            <img id="previewImage" class="image-preview">
+            <!-- Upload Form -->
+            <div class="glass rounded-xl p-6 mb-8">
+                <h2 class="text-2xl font-bold mb-6">Upload New Game</h2>
+                
+                <form id="uploadForm" class="space-y-6">
+                    <!-- Basic Information -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Game Title *</label>
+                            <input type="text" id="title" required 
+                                   class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500"
+                                   placeholder="Enter game title">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Game URL *</label>
+                            <input type="url" id="gameUrl" required 
+                                   class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500"
+                                   placeholder="https://example.com/game">
                         </div>
                     </div>
-                </div>
 
-                <!-- Authentication Toggle -->
-                <div class="flex items-center space-x-3">
-                    <input type="checkbox" id="requiresAuth" class="w-4 h-4">
-                    <label for="requiresAuth" class="text-sm font-medium">
-                        This game requires server authentication
-                    </label>
-                </div>
-                <p class="text-xs text-gray-400">
-                    If checked, the game will use the provided URL directly. If unchecked, a custom game page will be created in the /english folder.
-                </p>
+                    <!-- Description -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Description *</label>
+                        <textarea id="description" required rows="3"
+                                  class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500"
+                                  placeholder="Describe the game..."></textarea>
+                    </div>
 
-                <!-- Submit Button -->
-                <div class="flex justify-end">
-                    <button type="submit" 
-                            class="btn-primary px-6 py-3 rounded-lg font-medium flex items-center space-x-2">
-                        <i data-feather="upload"></i>
-                        <span>Upload Game</span>
-                    </button>
-                </div>
-            </form>
-        </div>
+                    <!-- Game Details -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Rating</label>
+                            <input type="number" id="rating" min="0" max="5" step="0.1" value="4.0"
+                                   class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Play Count</label>
+                            <input type="number" id="playCount" min="0" value="0"
+                                   class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Category</label>
+                            <select id="category" multiple
+                                    class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500">
+                                <option value="new">New</option>
+                                <option value="popular">Popular</option>
+                                <option value="action">Action</option>
+                                <option value="adventure">Adventure</option>
+                                <option value="strategy">Strategy</option>
+                                <option value="puzzle">Puzzle</option>
+                                <option value="multiplayer">Multiplayer</option>
+                                <option value="sandbox">Sandbox</option>
+                                <option value="simulation">Simulation</option>
+                                <option value="shooter">Shooter</option>
+                            </select>
+                            <p class="text-xs text-gray-400 mt-1">Hold Ctrl/Cmd to select multiple categories</p>
+                        </div>
+                    </div>
 
-        <!-- Existing Games -->
-        <div class="glass rounded-xl p-6">
-            <h2 class="text-2xl font-bold mb-6">Existing Games</h2>
-            <div id="gamesList" class="space-y-4">
-                <div class="text-center py-8 text-gray-400">
-                    <i data-feather="loader" class="w-8 h-8 mx-auto mb-2 animate-spin"></i>
-                    <p>Loading games...</p>
+                    <!-- Image Upload -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Game Image</label>
+                        <div class="flex items-center space-x-4">
+                            <input type="file" id="imageUpload" accept="image/*" 
+                                   class="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500">
+                            <div id="imagePreview" class="hidden">
+                                <img id="previewImage" class="image-preview">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Authentication Toggle -->
+                    <div class="flex items-center space-x-3">
+                        <input type="checkbox" id="requiresAuth" class="w-4 h-4">
+                        <label for="requiresAuth" class="text-sm font-medium">
+                            This game requires server authentication
+                        </label>
+                    </div>
+                    <p class="text-xs text-gray-400">
+                        If checked, the game will use the provided URL directly. If unchecked, a custom game page will be created in the /english folder.
+                    </p>
+
+                    <!-- Submit Button -->
+                    <div class="flex justify-end">
+                        <button type="submit" 
+                                class="btn-primary px-6 py-3 rounded-lg font-medium flex items-center space-x-2">
+                            <i data-feather="upload"></i>
+                            <span>Upload Game</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Existing Games -->
+            <div class="glass rounded-xl p-6">
+                <h2 class="text-2xl font-bold mb-6">Existing Games</h2>
+                <div id="gamesList" class="space-y-4">
+                    <div class="text-center py-8 text-gray-400">
+                        <i data-feather="loader" class="w-8 h-8 mx-auto mb-2 animate-spin"></i>
+                        <p>Loading games...</p>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-        <div class="glass rounded-xl p-8 text-center">
-            <div class="loading-spinner mx-auto mb-4"></div>
-            <h3 class="text-xl font-semibold">Processing...</h3>
-            <p class="text-gray-300">Please wait while we upload your game</p>
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+            <div class="glass rounded-xl p-8 text-center">
+                <div class="loading-spinner mx-auto mb-4"></div>
+                <h3 class="text-xl font-semibold">Processing...</h3>
+                <p class="text-gray-300">Please wait while we upload your game</p>
+            </div>
         </div>
-    </div>
 
-    <!-- Notification Container -->
-    <div id="notificationContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+        <!-- Notification Container -->
+        <div id="notificationContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+    </div>
 
     <script>
         const SERVER_URL = 'https://proxyforsigmi.onrender.com';
         let authToken = '';
+        let currentUser = null;
+        let userRole = null;
+
+        // Cookie functions to match your existing system
+        function getCookie(name) {
+            const cookieName = name + "=";
+            const decodedCookie = decodeURIComponent(document.cookie);
+            const cookieArray = decodedCookie.split(';');
+            
+            for(let i = 0; i < cookieArray.length; i++) {
+                let cookie = cookieArray[i];
+                while (cookie.charAt(0) === ' ') {
+                    cookie = cookie.substring(1);
+                }
+                if (cookie.indexOf(cookieName) === 0) {
+                    return cookie.substring(cookieName.length, cookie.length);
+                }
+            }
+            return "";
+        }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             feather.replace();
             checkAuth();
-            loadExistingGames();
-            setupEventListeners();
         });
 
         // Check authentication
-        function checkAuth() {
-            authToken = localStorage.getItem('authToken');
-            const currentUser = localStorage.getItem('currentUser');
-            const userRole = localStorage.getItem('userRole');
-
-            if (!authToken || !currentUser) {
-                window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
+        async function checkAuth() {
+            // Try to get token from cookie first (your existing system)
+            authToken = getCookie('AuthToken');
+            
+            if (!authToken) {
+                // If no cookie token, show login modal
+                showLoginModal();
                 return;
             }
 
-            // Check if user is moderator or admin
-            if (userRole !== 'Moderator' && userRole !== 'Admin' && userRole !== 'Owner') {
-                alert('Insufficient permissions. Moderator access required.');
-                window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
-                return;
-            }
+            // Verify token with server
+            try {
+                const response = await fetch(`${SERVER_URL}/api/verify-token`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
 
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Get user info
+                    const userResponse = await fetch(`${SERVER_URL}/api/user-info`, {
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        }
+                    });
+
+                    if (userResponse.ok) {
+                        const userData = await userResponse.json();
+                        currentUser = userData.username;
+                        userRole = userData.role;
+
+                        // Check if user has moderator permissions
+                        if (userRole !== 'Moderator' && userRole !== 'Admin' && userRole !== 'Owner') {
+                            showNotification('Insufficient permissions. Moderator access required.', 'error');
+                            setTimeout(() => {
+                                window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
+                            }, 2000);
+                            return;
+                        }
+
+                        // User is authenticated and has permissions
+                        showMainContent();
+                        loadExistingGames();
+                        setupEventListeners();
+                    } else {
+                        throw new Error('Failed to get user info');
+                    }
+                } else {
+                    throw new Error('Invalid token');
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
+                showLoginModal();
+            }
+        }
+
+        // Show login modal
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.getElementById('mainContent').classList.add('hidden');
+        }
+
+        // Show main content
+        function showMainContent() {
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
             document.getElementById('userInfo').textContent = `${currentUser} (${userRole})`;
+        }
+
+        // Redirect to login
+        function redirectToLogin() {
+            window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
         }
 
         // Setup event listeners
@@ -244,7 +359,6 @@
 
         // Upload game
         async function uploadGame() {
-            const formData = new FormData(document.getElementById('uploadForm'));
             const imageFile = document.getElementById('imageUpload').files[0];
 
             // Get category values
@@ -440,9 +554,9 @@
 
         // Logout
         function logout() {
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('userRole');
+            // Clear cookies
+            document.cookie = "AuthToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            // Redirect to homepage
             window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
         }
     </script>
