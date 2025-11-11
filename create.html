@@ -9,8 +9,8 @@
     <style>
         .glass {
             background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
@@ -45,20 +45,69 @@
             100% { transform: rotate(360deg); }
         }
 
-        .login-modal {
+        .notification-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            width: 100%;
+            max-width: 24rem;
+        }
+        
+        .notification {
+            background: rgba(26, 9, 51, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateX(0);
+            transition: all 0.3s ease;
+        }
+        
+        .notification.hidden {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        
+        .notification-icon {
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+        
+        .notification-content {
+            flex-grow: 1;
+        }
+        
+        .notification-close {
+            margin-left: 0.75rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+        
+        .notification-close:hover {
+            opacity: 1;
+        }
+
+        .auth-modal {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.8);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 1000;
         }
         
-        .login-content {
+        .auth-content {
             background: linear-gradient(135deg, #6e3b9c 0%, #3b1d6c 50%, #1a0933 100%);
             border-radius: 16px;
             padding: 2rem;
@@ -69,10 +118,10 @@
     </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-purple-900 to-blue-900 text-white font-sans">
-    <!-- Login Modal -->
-    <div id="loginModal" class="login-modal">
-        <div class="login-content">
-            <div class="medal-icon w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+    <!-- Auth Required Modal -->
+    <div id="authModal" class="auth-modal">
+        <div class="auth-content">
+            <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
                 <i data-feather="award" class="w-10 h-10 text-white"></i>
             </div>
             <h2 class="text-2xl font-bold mb-4">Authentication Required</h2>
@@ -80,11 +129,12 @@
             <button onclick="redirectToLogin()" class="btn-primary py-3 px-6 rounded-lg font-medium w-full mb-4">
                 Sign In
             </button>
+            <p class="text-sm text-gray-400">Must have Moderator permissions</p>
         </div>
     </div>
 
     <!-- Main Content (Hidden until authenticated) -->
-    <div id="mainContent" class="hidden">
+    <div id="mainContent" class="hidden min-h-screen">
         <div class="container mx-auto px-4 py-8">
             <!-- Header -->
             <div class="glass rounded-xl p-6 mb-8">
@@ -230,7 +280,7 @@
         let currentUser = null;
         let userRole = null;
 
-        // Cookie functions to match your existing system
+        // Cookie functions from your working page
         function getCookie(name) {
             const cookieName = name + "=";
             const decodedCookie = decodeURIComponent(document.cookie);
@@ -248,53 +298,46 @@
             return "";
         }
 
+        function setCookie(name, value) {
+            // 10 years in seconds
+            const maxAge = 10 * 365 * 24 * 60 * 60;
+            document.cookie = `${name}=${value}; Max-Age=${maxAge}; path=/; SameSite=Strict`;
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             feather.replace();
             checkAuth();
         });
 
-        // Check authentication
+        // Check authentication - using the same logic as your working page
         async function checkAuth() {
-            // Try to get token from cookie first (your existing system)
+            // Get token from cookie (your existing system)
             authToken = getCookie('AuthToken');
-            
-            if (!authToken) {
-                // If no cookie token, show login modal
-                showLoginModal();
+            currentUser = localStorage.getItem('currentUser');
+            userRole = localStorage.getItem('userRole');
+
+            if (!authToken || !currentUser) {
+                // No token or user info, show auth modal
+                showAuthModal();
                 return;
             }
 
             // Verify token with server
             try {
-                const response = await fetch(`${SERVER_URL}/api/verify-token`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    // Get user info
-                    const userResponse = await fetch(`${SERVER_URL}/api/user-info`, {
-                        headers: {
-                            'Authorization': `Bearer ${authToken}`
-                        }
-                    });
-
-                    if (userResponse.ok) {
-                        const userData = await userResponse.json();
-                        currentUser = userData.username;
-                        userRole = userData.role;
+                const isValid = await verifyToken(authToken);
+                if (isValid) {
+                    // Get fresh user info from server
+                    const userInfo = await getUserInfo();
+                    if (userInfo) {
+                        currentUser = userInfo.username;
+                        userRole = userInfo.role;
 
                         // Check if user has moderator permissions
                         if (userRole !== 'Moderator' && userRole !== 'Admin' && userRole !== 'Owner') {
                             showNotification('Insufficient permissions. Moderator access required.', 'error');
                             setTimeout(() => {
-                                window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
+                                redirectToLogin();
                             }, 2000);
                             return;
                         }
@@ -311,19 +354,61 @@
                 }
             } catch (error) {
                 console.error('Auth error:', error);
-                showLoginModal();
+                showAuthModal();
             }
         }
 
-        // Show login modal
-        function showLoginModal() {
-            document.getElementById('loginModal').classList.remove('hidden');
+        // Verify token with server - from your working page
+        async function verifyToken(token) {
+            try {
+                const response = await fetch(`${SERVER_URL}/api/verify-token`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    return false;
+                }
+                
+                const data = await response.json();
+                return data.valid === true;
+            } catch (error) {
+                console.error('Token verification error:', error);
+                return false;
+            }
+        }
+
+        // Get user info from server
+        async function getUserInfo() {
+            try {
+                const response = await fetch(`${SERVER_URL}/api/user-info`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    return await response.json();
+                }
+                return null;
+            } catch (error) {
+                console.error('Error getting user info:', error);
+                return null;
+            }
+        }
+
+        // Show auth modal
+        function showAuthModal() {
+            document.getElementById('authModal').classList.remove('hidden');
             document.getElementById('mainContent').classList.add('hidden');
         }
 
         // Show main content
         function showMainContent() {
-            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('authModal').classList.add('hidden');
             document.getElementById('mainContent').classList.remove('hidden');
             document.getElementById('userInfo').textContent = `${currentUser} (${userRole})`;
         }
@@ -554,8 +639,10 @@
 
         // Logout
         function logout() {
-            // Clear cookies
+            // Clear cookies and localStorage
             document.cookie = "AuthToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('userRole');
             // Redirect to homepage
             window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
         }
