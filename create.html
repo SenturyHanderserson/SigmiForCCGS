@@ -115,6 +115,15 @@
             width: 90%;
             text-align: center;
         }
+
+        .game-card {
+            transition: all 0.3s ease;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
     </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-purple-900 to-blue-900 text-white font-sans">
@@ -251,7 +260,12 @@
 
             <!-- Existing Games -->
             <div class="glass rounded-xl p-6">
-                <h2 class="text-2xl font-bold mb-6">Existing Games</h2>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Existing Games</h2>
+                    <div class="text-sm text-gray-300">
+                        <span id="gamesCount">0</span> games total
+                    </div>
+                </div>
                 <div id="gamesList" class="space-y-4">
                     <div class="text-center py-8 text-gray-400">
                         <i data-feather="loader" class="w-8 h-8 mx-auto mb-2 animate-spin"></i>
@@ -280,7 +294,7 @@
         let currentUser = null;
         let userRole = null;
 
-        // Cookie functions from your working page
+        // Cookie functions
         function getCookie(name) {
             const cookieName = name + "=";
             const decodedCookie = decodeURIComponent(document.cookie);
@@ -298,42 +312,31 @@
             return "";
         }
 
-        function setCookie(name, value) {
-            // 10 years in seconds
-            const maxAge = 10 * 365 * 24 * 60 * 60;
-            document.cookie = `${name}=${value}; Max-Age=${maxAge}; path=/; SameSite=Strict`;
-        }
-
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             feather.replace();
             checkAuth();
         });
 
-        // Check authentication - using the same logic as your working page
+        // Check authentication
         async function checkAuth() {
-            // Get token from cookie (your existing system)
             authToken = getCookie('AuthToken');
             currentUser = localStorage.getItem('currentUser');
             userRole = localStorage.getItem('userRole');
 
             if (!authToken || !currentUser) {
-                // No token or user info, show auth modal
                 showAuthModal();
                 return;
             }
 
-            // Verify token with server
             try {
                 const isValid = await verifyToken(authToken);
                 if (isValid) {
-                    // Get fresh user info from server
                     const userInfo = await getUserInfo();
                     if (userInfo) {
                         currentUser = userInfo.username;
                         userRole = userInfo.role;
 
-                        // Check if user has moderator permissions
                         if (userRole !== 'Moderator' && userRole !== 'Admin' && userRole !== 'Owner') {
                             showNotification('Insufficient permissions. Moderator access required.', 'error');
                             setTimeout(() => {
@@ -342,7 +345,6 @@
                             return;
                         }
 
-                        // User is authenticated and has permissions
                         showMainContent();
                         loadExistingGames();
                         setupEventListeners();
@@ -358,7 +360,7 @@
             }
         }
 
-        // Verify token with server - from your working page
+        // Verify token with server
         async function verifyToken(token) {
             try {
                 const response = await fetch(`${SERVER_URL}/api/verify-token`, {
@@ -504,7 +506,7 @@
             }
         }
 
-        // Load existing games
+        // Load existing games - now shows ALL games
         async function loadExistingGames() {
             try {
                 const response = await fetch(`${SERVER_URL}/api/games`, {
@@ -516,6 +518,7 @@
                 if (response.ok) {
                     const data = await response.json();
                     displayGames(data.games);
+                    document.getElementById('gamesCount').textContent = data.totalCount || data.games.length;
                 } else {
                     throw new Error('Failed to load games');
                 }
@@ -526,7 +529,7 @@
             }
         }
 
-        // Display games in list
+        // Display games in list - shows all games with delete buttons
         function displayGames(games) {
             const container = document.getElementById('gamesList');
             
@@ -536,33 +539,70 @@
             }
 
             container.innerHTML = games.map(game => `
-                <div class="glass rounded-lg p-4 flex justify-between items-center">
-                    <div class="flex items-center space-x-4">
-                        <img src="${game.image}" alt="${game.title}" class="w-16 h-16 object-cover rounded-lg">
-                        <div>
-                            <h3 class="font-semibold">${game.title}</h3>
-                            <p class="text-sm text-gray-300">${game.description}</p>
-                            <div class="flex items-center space-x-4 text-xs text-gray-400 mt-1">
-                                <span>Rating: ${game.rating}/5</span>
-                                <span>Plays: ${game.playCount}</span>
-                                <span>Categories: ${game.category.join(', ')}</span>
-                                <span>Auth: ${game.requiresAuth ? 'Yes' : 'No'}</span>
+                <div class="glass rounded-lg p-4 game-card">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-start space-x-4 flex-1">
+                            <img src="${game.image}" alt="${game.title}" class="w-20 h-20 object-cover rounded-lg">
+                            <div class="flex-1">
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                        <h3 class="font-semibold text-lg">${game.title}</h3>
+                                        <p class="text-gray-300 mt-1">${game.description}</p>
+                                    </div>
+                                    <div class="text-right text-sm text-gray-400">
+                                        <div>ID: ${game.id}</div>
+                                        <div>${new Date(game.createdAt).toLocaleDateString()}</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-4 text-sm text-gray-400 mt-2">
+                                    <span class="flex items-center space-x-1">
+                                        <i data-feather="star" class="w-4 h-4 text-yellow-400"></i>
+                                        <span>${game.rating}/5</span>
+                                    </span>
+                                    <span class="flex items-center space-x-1">
+                                        <i data-feather="play" class="w-4 h-4 text-green-400"></i>
+                                        <span>${game.playCount} plays</span>
+                                    </span>
+                                    <span class="flex items-center space-x-1">
+                                        <i data-feather="user" class="w-4 h-4 text-blue-400"></i>
+                                        <span>By ${game.createdBy}</span>
+                                    </span>
+                                    <span class="flex items-center space-x-1">
+                                        <i data-feather="${game.requiresAuth ? 'lock' : 'globe'}" class="w-4 h-4 ${game.requiresAuth ? 'text-red-400' : 'text-green-400'}"></i>
+                                        <span>${game.requiresAuth ? 'Auth Required' : 'Public'}</span>
+                                    </span>
+                                </div>
+                                <div class="flex flex-wrap gap-1 mt-2">
+                                    ${game.category.map(cat => `
+                                        <span class="px-2 py-1 bg-purple-600 bg-opacity-50 rounded text-xs">${cat}</span>
+                                    `).join('')}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <button onclick="deleteGame(${game.id})" 
-                                class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm transition-colors">
-                            Delete
-                        </button>
+                        <div class="flex items-center space-x-2 ml-4">
+                            ${game.gamePageUrl ? `
+                                <a href="${game.gamePageUrl}" target="_blank" 
+                                   class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-sm transition-colors flex items-center space-x-1">
+                                    <i data-feather="external-link" class="w-4 h-4"></i>
+                                    <span>View</span>
+                                </a>
+                            ` : ''}
+                            <button onclick="deleteGame(${game.id}, '${game.title}')" 
+                                    class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-sm transition-colors flex items-center space-x-1">
+                                <i data-feather="trash-2" class="w-4 h-4"></i>
+                                <span>Delete</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             `).join('');
+            
+            feather.replace();
         }
 
         // Delete game
-        async function deleteGame(gameId) {
-            if (!confirm('Are you sure you want to delete this game?')) {
+        async function deleteGame(gameId, gameTitle) {
+            if (!confirm(`Are you sure you want to delete "${gameTitle}"? This action cannot be undone.`)) {
                 return;
             }
 
@@ -575,7 +615,7 @@
                 });
 
                 if (response.ok) {
-                    showNotification('Game deleted successfully', 'success');
+                    showNotification(`Game "${gameTitle}" deleted successfully`, 'success');
                     loadExistingGames();
                 } else {
                     const data = await response.json();
@@ -639,11 +679,9 @@
 
         // Logout
         function logout() {
-            // Clear cookies and localStorage
             document.cookie = "AuthToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             localStorage.removeItem('currentUser');
             localStorage.removeItem('userRole');
-            // Redirect to homepage
             window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
         }
     </script>
