@@ -6,35 +6,78 @@
     <title>Game Upload - Moderator Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
     <style>
         .glass {
+            background: rgba(17, 25, 40, 0.75);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.125);
+            border-radius: 12px;
+        }
+        
+        .glass-light {
             background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #8e44ad 0%, #6c5ce7 100%);
-            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
         }
         
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(142, 68, 173, 0.3);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(245, 87, 108, 0.4);
         }
         
         .image-preview {
-            max-width: 200px;
-            max-height: 150px;
+            width: 120px;
+            height: 90px;
             object-fit: cover;
             border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .image-preview:hover {
+            transform: scale(1.05);
+            border-color: rgba(102, 126, 234, 0.5);
         }
         
         .loading-spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
-            border-top: 4px solid #8e44ad;
+            border-top: 3px solid #667eea;
             width: 40px;
             height: 40px;
             animation: spin 1s linear infinite;
@@ -45,6 +88,22 @@
             100% { transform: rotate(360deg); }
         }
 
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
         .notification-container {
             position: fixed;
             top: 1rem;
@@ -55,21 +114,42 @@
         }
         
         .notification {
-            background: rgba(26, 9, 51, 0.9);
+            background: rgba(17, 25, 40, 0.95);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
             padding: 1rem;
             margin-bottom: 0.5rem;
             display: flex;
             align-items: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transform: translateX(0);
-            transition: all 0.3s ease;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transform: translateX(100%);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 4px solid;
         }
         
-        .notification.hidden {
+        .notification.success {
+            border-left-color: #10b981;
+        }
+        
+        .notification.error {
+            border-left-color: #ef4444;
+        }
+        
+        .notification.info {
+            border-left-color: #3b82f6;
+        }
+        
+        .notification.warning {
+            border-left-color: #f59e0b;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.hide {
             transform: translateX(100%);
             opacity: 0;
         }
@@ -77,10 +157,13 @@
         .notification-icon {
             margin-right: 0.75rem;
             flex-shrink: 0;
+            width: 20px;
+            height: 20px;
         }
         
         .notification-content {
             flex-grow: 1;
+            font-size: 0.875rem;
         }
         
         .notification-close {
@@ -88,6 +171,8 @@
             cursor: pointer;
             opacity: 0.7;
             transition: opacity 0.2s ease;
+            width: 16px;
+            height: 16px;
         }
         
         .notification-close:hover {
@@ -101,41 +186,120 @@
             right: 0;
             bottom: 0;
             background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 1000;
-        }
-        
-        .auth-content {
-            background: linear-gradient(135deg, #6e3b9c 0%, #3b1d6c 50%, #1a0933 100%);
-            border-radius: 16px;
-            padding: 2rem;
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-        }
-
-        .game-card {
+            opacity: 0;
+            visibility: hidden;
             transition: all 0.3s ease;
         }
         
+        .auth-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .auth-content {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        .auth-modal.active .auth-content {
+            transform: scale(1);
+        }
+
+        .game-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
         .game-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+        
+        .category-tag {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .stats-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .form-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .file-upload {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .file-upload:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        .checkbox-custom {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .checkbox-custom:checked {
+            background: #667eea;
+            border-color: #667eea;
         }
     </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-purple-900 to-blue-900 text-white font-sans">
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white font-sans overflow-x-hidden">
+    <!-- Background Animation -->
+    <div class="fixed inset-0 z-0">
+        <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900"></div>
+        <div class="absolute inset-0 opacity-30">
+            <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float"></div>
+            <div class="absolute top-1/3 right-1/4 w-64 h-64 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float" style="animation-delay: -2s;"></div>
+            <div class="absolute bottom-1/4 left-1/2 w-64 h-64 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float" style="animation-delay: -4s;"></div>
+        </div>
+    </div>
+
     <!-- Auth Required Modal -->
     <div id="authModal" class="auth-modal">
         <div class="auth-content">
-            <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                <i data-feather="award" class="w-10 h-10 text-white"></i>
+            <div class="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center floating">
+                <i data-feather="award" class="w-12 h-12 text-white"></i>
             </div>
-            <h2 class="text-2xl font-bold mb-4">Authentication Required</h2>
-            <p class="text-gray-300 mb-6">You need to be logged in to access the game upload panel.</p>
-            <button onclick="redirectToLogin()" class="btn-primary py-3 px-6 rounded-lg font-medium w-full mb-4">
+            <h2 class="text-3xl font-bold mb-4 gradient-text">Authentication Required</h2>
+            <p class="text-gray-300 mb-8 text-lg">You need to be logged in to access the game upload panel.</p>
+            <button onclick="redirectToLogin()" class="btn-primary py-4 px-8 rounded-xl font-semibold w-full mb-4 text-lg">
                 Sign In
             </button>
             <p class="text-sm text-gray-400">Must have Moderator permissions</p>
@@ -143,152 +307,192 @@
     </div>
 
     <!-- Main Content (Hidden until authenticated) -->
-    <div id="mainContent" class="hidden min-h-screen">
+    <div id="mainContent" class="hidden min-h-screen relative z-10">
         <div class="container mx-auto px-4 py-8">
             <!-- Header -->
-            <div class="glass rounded-xl p-6 mb-8">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h1 class="text-3xl font-bold">Game Upload Panel</h1>
-                        <p class="text-gray-300">Upload and manage games for SigmiForCCGS</p>
+            <div class="glass rounded-2xl p-8 mb-8" data-aos="fade-down">
+                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                    <div class="flex-1">
+                        <h1 class="text-4xl font-bold gradient-text mb-2">Game Upload Panel</h1>
+                        <p class="text-gray-300 text-lg">Upload and manage games for SigmiForCCGS</p>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <span id="userInfo" class="text-gray-300"></span>
-                        <button onclick="logout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors">
-                            Logout
+                        <div class="stats-badge">
+                            <span id="userInfo" class="text-gray-300 font-medium"></span>
+                        </div>
+                        <button onclick="logout()" class="btn-danger px-6 py-3 rounded-xl font-medium flex items-center space-x-2">
+                            <i data-feather="log-out"></i>
+                            <span>Logout</span>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Upload Form -->
-            <div class="glass rounded-xl p-6 mb-8">
-                <h2 class="text-2xl font-bold mb-6">Upload New Game</h2>
-                
-                <form id="uploadForm" class="space-y-6">
-                    <!-- Basic Information -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Game Title *</label>
-                            <input type="text" id="title" required 
-                                   class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500"
-                                   placeholder="Enter game title">
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Game URL *</label>
-                            <input type="url" id="gameUrl" required 
-                                   class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500"
-                                   placeholder="https://example.com/game">
-                        </div>
-                    </div>
-
-                    <!-- Description -->
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Description *</label>
-                        <textarea id="description" required rows="3"
-                                  class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500"
-                                  placeholder="Describe the game..."></textarea>
-                    </div>
-
-                    <!-- Game Details -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Rating</label>
-                            <input type="number" id="rating" min="0" max="5" step="0.1" value="4.0"
-                                   class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500">
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Play Count</label>
-                            <input type="number" id="playCount" min="0" value="0"
-                                   class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500">
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Category</label>
-                            <select id="category" multiple
-                                    class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500">
-                                <option value="new">New</option>
-                                <option value="popular">Popular</option>
-                                <option value="action">Action</option>
-                                <option value="adventure">Adventure</option>
-                                <option value="strategy">Strategy</option>
-                                <option value="puzzle">Puzzle</option>
-                                <option value="multiplayer">Multiplayer</option>
-                                <option value="sandbox">Sandbox</option>
-                                <option value="simulation">Simulation</option>
-                                <option value="shooter">Shooter</option>
-                            </select>
-                            <p class="text-xs text-gray-400 mt-1">Hold Ctrl/Cmd to select multiple categories</p>
-                        </div>
-                    </div>
-
-                    <!-- Image Upload -->
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Game Image</label>
-                        <div class="flex items-center space-x-4">
-                            <input type="file" id="imageUpload" accept="image/*" 
-                                   class="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500">
-                            <div id="imagePreview" class="hidden">
-                                <img id="previewImage" class="image-preview">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                <!-- Upload Form -->
+                <div class="xl:col-span-2">
+                    <div class="glass rounded-2xl p-8" data-aos="fade-right">
+                        <div class="flex items-center mb-8">
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mr-4">
+                                <i data-feather="upload-cloud" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold gradient-text">Upload New Game</h2>
+                                <p class="text-gray-400">Add a new game to the platform</p>
                             </div>
                         </div>
-                    </div>
+                        
+                        <form id="uploadForm" class="space-y-8">
+                            <!-- Basic Information -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div data-aos="fade-up" data-aos-delay="100">
+                                    <label class="block text-sm font-semibold mb-3 text-gray-300">Game Title *</label>
+                                    <input type="text" id="title" required 
+                                           class="w-full px-4 py-3 form-input rounded-xl focus:outline-none"
+                                           placeholder="Enter game title">
+                                </div>
+                                
+                                <div data-aos="fade-up" data-aos-delay="150">
+                                    <label class="block text-sm font-semibold mb-3 text-gray-300">Game URL *</label>
+                                    <input type="url" id="gameUrl" required 
+                                           class="w-full px-4 py-3 form-input rounded-xl focus:outline-none"
+                                           placeholder="https://example.com/game">
+                                </div>
+                            </div>
 
-                    <!-- Authentication Toggle -->
-                    <div class="flex items-center space-x-3">
-                        <input type="checkbox" id="requiresAuth" class="w-4 h-4">
-                        <label for="requiresAuth" class="text-sm font-medium">
-                            This game requires server authentication
-                        </label>
-                    </div>
-                    <p class="text-xs text-gray-400">
-                        If checked, the game will use the provided URL directly. If unchecked, a custom game page will be created in the /english folder.
-                    </p>
+                            <!-- Description -->
+                            <div data-aos="fade-up" data-aos-delay="200">
+                                <label class="block text-sm font-semibold mb-3 text-gray-300">Description *</label>
+                                <textarea id="description" required rows="4"
+                                          class="w-full px-4 py-3 form-input rounded-xl focus:outline-none resize-none"
+                                          placeholder="Describe the game features, gameplay, and what makes it special..."></textarea>
+                            </div>
 
-                    <!-- Submit Button -->
-                    <div class="flex justify-end">
-                        <button type="submit" 
-                                class="btn-primary px-6 py-3 rounded-lg font-medium flex items-center space-x-2">
-                            <i data-feather="upload"></i>
-                            <span>Upload Game</span>
-                        </button>
-                    </div>
-                </form>
-            </div>
+                            <!-- Game Details -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div data-aos="fade-up" data-aos-delay="250">
+                                    <label class="block text-sm font-semibold mb-3 text-gray-300">Rating</label>
+                                    <input type="number" id="rating" min="0" max="5" step="0.1" value="4.0"
+                                           class="w-full px-4 py-3 form-input rounded-xl focus:outline-none">
+                                </div>
+                                
+                                <div data-aos="fade-up" data-aos-delay="300">
+                                    <label class="block text-sm font-semibold mb-3 text-gray-300">Play Count</label>
+                                    <input type="number" id="playCount" min="0" value="0"
+                                           class="w-full px-4 py-3 form-input rounded-xl focus:outline-none">
+                                </div>
+                                
+                                <div data-aos="fade-up" data-aos-delay="350">
+                                    <label class="block text-sm font-semibold mb-3 text-gray-300">Categories</label>
+                                    <select id="category" multiple
+                                            class="w-full px-4 py-3 form-input rounded-xl focus:outline-none">
+                                        <option value="new">New</option>
+                                        <option value="popular">Popular</option>
+                                        <option value="action">Action</option>
+                                        <option value="adventure">Adventure</option>
+                                        <option value="strategy">Strategy</option>
+                                        <option value="puzzle">Puzzle</option>
+                                        <option value="multiplayer">Multiplayer</option>
+                                        <option value="sandbox">Sandbox</option>
+                                        <option value="simulation">Simulation</option>
+                                        <option value="shooter">Shooter</option>
+                                    </select>
+                                    <p class="text-xs text-gray-400 mt-2">Hold Ctrl/Cmd to select multiple categories</p>
+                                </div>
+                            </div>
 
-            <!-- Existing Games -->
-            <div class="glass rounded-xl p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">Existing Games</h2>
-                    <div class="text-sm text-gray-300">
-                        <span id="gamesCount">0</span> games total
+                            <!-- Image Upload -->
+                            <div data-aos="fade-up" data-aos-delay="400">
+                                <label class="block text-sm font-semibold mb-3 text-gray-300">Game Image</label>
+                                <div class="file-upload p-6 text-center">
+                                    <input type="file" id="imageUpload" accept="image/*" 
+                                           class="hidden">
+                                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                                        <div class="flex-1">
+                                            <button type="button" onclick="document.getElementById('imageUpload').click()" 
+                                                    class="btn-primary px-6 py-3 rounded-xl font-medium flex items-center space-x-2 mx-auto md:mx-0">
+                                                <i data-feather="image"></i>
+                                                <span>Choose Image</span>
+                                            </button>
+                                            <p class="text-xs text-gray-400 mt-2">Recommended: 400x300px, max 2MB</p>
+                                        </div>
+                                        <div id="imagePreview" class="hidden">
+                                            <img id="previewImage" class="image-preview">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Authentication Toggle -->
+                            <div class="flex items-center space-x-3 p-4 glass-light rounded-xl" data-aos="fade-up" data-aos-delay="450">
+                                <input type="checkbox" id="requiresAuth" class="checkbox-custom">
+                                <label for="requiresAuth" class="text-sm font-medium text-gray-300">
+                                    This game requires server authentication
+                                </label>
+                            </div>
+                            <p class="text-xs text-gray-400 -mt-4" data-aos="fade-up" data-aos-delay="500">
+                                If checked, the game will use the provided URL directly. If unchecked, a custom game page will be created in the /english folder.
+                            </p>
+
+                            <!-- Submit Button -->
+                            <div class="flex justify-end pt-4" data-aos="fade-up" data-aos-delay="550">
+                                <button type="submit" 
+                                        class="btn-primary px-8 py-4 rounded-xl font-semibold flex items-center space-x-3 text-lg">
+                                    <i data-feather="upload-cloud"></i>
+                                    <span>Upload Game</span>
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
-                <div id="gamesList" class="space-y-4">
-                    <div class="text-center py-8 text-gray-400">
-                        <i data-feather="loader" class="w-8 h-8 mx-auto mb-2 animate-spin"></i>
-                        <p>Loading games...</p>
+
+                <!-- Existing Games -->
+                <div class="xl:col-span-1">
+                    <div class="glass rounded-2xl p-8 h-fit sticky top-8" data-aos="fade-left">
+                        <div class="flex items-center justify-between mb-8">
+                            <div>
+                                <h2 class="text-2xl font-bold gradient-text">Existing Games</h2>
+                                <p class="text-gray-400 text-sm">Manage uploaded games</p>
+                            </div>
+                            <div class="stats-badge">
+                                <span id="gamesCount" class="font-bold">0</span> games
+                            </div>
+                        </div>
+                        <div id="gamesList" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                            <div class="text-center py-12 text-gray-400">
+                                <i data-feather="package" class="w-12 h-12 mx-auto mb-4 opacity-50"></i>
+                                <p class="text-lg">Loading games...</p>
+                                <p class="text-sm mt-2">Please wait while we fetch your games</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Loading Overlay -->
-        <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-            <div class="glass rounded-xl p-8 text-center">
-                <div class="loading-spinner mx-auto mb-4"></div>
-                <h3 class="text-xl font-semibold">Processing...</h3>
-                <p class="text-gray-300">Please wait while we upload your game</p>
+        <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+            <div class="glass rounded-2xl p-12 text-center max-w-md w-full mx-4" data-aos="zoom-in">
+                <div class="loading-spinner mx-auto mb-6"></div>
+                <h3 class="text-2xl font-bold mb-3 gradient-text">Processing...</h3>
+                <p class="text-gray-300 text-lg">Please wait while we upload your game</p>
+                <p class="text-gray-400 text-sm mt-2">This may take a few moments</p>
             </div>
         </div>
 
         <!-- Notification Container -->
-        <div id="notificationContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+        <div id="notificationContainer" class="notification-container"></div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
     <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 50
+        });
+
         const SERVER_URL = 'https://proxyforsigmi.onrender.com';
         let authToken = '';
         let currentUser = null;
@@ -404,13 +608,12 @@
 
         // Show auth modal
         function showAuthModal() {
-            document.getElementById('authModal').classList.remove('hidden');
-            document.getElementById('mainContent').classList.add('hidden');
+            document.getElementById('authModal').classList.add('active');
         }
 
         // Show main content
         function showMainContent() {
-            document.getElementById('authModal').classList.add('hidden');
+            document.getElementById('authModal').classList.remove('active');
             document.getElementById('mainContent').classList.remove('hidden');
             document.getElementById('userInfo').textContent = `${currentUser} (${userRole})`;
         }
@@ -426,6 +629,13 @@
             document.getElementById('imageUpload').addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (file) {
+                    // Validate file size (2MB max)
+                    if (file.size > 2 * 1024 * 1024) {
+                        showNotification('Image size must be less than 2MB', 'error');
+                        this.value = '';
+                        return;
+                    }
+
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         const previewContainer = document.getElementById('imagePreview');
@@ -462,6 +672,12 @@
                 category: categories.length > 0 ? categories : ['new']
             };
 
+            // Validate required fields
+            if (!gameData.title || !gameData.description || !gameData.gameUrl) {
+                showNotification('Please fill in all required fields', 'error');
+                return;
+            }
+
             // Handle image
             if (imageFile) {
                 const reader = new FileReader();
@@ -492,7 +708,7 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    showNotification('Game uploaded successfully!', 'success');
+                    showNotification('Game uploaded successfully! ID: ' + data.gameId, 'success');
                     resetForm();
                     loadExistingGames();
                 } else {
@@ -506,7 +722,7 @@
             }
         }
 
-        // Load existing games - now shows ALL games
+        // Load existing games
         async function loadExistingGames() {
             try {
                 const response = await fetch(`${SERVER_URL}/api/games`, {
@@ -525,73 +741,99 @@
             } catch (error) {
                 console.error('Error loading games:', error);
                 showNotification('Failed to load existing games', 'error');
-                document.getElementById('gamesList').innerHTML = '<p class="text-gray-400 text-center py-8">Error loading games</p>';
+                document.getElementById('gamesList').innerHTML = `
+                    <div class="text-center py-8 text-gray-400">
+                        <i data-feather="alert-triangle" class="w-12 h-12 mx-auto mb-4 text-red-400"></i>
+                        <p class="text-lg">Error loading games</p>
+                        <button onclick="loadExistingGames()" class="btn-primary px-4 py-2 rounded-xl mt-4">
+                            Try Again
+                        </button>
+                    </div>
+                `;
+                feather.replace();
             }
         }
 
-        // Display games in list - shows all games with delete buttons
+        // Display games in list
         function displayGames(games) {
             const container = document.getElementById('gamesList');
             
             if (games.length === 0) {
-                container.innerHTML = '<p class="text-gray-400 text-center py-8">No games uploaded yet</p>';
+                container.innerHTML = `
+                    <div class="text-center py-12 text-gray-400">
+                        <i data-feather="package" class="w-16 h-16 mx-auto mb-4 opacity-50"></i>
+                        <p class="text-lg">No games uploaded yet</p>
+                        <p class="text-sm mt-2">Upload your first game to get started</p>
+                    </div>
+                `;
+                feather.replace();
                 return;
             }
 
             container.innerHTML = games.map(game => `
-                <div class="glass rounded-lg p-4 game-card">
-                    <div class="flex justify-between items-start">
-                        <div class="flex items-start space-x-4 flex-1">
-                            <img src="${game.image}" alt="${game.title}" class="w-20 h-20 object-cover rounded-lg">
-                            <div class="flex-1">
-                                <div class="flex items-start justify-between">
-                                    <div>
-                                        <h3 class="font-semibold text-lg">${game.title}</h3>
-                                        <p class="text-gray-300 mt-1">${game.description}</p>
-                                    </div>
-                                    <div class="text-right text-sm text-gray-400">
-                                        <div>ID: ${game.id}</div>
-                                        <div>${new Date(game.createdAt).toLocaleDateString()}</div>
-                                    </div>
+                <div class="game-card glass rounded-xl p-4" data-aos="fade-up">
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <div class="flex-shrink-0">
+                            <img src="${game.image}" alt="${game.title}" 
+                                 class="w-16 h-16 object-cover rounded-lg border-2 border-gray-600">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+                                <div>
+                                    <h3 class="font-semibold text-lg truncate">${game.title}</h3>
+                                    <p class="text-gray-400 text-sm mt-1 line-clamp-2">${game.description}</p>
                                 </div>
-                                <div class="flex items-center space-x-4 text-sm text-gray-400 mt-2">
-                                    <span class="flex items-center space-x-1">
-                                        <i data-feather="star" class="w-4 h-4 text-yellow-400"></i>
-                                        <span>${game.rating}/5</span>
-                                    </span>
-                                    <span class="flex items-center space-x-1">
-                                        <i data-feather="play" class="w-4 h-4 text-green-400"></i>
-                                        <span>${game.playCount} plays</span>
-                                    </span>
-                                    <span class="flex items-center space-x-1">
-                                        <i data-feather="user" class="w-4 h-4 text-blue-400"></i>
-                                        <span>By ${game.createdBy}</span>
-                                    </span>
-                                    <span class="flex items-center space-x-1">
-                                        <i data-feather="${game.requiresAuth ? 'lock' : 'globe'}" class="w-4 h-4 ${game.requiresAuth ? 'text-red-400' : 'text-green-400'}"></i>
-                                        <span>${game.requiresAuth ? 'Auth Required' : 'Public'}</span>
-                                    </span>
-                                </div>
-                                <div class="flex flex-wrap gap-1 mt-2">
-                                    ${game.category.map(cat => `
-                                        <span class="px-2 py-1 bg-purple-600 bg-opacity-50 rounded text-xs">${cat}</span>
-                                    `).join('')}
+                                <div class="text-right text-sm text-gray-400">
+                                    <div class="font-mono">ID: ${game.id}</div>
+                                    <div>${new Date(game.createdAt).toLocaleDateString()}</div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="flex items-center space-x-2 ml-4">
-                            ${game.gamePageUrl ? `
-                                <a href="${game.gamePageUrl}" target="_blank" 
-                                   class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-sm transition-colors flex items-center space-x-1">
-                                    <i data-feather="external-link" class="w-4 h-4"></i>
-                                    <span>View</span>
-                                </a>
-                            ` : ''}
-                            <button onclick="deleteGame(${game.id}, '${game.title}')" 
-                                    class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-sm transition-colors flex items-center space-x-1">
-                                <i data-feather="trash-2" class="w-4 h-4"></i>
-                                <span>Delete</span>
-                            </button>
+                            
+                            <div class="flex flex-wrap items-center gap-3 mb-3">
+                                <div class="flex items-center space-x-1 text-sm">
+                                    <i data-feather="star" class="w-4 h-4 text-yellow-400"></i>
+                                    <span>${game.rating}/5</span>
+                                </div>
+                                <div class="flex items-center space-x-1 text-sm">
+                                    <i data-feather="play" class="w-4 h-4 text-green-400"></i>
+                                    <span>${game.playCount.toLocaleString()} plays</span>
+                                </div>
+                                <div class="flex items-center space-x-1 text-sm">
+                                    <i data-feather="user" class="w-4 h-4 text-blue-400"></i>
+                                    <span>${game.createdBy}</span>
+                                </div>
+                                <div class="flex items-center space-x-1 text-sm">
+                                    <i data-feather="${game.requiresAuth ? 'lock' : 'globe'}" class="w-4 h-4 ${game.requiresAuth ? 'text-red-400' : 'text-green-400'}"></i>
+                                    <span>${game.requiresAuth ? 'Auth Required' : 'Public'}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-wrap gap-1 mb-4">
+                                ${game.category.map(cat => `
+                                    <span class="category-tag text-xs">${cat}</span>
+                                `).join('')}
+                            </div>
+                            
+                            <div class="flex items-center space-x-2">
+                                ${game.gamePageUrl ? `
+                                    <a href="${game.gamePageUrl}" target="_blank" 
+                                       class="btn-primary px-3 py-2 rounded-lg text-sm flex items-center space-x-1 flex-1 justify-center">
+                                        <i data-feather="external-link" class="w-4 h-4"></i>
+                                        <span>View Game</span>
+                                    </a>
+                                ` : `
+                                    <a href="${game.url}" target="_blank" 
+                                       class="btn-primary px-3 py-2 rounded-lg text-sm flex items-center space-x-1 flex-1 justify-center">
+                                        <i data-feather="external-link" class="w-4 h-4"></i>
+                                        <span>View Game</span>
+                                    </a>
+                                `}
+                                <button onclick="deleteGame(${game.id}, '${game.title.replace(/'/g, "\\'")}')" 
+                                        class="btn-danger px-3 py-2 rounded-lg text-sm flex items-center space-x-1">
+                                    <i data-feather="trash-2" class="w-4 h-4"></i>
+                                    <span>Delete</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -602,10 +844,12 @@
 
         // Delete game
         async function deleteGame(gameId, gameTitle) {
-            if (!confirm(`Are you sure you want to delete "${gameTitle}"? This action cannot be undone.`)) {
+            if (!confirm(`Are you sure you want to delete "${gameTitle}"?\n\nThis will:\n• Remove the game from mathematics.html\n• Delete the game page (if internal)\n• Delete the image file (if hosted on our server)\n\nThis action cannot be undone!`)) {
                 return;
             }
 
+            showLoading(true);
+            
             try {
                 const response = await fetch(`${SERVER_URL}/api/games/${gameId}`, {
                     method: 'DELETE',
@@ -615,7 +859,23 @@
                 });
 
                 if (response.ok) {
-                    showNotification(`Game "${gameTitle}" deleted successfully`, 'success');
+                    const data = await response.json();
+                    let message = `Game "${gameTitle}" deleted successfully`;
+                    
+                    if (data.cleanupResults) {
+                        const results = data.cleanupResults;
+                        const cleanupDetails = [];
+                        if (results.imageDeleted) cleanupDetails.push('image deleted');
+                        if (results.pageDeleted) cleanupDetails.push('game page deleted');
+                        if (cleanupDetails.length > 0) {
+                            message += ` (${cleanupDetails.join(', ')})`;
+                        }
+                        if (results.errors.length > 0) {
+                            message += `. Note: ${results.errors[0]}`;
+                        }
+                    }
+                    
+                    showNotification(message, 'success');
                     loadExistingGames();
                 } else {
                     const data = await response.json();
@@ -624,6 +884,8 @@
             } catch (error) {
                 console.error('Delete error:', error);
                 showNotification(error.message, 'error');
+            } finally {
+                showLoading(false);
             }
         }
 
@@ -632,6 +894,7 @@
             document.getElementById('uploadForm').reset();
             document.getElementById('imagePreview').classList.add('hidden');
             document.getElementById('previewImage').src = '';
+            feather.replace();
         }
 
         // Show/hide loading
@@ -645,36 +908,36 @@
             const container = document.getElementById('notificationContainer');
             const notification = document.createElement('div');
             
-            const bgColor = type === 'success' ? 'bg-green-600' : 
-                          type === 'error' ? 'bg-red-600' : 'bg-blue-600';
-            
-            notification.className = `${bgColor} text-white px-6 py-4 rounded-lg shadow-lg transform transition-transform duration-300`;
-            notification.style.transform = 'translateX(100%)';
+            notification.className = `notification ${type}`;
             notification.innerHTML = `
-                <div class="flex items-center justify-between">
-                    <span>${message}</span>
-                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
-                        <i data-feather="x" class="w-4 h-4"></i>
-                    </button>
+                <div class="notification-icon">
+                    <i data-feather="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-triangle' : type === 'warning' ? 'alert-circle' : 'info'}"></i>
+                </div>
+                <div class="notification-content">
+                    ${message}
+                </div>
+                <div class="notification-close" onclick="this.parentElement.classList.add('hide')">
+                    <i data-feather="x"></i>
                 </div>
             `;
             
             container.appendChild(notification);
+            feather.replace();
             
             // Animate in
             setTimeout(() => {
-                notification.style.transform = 'translateX(0)';
+                notification.classList.add('show');
             }, 100);
             
             // Auto remove
             setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.style.transform = 'translateX(100%)';
-                    setTimeout(() => notification.remove(), 300);
-                }
+                notification.classList.add('hide');
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 500);
             }, 5000);
-            
-            feather.replace();
         }
 
         // Logout
