@@ -907,54 +907,60 @@
     }
 
     // Function to load available roles for assignment - FIXED VERSION
-    async function loadAvailableRoles() {
-        try {
-            const token = getCookie('AuthToken');
-            const response = await fetch(`${SERVER_URL}/api/admin/roles/available`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error('Failed to load available roles');
-            }
-            
-            const data = await response.json();
-            
-            // Get current user's weight for cosmetic role filtering
-            const currentUserRoleConfig = allRoles[currentUserRole];
-            const currentUserWeight = currentUserRoleConfig?.weight || 0;
-            
-            // Convert the roles object to array format for dropdown, filtering cosmetic roles
-            if (data.roles && typeof data.roles === 'object') {
-                const rolesArray = Object.entries(data.roles)
-                    .filter(([roleName, config]) => {
-                        // Filter out cosmetic roles if user doesn't have sufficient weight
-                        if (config.cosmetic && currentUserWeight < 60) {
-                            return false;
-                        }
-                        return true;
-                    })
-                    .map(([roleName, config]) => ({
-                        value: roleName,
-                        label: roleName,
-                        description: config.description || `Role: ${roleName}`,
-                        color: config.color || '#6b7280',
-                        weight: config.weight || 0,
-                        cosmetic: config.cosmetic || false
-                    }));
-                return rolesArray;
-            }
-            
-            return data.roles || [];
-        } catch (error) {
-            console.error('Load roles error:', error);
-            throw error;
-        }
+async function loadAvailableRoles() {
+  try {
+    const token = getCookie('AuthToken');
+    const response = await fetch(`${SERVER_URL}/api/admin/roles/available`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      // If 403, return empty array with message
+      if (response.status === 403) {
+        console.warn('No permission to load available roles');
+        return [];
+      }
+      throw new Error('Failed to load available roles');
     }
+    
+    const data = await response.json();
+    
+    // Get current user's weight for cosmetic role filtering
+    const currentUserRoleConfig = allRoles[currentUserRole];
+    const currentUserWeight = currentUserRoleConfig?.weight || 0;
+    
+    // Convert the roles object to array format for dropdown
+    if (data.roles && typeof data.roles === 'object') {
+      const rolesArray = Object.entries(data.roles)
+        .filter(([roleName, config]) => {
+          // Filter out cosmetic roles if user doesn't have sufficient weight
+          if (config.cosmetic && currentUserWeight < 60) {
+            return false;
+          }
+          return true;
+        })
+        .map(([roleName, config]) => ({
+          value: roleName,
+          label: roleName,
+          description: config.description || `Role: ${roleName}`,
+          color: config.color || '#6b7280',
+          weight: config.weight || 0,
+          cosmetic: config.cosmetic || false
+        }));
+      return rolesArray;
+    }
+    
+    return data.roles || [];
+  } catch (error) {
+    console.error('Load roles error:', error);
+    // Return empty array instead of throwing
+    return [];
+  }
+}
 
     // Function to apply role colors dynamically
     function applyRoleColors(roleConfig) {
