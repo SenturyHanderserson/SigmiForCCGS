@@ -919,7 +919,6 @@ async function loadAvailableRoles() {
     });
     
     if (!response.ok) {
-      // If 403, return empty array with message
       if (response.status === 403) {
         console.warn('No permission to load available roles');
         return [];
@@ -928,16 +927,27 @@ async function loadAvailableRoles() {
     }
     
     const data = await response.json();
-    
-    // Get current user's weight for cosmetic role filtering
     const currentUserRoleConfig = allRoles[currentUserRole];
     const currentUserWeight = currentUserRoleConfig?.weight || 0;
     
-    // Convert the roles object to array format for dropdown
+    // Store assignment limits for UI display
+    window.moderatorAssignmentLimits = data.assignmentLimits;
+    
     if (data.roles && typeof data.roles === 'object') {
       const rolesArray = Object.entries(data.roles)
         .filter(([roleName, config]) => {
-          // Filter out cosmetic roles if user doesn't have sufficient weight
+          // Additional client-side filtering for safety
+          if (isModerator(currentUserRole)) {
+            // Client-side enforcement of weight limits
+            if (config.weight >= currentUserWeight) {
+              return false;
+            }
+            // Client-side enforcement of high-privilege role restriction
+            if (config.weight >= 50) {
+              return false;
+            }
+          }
+          
           if (config.cosmetic && currentUserWeight < 60) {
             return false;
           }
@@ -951,13 +961,14 @@ async function loadAvailableRoles() {
           weight: config.weight || 0,
           cosmetic: config.cosmetic || false
         }));
-      return rolesArray;
+      
+      // Sort by weight for better UX
+      return rolesArray.sort((a, b) => a.weight - b.weight);
     }
     
     return data.roles || [];
   } catch (error) {
     console.error('Load roles error:', error);
-    // Return empty array instead of throwing
     return [];
   }
 }
