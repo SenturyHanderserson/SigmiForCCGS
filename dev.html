@@ -1823,24 +1823,35 @@ async function loadAvailableRoles() {
 
     // Update role help text for assignment modal
     function updateRoleAssignmentHelp() {
-        const roleSelect = document.getElementById('roleSelect');
-        const roleHelp = document.getElementById('roleHelp');
-        const selectedRole = roleSelect.value;
+      const roleSelect = document.getElementById('roleSelect');
+      const roleHelp = document.getElementById('roleHelp');
+      const selectedRole = roleSelect.value;
+      
+      if (selectedRole && allRoles[selectedRole]) {
+        const roleConfig = allRoles[selectedRole];
+        let helpText = roleConfig.description || `Role: ${selectedRole}`;
+        helpText += ` (Weight: ${roleConfig.weight})`;
         
-        if (selectedRole && allRoles[selectedRole]) {
-            const roleConfig = allRoles[selectedRole];
-            let helpText = roleConfig.description || `Role: ${selectedRole}`;
-            
-            // Add cosmetic role warning if applicable
-            if (roleConfig.cosmetic) {
-                helpText += ' (Cosmetic - requires weight 60+ to assign)';
-            }
-            
-            roleHelp.textContent = helpText;
-            roleHelp.classList.remove('hidden');
-        } else {
-            roleHelp.classList.add('hidden');
+        // Add moderator-specific guidance
+        if (isModerator(currentUserRole)) {
+          const currentUserWeight = getRoleWeight(currentUserRole);
+          
+          if (roleConfig.weight >= currentUserWeight) {
+            helpText += ' ❌ Cannot assign - weight too high';
+          } else if (roleConfig.weight >= 50) {
+            helpText += ' ❌ Cannot assign - high-privilege role';
+          } else if (roleConfig.cosmetic && currentUserWeight < 60) {
+            helpText += ' ❌ Cannot assign - cosmetic role requires weight 60+';
+          } else {
+            helpText += ' ✅ Can assign';
+          }
         }
+        
+        roleHelp.textContent = helpText;
+        roleHelp.classList.remove('hidden');
+      } else {
+        roleHelp.classList.add('hidden');
+      }
     }
 
     // Confirm role assignment
@@ -2353,6 +2364,24 @@ function displayRolesList(roles) {
         container.innerHTML = '<div class="text-gray-400 text-center py-4">No roles found</div>';
         return;
     }
+
+  if (isModerator(currentUserRole)) {
+    rolesHTML += `
+      <div class="glassmorphism p-3 rounded-lg mb-4 border-l-4 border-yellow-500">
+        <div class="flex items-center">
+          <i data-feather="info" class="w-4 h-4 text-yellow-400 mr-2"></i>
+          <div>
+            <p class="font-semibold">Moderator Role Limits</p>
+            <p class="text-sm text-gray-300">
+              Max creation weight: ${currentUserWeight - 1} | 
+              Max assignment weight: ${currentUserWeight - 1} |
+              Cannot assign roles ≥ weight 50
+            </p>
+          </div>
+        </div>
+      </div>
+    `;
+  }
     
     let rolesHTML = '';
     
