@@ -2369,13 +2369,18 @@ async function loadRolesList() {
 
 // Display roles in management modal - UPDATED WITH COSMETIC BADGE
 function displayRolesList(roles) {
-    const container = document.getElementById('rolesList');
-    
-    if (Object.keys(roles).length === 0) {
-        container.innerHTML = '<div class="text-gray-400 text-center py-4">No roles found</div>';
-        return;
-    }
-
+  const container = document.getElementById('rolesList');
+  
+  if (Object.keys(roles).length === 0) {
+    container.innerHTML = '<div class="text-gray-400 text-center py-4">No roles found</div>';
+    return;
+  }
+  
+  // Initialize rolesHTML at the top
+  let rolesHTML = '';
+  const currentUserWeight = getRoleWeight(currentUserRole);
+  
+  // Add moderator limits header
   if (isModerator(currentUserRole)) {
     rolesHTML += `
       <div class="glassmorphism p-3 rounded-lg mb-4 border-l-4 border-yellow-500">
@@ -2393,74 +2398,71 @@ function displayRolesList(roles) {
       </div>
     `;
   }
+  
+  // Convert to array and sort by weight
+  const rolesArray = Object.entries(roles)
+    .sort(([,a], [,b]) => (b.weight || 0) - (a.weight || 0));
+  
+  rolesArray.forEach(([roleName, roleConfig]) => {
+    const safeRoleName = escapeHtml(roleName);
+    const safeDescription = escapeHtml(roleConfig.description || 'No description');
+    const safeColor = escapeHtml(roleConfig.color || '#6b7280');
+    const weight = roleConfig.weight || 0;
+    const userCount = users.filter(u => u.role === roleName).length;
+    const isCosmetic = roleConfig.cosmetic || false;
     
-    let rolesHTML = '';
+    const currentUserRoleConfig = allRoles[currentUserRole];
+    const currentUserWeight = currentUserRoleConfig?.weight || 0;
     
-    // Convert to array and sort by weight
-    const rolesArray = Object.entries(roles)
-        .sort(([,a], [,b]) => (b.weight || 0) - (a.weight || 0));
+    // Check if current user can delete this role based on weight
+    const canDelete = currentUserRole === 'Owner' || 
+      (currentUserWeight >= weight && 
+       roleName !== 'Owner' && 
+       userCount === 0);
     
-    rolesArray.forEach(([roleName, roleConfig]) => {
-        const safeRoleName = escapeHtml(roleName);
-        const safeDescription = escapeHtml(roleConfig.description || 'No description');
-        const safeColor = escapeHtml(roleConfig.color || '#6b7280');
-        const weight = roleConfig.weight || 0;
-        const userCount = users.filter(u => u.role === roleName).length;
-        const isCosmetic = roleConfig.cosmetic || false;
-        
-        const currentUserRoleConfig = allRoles[currentUserRole];
-        const currentUserWeight = currentUserRoleConfig?.weight || 0;
-        
-        // Check if current user can delete this role based on weight
-        const canDelete = currentUserRole === 'Owner' || 
-            (currentUserWeight >= weight && 
-             roleName !== 'Owner' && 
-             userCount === 0);
-        
-        const canEdit = currentUserRole === 'Owner' || (currentUserRole === 'Admin' && roleName !== 'Owner');
-        
-        rolesHTML += `
-            <div class="glassmorphism p-4 rounded-lg role-management-item ${isCosmetic ? 'cosmetic-role' : ''}">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-6 h-6 rounded-full border-2 border-white" style="background-color: ${safeColor};"></div>
-                        <div>
-                            <div class="flex items-center space-x-2">
-                                <span class="font-semibold">${safeRoleName}</span>
-                                <span class="text-xs px-2 py-1 rounded-full bg-gray-700">Weight: ${weight}</span>
-                                ${isCosmetic ? '<span class="text-xs px-2 py-1 rounded-full cosmetic-badge">Cosmetic</span>' : ''}
-                                <span class="text-xs px-2 py-1 rounded-full ${userCount > 0 ? 'bg-blue-600' : 'bg-gray-600'}">
-                                    ${userCount} user(s)
-                                </span>
-                            </div>
-                            <p class="text-sm text-gray-300">${safeDescription}</p>
-                        </div>
-                    </div>
-                    <div class="flex space-x-2">
-                        ${canEdit ? `
-                            <button onclick="editRoleColor('${safeRoleName}', '${safeColor}')" 
-                                    class="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 hover:scale-110"
-                                    title="Change Color">
-                                <i data-feather="edit-3" class="w-4 h-4"></i>
-                            </button>
-                        ` : ''}
-                        ${canDelete ? `
-                            <button onclick="deleteRole('${safeRoleName}')" 
-                                    class="p-2 bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 hover:scale-110"
-                                    title="Delete Role">
-                                <i data-feather="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        ` : ''}
-                    </div>
-                </div>
+    const canEdit = currentUserRole === 'Owner' || (currentUserRole === 'Admin' && roleName !== 'Owner');
+    
+    rolesHTML += `
+      <div class="glassmorphism p-4 rounded-lg role-management-item ${isCosmetic ? 'cosmetic-role' : ''}">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-6 h-6 rounded-full border-2 border-white" style="background-color: ${safeColor};"></div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="font-semibold">${safeRoleName}</span>
+                <span class="text-xs px-2 py-1 rounded-full bg-gray-700">Weight: ${weight}</span>
+                ${isCosmetic ? '<span class="text-xs px-2 py-1 rounded-full cosmetic-badge">Cosmetic</span>' : ''}
+                <span class="text-xs px-2 py-1 rounded-full ${userCount > 0 ? 'bg-blue-600' : 'bg-gray-600'}">
+                  ${userCount} user(s)
+                </span>
+              </div>
+              <p class="text-sm text-gray-300">${safeDescription}</p>
             </div>
-        `;
-    });
-    
-    container.innerHTML = rolesHTML;
-    feather.replace();
+          </div>
+          <div class="flex space-x-2">
+            ${canEdit ? `
+              <button onclick="editRoleColor('${safeRoleName}', '${safeColor}')" 
+                      class="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 hover:scale-110"
+                      title="Change Color">
+                <i data-feather="edit-3" class="w-4 h-4"></i>
+              </button>
+            ` : ''}
+            ${canDelete ? `
+              <button onclick="deleteRole('${safeRoleName}')" 
+                      class="p-2 bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 hover:scale-110"
+                      title="Delete Role">
+                <i data-feather="trash-2" class="w-4 h-4"></i>
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = rolesHTML;
+  feather.replace();
 }
-
 // Edit role color
 async function editRoleColor(roleName, currentColor) {
     const newColor = prompt(`Enter new color for ${roleName} (hex format):`, currentColor);
