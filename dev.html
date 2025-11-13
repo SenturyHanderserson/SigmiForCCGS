@@ -369,16 +369,16 @@
                         <p class="text-xs text-gray-400 mt-1">Higher number = higher privilege</p>
                     </div>
                     
-                    <div>
-                        <label for="rolePermissions" class="block text-gray-300 mb-2">Base Permissions</label>
-                        <select id="rolePermissions" 
-                                class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                            <option value="basic">Basic Access</option>
-                            <option value="moderator">Moderator</option>
-                            <option value="admin">Admin (Limited)</option>
-                            <option value="full">Full Access</option>
-                        </select>
-                    </div>
+                  <div class="mb-4">
+                    <label for="rolePermissionClass" class="block text-gray-300 mb-2">Permission Class</label>
+                    <select id="rolePermissionClass" 
+                            class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="basic">Basic Access</option>
+                        <option value="moderator">Moderator Class</option>
+                        <option value="admin">Admin (Limited)</option>
+                        <option value="full">Full Access</option>
+                    </select>
+                    <p class="text-xs text-gray-400 mt-1">This automatically sets the appropriate permissions for the role</p>
                 </div>
                 
                 <!-- COSMETIC ROLE OPTION -->
