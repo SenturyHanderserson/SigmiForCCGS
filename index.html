@@ -573,6 +573,11 @@
             right: 0;
         }
 
+        .create-fab {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            bottom: -4rem;
+            right: 0;
+        }
         /* Enhanced glass morphism effects */
         .glass-header {
             background: rgba(92, 50, 168, 0.15);
@@ -1027,6 +1032,9 @@
 
         <!-- Expanded FAB Menu - FIXED POSITIONING -->
         <div class="fab-expanded" id="fabExpandedMenu">
+            <div class="fab-menu-item create-fab" id="createFab" title="Create Game">
+                <i data-feather="gamepad" class="w-5 h-5 text-white"></i>
+            </div>
             <div class="fab-menu-item polls-fab" id="pollsFab" title="Vote on Polls">
                 <i data-feather="bar-chart-2" class="w-5 h-5 text-white"></i>
             </div>
@@ -1170,52 +1178,61 @@
             }, duration);
         }
         
-        // FAB Menu Functions - UPDATED POSITIONING
-        function toggleFabMenu() {
-            const fabBtn = document.getElementById('fabBtn');
-            const fabExpandedMenu = document.getElementById('fabExpandedMenu');
-            const reportFab = document.getElementById('reportFab');
-            const pollsFab = document.getElementById('pollsFab');
+// Update the toggleFabMenu function (around line 1420) to include the create button
+function toggleFabMenu() {
+    const fabBtn = document.getElementById('fabBtn');
+    const fabExpandedMenu = document.getElementById('fabExpandedMenu');
+    const reportFab = document.getElementById('reportFab');
+    const pollsFab = document.getElementById('pollsFab');
+    const createFab = document.getElementById('createFab'); // Add this line
 
-            if (!isFabExpanded) {
-                // Expand the menu
-                fabExpandedMenu.style.display = 'block';
-                
-                // Animate polls button (position 1 - top)
-                setTimeout(() => {
-                    pollsFab.classList.add('visible');
-                    pollsFab.style.transform = 'translateY(-140px)';
-                }, 50);
-                
-                // Animate report button (position 2 - middle)
-                setTimeout(() => {
-                    reportFab.classList.add('visible');
-                    reportFab.style.transform = 'translateY(-70px)';
-                }, 150);
-                
-                // Rotate main button
-                fabBtn.style.transform = 'rotate(45deg)';
-                
-                isFabExpanded = true;
-            } else {
-                // Collapse the menu
-                pollsFab.classList.remove('visible');
-                reportFab.classList.remove('visible');
-                
-                pollsFab.style.transform = 'translateY(0)';
-                reportFab.style.transform = 'translateY(0)';
-                
-                // Reset main button rotation
-                fabBtn.style.transform = 'rotate(0deg)';
-                
-                // Hide menu after animation
-                setTimeout(() => {
-                    fabExpandedMenu.style.display = 'none';
-                }, 400);
-                
-                isFabExpanded = false;
-            }
-        }
+    if (!isFabExpanded) {
+        // Expand the menu
+        fabExpandedMenu.style.display = 'block';
+        
+        // Animate create button (position 1 - top)
+        setTimeout(() => {
+            createFab.classList.add('visible');
+            createFab.style.transform = 'translateY(-210px)'; // Adjust position
+        }, 50);
+        
+        // Animate polls button (position 2 - middle)
+        setTimeout(() => {
+            pollsFab.classList.add('visible');
+            pollsFab.style.transform = 'translateY(-140px)'; // Adjust position
+        }, 150);
+        
+        // Animate report button (position 3 - bottom)
+        setTimeout(() => {
+            reportFab.classList.add('visible');
+            reportFab.style.transform = 'translateY(-70px)'; // Adjust position
+        }, 250);
+        
+        // Rotate main button
+        fabBtn.style.transform = 'rotate(45deg)';
+        
+        isFabExpanded = true;
+    } else {
+        // Collapse the menu
+        createFab.classList.remove('visible'); // Add this line
+        pollsFab.classList.remove('visible');
+        reportFab.classList.remove('visible');
+        
+        createFab.style.transform = 'translateY(0)'; // Add this line
+        pollsFab.style.transform = 'translateY(0)';
+        reportFab.style.transform = 'translateY(0)';
+        
+        // Reset main button rotation
+        fabBtn.style.transform = 'rotate(0deg)';
+        
+        // Hide menu after animation
+        setTimeout(() => {
+            fabExpandedMenu.style.display = 'none';
+        }, 400);
+        
+        isFabExpanded = false;
+    }
+}
 
         function handleReportIssue() {
             // Redirect to down.html
@@ -1227,17 +1244,22 @@
             window.location.href = 'polls.html';
         }
 
-        // Close FAB menu when clicking outside
-        document.addEventListener('click', function(e) {
-            const fabBtn = document.getElementById('fabBtn');
-            const fabExpandedMenu = document.getElementById('fabExpandedMenu');
-            
-            if (isFabExpanded && 
-                !fabBtn.contains(e.target) && 
-                !fabExpandedMenu.contains(e.target)) {
-                toggleFabMenu();
-            }
-        });
+function handleCreateGame() {
+        window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/create';
+    }
+    // close fab
+    document.addEventListener('click', function(e) {
+        const fabBtn = document.getElementById('fabBtn');
+        const fabExpandedMenu = document.getElementById('fabExpandedMenu');
+        const createFab = document.getElementById('createFab'); // Add this line
+        
+        if (isFabExpanded && 
+            !fabBtn.contains(e.target) && 
+            !fabExpandedMenu.contains(e.target) &&
+            !createFab.contains(e.target)) { // Add this condition
+            toggleFabMenu();
+        }
+    });
 
         // Broadcast Modal Functions
         function hideBroadcastModal() {
@@ -1911,6 +1933,11 @@
                 });
             }
         }
+        // Add this to the event listeners section (around line 1750)
+    document.getElementById('createFab').addEventListener('click', function() {
+            handleCreateGame();
+            toggleFabMenu();
+        });
 
         // Initialize AOS and Feather Icons
         document.addEventListener('DOMContentLoaded', function() {
