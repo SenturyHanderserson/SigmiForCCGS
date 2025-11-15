@@ -896,7 +896,7 @@ async function loadAllRoles() {
     }
 }
 
-  // Function to load available roles for assignment - FIXED WITH PROPER PERMISSION CHECKS
+// Function to load available roles for assignment - FIXED WITH PROPER PERMISSION CHECKS
 async function loadAvailableRoles() {
   try {
     const token = getCookie('AuthToken');
@@ -937,11 +937,13 @@ async function loadAvailableRoles() {
             return config.weight < currentUserWeight && roleName !== "Owner";
           }
           
-          // Check if current user has moderator property (not just moderator class)
-          const userHasModeratorProperty = currentUserRoleConfig?.moderator === true;
+          // Check if current user is explicitly a moderator (not admin/owner)
+          const isOnlyModerator = isModeratorClass(currentUserRole) && 
+                                !isAdminClass(currentUserRole) && 
+                                !isFullAccess(currentUserRole);
           
-          // ONLY apply weight filtering if user has the moderator property
-          if (userHasModeratorProperty) {
+          // ONLY apply moderator restrictions if user is explicitly a moderator (not admin/owner)
+          if (isOnlyModerator) {
             // Moderator-specific weight restrictions
             if (config.weight >= currentUserWeight) {
               return false;
@@ -1018,17 +1020,35 @@ function isModeratorClass(role) {
     const roleConfig = allRoles[role];
     if (!roleConfig) return false;
     
-    // Check for moderator tag OR check weight as fallback
-    return roleConfig.moderator || roleConfig.admin || roleConfig.fullaccess || 
+    // Check for explicit moderator tag (but NOT admin or fullaccess)
+    // OR check weight as fallback for roles without explicit tags
+    return (roleConfig.moderator === true && 
+           roleConfig.admin !== true && 
+           roleConfig.fullaccess !== true) ||
            (roleConfig.weight >= 40 && roleConfig.weight <= 60);
 }
 
+function isBasicClass(role) {
+    const roleConfig = allRoles[role];
+    if (!roleConfig) return false;
+    
+    // Check for explicit basic tag OR no elevated permissions
+    // OR check weight as fallback for roles without explicit tags
+    return roleConfig.basic === true || 
+           (!roleConfig.moderator && !roleConfig.admin && !roleConfig.fullaccess) ||
+           (roleConfig.weight >= 1 && roleConfig.weight <= 39);
+}
+
+    
 function isAdminClass(role) {
     const roleConfig = allRoles[role];
     if (!roleConfig) return false;
     
-    // Check for admin tag OR fullaccess tag OR Owner role OR check weight as fallback
-    return roleConfig.admin || roleConfig.fullaccess || role === "Owner" ||
+    // Check for explicit admin tag (but NOT fullaccess)
+    // OR Owner role OR check weight as fallback
+    return (roleConfig.admin === true && 
+           roleConfig.fullaccess !== true) ||
+           role === "Owner" ||
            (roleConfig.weight >= 61 && roleConfig.weight <= 99);
 }
 
@@ -1036,8 +1056,11 @@ function isFullAccess(role) {
     const roleConfig = allRoles[role];
     if (!roleConfig) return false;
     
-    // Check for fullaccess tag OR Owner role OR check weight as fallback
-    return roleConfig.fullaccess || role === "Owner" || roleConfig.weight >= 100;
+    // Check for explicit fullaccess tag OR Owner role
+    // OR check weight as fallback for roles without explicit tags
+    return roleConfig.fullaccess === true || 
+           role === "Owner" || 
+           roleConfig.weight >= 100;
 }
 
 // Function to get moderator cooldowns
