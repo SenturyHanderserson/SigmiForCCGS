@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Report Issue - Sigmi Arcade</title>
+    <title>Report Issue</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
@@ -817,11 +817,64 @@
         const SERVER_URL = 'https://proxyforsigmi.onrender.com';
         let currentUser = null;
         let userRole = null;
+        let allRoles = {};
         let userWarnings = [];
         let activeBroadcasts = [];
         let broadcastCheckInterval = null;
         let warningCheckInterval = null;
         let allReports = [];
+
+        // Role-based permission functions
+        function isModeratorClass(role) {
+            const roleConfig = allRoles[role];
+            if (!roleConfig) return false;
+            
+            // Check for moderator tag OR check weight as fallback
+            return roleConfig.moderator || roleConfig.admin || roleConfig.fullaccess || 
+                   (roleConfig.weight >= 40 && roleConfig.weight <= 60);
+        }
+
+        function isAdminClass(role) {
+            const roleConfig = allRoles[role];
+            if (!roleConfig) return false;
+            
+            // Check for admin tag OR fullaccess tag OR Owner role OR check weight as fallback
+            return roleConfig.admin || roleConfig.fullaccess || role === "Owner" ||
+                   (roleConfig.weight >= 61 && roleConfig.weight <= 99);
+        }
+
+        function isFullAccess(role) {
+            const roleConfig = allRoles[role];
+            if (!roleConfig) return false;
+            
+            // Check for fullaccess tag OR Owner role OR check weight as fallback
+            return roleConfig.fullaccess || role === "Owner" || roleConfig.weight >= 100;
+        }
+
+        // Load all roles from server
+        async function loadAllRoles() {
+            try {
+                const token = getCookie('AuthToken');
+                const response = await fetch(`${SERVER_URL}/api/roles`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load roles');
+                }
+                
+                const data = await response.json();
+                allRoles = data.roles || {};
+                return allRoles;
+            } catch (error) {
+                console.error('Load all roles error:', error);
+                return {};
+            }
+        }
 
         // Utility functions
         function getCookie(name) {
@@ -1401,7 +1454,8 @@
                     showNotification('Report submitted successfully!', 'success');
                     document.getElementById('reportForm').reset();
                     loadUserReports();
-                    if (userRole === 'Admin' || userRole === 'Owner' || userRole === 'Moderator') {
+                    // Check using role properties instead of raw names
+                    if (isModeratorClass(userRole) || isAdminClass(userRole) || isFullAccess(userRole)) {
                         loadAllReports();
                     }
                 } else {
@@ -1536,7 +1590,7 @@
                             <button onclick="updateReportStatus('${report.id}', 'closed')" class="text-xs bg-gray-600 hover:bg-gray-700 px-2 py-1 rounded">
                                 Close
                             </button>
-                            ${userRole === 'Admin' || userRole === 'Owner' ? `
+                            ${isAdminClass(userRole) || isFullAccess(userRole) ? `
                             <button onclick="deleteReport('${report.id}')" class="text-xs bg-red-600 hover:bg-red-700 px-2 py-1 rounded">
                                 Delete
                             </button>
@@ -1640,7 +1694,8 @@
         }
 
         function refreshReports() {
-            if (userRole === 'Admin' || userRole === 'Owner' || userRole === 'Moderator') {
+            // Check using role properties instead of raw names
+            if (isModeratorClass(userRole) || isAdminClass(userRole) || isFullAccess(userRole)) {
                 loadAllReports();
             }
             loadUserReports();
@@ -1677,10 +1732,13 @@
                             currentUser = userData.username;
                             userRole = userData.role;
                             
+                            // Load all roles to check permissions properly
+                            await loadAllRoles();
+                            
                             document.getElementById('userInfo').textContent = `${currentUser} (${userRole})`;
                             
-                            // Show admin section for Admin/Owner/Moderator
-                            if (userRole === 'Admin' || userRole === 'Owner' || userRole === 'Moderator') {
+                            // Show admin section using role property detection
+                            if (isModeratorClass(userRole) || isAdminClass(userRole) || isFullAccess(userRole)) {
                                 document.getElementById('adminSection').classList.remove('hidden');
                                 loadAllReports();
                             }
