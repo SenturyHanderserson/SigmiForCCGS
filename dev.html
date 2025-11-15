@@ -881,8 +881,7 @@
         }
     }
 
-    // Function to load ALL roles from server
-    // Function to load ALL roles from server WITH PERMISSION TAGS
+// Function to load ALL roles from server WITH PERMISSION TAGS
 async function loadAllRoles() {
     try {
         const token = getCookie('AuthToken');
@@ -900,9 +899,6 @@ async function loadAllRoles() {
         
         const data = await response.json();
         allRoles = data.roles || {};
-            role,
-            properties: allRoles[role]
-        })));
         
         return allRoles;
     } catch (error) {
