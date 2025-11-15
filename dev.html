@@ -2419,6 +2419,7 @@ async function loadRolesList() {
 }
 
 // Display roles in management modal - FIXED WITH DELETE BUTTONS
+// Display roles in management modal - FIXED VERSION
 function displayRolesList(roles) {
   const container = document.getElementById('rolesList');
   
@@ -2428,11 +2429,14 @@ function displayRolesList(roles) {
   }
   
   let rolesHTML = '';
-  const currentUserWeight = getRoleWeight(currentUserRole);
+  const currentUserRoleConfig = allRoles[currentUserRole];
+  const currentUserWeight = currentUserRoleConfig?.weight || 0;
   const isOwner = currentUserRole === "Owner";
+  const isAdmin = isAdminClass(currentUserRole);
+  const isModerator = isModeratorClass(currentUserRole) && !isAdminClass(currentUserRole);
   
   // Add moderator limits header
-  if (isModeratorClass(currentUserRole)) {
+  if (isModerator) {
     rolesHTML += `
       <div class="glassmorphism p-3 rounded-lg mb-4 border-l-4 border-yellow-500">
         <div class="flex items-center">
@@ -2440,7 +2444,7 @@ function displayRolesList(roles) {
           <div>
             <p class="font-semibold">Moderator Role Limits</p>
             <p class="text-sm text-gray-300">
-              Max creation weight: ${currentUserWeight - 1} | 
+              Max creation weight: ${currentUserWeight} | 
               Max assignment weight: ${currentUserWeight - 1} |
               Cannot assign roles ≥ weight 50
             </p>
@@ -2461,25 +2465,27 @@ function displayRolesList(roles) {
     const weight = roleConfig.weight || 0;
     const userCount = users.filter(u => u.role === roleName).length;
     
-    // DEBUG: Log role information to console
-    console.log(`Role: ${roleName}, Weight: ${weight}, UserCount: ${userCount}, CurrentUserWeight: ${currentUserWeight}, IsOwner: ${isOwner}`);
+    console.log(`Role: ${roleName}, Weight: ${weight}, UserCount: ${userCount}, CurrentUserWeight: ${currentUserWeight}, IsModerator: ${isModerator}`);
     
-        // FIXED: Permission logic for edit button
-        // Users can edit roles with LOWER OR EQUAL weight (for moderators)
-        const canEdit = (isAdminClass(currentUserRole) || isOwner) && 
-                       weight <= currentUserWeight; // Changed from < to <=
-        
-        // FIXED: Permission logic for delete button  
-        // Users can delete roles with LOWER OR EQUAL weight AND no users assigned
-        const canDelete = (isAdminClass(currentUserRole) || isOwner) && 
-                         weight <= currentUserWeight && // Changed from < to <=
-                         userCount === 0 &&
-                         roleName !== currentUserRole;
+    // FIXED: Permission logic for edit button
+    let canEdit = false;
+    let canDelete = false;
     
-    // Special case: Owner can delete any role except their own (regardless of user count)
-    const ownerCanDelete = isOwner && roleName !== currentUserRole;
+    if (isOwner) {
+      // Owner can edit/delete any role except their own
+      canEdit = roleName !== currentUserRole;
+      canDelete = roleName !== currentUserRole && userCount === 0;
+    } else if (isAdmin) {
+      // Admin can edit/delete roles with LOWER weight
+      canEdit = weight < currentUserWeight;
+      canDelete = weight < currentUserWeight && userCount === 0 && roleName !== currentUserRole;
+    } else if (isModerator) {
+      // FIX: Moderators can edit/delete roles with weight < their own AND weight <= 49
+      canEdit = weight < currentUserWeight && weight <= 49;
+      canDelete = weight < currentUserWeight && weight <= 49 && userCount === 0 && roleName !== currentUserRole;
+    }
     
-    console.log(` - CanEdit: ${canEdit}, CanDelete: ${canDelete}, OwnerCanDelete: ${ownerCanDelete}`);
+    console.log(` - CanEdit: ${canEdit}, CanDelete: ${canDelete}`);
     
     rolesHTML += `
       <div class="glassmorphism p-4 rounded-lg role-management-item">
@@ -2494,6 +2500,8 @@ function displayRolesList(roles) {
                   ${userCount} user(s)
                 </span>
                 ${roleName === currentUserRole ? '<span class="text-xs px-2 py-1 rounded-full bg-purple-600">Your Role</span>' : ''}
+                ${isModerator && weight <= 49 ? '<span class="text-xs px-2 py-1 rounded-full bg-green-600">Manageable</span>' : ''}
+                ${isModerator && weight >= 50 ? '<span class="text-xs px-2 py-1 rounded-full bg-red-600">Restricted</span>' : ''}
               </div>
               <p class="text-sm text-gray-300">${safeDescription}</p>
             </div>
@@ -2506,15 +2514,15 @@ function displayRolesList(roles) {
                 <i data-feather="edit-3" class="w-4 h-4"></i>
               </button>
             ` : ''}
-            ${(canDelete || ownerCanDelete) ? `
+            ${canDelete ? `
               <button onclick="deleteRole('${safeRoleName}')" 
                       class="p-2 bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 hover:scale-110"
                       title="Delete Role">
                 <i data-feather="trash-2" class="w-4 h-4"></i>
               </button>
             ` : ''}
-            ${!canEdit && !canDelete && !ownerCanDelete ? `
-              <span class="text-xs text-gray-400 px-2 py-1" title="Cannot modify roles with same or higher weight">
+            ${!canEdit && !canDelete ? `
+              <span class="text-xs text-gray-400 px-2 py-1" title="${getLockReason(roleName, weight, currentUserWeight, userCount, isModerator)}">
                 <i data-feather="lock" class="w-4 h-4"></i>
               </span>
             ` : ''}
@@ -2525,12 +2533,34 @@ function displayRolesList(roles) {
             Cannot delete: ${userCount} user(s) have this role
           </div>
         ` : ''}
+        ${isModerator && weight >= 50 ? `
+          <div class="mt-2 text-xs text-red-400">
+            Moderators cannot manage roles with weight ≥ 50
+          </div>
+        ` : ''}
       </div>
     `;
   });
   
   container.innerHTML = rolesHTML;
   feather.replace();
+}
+
+// Helper function to explain why a role is locked
+function getLockReason(roleName, roleWeight, userWeight, userCount, isModerator) {
+  if (roleName === currentUserRole) {
+    return "Cannot modify your own current role";
+  }
+  if (userCount > 0) {
+    return `Cannot modify: ${userCount} user(s) have this role`;
+  }
+  if (isModerator && roleWeight >= 50) {
+    return "Moderators cannot manage roles with weight ≥ 50";
+  }
+  if (roleWeight >= userWeight) {
+    return `Your weight (${userWeight}) must be higher than role weight (${roleWeight})`;
+  }
+  return "Insufficient permissions";
 }
     // Add this function to your HTML script
 function canModeratorManageTarget(moderatorRole, targetRole) {
@@ -2580,30 +2610,39 @@ async function editRoleColor(roleName, currentColor) {
     }
 }
 
-// Delete role - FIXED VERSION
+// Delete role - FIXED VERSION for Moderators
 async function deleteRole(roleName) {
   const currentUserRoleConfig = allRoles[currentUserRole];
   const currentUserWeight = currentUserRoleConfig?.weight || 0;
   const targetRoleConfig = allRoles[roleName];
   const targetRoleWeight = targetRoleConfig?.weight || 0;
+  const isModerator = isModeratorClass(currentUserRole) && !isAdminClass(currentUserRole);
   
-  // FIX: Allow moderators to delete roles with LOWER weight
-  if (isModeratorClass(currentUserRole) && !isAdminClass(currentUserRole)) {
-    // Moderators can only delete roles with weight < their own
+  // Prevent users from deleting their own current role
+  if (roleName === currentUserRole) {
+    alert("❌ You cannot delete your own current role.");
+    return;
+  }
+  
+  const userCount = users.filter(u => u.role === roleName).length;
+  if (userCount > 0) {
+    alert(`❌ Cannot delete role "${roleName}" - ${userCount} user(s) have this role assigned.`);
+    return;
+  }
+  
+  // FIXED: Moderator-specific restrictions
+  if (isModerator) {
     if (targetRoleWeight >= currentUserWeight) {
       alert(`❌ You cannot delete the "${roleName}" role. Your role weight (${currentUserWeight}) must be higher than the target role weight (${targetRoleWeight}).`);
+      return;
+    }
+    if (targetRoleWeight >= 50) {
+      alert(`❌ Moderators cannot delete roles with weight 50 or higher.`);
       return;
     }
   } else if (!isAdminClass(currentUserRole) && currentUserWeight <= targetRoleWeight) {
     // Regular users (non-admin/moderator) cannot delete roles with same or higher weight
     alert(`❌ You cannot delete the "${roleName}" role. Your role weight (${currentUserWeight}) must be higher than the target role weight (${targetRoleWeight}).`);
-    return;
-  }
-  
-  // Rest of the function remains the same...
-  const userCount = users.filter(u => u.role === roleName).length;
-  if (userCount > 0) {
-    alert(`❌ Cannot delete role "${roleName}" - ${userCount} user(s) have this role assigned.`);
     return;
   }
   
@@ -2637,7 +2676,6 @@ async function deleteRole(roleName) {
     alert('❌ Error: ' + error.message);
   }
 }
-
 // Color picker functionality
 function setupColorPicker() {
     const colorPicker = document.getElementById('roleColorPicker');
