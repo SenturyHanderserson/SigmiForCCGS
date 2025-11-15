@@ -1028,26 +1028,14 @@ function isModeratorClass(role) {
            (roleConfig.weight >= 40 && roleConfig.weight <= 60);
 }
 
-function isBasicClass(role) {
-    const roleConfig = allRoles[role];
-    if (!roleConfig) return false;
-    
-    // Check for explicit basic tag OR no elevated permissions
-    // OR check weight as fallback for roles without explicit tags
-    return roleConfig.basic === true || 
-           (!roleConfig.moderator && !roleConfig.admin && !roleConfig.fullaccess) ||
-           (roleConfig.weight >= 1 && roleConfig.weight <= 39);
-}
-
     
 function isAdminClass(role) {
     const roleConfig = allRoles[role];
     if (!roleConfig) return false;
     
-    // Check for explicit admin tag (but NOT fullaccess)
+    // Check for explicit admin tag (regardless of fullaccess status)
     // OR Owner role OR check weight as fallback
-    return (roleConfig.admin === true && 
-           roleConfig.fullaccess !== true) ||
+    return roleConfig.admin === true ||
            role === "Owner" ||
            (roleConfig.weight >= 61 && roleConfig.weight <= 99);
 }
