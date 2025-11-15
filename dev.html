@@ -882,29 +882,34 @@
     }
 
     // Function to load ALL roles from server
-    async function loadAllRoles() {
-        try {
-            const token = getCookie('AuthToken');
-            const response = await fetch(`${SERVER_URL}/api/roles`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error('Failed to load roles');
+    // Function to load ALL roles from server WITH PERMISSION TAGS
+async function loadAllRoles() {
+    try {
+        const token = getCookie('AuthToken');
+        const response = await fetch(`${SERVER_URL}/api/roles`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
-            
-            const data = await response.json();
-            allRoles = data.roles || {};
-            return allRoles;
-        } catch (error) {
-            console.error('Load all roles error:', error);
-            return {};
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load roles');
         }
+        
+        const data = await response.json();
+        allRoles = data.roles || {};
+            role,
+            properties: allRoles[role]
+        })));
+        
+        return allRoles;
+    } catch (error) {
+        console.error('Load all roles error:', error);
+        return {};
     }
+}
 
     // Function to load available roles for assignment - FIXED VERSION
 async function loadAvailableRoles() {
@@ -1014,20 +1019,30 @@ async function loadAvailableRoles() {
         return `role-${normalizedRole}`;
     }
 
-    // Function to check if user is moderator
-    function isModeratorClass(role) {
-        return hasPermission(role, 'moderator');
-    }
-
-
-    // Function to check if user is admin or owner
-function isAdminClass(role) {
-    // Include Owner in admin class checks
-    return hasPermission(role, 'admin') || role === "Owner";
+function isModeratorClass(role) {
+    const roleConfig = allRoles[role];
+    if (!roleConfig) return false;
+    
+    // Check for moderator tag OR check weight as fallback
+    return roleConfig.moderator || roleConfig.admin || roleConfig.fullaccess || 
+           (roleConfig.weight >= 40 && roleConfig.weight <= 60);
 }
 
-    function isFullAccess(role) {
-    return hasPermission(role, 'full') || role === "Owner";
+function isAdminClass(role) {
+    const roleConfig = allRoles[role];
+    if (!roleConfig) return false;
+    
+    // Check for admin tag OR fullaccess tag OR Owner role OR check weight as fallback
+    return roleConfig.admin || roleConfig.fullaccess || role === "Owner" ||
+           (roleConfig.weight >= 61 && roleConfig.weight <= 99);
+}
+
+function isFullAccess(role) {
+    const roleConfig = allRoles[role];
+    if (!roleConfig) return false;
+    
+    // Check for fullaccess tag OR Owner role OR check weight as fallback
+    return roleConfig.fullaccess || role === "Owner" || roleConfig.weight >= 100;
 }
 
     // Function to get moderator cooldowns
@@ -1975,7 +1990,7 @@ function disableAppInteraction() {
     mainApp.style.opacity = '0.6';
 }
 
-// Check authentication status on page load
+// Check authentication status on page load - UPDATED VERSION
 document.addEventListener('DOMContentLoaded', async function() {
     // Show loading overlay first
     document.getElementById('loadingOverlay').classList.remove('hidden');
@@ -1987,7 +2002,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         setTimeout(() => {
             document.getElementById('loadingOverlay').classList.add('hidden');
             document.getElementById('loginModal').classList.remove('hidden');
-            document.getElementById('mainApp').classList.remove('hidden'); // Show but disable interaction
+            document.getElementById('mainApp').classList.remove('hidden');
             disableAppInteraction();
         }, 1000);
         return;
@@ -1997,7 +2012,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Get user info first to check permissions
         const userInfo = await getUserInfo(token);
         
-        // Check if user has admin permissions
+        // Load ALL roles from server FIRST - this is critical!
+        const allRolesData = await loadAllRoles();
+        allRoles = allRolesData;
+        
+        // NOW check if user has admin permissions using the properly loaded role data
         if (!isAdminClass(userInfo.role) && !isModeratorClass(userInfo.role)) {
             // Insufficient permissions - redirect to target URL
             setTimeout(() => {
@@ -2011,10 +2030,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Set global user variables
         currentUser = userInfo.username;
         currentUserRole = userInfo.role;
-        
-        // Load ALL roles from server first
-        const allRolesData = await loadAllRoles();
-        allRoles = allRolesData;
         
         // Apply role colors
         applyRoleColors(allRoles);
@@ -2039,7 +2054,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 document.getElementById('moderatorCooldowns').classList.remove('hidden');
                 getModeratorCooldowns();
                 // Start cooldown refresh interval
-                cooldownInterval = setInterval(getModeratorCooldowns, 30000); // Refresh every 30 seconds
+                cooldownInterval = setInterval(getModeratorCooldowns, 30000);
             }
             
             // Load users list
@@ -2052,12 +2067,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         setTimeout(() => {
             document.getElementById('loadingOverlay').classList.add('hidden');
             document.getElementById('loginModal').classList.remove('hidden');
-            document.getElementById('mainApp').classList.remove('hidden'); // Show but disable interaction
+            document.getElementById('mainApp').classList.remove('hidden');
             disableAppInteraction();
         }, 1000);
     }
 });
-
 // Show login modal function
 function showLoginModal() {
     document.getElementById('loginModal').classList.remove('hidden');
