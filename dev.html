@@ -931,9 +931,9 @@ async function loadAvailableRoles() {
             return roleName !== "Owner"; // Can't assign Owner role to others
           }
           
-          // ADMIN BYPASS: Users with admin property (but not fullaccess) can see most roles
-          if (isAdminClass(currentUserRole) && !isFullAccess(currentUserRole)) {
-            // Admins can assign roles with lower weight
+          // ADMIN BYPASS: Users with admin property can see most roles (including those with weight >= 40)
+          if (isAdminClass(currentUserRole)) {
+            // Admins can assign roles with lower weight - NO 40 WEIGHT CAP!
             return config.weight < currentUserWeight && roleName !== "Owner";
           }
           
