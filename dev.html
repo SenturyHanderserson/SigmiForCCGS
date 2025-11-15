@@ -2418,8 +2418,6 @@ async function loadRolesList() {
     }
 }
 
-// Display roles in management modal - UPDATED WITH COSMETIC BADGE
-// Display roles in management modal - UPDATED PERMISSIONS
 function displayRolesList(roles) {
   const container = document.getElementById('rolesList');
   
@@ -2462,12 +2460,18 @@ function displayRolesList(roles) {
     const weight = roleConfig.weight || 0;
     const userCount = users.filter(u => u.role === roleName).length;
     
-    const currentUserRoleConfig = allRoles[currentUserRole];
-    const currentUserWeight = currentUserRoleConfig?.weight || 0;
+    // FIXED: Check if current user can edit/delete this role
+    // Users can edit/delete roles with LOWER weight than theirs (not same weight)
+    // Owner can delete any role except their own current role
+    const canEdit = isAdminClass(currentUserRole) && weight < currentUserWeight;
+    const canDelete = isAdminClass(currentUserRole) && 
+                     weight < currentUserWeight && 
+                     userCount === 0 &&
+                     roleName !== currentUserRole; // Cannot delete their own current role
     
-    // FIXED: Users can edit/delete roles with same weight or less
-    const canEdit = isAdminClass(currentUserRole) && currentUserWeight >= weight;
-    const canDelete = isAdminClass(currentUserRole) && currentUserWeight >= weight && userCount === 0;
+    // Special case: Owner can delete any role except their own
+    const isOwner = currentUserRole === "Owner";
+    const ownerCanDelete = isOwner && userCount === 0 && roleName !== currentUserRole;
     
     rolesHTML += `
       <div class="glassmorphism p-4 rounded-lg role-management-item">
@@ -2481,24 +2485,30 @@ function displayRolesList(roles) {
                 <span class="text-xs px-2 py-1 rounded-full ${userCount > 0 ? 'bg-blue-600' : 'bg-gray-600'}">
                   ${userCount} user(s)
                 </span>
+                ${roleName === currentUserRole ? '<span class="text-xs px-2 py-1 rounded-full bg-purple-600">Your Role</span>' : ''}
               </div>
               <p class="text-sm text-gray-300">${safeDescription}</p>
             </div>
           </div>
           <div class="flex space-x-2">
-            ${canEdit ? `
+            ${(canEdit || (isOwner && roleName !== currentUserRole)) ? `
               <button onclick="editRoleColor('${safeRoleName}', '${safeColor}')" 
                       class="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 hover:scale-110"
                       title="Change Color">
                 <i data-feather="edit-3" class="w-4 h-4"></i>
               </button>
             ` : ''}
-            ${canDelete ? `
+            ${(canDelete || ownerCanDelete) ? `
               <button onclick="deleteRole('${safeRoleName}')" 
                       class="p-2 bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 hover:scale-110"
                       title="Delete Role">
                 <i data-feather="trash-2" class="w-4 h-4"></i>
               </button>
+            ` : ''}
+            ${!canEdit && !canDelete && !ownerCanDelete ? `
+              <span class="text-xs text-gray-400 px-2 py-1" title="Cannot modify roles with same or higher weight">
+                <i data-feather="lock" class="w-4 h-4"></i>
+              </span>
             ` : ''}
           </div>
         </div>
@@ -2557,54 +2567,66 @@ async function editRoleColor(roleName, currentColor) {
     }
 }
 
-// Delete role - UPDATED WITH WEIGHT-BASED PERMISSION CHECKING
+// Delete role - UPDATED WITH ADDITIONAL SAFETY CHECKS
 async function deleteRole(roleName) {
-    const currentUserRoleConfig = allRoles[currentUserRole];
-    const currentUserWeight = currentUserRoleConfig?.weight || 0;
-    const targetRoleConfig = allRoles[roleName];
-    const targetRoleWeight = targetRoleConfig?.weight || 0;
+  const currentUserRoleConfig = allRoles[currentUserRole];
+  const currentUserWeight = currentUserRoleConfig?.weight || 0;
+  const targetRoleConfig = allRoles[roleName];
+  const targetRoleWeight = targetRoleConfig?.weight || 0;
+  
+  // Check if current user can delete this role
+  if (!isAdminClass(currentUserRole) && currentUserWeight <= targetRoleWeight) {
+    alert(`❌ You cannot delete the "${roleName}" role. Your role weight (${currentUserWeight}) must be higher than the target role weight (${targetRoleWeight}).`);
+    return;
+  }
+  
+  // Special case: Owner can delete any role except their own
+  if (currentUserRole === "Owner" && roleName === currentUserRole) {
+    alert("❌ You cannot delete your own current role.");
+    return;
+  }
+  
+  // Prevent users from deleting their own current role
+  if (roleName === currentUserRole) {
+    alert("❌ You cannot delete your own current role.");
+    return;
+  }
+  
+  const userCount = users.filter(u => u.role === roleName).length;
+  if (userCount > 0) {
+    alert(`❌ Cannot delete role "${roleName}" - ${userCount} user(s) have this role assigned.`);
+    return;
+  }
+  
+  if (!confirm(`Are you sure you want to delete the role "${roleName}"?\n\nThis action cannot be undone!`)) {
+    return;
+  }
+  
+  try {
+    const token = getCookie('AuthToken');
+    const response = await fetch(`${SERVER_URL}/api/roles/${encodeURIComponent(roleName)}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
     
-    // Check if current user can delete this role
-    if (!isAdminClass(currentUserRole) && currentUserWeight < targetRoleWeight) {
-        alert(`❌ You cannot delete the "${roleName}" role. Your role weight (${currentUserWeight}) is lower than the target role weight (${targetRoleWeight}).`);
-        return;
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to delete role');
     }
     
-    const userCount = users.filter(u => u.role === roleName).length;
-    if (userCount > 0) {
-        alert(`❌ Cannot delete role "${roleName}" - ${userCount} user(s) have this role assigned.`);
-        return;
-    }
+    const result = await response.json();
+    alert('✅ ' + result.message);
     
-    if (!confirm(`Are you sure you want to delete the role "${roleName}"?\n\nThis action cannot be undone!`)) {
-        return;
-    }
+    // Refresh roles list
+    await loadRolesList();
     
-    try {
-        const token = getCookie('AuthToken');
-        const response = await fetch(`${SERVER_URL}/api/roles/${encodeURIComponent(roleName)}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to delete role');
-        }
-        
-        const result = await response.json();
-        alert('✅ ' + result.message);
-        
-        // Refresh roles list
-        await loadRolesList();
-        
-    } catch (error) {
-        console.error('Delete role error:', error);
-        alert('❌ Error: ' + error.message);
-    }
+  } catch (error) {
+    console.error('Delete role error:', error);
+    alert('❌ Error: ' + error.message);
+  }
 }
 
 // Color picker functionality
