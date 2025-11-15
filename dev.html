@@ -2418,6 +2418,7 @@ async function loadRolesList() {
     }
 }
 
+// Display roles in management modal - FIXED WITH DELETE BUTTONS
 function displayRolesList(roles) {
   const container = document.getElementById('rolesList');
   
@@ -2426,9 +2427,9 @@ function displayRolesList(roles) {
     return;
   }
   
-  // Initialize rolesHTML at the top
   let rolesHTML = '';
   const currentUserWeight = getRoleWeight(currentUserRole);
+  const isOwner = currentUserRole === "Owner";
   
   // Add moderator limits header
   if (isModeratorClass(currentUserRole)) {
@@ -2460,18 +2461,25 @@ function displayRolesList(roles) {
     const weight = roleConfig.weight || 0;
     const userCount = users.filter(u => u.role === roleName).length;
     
-    // FIXED: Check if current user can edit/delete this role
-    // Users can edit/delete roles with LOWER weight than theirs (not same weight)
-    // Owner can delete any role except their own current role
-    const canEdit = isAdminClass(currentUserRole) && weight < currentUserWeight;
-    const canDelete = isAdminClass(currentUserRole) && 
+    // DEBUG: Log role information to console
+    console.log(`Role: ${roleName}, Weight: ${weight}, UserCount: ${userCount}, CurrentUserWeight: ${currentUserWeight}, IsOwner: ${isOwner}`);
+    
+    // FIXED: Permission logic for edit button
+    // Users can edit roles with LOWER weight than theirs
+    const canEdit = (isAdminClass(currentUserRole) || isOwner) && 
+                   weight < currentUserWeight;
+    
+    // FIXED: Permission logic for delete button
+    // Users can delete roles with LOWER weight AND no users assigned AND not their own role
+    const canDelete = (isAdminClass(currentUserRole) || isOwner) && 
                      weight < currentUserWeight && 
                      userCount === 0 &&
-                     roleName !== currentUserRole; // Cannot delete their own current role
+                     roleName !== currentUserRole;
     
-    // Special case: Owner can delete any role except their own
-    const isOwner = currentUserRole === "Owner";
-    const ownerCanDelete = isOwner && userCount === 0 && roleName !== currentUserRole;
+    // Special case: Owner can delete any role except their own (regardless of user count)
+    const ownerCanDelete = isOwner && roleName !== currentUserRole;
+    
+    console.log(` - CanEdit: ${canEdit}, CanDelete: ${canDelete}, OwnerCanDelete: ${ownerCanDelete}`);
     
     rolesHTML += `
       <div class="glassmorphism p-4 rounded-lg role-management-item">
@@ -2491,7 +2499,7 @@ function displayRolesList(roles) {
             </div>
           </div>
           <div class="flex space-x-2">
-            ${(canEdit || (isOwner && roleName !== currentUserRole)) ? `
+            ${canEdit ? `
               <button onclick="editRoleColor('${safeRoleName}', '${safeColor}')" 
                       class="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 hover:scale-110"
                       title="Change Color">
@@ -2512,6 +2520,11 @@ function displayRolesList(roles) {
             ` : ''}
           </div>
         </div>
+        ${!canDelete && userCount > 0 ? `
+          <div class="mt-2 text-xs text-red-400">
+            Cannot delete: ${userCount} user(s) have this role
+          </div>
+        ` : ''}
       </div>
     `;
   });
