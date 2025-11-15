@@ -6,7 +6,7 @@
     <title>Tuffest Admin Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>e
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <style>
         .glassmorphism {
@@ -937,7 +937,7 @@ async function loadAvailableRoles() {
       const rolesArray = Object.entries(data.roles)
         .filter(([roleName, config]) => {
           // Additional client-side filtering for safety
-          if (isModerator(currentUserRole)) {
+          if (isModeratorClass(currentUserRole)) {
             // Client-side enforcement of weight limits
             if (config.weight >= currentUserWeight) {
               return false;
@@ -1015,18 +1015,24 @@ async function loadAvailableRoles() {
     }
 
     // Function to check if user is moderator
-    function isModerator(role) {
-        return role === "Moderator";
+    function isModeratorClass(role) {
+        return hasPermission(role, 'moderator');
     }
 
+
     // Function to check if user is admin or owner
-    function isAdminOrOwner(role) {
-        return role === "Admin" || role === "Owner";
-    }
+function isAdminClass(role) {
+    // Include Owner in admin class checks
+    return hasPermission(role, 'admin') || role === "Owner";
+}
+
+    function isFullAccess(role) {
+    return hasPermission(role, 'full') || role === "Owner";
+}
 
     // Function to get moderator cooldowns
     async function getModeratorCooldowns() {
-        if (!isModerator(currentUserRole)) return;
+        if (!isModeratorClass(currentUserRole)) return;
 
         try {
             const token = getCookie('AuthToken');
@@ -1054,7 +1060,7 @@ async function loadAvailableRoles() {
 
     // Function to update cooldown displays
     function updateCooldownDisplays() {
-        if (!isModerator(currentUserRole)) return;
+        if (!isModeratorClass(currentUserRole)) return;
 
         // Update main cooldown display
         const warnCooldownEl = document.getElementById('warnCooldown');
@@ -1197,7 +1203,7 @@ async function loadAvailableRoles() {
         const sendBroadcastBtn = document.getElementById('sendBroadcastBtn');
         
         if (broadcastCooldownInfo && sendBroadcastBtn) {
-            if (isModerator(currentUserRole)) {
+            if (isModeratorClass(currentUserRole)) {
                 broadcastCooldownInfo.innerHTML = `
                     <div class="limit-info">
                         <div class="flex items-center">
@@ -1283,7 +1289,7 @@ async function loadAvailableRoles() {
     // Update the sendBroadcast function
     async function sendBroadcast() {
         // Check if moderator trying to send broadcast
-        if (isModerator(currentUserRole)) {
+        if (isModeratorClass(currentUserRole)) {
             alert('Moderators cannot send broadcast messages. Only Admins and Owners have this permission.');
             return;
         }
@@ -1346,7 +1352,7 @@ async function loadAvailableRoles() {
         }
         
         // Check moderator restrictions
-        if (isModerator(currentUserRole)) {
+        if (isModeratorClass(currentUserRole)) {
             // Check cooldown
             if (moderatorCooldowns.bulkMessages > 0) {
                 alert(`You cannot send bulk messages yet. Cooldown: ${moderatorCooldowns.bulkMessages} minutes remaining.`);
@@ -1394,7 +1400,7 @@ async function loadAvailableRoles() {
             deselectAllUsers();
             
             // Refresh cooldowns if moderator
-            if (isModerator(currentUserRole)) {
+            if (isModeratorClass(currentUserRole)) {
                 setTimeout(getModeratorCooldowns, 1000);
             }
             
@@ -1420,7 +1426,7 @@ async function loadAvailableRoles() {
         }
         
         // Check moderator restrictions
-        if (isModerator(currentUserRole)) {
+        if (isModeratorClass(currentUserRole)) {
             // Check cooldown
             if (moderatorCooldowns.warnings > 0) {
                 alert(`You cannot send warnings yet. Cooldown: ${moderatorCooldowns.warnings} minutes remaining.`);
@@ -1473,7 +1479,7 @@ async function loadAvailableRoles() {
             document.getElementById('warnMessage').value = '';
             
             // Refresh cooldowns if moderator
-            if (isModerator(currentUserRole)) {
+            if (isModeratorClass(currentUserRole)) {
                 setTimeout(getModeratorCooldowns, 1000);
             }
             
@@ -1816,7 +1822,7 @@ async function loadAvailableRoles() {
     // Show role assignment modal
     async function showRoleAssignmentModal(username, currentRole) {
         // Prevent changing Owner roles for non-Owners
-        if (currentRole === "Owner" && currentUserRole !== "Owner") {
+        if (currentRole === "Owner" && !isAdminClass(currentUserRole)) {
             alert("❌ Error: Only Owners can modify other Owner roles");
             return;
         }
@@ -1844,7 +1850,7 @@ async function loadAvailableRoles() {
         helpText += ` (Weight: ${roleConfig.weight})`;
         
         // Add moderator-specific guidance
-        if (isModerator(currentUserRole)) {
+        if (isModeratorClass(currentUserRole)) {
           const currentUserWeight = getRoleWeight(currentUserRole);
           
           if (roleConfig.weight >= currentUserWeight) {
@@ -1920,6 +1926,31 @@ async function loadAvailableRoles() {
     }
 }
 
+
+function getRoleClass(weight) {
+    if (weight >= 100) return 'full';
+    if (weight >= 61 && weight <= 99) return 'admin';
+    if (weight >= 40 && weight <= 60) return 'moderator';
+    return 'basic';
+}
+
+    function hasPermission(userRole, requiredClass) {
+    const userRoleConfig = allRoles[userRole];
+    if (!userRoleConfig) return false;
+    
+    const userWeight = userRoleConfig.weight || 0;
+    const userClass = getRoleClass(userWeight);
+    
+    const classHierarchy = {
+        'basic': 1,
+        'moderator': 2,
+        'admin': 3,
+        'full': 4
+    };
+    
+    return classHierarchy[userClass] >= classHierarchy[requiredClass];
+}
+    
 // Get role weight
 function getRoleWeight(roleName) {
     const roleConfig = allRoles[roleName];
@@ -1967,7 +1998,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const userInfo = await getUserInfo(token);
         
         // Check if user has admin permissions
-        if (userInfo.role !== "Owner" && userInfo.role !== "Admin" && userInfo.role !== "Moderator") {
+        if (!isAdminClass(userInfo.role) && !isModeratorClass(userInfo.role)) {
             // Insufficient permissions - redirect to target URL
             setTimeout(() => {
                 document.getElementById('loadingOverlay').classList.add('hidden');
@@ -2004,7 +2035,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('userRoleDisplay').textContent = userInfo.role;
             
             // Show moderator cooldowns if user is moderator
-            if (isModerator(currentUserRole)) {
+            if (isModeratorClass(currentUserRole)) {
                 document.getElementById('moderatorCooldowns').classList.remove('hidden');
                 getModeratorCooldowns();
                 // Start cooldown refresh interval
@@ -2069,16 +2100,14 @@ async function loadUsersList() {
         // Use string concatenation with proper escaping
         let usersHTML = '';
         users.forEach(user => {
-            const canDelete = user.username !== currentUser && 
-                (currentUserRole === 'Owner' || 
-                 (currentUserRole === 'Admin' && user.role !== 'Owner' && user.role !== 'Admin') ||
-                 (isModerator(currentUserRole) && user.role !== 'Owner' && user.role !== 'Admin' && getRoleWeight(user.role) < getRoleWeight(currentUserRole)));
+        const canDelete = user.username !== currentUser && 
+            (isAdminClass(currentUserRole) || 
+             (isModeratorClass(currentUserRole) && canModeratorManageTarget(currentUserRole, user.role)));
             
             // Prevent non-Owners from assigning roles to Owners
             const canAssignRole = user.username !== currentUser && 
-                (currentUserRole === 'Owner' || 
-                 (currentUserRole === 'Admin' && user.role !== 'Owner') ||
-                 (isModerator(currentUserRole) && user.role !== 'Owner' && user.role !== 'Admin' && getRoleWeight(user.role) < getRoleWeight(currentUserRole)));
+                (isAdminClass(currentUserRole) || 
+                 (isModeratorClass(currentUserRole) && canModeratorManageTarget(currentUserRole, user.role)));
             
             // Escape all dynamic values
             const safeUsername = escapeHtml(user.username);
@@ -2149,7 +2178,7 @@ function showBlacklistForm(username) {
 // Blacklist user
 async function blacklistUser(username, reason) {
     // Check moderator restrictions
-    if (isModerator(currentUserRole)) {
+    if (isModeratorClass(currentUserRole)) {
         // Check cooldown
         if (moderatorCooldowns.blacklists > 0) {
             alert(`You cannot blacklist users yet. Cooldown: ${moderatorCooldowns.blacklists} minutes remaining.`);
@@ -2198,7 +2227,7 @@ async function blacklistUser(username, reason) {
         loadUsersList();
         
         // Refresh cooldowns if moderator
-        if (isModerator(currentUserRole)) {
+        if (isModeratorClass(currentUserRole)) {
             setTimeout(getModeratorCooldowns, 1000);
         }
         
@@ -2208,6 +2237,28 @@ async function blacklistUser(username, reason) {
     }
 }
 
+function updatePermissionsBasedOnWeight() {
+    const weightInput = document.getElementById('roleWeight');
+    const permissionsSelect = document.getElementById('rolePermissions');
+    
+    if (!weightInput || !permissionsSelect) return;
+    
+    weightInput.addEventListener('input', function() {
+        const weight = parseInt(this.value) || 1;
+        
+        if (weight >= 1 && weight <= 39) {
+            permissionsSelect.value = 'basic';
+        } else if (weight >= 40 && weight <= 60) {
+            permissionsSelect.value = 'moderator';
+        } else if (weight >= 61 && weight <= 99) {
+            permissionsSelect.value = 'admin';
+        } else if (weight === 100) {
+            permissionsSelect.value = 'full';
+        }
+    });
+}
+
+    
 // Unblacklist user
 async function unblacklistUser(username) {
     if (!confirm('Are you sure you want to unblacklist ' + username + '?')) {
@@ -2215,7 +2266,7 @@ async function unblacklistUser(username) {
     }
     
     // Check moderator restrictions
-    if (isModerator(currentUserRole)) {
+    if (isModeratorClass(currentUserRole)) {
         // Check cooldown
         if (moderatorCooldowns.unblacklists > 0) {
             alert(`You cannot unblacklist users yet. Cooldown: ${moderatorCooldowns.unblacklists} minutes remaining.`);
@@ -2256,7 +2307,7 @@ async function unblacklistUser(username) {
         loadUsersList();
         
         // Refresh cooldowns if moderator
-        if (isModerator(currentUserRole)) {
+        if (isModeratorClass(currentUserRole)) {
             setTimeout(getModeratorCooldowns, 1000);
         }
         
@@ -2296,7 +2347,7 @@ document.getElementById('refreshUsers').addEventListener('click', function() {
 
 // Refresh cooldowns
 document.getElementById('refreshCooldowns').addEventListener('click', function() {
-    if (isModerator(currentUserRole)) {
+    if (isModeratorClass(currentUserRole)) {
         getModeratorCooldowns();
     }
 });
@@ -2381,7 +2432,7 @@ function displayRolesList(roles) {
   const currentUserWeight = getRoleWeight(currentUserRole);
   
   // Add moderator limits header
-  if (isModerator(currentUserRole)) {
+  if (isModeratorClass(currentUserRole)) {
     rolesHTML += `
       <div class="glassmorphism p-3 rounded-lg mb-4 border-l-4 border-yellow-500">
         <div class="flex items-center">
@@ -2415,12 +2466,11 @@ function displayRolesList(roles) {
     const currentUserWeight = currentUserRoleConfig?.weight || 0;
     
     // Check if current user can delete this role based on weight
-    const canDelete = currentUserRole === 'Owner' || 
-      (currentUserWeight >= weight && 
-       roleName !== 'Owner' && 
-       userCount === 0);
+    const canDelete = isAdminClass(currentUserRole) && 
+      currentUserWeight > weight && 
+      userCount === 0;
     
-    const canEdit = currentUserRole === 'Owner' || (currentUserRole === 'Admin' && roleName !== 'Owner');
+    const canEdit = isAdminClass(currentUserRole) && currentUserWeight > weight;
     
     rolesHTML += `
       <div class="glassmorphism p-4 rounded-lg role-management-item ${isCosmetic ? 'cosmetic-role' : ''}">
@@ -2462,6 +2512,12 @@ function displayRolesList(roles) {
   
   container.innerHTML = rolesHTML;
   feather.replace();
+}
+    // Add this function to your HTML script
+function canModeratorManageTarget(moderatorRole, targetRole) {
+  const moderatorWeight = getRoleWeight(moderatorRole);
+  const targetWeight = getRoleWeight(targetRole);
+  return targetWeight < moderatorWeight;
 }
 // Edit role color
 async function editRoleColor(roleName, currentColor) {
@@ -2513,7 +2569,7 @@ async function deleteRole(roleName) {
     const targetRoleWeight = targetRoleConfig?.weight || 0;
     
     // Check if current user can delete this role
-    if (currentUserRole !== 'Owner' && currentUserWeight < targetRoleWeight) {
+    if (!isAdminClass(currentUserRole) && currentUserWeight < targetRoleWeight) {
         alert(`❌ You cannot delete the "${roleName}" role. Your role weight (${currentUserWeight}) is lower than the target role weight (${targetRoleWeight}).`);
         return;
     }
@@ -2725,6 +2781,7 @@ async function refreshRoleList() {
 
 // Initialize color picker when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    updatePermissionsBasedOnWeight();
     setupColorPicker();
 });
 </script>
