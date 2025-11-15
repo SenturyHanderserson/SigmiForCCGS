@@ -1041,38 +1041,40 @@ function isFullAccess(role) {
     return roleConfig.fullaccess || role === "Owner" || roleConfig.weight >= 100;
 }
 
-    // Function to get moderator cooldowns
-    async function getModeratorCooldowns() {
-        if (!isModeratorClass(currentUserRole)) return;
-
-        try {
-            const token = getCookie('AuthToken');
-            const response = await fetch(`${SERVER_URL}/api/moderator/cooldowns`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error('Failed to get cooldowns');
-            }
-            
-            const data = await response.json();
-            moderatorCooldowns = data.cooldowns;
-            updateCooldownDisplays();
-            return data.cooldowns;
-        } catch (error) {
-            console.error('Get cooldowns error:', error);
-            return moderatorCooldowns;
-        }
+// Function to get moderator cooldowns
+async function getModeratorCooldowns() {
+    // Only get cooldowns for actual moderators (not admins/owners)
+    if (!isModeratorClass(currentUserRole) || isAdminClass(currentUserRole)) {
+        return;
     }
+
+    try {
+        const token = getCookie('AuthToken');
+        const response = await fetch(`${SERVER_URL}/api/moderator/cooldowns`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to get cooldowns');
+        }
+        
+        const data = await response.json();
+        moderatorCooldowns = data.cooldowns;
+        updateCooldownDisplays();
+        return data.cooldowns;
+    } catch (error) {
+        console.error('Get cooldowns error:', error);
+        return moderatorCooldowns;
+    }
+}
 
     // Function to update cooldown displays
     function updateCooldownDisplays() {
-        if (!isModeratorClass(currentUserRole)) return;
-
+    if (!isModeratorClass(currentUserRole) || isAdminClass(currentUserRole)) return;
         // Update main cooldown display
         const warnCooldownEl = document.getElementById('warnCooldown');
         const blacklistCooldownEl = document.getElementById('blacklistCooldown');
@@ -2044,13 +2046,16 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Update user info display
             document.getElementById('userUsername').textContent = userInfo.username;
             document.getElementById('userRoleDisplay').textContent = userInfo.role;
-            
-            // Show moderator cooldowns if user is moderator
-            if (isModeratorClass(currentUserRole)) {
+                        
+            // Show moderator cooldowns ONLY if user is moderator (not admin/owner)
+            if (isModeratorClass(currentUserRole) && !isAdminClass(currentUserRole)) {
                 document.getElementById('moderatorCooldowns').classList.remove('hidden');
                 getModeratorCooldowns();
                 // Start cooldown refresh interval
                 cooldownInterval = setInterval(getModeratorCooldowns, 30000);
+            } else {
+                // Hide moderator cooldowns for admins/owners
+                document.getElementById('moderatorCooldowns').classList.add('hidden');
             }
             
             // Load users list
