@@ -1112,129 +1112,133 @@ async function getModeratorCooldowns() {
         updateModalCooldownDisplays();
     }
 
-    // Function to update modal cooldown displays
-    function updateModalCooldownDisplays() {
-        // Warn modal
-        const warnCooldownInfo = document.getElementById('warnCooldownInfo');
-        const sendWarnBtn = document.getElementById('sendWarnBtn');
-        
-        if (warnCooldownInfo && sendWarnBtn) {
-            if (moderatorCooldowns.warnings > 0) {
-                warnCooldownInfo.innerHTML = `
-                    <div class="cooldown-indicator">
-                        <div class="flex items-center">
-                            <i data-feather="clock" class="w-4 h-4 mr-2"></i>
-                            <span>Warning cooldown: <span class="cooldown-timer cooldown-active">${moderatorCooldowns.warnings} minutes remaining</span></span>
-                        </div>
-                        <p class="text-xs text-gray-300 mt-1">Moderators can only send warnings every 10 minutes</p>
+// Function to update modal cooldown displays
+function updateModalCooldownDisplays() {
+    // Warn modal
+    const warnCooldownInfo = document.getElementById('warnCooldownInfo');
+    const sendWarnBtn = document.getElementById('sendWarnBtn');
+    
+    if (warnCooldownInfo && sendWarnBtn) {
+        if (moderatorCooldowns.warnings > 0) {
+            warnCooldownInfo.innerHTML = `
+                <div class="cooldown-indicator">
+                    <div class="flex items-center">
+                        <i data-feather="clock" class="w-4 h-4 mr-2"></i>
+                        <span>Warning cooldown: <span class="cooldown-timer cooldown-active">${moderatorCooldowns.warnings} minutes remaining</span></span>
                     </div>
-                `;
-                warnCooldownInfo.classList.remove('hidden');
-                sendWarnBtn.classList.add('action-disabled');
-            } else {
-                warnCooldownInfo.innerHTML = `
-                    <div class="cooldown-indicator">
-                        <div class="flex items-center">
-                            <i data-feather="check-circle" class="w-4 h-4 mr-2 text-green-400"></i>
-                            <span>Warning action: <span class="cooldown-timer cooldown-available">Available</span></span>
-                        </div>
-                        <p class="text-xs text-gray-300 mt-1">You can send warnings now</p>
+                    <p class="text-xs text-gray-300 mt-1">Moderators can only send warnings every 10 minutes</p>
+                </div>
+            `;
+            warnCooldownInfo.classList.remove('hidden');
+            sendWarnBtn.classList.add('action-disabled');
+        } else {
+            warnCooldownInfo.innerHTML = `
+                <div class="cooldown-indicator">
+                    <div class="flex items-center">
+                        <i data-feather="check-circle" class="w-4 h-4 mr-2 text-green-400"></i>
+                        <span>Warning action: <span class="cooldown-timer cooldown-available">Available</span></span>
                     </div>
-                `;
-                warnCooldownInfo.classList.remove('hidden');
-                sendWarnBtn.classList.remove('action-disabled');
-            }
+                    <p class="text-xs text-gray-300 mt-1">You can send warnings now</p>
+                </div>
+            `;
+            warnCooldownInfo.classList.remove('hidden');
+            sendWarnBtn.classList.remove('action-disabled');
         }
-
-        // Blacklist form
-        const blacklistCooldownInfo = document.getElementById('blacklistCooldownInfo');
-        const blacklistBtn = document.getElementById('blacklistBtn');
-        
-        if (blacklistCooldownInfo && blacklistBtn) {
-            if (moderatorCooldowns.blacklists > 0) {
-                blacklistCooldownInfo.innerHTML = `
-                    <div class="cooldown-indicator">
-                        <div class="flex items-center">
-                            <i data-feather="clock" class="w-4 h-4 mr-2"></i>
-                            <span>Blacklist cooldown: <span class="cooldown-timer cooldown-active">${moderatorCooldowns.blacklists} minutes remaining</span></span>
-                        </div>
-                        <p class="text-xs text-gray-300 mt-1">Moderators can only blacklist once per day</p>
-                    </div>
-                `;
-                blacklistCooldownInfo.classList.remove('hidden');
-                blacklistBtn.classList.add('action-disabled');
-            } else {
-                blacklistCooldownInfo.innerHTML = `
-                    <div class="cooldown-indicator">
-                        <div class="flex items-center">
-                            <i data-feather="check-circle" class="w-4 h-4 mr-2 text-green-400"></i>
-                            <span>Blacklist action: <span class="cooldown-timer cooldown-available">Available</span></span>
-                        </div>
-                        <p class="text-xs text-gray-300 mt-1">You can blacklist users now</p>
-                    </div>
-                `;
-                blacklistCooldownInfo.classList.remove('hidden');
-                blacklistBtn.classList.remove('action-disabled');
-            }
-        }
-
-        // Message modal
-        const messageCooldownInfo = document.getElementById('messageCooldownInfo');
-        const sendMessageBtn = document.getElementById('sendMessageBtn');
-        
-        if (messageCooldownInfo && sendMessageBtn) {
-            if (moderatorCooldowns.bulkMessages > 0) {
-                messageCooldownInfo.innerHTML = `
-                    <div class="cooldown-indicator">
-                        <div class="flex items-center">
-                            <i data-feather="clock" class="w-4 h-4 mr-2"></i>
-                            <span>Message cooldown: <span class="cooldown-timer cooldown-active">${moderatorCooldowns.bulkMessages} minutes remaining</span></span>
-                        </div>
-                        <p class="text-xs text-gray-300 mt-1">Moderators can only send bulk messages every 5 minutes</p>
-                    </div>
-                `;
-                messageCooldownInfo.classList.remove('hidden');
-                sendMessageBtn.classList.add('action-disabled');
-            } else {
-                messageCooldownInfo.innerHTML = `
-                    <div class="limit-info">
-                        <div class="flex items-center">
-                            <i data-feather="check-circle" class="w-4 h-4 mr-2 text-green-400"></i>
-                            <span>Message action: <span class="cooldown-timer cooldown-available">Available</span></span>
-                        </div>
-                        <p class="text-xs text-gray-300 mt-1">Moderators can send messages to up to 5 users at once</p>
-                    </div>
-                `;
-                messageCooldownInfo.classList.remove('hidden');
-                sendMessageBtn.classList.remove('action-disabled');
-            }
-        }
-
-        // Broadcast modal
-        const broadcastCooldownInfo = document.getElementById('broadcastCooldownInfo');
-        const sendBroadcastBtn = document.getElementById('sendBroadcastBtn');
-        
-        if (broadcastCooldownInfo && sendBroadcastBtn) {
-            if (isModeratorClass(currentUserRole)) {
-                broadcastCooldownInfo.innerHTML = `
-                    <div class="limit-info">
-                        <div class="flex items-center">
-                            <i data-feather="alert-circle" class="w-4 h-4 mr-2 text-yellow-400"></i>
-                            <span>Broadcast: <span class="cooldown-timer">Moderator Restricted</span></span>
-                        </div>
-                        <p class="text-xs text-gray-300 mt-1">Only Admins and Owners can send broadcast messages</p>
-                    </div>
-                `;
-                broadcastCooldownInfo.classList.remove('hidden');
-                sendBroadcastBtn.classList.add('action-disabled');
-            } else {
-                broadcastCooldownInfo.classList.add('hidden');
-                sendBroadcastBtn.classList.remove('action-disabled');
-            }
-        }
-
-        feather.replace();
     }
+
+    // Blacklist form
+    const blacklistCooldownInfo = document.getElementById('blacklistCooldownInfo');
+    const blacklistBtn = document.getElementById('blacklistBtn');
+    
+    if (blacklistCooldownInfo && blacklistBtn) {
+        if (moderatorCooldowns.blacklists > 0) {
+            blacklistCooldownInfo.innerHTML = `
+                <div class="cooldown-indicator">
+                    <div class="flex items-center">
+                        <i data-feather="clock" class="w-4 h-4 mr-2"></i>
+                        <span>Blacklist cooldown: <span class="cooldown-timer cooldown-active">${moderatorCooldowns.blacklists} minutes remaining</span></span>
+                    </div>
+                    <p class="text-xs text-gray-300 mt-1">Moderators can only blacklist once per day</p>
+                </div>
+            `;
+            blacklistCooldownInfo.classList.remove('hidden');
+            blacklistBtn.classList.add('action-disabled');
+        } else {
+            blacklistCooldownInfo.innerHTML = `
+                <div class="cooldown-indicator">
+                    <div class="flex items-center">
+                        <i data-feather="check-circle" class="w-4 h-4 mr-2 text-green-400"></i>
+                        <span>Blacklist action: <span class="cooldown-timer cooldown-available">Available</span></span>
+                    </div>
+                    <p class="text-xs text-gray-300 mt-1">You can blacklist users now</p>
+                </div>
+            `;
+            blacklistCooldownInfo.classList.remove('hidden');
+            blacklistBtn.classList.remove('action-disabled');
+        }
+    }
+
+    // Message modal
+    const messageCooldownInfo = document.getElementById('messageCooldownInfo');
+    const sendMessageBtn = document.getElementById('sendMessageBtn');
+    
+    if (messageCooldownInfo && sendMessageBtn) {
+        if (moderatorCooldowns.bulkMessages > 0) {
+            messageCooldownInfo.innerHTML = `
+                <div class="cooldown-indicator">
+                    <div class="flex items-center">
+                        <i data-feather="clock" class="w-4 h-4 mr-2"></i>
+                        <span>Message cooldown: <span class="cooldown-timer cooldown-active">${moderatorCooldowns.bulkMessages} minutes remaining</span></span>
+                    </div>
+                    <p class="text-xs text-gray-300 mt-1">Moderators can only send bulk messages every 5 minutes</p>
+                </div>
+            `;
+            messageCooldownInfo.classList.remove('hidden');
+            sendMessageBtn.classList.add('action-disabled');
+        } else {
+            messageCooldownInfo.innerHTML = `
+                <div class="limit-info">
+                    <div class="flex items-center">
+                        <i data-feather="check-circle" class="w-4 h-4 mr-2 text-green-400"></i>
+                        <span>Message action: <span class="cooldown-timer cooldown-available">Available</span></span>
+                    </div>
+                    <p class="text-xs text-gray-300 mt-1">Moderators can send messages to up to 5 users at once</p>
+                </div>
+            `;
+            messageCooldownInfo.classList.remove('hidden');
+            sendMessageBtn.classList.remove('action-disabled');
+        }
+    }
+
+    // Broadcast modal - FIXED: Only restrict actual moderators, not admins/full access
+    const broadcastCooldownInfo = document.getElementById('broadcastCooldownInfo');
+    const sendBroadcastBtn = document.getElementById('sendBroadcastBtn');
+    
+    if (broadcastCooldownInfo && sendBroadcastBtn) {
+        // Check if user is specifically a moderator (not admin or full access)
+        const isOnlyModerator = isModeratorClass(currentUserRole) && !isAdminClass(currentUserRole) && !isFullAccess(currentUserRole);
+        
+        if (isOnlyModerator) {
+            broadcastCooldownInfo.innerHTML = `
+                <div class="limit-info">
+                    <div class="flex items-center">
+                        <i data-feather="alert-circle" class="w-4 h-4 mr-2 text-yellow-400"></i>
+                        <span>Broadcast: <span class="cooldown-timer">Moderator Restricted</span></span>
+                    </div>
+                    <p class="text-xs text-gray-300 mt-1">Only Admins and Owners can send broadcast messages</p>
+                </div>
+            `;
+            broadcastCooldownInfo.classList.remove('hidden');
+            sendBroadcastBtn.classList.add('action-disabled');
+        } else {
+            // User is admin or full access - allow broadcast
+            broadcastCooldownInfo.classList.add('hidden');
+            sendBroadcastBtn.classList.remove('action-disabled');
+        }
+    }
+
+    feather.replace();
+}
 
     // Modal functions
     function openModal(modalId) {
@@ -1298,53 +1302,55 @@ async function getModeratorCooldowns() {
         });
     }
 
-    // Update the sendBroadcast function
-    async function sendBroadcast() {
-        // Check if moderator trying to send broadcast
-        if (isModeratorClass(currentUserRole)) {
-            alert('Moderators cannot send broadcast messages. Only Admins and Owners have this permission.');
-            return;
-        }
-        
-        const message = document.getElementById('broadcastMessage').value.trim();
-        const duration = parseInt(document.getElementById('broadcastDuration').value);
-        const senderType = document.querySelector('input[name="broadcastSenderType"]:checked').value;
-        
-        if (!message) {
-            alert('Please enter a message to broadcast');
-            return;
-        }
-        
-        try {
-            const token = getCookie('AuthToken');
-            const response = await fetch(`${SERVER_URL}/api/broadcast`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    message, 
-                    duration,
-                    senderType
-                })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to send broadcast');
-            }
-            
-            const result = await response.json();
-            alert(`Broadcast sent successfully as ${senderType}! It will be active for ${duration} hours.`);
-            closeModal('broadcastModal');
-            document.getElementById('broadcastMessage').value = '';
-            
-        } catch (error) {
-            console.error('Broadcast error:', error);
-            alert(`Error: ${error.message}`);
-        }
+// Update the sendBroadcast function
+async function sendBroadcast() {
+    // Check if user is specifically a moderator (not admin or full access)
+    const isOnlyModerator = isModeratorClass(currentUserRole) && !isAdminClass(currentUserRole) && !isFullAccess(currentUserRole);
+    
+    if (isOnlyModerator) {
+        alert('Moderators cannot send broadcast messages. Only Admins and Owners have this permission.');
+        return;
     }
+    
+    const message = document.getElementById('broadcastMessage').value.trim();
+    const duration = parseInt(document.getElementById('broadcastDuration').value);
+    const senderType = document.querySelector('input[name="broadcastSenderType"]:checked').value;
+    
+    if (!message) {
+        alert('Please enter a message to broadcast');
+        return;
+    }
+    
+    try {
+        const token = getCookie('AuthToken');
+        const response = await fetch(`${SERVER_URL}/api/broadcast`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                message, 
+                duration,
+                senderType
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to send broadcast');
+        }
+        
+        const result = await response.json();
+        alert(`Broadcast sent successfully as ${senderType}! It will be active for ${duration} hours.`);
+        closeModal('broadcastModal');
+        document.getElementById('broadcastMessage').value = '';
+        
+    } catch (error) {
+        console.error('Broadcast error:', error);
+        alert(`Error: ${error.message}`);
+    }
+}
 
     // Update the sendSpecificMessage function
     async function sendSpecificMessage() {
