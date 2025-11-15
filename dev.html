@@ -2633,8 +2633,8 @@ async function deleteRole(roleName) {
   
   // FIXED: Moderator-specific restrictions
   if (isModerator) {
-    // FIX: Allow deleting roles with weight <= their own (up to 49)
-    if (targetRoleWeight > currentUserWeight) {
+    // FIXED: Allow deleting roles with weight < their own (changed from > to >=)
+    if (targetRoleWeight >= currentUserWeight) {
       alert(`❌ You cannot delete the "${roleName}" role. Your role weight (${currentUserWeight}) must be higher than the target role weight (${targetRoleWeight}).`);
       return;
     }
