@@ -2464,17 +2464,17 @@ function displayRolesList(roles) {
     // DEBUG: Log role information to console
     console.log(`Role: ${roleName}, Weight: ${weight}, UserCount: ${userCount}, CurrentUserWeight: ${currentUserWeight}, IsOwner: ${isOwner}`);
     
-    // FIXED: Permission logic for edit button
-    // Users can edit roles with LOWER weight than theirs
-    const canEdit = (isAdminClass(currentUserRole) || isOwner) && 
-                   weight < currentUserWeight;
-    
-    // FIXED: Permission logic for delete button
-    // Users can delete roles with LOWER weight AND no users assigned AND not their own role
-    const canDelete = (isAdminClass(currentUserRole) || isOwner) && 
-                     weight < currentUserWeight && 
-                     userCount === 0 &&
-                     roleName !== currentUserRole;
+        // FIXED: Permission logic for edit button
+        // Users can edit roles with LOWER OR EQUAL weight (for moderators)
+        const canEdit = (isAdminClass(currentUserRole) || isOwner) && 
+                       weight <= currentUserWeight; // Changed from < to <=
+        
+        // FIXED: Permission logic for delete button  
+        // Users can delete roles with LOWER OR EQUAL weight AND no users assigned
+        const canDelete = (isAdminClass(currentUserRole) || isOwner) && 
+                         weight <= currentUserWeight && // Changed from < to <=
+                         userCount === 0 &&
+                         roleName !== currentUserRole;
     
     // Special case: Owner can delete any role except their own (regardless of user count)
     const ownerCanDelete = isOwner && roleName !== currentUserRole;
@@ -2580,31 +2580,27 @@ async function editRoleColor(roleName, currentColor) {
     }
 }
 
-// Delete role - UPDATED WITH ADDITIONAL SAFETY CHECKS
+// Delete role - FIXED VERSION
 async function deleteRole(roleName) {
   const currentUserRoleConfig = allRoles[currentUserRole];
   const currentUserWeight = currentUserRoleConfig?.weight || 0;
   const targetRoleConfig = allRoles[roleName];
   const targetRoleWeight = targetRoleConfig?.weight || 0;
   
-  // Check if current user can delete this role
-  if (!isAdminClass(currentUserRole) && currentUserWeight <= targetRoleWeight) {
+  // FIX: Allow moderators to delete roles with LOWER weight
+  if (isModeratorClass(currentUserRole) && !isAdminClass(currentUserRole)) {
+    // Moderators can only delete roles with weight < their own
+    if (targetRoleWeight >= currentUserWeight) {
+      alert(`❌ You cannot delete the "${roleName}" role. Your role weight (${currentUserWeight}) must be higher than the target role weight (${targetRoleWeight}).`);
+      return;
+    }
+  } else if (!isAdminClass(currentUserRole) && currentUserWeight <= targetRoleWeight) {
+    // Regular users (non-admin/moderator) cannot delete roles with same or higher weight
     alert(`❌ You cannot delete the "${roleName}" role. Your role weight (${currentUserWeight}) must be higher than the target role weight (${targetRoleWeight}).`);
     return;
   }
   
-  // Special case: Owner can delete any role except their own
-  if (currentUserRole === "Owner" && roleName === currentUserRole) {
-    alert("❌ You cannot delete your own current role.");
-    return;
-  }
-  
-  // Prevent users from deleting their own current role
-  if (roleName === currentUserRole) {
-    alert("❌ You cannot delete your own current role.");
-    return;
-  }
-  
+  // Rest of the function remains the same...
   const userCount = users.filter(u => u.role === roleName).length;
   if (userCount > 0) {
     alert(`❌ Cannot delete role "${roleName}" - ${userCount} user(s) have this role assigned.`);
