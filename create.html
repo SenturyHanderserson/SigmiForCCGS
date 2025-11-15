@@ -306,6 +306,15 @@
         </div>
     </div>
 
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="glass rounded-2xl p-12 text-center max-w-md w-full mx-4" data-aos="zoom-in">
+            <div class="loading-spinner mx-auto mb-6"></div>
+            <h3 class="text-2xl font-bold mb-3 gradient-text">Verifying Permissions...</h3>
+            <p class="text-gray-300 text-lg">Please wait while we verify your access</p>
+        </div>
+    </div>
+
     <!-- Main Content (Hidden until authenticated) -->
     <div id="mainContent" class="hidden min-h-screen relative z-10">
         <div class="container mx-auto px-4 py-8">
@@ -470,8 +479,8 @@
             </div>
         </div>
 
-        <!-- Loading Overlay -->
-        <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <!-- Upload Loading Overlay -->
+        <div id="uploadLoadingOverlay" class="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 hidden">
             <div class="glass rounded-2xl p-12 text-center max-w-md w-full mx-4" data-aos="zoom-in">
                 <div class="loading-spinner mx-auto mb-6"></div>
                 <h3 class="text-2xl font-bold mb-3 gradient-text">Processing...</h3>
@@ -497,6 +506,7 @@
         let authToken = '';
         let currentUser = null;
         let userRole = null;
+        let allRoles = {};
 
         // Cookie functions
         function getCookie(name) {
@@ -516,6 +526,64 @@
             return "";
         }
 
+        // Role-based permission functions
+        function isModeratorClass(role) {
+            const roleConfig = allRoles[role];
+            if (!roleConfig) return false;
+            
+            // Check for moderator tag OR check weight as fallback
+            return roleConfig.moderator || roleConfig.admin || roleConfig.fullaccess || 
+                   (roleConfig.weight >= 40 && roleConfig.weight <= 60);
+        }
+
+        function isAdminClass(role) {
+            const roleConfig = allRoles[role];
+            if (!roleConfig) return false;
+            
+            // Check for admin tag OR fullaccess tag OR Owner role OR check weight as fallback
+            return roleConfig.admin || roleConfig.fullaccess || role === "Owner" ||
+                   (roleConfig.weight >= 61 && roleConfig.weight <= 99);
+        }
+
+        function isFullAccess(role) {
+            const roleConfig = allRoles[role];
+            if (!roleConfig) return false;
+            
+            // Check for fullaccess tag OR Owner role OR check weight as fallback
+            return roleConfig.fullaccess || role === "Owner" || roleConfig.weight >= 100;
+        }
+
+        // Get role weight
+        function getRoleWeight(roleName) {
+            const roleConfig = allRoles[roleName];
+            return roleConfig ? (roleConfig.weight || 0) : 0;
+        }
+
+        // Load all roles from server
+        async function loadAllRoles() {
+            try {
+                const token = getCookie('AuthToken');
+                const response = await fetch(`${SERVER_URL}/api/roles`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load roles');
+                }
+                
+                const data = await response.json();
+                allRoles = data.roles || {};
+                return allRoles;
+            } catch (error) {
+                console.error('Load all roles error:', error);
+                return {};
+            }
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             feather.replace();
@@ -524,11 +592,14 @@
 
         // Check authentication
         async function checkAuth() {
+            showLoading(true);
+            
             authToken = getCookie('AuthToken');
             currentUser = localStorage.getItem('currentUser');
             userRole = localStorage.getItem('userRole');
 
             if (!authToken || !currentUser) {
+                showLoading(false);
                 showAuthModal();
                 return;
             }
@@ -541,7 +612,12 @@
                         currentUser = userInfo.username;
                         userRole = userInfo.role;
 
-                        if (userRole !== 'Moderator' && userRole !== 'Admin' && userRole !== 'Owner') {
+                        // Load all roles to check permissions properly
+                        await loadAllRoles();
+
+                        // Check if user has moderator permissions using role properties
+                        if (!isModeratorClass(userRole) && !isAdminClass(userRole) && !isFullAccess(userRole)) {
+                            showLoading(false);
                             showNotification('Insufficient permissions. Moderator access required.', 'error');
                             setTimeout(() => {
                                 redirectToLogin();
@@ -560,7 +636,10 @@
                 }
             } catch (error) {
                 console.error('Auth error:', error);
+                showLoading(false);
                 showAuthModal();
+            } finally {
+                showLoading(false);
             }
         }
 
@@ -616,6 +695,18 @@
             document.getElementById('authModal').classList.remove('active');
             document.getElementById('mainContent').classList.remove('hidden');
             document.getElementById('userInfo').textContent = `${currentUser} (${userRole})`;
+        }
+
+        // Show/hide loading
+        function showLoading(show) {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.toggle('hidden', !show);
+        }
+
+        // Show/hide upload loading
+        function showUploadLoading(show) {
+            const overlay = document.getElementById('uploadLoadingOverlay');
+            overlay.classList.toggle('hidden', !show);
         }
 
         // Redirect to login
@@ -693,7 +784,7 @@
 
         // Submit game to server
         async function submitGame(gameData) {
-            showLoading(true);
+            showUploadLoading(true);
             
             try {
                 const response = await fetch(`${SERVER_URL}/api/games/upload`, {
@@ -718,7 +809,7 @@
                 console.error('Upload error:', error);
                 showNotification(error.message, 'error');
             } finally {
-                showLoading(false);
+                showUploadLoading(false);
             }
         }
 
@@ -848,7 +939,7 @@
                 return;
             }
 
-            showLoading(true);
+            showUploadLoading(true);
             
             try {
                 const response = await fetch(`${SERVER_URL}/api/games/${gameId}`, {
@@ -885,7 +976,7 @@
                 console.error('Delete error:', error);
                 showNotification(error.message, 'error');
             } finally {
-                showLoading(false);
+                showUploadLoading(false);
             }
         }
 
@@ -895,12 +986,6 @@
             document.getElementById('imagePreview').classList.add('hidden');
             document.getElementById('previewImage').src = '';
             feather.replace();
-        }
-
-        // Show/hide loading
-        function showLoading(show) {
-            const overlay = document.getElementById('loadingOverlay');
-            overlay.classList.toggle('hidden', !show);
         }
 
         // Show notification
