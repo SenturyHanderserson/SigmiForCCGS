@@ -2437,6 +2437,7 @@ function displayRolesList(roles) {
   
   // Add moderator limits header
   if (isModerator) {
+// In the displayRolesList function, update the moderator limits header:
     rolesHTML += `
       <div class="glassmorphism p-3 rounded-lg mb-4 border-l-4 border-yellow-500">
         <div class="flex items-center">
@@ -2444,9 +2445,9 @@ function displayRolesList(roles) {
           <div>
             <p class="font-semibold">Moderator Role Limits</p>
             <p class="text-sm text-gray-300">
-              Max creation weight: ${currentUserWeight} | 
+              Max creation weight: 40 | 
               Max assignment weight: ${currentUserWeight - 1} |
-              Cannot assign roles ≥ weight 50
+              Permissions: basic_access, view_reports only
             </p>
           </div>
         </div>
@@ -2743,14 +2744,13 @@ function setPresetColor(color) {
     document.getElementById('colorPresets').classList.add('hidden');
 }
 
-// Create new role - UPDATED WITHOUT COSMETIC OPTION
+// Create new role - FIXED VERSION for moderators
 async function createNewRole() {
     const roleName = document.getElementById('newRoleName').value.trim();
     const description = document.getElementById('roleDescription').value.trim();
     const color = document.getElementById('roleColorHex').value;
     const weight = parseInt(document.getElementById('roleWeight').value) || 2;
     const permissions = document.getElementById('rolePermissions').value;
-    // REMOVED: const cosmetic = document.getElementById('roleCosmetic').checked;
     
     if (!roleName) {
         alert('Please enter a role name');
@@ -2769,24 +2769,35 @@ async function createNewRole() {
         return;
     }
     
-    // Check if current user can create this role based on weight
-    const currentUserRoleConfig = allRoles[currentUserRole];
-    if (currentUserRoleConfig && currentUserRoleConfig.weight !== undefined) {
-        if (weight >= currentUserRoleConfig.weight) {
-            alert(`You cannot create roles with weight ${weight} or higher. Your current role weight is ${currentUserRoleConfig.weight}.`);
-            return;
+    // Map permission sets - FIXED FOR MODERATORS
+    let selectedPermissions = ['basic_access']; // Default to basic
+    
+    // Only allow moderators to assign permissions they're allowed to
+    if (isModeratorClass(currentUserRole) && !isAdminClass(currentUserRole)) {
+        // Moderators can only assign these specific permissions
+        const moderatorAllowedPermissions = ['basic_access', 'view_reports'];
+        
+        if (permissions === 'basic') {
+            selectedPermissions = ['basic_access'];
+        } else if (permissions === 'moderator') {
+            // Even if they select "moderator", restrict to what they can actually assign
+            selectedPermissions = moderatorAllowedPermissions;
+        } else {
+            // For admin/full, still restrict to moderator-allowed permissions
+            selectedPermissions = moderatorAllowedPermissions;
         }
+        
+        console.log('Moderator creating role with permissions:', selectedPermissions);
+    } else {
+        // Admins/Owners can use full permission sets
+        const permissionSets = {
+            'basic': ['basic_access'],
+            'moderator': ['basic_access', 'view_reports', 'issue_warnings', 'send_messages'],
+            'admin': ['basic_access', 'view_reports', 'issue_warnings', 'send_messages', 'blacklist_users', 'assign_roles'],
+            'full': ['basic_access', 'view_reports', 'issue_warnings', 'send_messages', 'blacklist_users', 'assign_roles', 'manage_roles', 'delete_users']
+        };
+        selectedPermissions = permissionSets[permissions] || ['basic_access'];
     }
-    
-    // Map permission sets
-    const permissionSets = {
-        'basic': ['basic_access'],
-        'moderator': ['basic_access', 'view_reports', 'issue_warnings', 'send_messages'],
-        'admin': ['basic_access', 'view_reports', 'issue_warnings', 'send_messages', 'blacklist_users', 'assign_roles'],
-        'full': ['basic_access', 'view_reports', 'issue_warnings', 'send_messages', 'blacklist_users', 'assign_roles', 'manage_roles', 'delete_users']
-    };
-    
-    const selectedPermissions = permissionSets[permissions] || ['basic_access'];
     
     try {
         const token = getCookie('AuthToken');
@@ -2803,7 +2814,6 @@ async function createNewRole() {
                 permissions: selectedPermissions,
                 weight: weight,
                 canAssign: ['Member'] // Default - can assign Member role
-                // REMOVED: cosmetic: cosmetic
             })
         });
         
