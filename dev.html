@@ -1766,44 +1766,57 @@ async function sendBroadcast() {
         openModal('remoteDeleteModal');
     }
 
-    // Confirm and execute remote deletion
-    async function confirmRemoteDelete() {
-        const username = document.getElementById('deleteUsernameDisplay').textContent;
-        const password = document.getElementById('adminPassword').value.trim();
+async function confirmRemoteDelete() {
+    const username = document.getElementById('deleteUsernameDisplay').textContent;
+    const password = document.getElementById('adminPassword').value.trim();
+    
+    if (!password) {
+        alert('Please enter your password to confirm deletion');
+        return;
+    }
+    
+    try {
+        const token = getCookie('AuthToken');
+        const response = await fetch(`${SERVER_URL}/api/admin/users/${encodeURIComponent(username)}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ password })
+        });
         
-        if (!password) {
-            alert('Please enter your password to confirm deletion');
-            return;
+        // Check if response is HTML (error) instead of JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const textResponse = await response.text();
+            console.error('Server returned HTML instead of JSON:', textResponse.substring(0, 200));
+            throw new Error(`Server error: Received HTML response instead of JSON. Status: ${response.status}`);
         }
         
-        try {
-            const token = getCookie('AuthToken');
-            const response = await fetch(`${SERVER_URL}/api/admin/users/${encodeURIComponent(username)}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ password })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to delete user');
-            }
-            
-            const result = await response.json();
-            alert('✅ ' + result.message);
-            closeModal('remoteDeleteModal');
-            
-            // Reload users list
-            loadUsersList();
-            
-        } catch (error) {
-            console.error('Delete user error:', error);
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || `Failed to delete user. Status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        alert('✅ ' + result.message);
+        closeModal('remoteDeleteModal');
+        
+        // Reload users list
+        loadUsersList();
+        
+    } catch (error) {
+        console.error('Delete user error:', error);
+        
+        // More user-friendly error messages
+        if (error.message.includes('HTML response')) {
+            alert('❌ Server error: The server returned an unexpected response. Please try again later.');
+        } else {
             alert('❌ Error: ' + error.message);
         }
     }
+}
 
     // Populate role select with available options - FIXED VERSION
     async function populateRoleSelect() {
