@@ -2631,14 +2631,14 @@ async function deleteRole(roleName) {
     return;
   }
   
-  // FIXED: Moderator-specific restrictions
+  // FIXED: Moderator-specific restrictions - ALLOW DELETING ROLES WITH SAME WEIGHT
   if (isModerator) {
-    // FIXED: Allow deleting roles with weight < their own (changed from > to >=)
-    if (targetRoleWeight >= currentUserWeight) {
+    // CHANGED: Allow deleting roles with weight <= their own (up to 49)
+    if (targetRoleWeight > currentUserWeight) {
       alert(`❌ You cannot delete the "${roleName}" role. Your role weight (${currentUserWeight}) must be higher than the target role weight (${targetRoleWeight}).`);
       return;
     }
-    // FIX: Allow up to weight 49 (not 50)
+    // CHANGED: Allow up to weight 49 (not 50)
     if (targetRoleWeight >= 50) {
       alert(`❌ Moderators cannot delete roles with weight 50 or higher.`);
       return;
