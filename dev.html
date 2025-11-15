@@ -2481,12 +2481,10 @@ function displayRolesList(roles) {
       canEdit = weight < currentUserWeight;
       canDelete = weight < currentUserWeight && userCount === 0 && roleName !== currentUserRole;
     } else if (isModerator) {
-      // FIX: Moderators can edit/delete roles with weight < their own AND weight <= 49
-      canEdit = weight < currentUserWeight && weight <= 49;
-      canDelete = weight < currentUserWeight && weight <= 49 && userCount === 0 && roleName !== currentUserRole;
+      canEdit = weight <= currentUserWeight && weight <= 40; // Changed from < to <=
+      canDelete = weight <= currentUserWeight && weight <= 40 && userCount === 0 && roleName !== currentUserRole; // Changed from < to <=
+      
     }
-    
-    console.log(` - CanEdit: ${canEdit}, CanDelete: ${canDelete}`);
     
     rolesHTML += `
       <div class="glassmorphism p-4 rounded-lg role-management-item">
@@ -2619,6 +2617,8 @@ async function deleteRole(roleName) {
   const targetRoleWeight = targetRoleConfig?.weight || 0;
   const isModerator = isModeratorClass(currentUserRole) && !isAdminClass(currentUserRole);
   
+  console.log(`Delete Role Check: ${roleName}, Target Weight: ${targetRoleWeight}, User Weight: ${currentUserWeight}, IsModerator: ${isModerator}`);
+  
   // Prevent users from deleting their own current role
   if (roleName === currentUserRole) {
     alert("❌ You cannot delete your own current role.");
@@ -2633,10 +2633,12 @@ async function deleteRole(roleName) {
   
   // FIXED: Moderator-specific restrictions
   if (isModerator) {
-    if (targetRoleWeight >= currentUserWeight) {
+    // FIX: Allow deleting roles with weight <= their own (up to 49)
+    if (targetRoleWeight > currentUserWeight) {
       alert(`❌ You cannot delete the "${roleName}" role. Your role weight (${currentUserWeight}) must be higher than the target role weight (${targetRoleWeight}).`);
       return;
     }
+    // FIX: Allow up to weight 49 (not 50)
     if (targetRoleWeight >= 50) {
       alert(`❌ Moderators cannot delete roles with weight 50 or higher.`);
       return;
