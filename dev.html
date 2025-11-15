@@ -896,8 +896,7 @@ async function loadAllRoles() {
     }
 }
 
-    // Function to load available roles for assignment - FIXED VERSION
-// Function to load available roles for assignment - UPDATED WITHOUT COSMETIC
+  // Function to load available roles for assignment - FIXED WITH PROPER PERMISSION CHECKS
 async function loadAvailableRoles() {
   try {
     const token = getCookie('AuthToken');
@@ -927,18 +926,33 @@ async function loadAvailableRoles() {
     if (data.roles && typeof data.roles === 'object') {
       const rolesArray = Object.entries(data.roles)
         .filter(([roleName, config]) => {
-          // Additional client-side filtering for safety
-          if (isModeratorClass(currentUserRole)) {
-            // Client-side enforcement of weight limits
+          // FULL ACCESS BYPASS: Users with fullaccess can see and assign ALL roles (except Owner itself)
+          if (isFullAccess(currentUserRole)) {
+            return roleName !== "Owner"; // Can't assign Owner role to others
+          }
+          
+          // ADMIN BYPASS: Users with admin property (but not fullaccess) can see most roles
+          if (isAdminClass(currentUserRole) && !isFullAccess(currentUserRole)) {
+            // Admins can assign roles with lower weight
+            return config.weight < currentUserWeight && roleName !== "Owner";
+          }
+          
+          // Check if current user has moderator property (not just moderator class)
+          const userHasModeratorProperty = currentUserRoleConfig?.moderator === true;
+          
+          // ONLY apply weight filtering if user has the moderator property
+          if (userHasModeratorProperty) {
+            // Moderator-specific weight restrictions
             if (config.weight >= currentUserWeight) {
               return false;
             }
-            // Client-side enforcement of high-privilege role restriction
-            if (config.weight >= 50) {
+            // Moderators cannot assign roles with weight >= 40
+            if (config.weight >= 40) {
               return false;
             }
           }
-          // REMOVED: Cosmetic role filtering
+          
+          // For other users, no special filtering (will be limited by server response)
           return true;
         })
         .map(([roleName, config]) => ({
@@ -947,7 +961,6 @@ async function loadAvailableRoles() {
           description: config.description || `Role: ${roleName}`,
           color: config.color || '#6b7280',
           weight: config.weight || 0
-          // REMOVED: cosmetic: config.cosmetic || false
         }));
       
       // Sort by weight for better UX
@@ -960,7 +973,6 @@ async function loadAvailableRoles() {
     return [];
   }
 }
-
     // Function to apply role colors dynamically
     function applyRoleColors(roleConfig) {
         // Clear previous dynamic styles
