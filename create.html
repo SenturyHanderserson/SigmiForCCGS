@@ -278,6 +278,141 @@
             background: #667eea;
             border-color: #667eea;
         }
+        
+        /* Video Player Styles */
+        .video-container {
+            position: relative;
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .video-player {
+            width: 100%;
+            display: block;
+            border-radius: 12px;
+        }
+        
+        .video-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: opacity 0.3s ease;
+        }
+        
+        .video-container:hover .video-controls {
+            opacity: 1;
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+        
+        .progress-container {
+            flex: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        
+        .time-display {
+            color: white;
+            font-size: 0.875rem;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .volume-slider {
+            width: 80px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .volume-level {
+            height: 100%;
+            background: white;
+            border-radius: 2px;
+            width: 100%;
+        }
+        
+        .tutorial-step {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+        
+        .tutorial-step:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(5px);
+        }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 0.75rem;
+        }
+        
+        .tutorial-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        @media (max-width: 1024px) {
+            .tutorial-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white font-sans overflow-x-hidden">
@@ -333,6 +468,89 @@
                             <i data-feather="log-out"></i>
                             <span>Logout</span>
                         </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tutorial Section -->
+            <div class="glass rounded-2xl p-8 mb-8" data-aos="fade-up">
+                <div class="flex items-center mb-8">
+                    <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center mr-4">
+                        <i data-feather="play-circle" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold gradient-text">Upload Tutorial</h2>
+                        <p class="text-gray-400">Learn how to upload games with this step-by-step guide</p>
+                    </div>
+                </div>
+                
+                <div class="tutorial-grid">
+                    <!-- Video Player -->
+                    <div class="video-container" data-aos="fade-right">
+                        <video id="tutorialVideo" class="video-player">
+                            <source src="images/videos/uploadtutorial.mp4" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <div class="video-controls">
+                            <button id="playPauseBtn" class="control-btn">
+                                <i data-feather="play" id="playIcon"></i>
+                            </button>
+                            <div class="progress-container" id="progressContainer">
+                                <div class="progress-bar" id="progressBar"></div>
+                            </div>
+                            <div class="time-display">
+                                <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
+                            </div>
+                            <div class="volume-container">
+                                <button id="muteBtn" class="control-btn">
+                                    <i data-feather="volume-2" id="volumeIcon"></i>
+                                </button>
+                                <div class="volume-slider" id="volumeSlider">
+                                    <div class="volume-level" id="volumeLevel"></div>
+                                </div>
+                            </div>
+                            <button id="fullscreenBtn" class="control-btn">
+                                <i data-feather="maximize"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Tutorial Steps -->
+                    <div class="space-y-4" data-aos="fade-left">
+                        <div class="tutorial-step">
+                            <h3 class="font-bold text-lg mb-2">
+                                <span class="step-number">1</span>Prepare Your Game Files
+                            </h3>
+                            <p class="text-gray-300">Ensure your game is properly packaged with all necessary assets and dependencies.</p>
+                        </div>
+                        
+                        <div class="tutorial-step">
+                            <h3 class="font-bold text-lg mb-2">
+                                <span class="step-number">2</span>Fill in Game Details
+                            </h3>
+                            <p class="text-gray-300">Provide a descriptive title, detailed description, and select appropriate categories.</p>
+                        </div>
+                        
+                        <div class="tutorial-step">
+                            <h3 class="font-bold text-lg mb-2">
+                                <span class="step-number">3</span>Upload Game Image
+                            </h3>
+                            <p class="text-gray-300">Choose an attractive thumbnail image that represents your game (400x300px recommended).</p>
+                        </div>
+                        
+                        <div class="tutorial-step">
+                            <h3 class="font-bold text-lg mb-2">
+                                <span class="step-number">4</span>Set Game URL
+                            </h3>
+                            <p class="text-gray-300">Provide the direct URL to your game or select if it requires authentication.</p>
+                        </div>
+                        
+                        <div class="tutorial-step">
+                            <h3 class="font-bold text-lg mb-2">
+                                <span class="step-number">5</span>Review and Submit
+                            </h3>
+                            <p class="text-gray-300">Double-check all information and click "Upload Game" to publish your game.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -508,6 +726,98 @@
         let userRole = null;
         let allRoles = {};
 
+        // Video player functionality
+        function initVideoPlayer() {
+            const video = document.getElementById('tutorialVideo');
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            const playIcon = document.getElementById('playIcon');
+            const progressBar = document.getElementById('progressBar');
+            const progressContainer = document.getElementById('progressContainer');
+            const currentTimeEl = document.getElementById('currentTime');
+            const durationEl = document.getElementById('duration');
+            const muteBtn = document.getElementById('muteBtn');
+            const volumeIcon = document.getElementById('volumeIcon');
+            const volumeSlider = document.getElementById('volumeSlider');
+            const volumeLevel = document.getElementById('volumeLevel');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            
+            // Format time as MM:SS
+            function formatTime(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            }
+            
+            // Update progress bar
+            function updateProgress() {
+                const percent = (video.currentTime / video.duration) * 100;
+                progressBar.style.width = `${percent}%`;
+                currentTimeEl.textContent = formatTime(video.currentTime);
+            }
+            
+            // Set video duration
+            video.addEventListener('loadedmetadata', function() {
+                durationEl.textContent = formatTime(video.duration);
+            });
+            
+            // Play/Pause functionality
+            playPauseBtn.addEventListener('click', function() {
+                if (video.paused) {
+                    video.play();
+                    playIcon.setAttribute('data-feather', 'pause');
+                    feather.replace();
+                } else {
+                    video.pause();
+                    playIcon.setAttribute('data-feather', 'play');
+                    feather.replace();
+                }
+            });
+            
+            // Update progress as video plays
+            video.addEventListener('timeupdate', updateProgress);
+            
+            // Seek functionality
+            progressContainer.addEventListener('click', function(e) {
+                const pos = (e.pageX - this.getBoundingClientRect().left) / this.offsetWidth;
+                video.currentTime = pos * video.duration;
+            });
+            
+            // Volume control
+            muteBtn.addEventListener('click', function() {
+                video.muted = !video.muted;
+                volumeIcon.setAttribute('data-feather', video.muted ? 'volume-x' : 'volume-2');
+                feather.replace();
+            });
+            
+            volumeSlider.addEventListener('click', function(e) {
+                const pos = (e.pageX - this.getBoundingClientRect().left) / this.offsetWidth;
+                video.volume = pos;
+                volumeLevel.style.width = `${pos * 100}%`;
+            });
+            
+            // Fullscreen functionality
+            fullscreenBtn.addEventListener('click', function() {
+                if (!document.fullscreenElement) {
+                    video.requestFullscreen().catch(err => {
+                        console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                    });
+                } else {
+                    document.exitFullscreen();
+                }
+            });
+            
+            // Update volume level display
+            video.addEventListener('volumechange', function() {
+                volumeLevel.style.width = `${video.volume * 100}%`;
+            });
+            
+            // Update play/pause icon when video ends
+            video.addEventListener('ended', function() {
+                playIcon.setAttribute('data-feather', 'play');
+                feather.replace();
+            });
+        }
+
         // Cookie functions
         function getCookie(name) {
             const cookieName = name + "=";
@@ -587,6 +897,7 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             feather.replace();
+            initVideoPlayer();
             checkAuth();
         });
 
