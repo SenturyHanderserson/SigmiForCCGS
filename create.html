@@ -279,7 +279,7 @@
             border-color: #667eea;
         }
         
-        /* Video Player Styles */
+        /* YouTube Video Styles */
         .video-container {
             position: relative;
             width: 100%;
@@ -288,92 +288,46 @@
             background: rgba(0, 0, 0, 0.3);
         }
         
-        .video-player {
+        .youtube-video {
             width: 100%;
-            display: block;
+            aspect-ratio: 16/9;
             border-radius: 12px;
-        }
-        
-        .video-controls {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
-            padding: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            transition: opacity 0.3s ease;
-        }
-        
-        .video-container:hover .video-controls {
-            opacity: 1;
-        }
-        
-        .control-btn {
-            background: rgba(255, 255, 255, 0.2);
             border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
+        }
+        
+        .video-placeholder {
+            width: 100%;
+            aspect-ratio: 16/9;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             color: white;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
         }
         
-        .control-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.05);
+        .video-placeholder:hover {
+            transform: scale(1.02);
         }
         
-        .progress-container {
-            flex: 1;
-            height: 6px;
+        .play-icon {
+            width: 80px;
+            height: 80px;
             background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
-            cursor: pointer;
-            position: relative;
-        }
-        
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 3px;
-            width: 0%;
-            transition: width 0.1s linear;
-        }
-        
-        .time-display {
-            color: white;
-            font-size: 0.875rem;
-            min-width: 80px;
-            text-align: center;
-        }
-        
-        .volume-container {
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
         }
         
-        .volume-slider {
-            width: 80px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 2px;
-            cursor: pointer;
-            position: relative;
-        }
-        
-        .volume-level {
-            height: 100%;
-            background: white;
-            border-radius: 2px;
-            width: 100%;
+        .video-placeholder:hover .play-icon {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
         }
         
         .tutorial-step {
@@ -485,33 +439,17 @@
                 </div>
                 
                 <div class="tutorial-grid">
-                    <!-- Video Player -->
+                    <!-- YouTube Video Player -->
                     <div class="video-container" data-aos="fade-right">
-                        <video id="tutorialVideo" class="video-player">
-                            <source src="images/videos/uploadtutorial.mp4" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
-                        <div class="video-controls">
-                            <button id="playPauseBtn" class="control-btn">
-                                <i data-feather="play" id="playIcon"></i>
-                            </button>
-                            <div class="progress-container" id="progressContainer">
-                                <div class="progress-bar" id="progressBar"></div>
+                        <div id="videoPlaceholder" class="video-placeholder">
+                            <div class="play-icon">
+                                <i data-feather="play" class="w-12 h-12 text-white"></i>
                             </div>
-                            <div class="time-display">
-                                <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
-                            </div>
-                            <div class="volume-container">
-                                <button id="muteBtn" class="control-btn">
-                                    <i data-feather="volume-2" id="volumeIcon"></i>
-                                </button>
-                                <div class="volume-slider" id="volumeSlider">
-                                    <div class="volume-level" id="volumeLevel"></div>
-                                </div>
-                            </div>
-                            <button id="fullscreenBtn" class="control-btn">
-                                <i data-feather="maximize"></i>
-                            </button>
+                            <h3 class="text-xl font-bold mb-2">Watch Tutorial</h3>
+                            <p class="text-gray-300 text-center">Click to load the YouTube tutorial video</p>
+                        </div>
+                        <div id="youtubePlayer" class="hidden">
+                            <!-- YouTube iframe will be inserted here -->
                         </div>
                     </div>
                     
@@ -726,95 +664,30 @@
         let userRole = null;
         let allRoles = {};
 
-        // Video player functionality
-        function initVideoPlayer() {
-            const video = document.getElementById('tutorialVideo');
-            const playPauseBtn = document.getElementById('playPauseBtn');
-            const playIcon = document.getElementById('playIcon');
-            const progressBar = document.getElementById('progressBar');
-            const progressContainer = document.getElementById('progressContainer');
-            const currentTimeEl = document.getElementById('currentTime');
-            const durationEl = document.getElementById('duration');
-            const muteBtn = document.getElementById('muteBtn');
-            const volumeIcon = document.getElementById('volumeIcon');
-            const volumeSlider = document.getElementById('volumeSlider');
-            const volumeLevel = document.getElementById('volumeLevel');
-            const fullscreenBtn = document.getElementById('fullscreenBtn');
+        // YouTube video functionality
+        function initYouTubeVideo() {
+            const videoPlaceholder = document.getElementById('videoPlaceholder');
+            const youtubePlayer = document.getElementById('youtubePlayer');
             
-            // Format time as MM:SS
-            function formatTime(seconds) {
-                const mins = Math.floor(seconds / 60);
-                const secs = Math.floor(seconds % 60);
-                return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-            }
-            
-            // Update progress bar
-            function updateProgress() {
-                const percent = (video.currentTime / video.duration) * 100;
-                progressBar.style.width = `${percent}%`;
-                currentTimeEl.textContent = formatTime(video.currentTime);
-            }
-            
-            // Set video duration
-            video.addEventListener('loadedmetadata', function() {
-                durationEl.textContent = formatTime(video.duration);
-            });
-            
-            // Play/Pause functionality
-            playPauseBtn.addEventListener('click', function() {
-                if (video.paused) {
-                    video.play();
-                    playIcon.setAttribute('data-feather', 'pause');
-                    feather.replace();
-                } else {
-                    video.pause();
-                    playIcon.setAttribute('data-feather', 'play');
-                    feather.replace();
-                }
-            });
-            
-            // Update progress as video plays
-            video.addEventListener('timeupdate', updateProgress);
-            
-            // Seek functionality
-            progressContainer.addEventListener('click', function(e) {
-                const pos = (e.pageX - this.getBoundingClientRect().left) / this.offsetWidth;
-                video.currentTime = pos * video.duration;
-            });
-            
-            // Volume control
-            muteBtn.addEventListener('click', function() {
-                video.muted = !video.muted;
-                volumeIcon.setAttribute('data-feather', video.muted ? 'volume-x' : 'volume-2');
-                feather.replace();
-            });
-            
-            volumeSlider.addEventListener('click', function(e) {
-                const pos = (e.pageX - this.getBoundingClientRect().left) / this.offsetWidth;
-                video.volume = pos;
-                volumeLevel.style.width = `${pos * 100}%`;
-            });
-            
-            // Fullscreen functionality
-            fullscreenBtn.addEventListener('click', function() {
-                if (!document.fullscreenElement) {
-                    video.requestFullscreen().catch(err => {
-                        console.log(`Error attempting to enable fullscreen: ${err.message}`);
-                    });
-                } else {
-                    document.exitFullscreen();
-                }
-            });
-            
-            // Update volume level display
-            video.addEventListener('volumechange', function() {
-                volumeLevel.style.width = `${video.volume * 100}%`;
-            });
-            
-            // Update play/pause icon when video ends
-            video.addEventListener('ended', function() {
-                playIcon.setAttribute('data-feather', 'play');
-                feather.replace();
+            videoPlaceholder.addEventListener('click', function() {
+                // Replace this with your actual YouTube video ID
+                const videoId = 'MkOdR8jMYtM'; // Example video ID - replace with your tutorial video ID
+                
+                // Create YouTube iframe
+                const iframe = document.createElement('iframe');
+                iframe.className = 'youtube-video';
+                iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
+                iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+                iframe.allowFullscreen = true;
+                iframe.title = 'Game Upload Tutorial';
+                
+                // Replace placeholder with YouTube iframe
+                youtubePlayer.appendChild(iframe);
+                youtubePlayer.classList.remove('hidden');
+                videoPlaceholder.classList.add('hidden');
+                
+                // Update placeholder text for accessibility
+                videoPlaceholder.setAttribute('aria-hidden', 'true');
             });
         }
 
@@ -897,7 +770,7 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             feather.replace();
-            initVideoPlayer();
+            initYouTubeVideo();
             checkAuth();
         });
 
