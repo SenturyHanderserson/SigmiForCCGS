@@ -31,6 +31,14 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .opacity-50 {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .opacity-50 input[disabled] {
+            cursor: not-allowed;
+        }
         .login-modal {
             position: fixed;
             top: 0;
@@ -1911,6 +1919,24 @@ function updateRoleAssignmentHelp() {
   }
 }
 
+// Function to update sender type options based on user role
+function updateSenderTypeOptions() {
+    const isAdminOrOwner = isAdminClass(currentUserRole);
+    
+    // Enable/disable system sender option based on permissions for ALL modals
+    const systemSenderRadios = document.querySelectorAll('input[value="system"]');
+    systemSenderRadios.forEach(radio => {
+        if (isAdminOrOwner) {
+            radio.disabled = false;
+            radio.parentElement.classList.remove('opacity-50');
+            radio.parentElement.removeAttribute('title');
+        } else {
+            radio.disabled = true;
+            radio.parentElement.classList.add('opacity-50');
+            radio.parentElement.title = "Only administrators and owners can send as system";
+        }
+    });
+}
     // Confirm role assignment
     async function confirmRoleAssignment() {
         const role = document.getElementById('roleSelect').value;
@@ -2073,7 +2099,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Update user info display
             document.getElementById('userUsername').textContent = userInfo.username;
             document.getElementById('userRoleDisplay').textContent = userInfo.role;
-                        
+            
+             updateSenderTypeOptions();
+            
             // Show moderator cooldowns ONLY if user is moderator (not admin/owner)
             if (isModeratorClass(currentUserRole) && !isAdminClass(currentUserRole)) {
                 document.getElementById('moderatorCooldowns').classList.remove('hidden');
