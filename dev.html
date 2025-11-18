@@ -941,7 +941,7 @@ async function loadAvailableRoles() {
           
           // ADMIN BYPASS: Users with admin property can see most roles (including those with weight >= 40)
           if (isAdminClass(currentUserRole)) {
-            // Admins can assign roles with lower weight - NO 40 WEIGHT CAP!
+            // Admins can assign roles with lower weight - NO 50 WEIGHT CAP!
             return config.weight < currentUserWeight && roleName !== "Owner";
           }
           
@@ -952,11 +952,11 @@ async function loadAvailableRoles() {
           
           // ONLY apply moderator restrictions if user is explicitly a moderator (not admin/owner)
           if (isOnlyModerator) {
-            // Moderator-specific weight restrictions
+            // Moderator-specific weight restrictions - FIXED: Allow roles up to weight 49
             if (config.weight >= currentUserWeight) {
               return false;
             }
-            // Moderators cannot assign roles with weight >= 40
+            // Moderators cannot assign roles with weight >= 50 (NOT 40)
             if (config.weight >= 50) {
               return false;
             }
