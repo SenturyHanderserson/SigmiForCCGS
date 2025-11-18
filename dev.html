@@ -1906,7 +1906,7 @@ function updateRoleAssignmentHelp() {
       if (roleConfig.weight >= currentUserWeight) {
         helpText += ' ❌ Cannot assign - weight too high';
       } else if (roleConfig.weight >= 50) {
-        helpText += ' ❌ Cannot assign - high-privilege role';
+        helpText += ' ❌ Cannot assign - high-privilege role (weight ≥ 50)';
       } else {
         helpText += ' ✅ Can assign';
       }
@@ -1918,7 +1918,6 @@ function updateRoleAssignmentHelp() {
     roleHelp.classList.add('hidden');
   }
 }
-
 // Function to update sender type options based on user role
 function updateSenderTypeOptions() {
     const isAdminOrOwner = isAdminClass(currentUserRole);
