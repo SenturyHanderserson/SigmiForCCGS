@@ -957,7 +957,7 @@ async function loadAvailableRoles() {
               return false;
             }
             // Moderators cannot assign roles with weight >= 40
-            if (config.weight >= 40) {
+            if (config.weight >= 50) {
               return false;
             }
           }
@@ -2515,7 +2515,7 @@ function displayRolesList(roles) {
           <div>
             <p class="font-semibold">Moderator Role Limits</p>
             <p class="text-sm text-gray-300">
-              Max creation weight: 40 | 
+              Max creation weight: 50 | 
               Max assignment weight: ${currentUserWeight - 1} |
               Permissions: basic_access, view_reports only
             </p>
