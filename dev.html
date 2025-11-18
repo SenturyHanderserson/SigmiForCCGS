@@ -2078,6 +2078,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             return;
         }
         
+        // Load permission sets from server - required for role creation
+        await loadPermissionSets();
+        
         // Set global user variables
         currentUser = userInfo.username;
         currentUserRole = userInfo.role;
@@ -2100,7 +2103,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('userUsername').textContent = userInfo.username;
             document.getElementById('userRoleDisplay').textContent = userInfo.role;
             
-             updateSenderTypeOptions();
+            updateSenderTypeOptions();
             
             // Show moderator cooldowns ONLY if user is moderator (not admin/owner)
             if (isModeratorClass(currentUserRole) && !isAdminClass(currentUserRole)) {
@@ -2125,6 +2128,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('loginModal').classList.remove('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             disableAppInteraction();
+            
+            // Show specific error if it's a permission sets loading issue
+            if (error.message.includes('permission sets') || error.message.includes('Failed to load permission sets')) {
+                alert('Failed to load system permissions. Please refresh the page.');
+            }
         }, 1000);
     }
 });
@@ -2316,6 +2324,7 @@ function updatePermissionsBasedOnWeight() {
     weightInput.addEventListener('input', function() {
         const weight = parseInt(this.value) || 1;
         
+        // Use server-side permission sets mapping
         if (weight >= 1 && weight <= 39) {
             permissionsSelect.value = 'basic';
         } else if (weight >= 40 && weight <= 60) {
@@ -2327,7 +2336,6 @@ function updatePermissionsBasedOnWeight() {
         }
     });
 }
-
     
 // Unblacklist user
 async function unblacklistUser(username) {
@@ -2815,8 +2823,29 @@ function setPresetColor(color) {
     document.getElementById('roleColorHex').value = color;
     document.getElementById('colorPresets').classList.add('hidden');
 }
+// Add this to your global variables
+let permissionSets = {};
 
-// Create new role - FIXED VERSION for moderators
+// Function to load permission sets from server
+async function loadPermissionSets() {
+    const token = getCookie('AuthToken');
+    const response = await fetch(`${SERVER_URL}/api/permission-sets`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        }
+    });
+    
+    if (!response.ok) {
+        throw new Error('Failed to load permission sets');
+    }
+    
+    const data = await response.json();
+    permissionSets = data.permissionSets;
+    return permissionSets;
+}
+// Create new role - UPDATED to use server-side permission sets
 async function createNewRole() {
     const roleName = document.getElementById('newRoleName').value.trim();
     const description = document.getElementById('roleDescription').value.trim();
@@ -2840,9 +2869,7 @@ async function createNewRole() {
         alert('Invalid color format. Please use hex format (#RRGGBB)');
         return;
     }
-    
-    // Map permission sets - FIXED FOR MODERATORS
-    let selectedPermissions = ['basic_access']; // Default to basic
+
     
     // Only allow moderators to assign permissions they're allowed to
     if (isModeratorClass(currentUserRole) && !isAdminClass(currentUserRole)) {
@@ -2850,7 +2877,7 @@ async function createNewRole() {
         const moderatorAllowedPermissions = ['basic_access', 'view_reports'];
         
         if (permissions === 'basic') {
-            selectedPermissions = ['basic_access'];
+            selectedPermissions = permissionSets.basic || ['basic_access'];
         } else if (permissions === 'moderator') {
             // Even if they select "moderator", restrict to what they can actually assign
             selectedPermissions = moderatorAllowedPermissions;
@@ -2861,14 +2888,8 @@ async function createNewRole() {
         
         console.log('Moderator creating role with permissions:', selectedPermissions);
     } else {
-        // Admins/Owners can use full permission sets
-        const permissionSets = {
-            'basic': ['basic_access'],
-            'moderator': ['basic_access', 'view_reports', 'issue_warnings', 'send_messages'],
-            'admin': ['basic_access', 'view_reports', 'issue_warnings', 'send_messages', 'blacklist_users', 'assign_roles'],
-            'full': ['basic_access', 'view_reports', 'issue_warnings', 'send_messages', 'blacklist_users', 'assign_roles', 'manage_roles', 'delete_users']
-        };
-        selectedPermissions = permissionSets[permissions] || ['basic_access'];
+        // Admins/Owners can use full permission sets from server
+        selectedPermissions = permissionSets[permissions] || permissionSets.basic;
     }
     
     try {
