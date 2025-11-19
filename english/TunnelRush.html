@@ -13,7 +13,7 @@
         img-src 'self' data: https:;
         connect-src 'self' https://proxyforsigmi.onrender.com;
         font-src 'self' https://cdn.jsdelivr.net;
-        frame-src 'self' ${gameData.url};
+        frame-src 'self' https://quiz-50.github.io;
         media-src 'self';
         object-src 'none';
         base-uri 'self';
@@ -27,7 +27,6 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
 
     <style>
@@ -117,6 +116,7 @@
             background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
             color: var(--text-primary);
             transition: background 0.5s ease, color 0.3s ease;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         #vanta-bg {
@@ -1086,19 +1086,21 @@
         feather.replace();
 
         // Vanta.js background
-        VANTA.GLOBE({
-            el: "#vanta-bg",
-            mouseControls: true,
-            touchControls: true,
-            gyroControls: false,
-            minHeight: 200.00,
-            minWidth: 200.00,
-            scale: 1.00,
-            scaleMobile: 1.00,
-            color: 0x6e45e2,
-            backgroundColor: 0x0,
-            size: 0.8
-        });
+        if (typeof VANTA !== 'undefined') {
+            VANTA.GLOBE({
+                el: "#vanta-bg",
+                mouseControls: true,
+                touchControls: true,
+                gyroControls: false,
+                minHeight: 200.00,
+                minWidth: 200.00,
+                scale: 1.00,
+                scaleMobile: 1.00,
+                color: 0x6e45e2,
+                backgroundColor: 0x0,
+                size: 0.8
+            });
+        }
 
         // ============ UTILITY FUNCTIONS ============
         function getCookie(name) {
