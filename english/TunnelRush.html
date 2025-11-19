@@ -785,7 +785,7 @@
                     if (prop in window) {
                         Object.defineProperty(window, prop, {
                             get: () => {
-                                console.log(\`🔒 Access to \${prop} blocked\`);
+                                console.log('🔒 Access to ' + prop + ' blocked');
                                 return null;
                             },
                             set: () => {}
@@ -807,7 +807,7 @@
                     if (prop in navigator) {
                         Object.defineProperty(navigator, prop, {
                             get: () => {
-                                console.log(\`🔒 Fingerprinting attempt blocked: navigator.\${prop}\`);
+                                console.log('🔒 Fingerprinting attempt blocked: navigator.' + prop);
                                 if (prop === 'hardwareConcurrency') return 4;
                                 if (prop === 'deviceMemory') return 4;
                                 if (prop === 'userAgent') return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
@@ -997,7 +997,7 @@
                     const url = args[0];
                     if (typeof url === 'string' && blockedDomains.some(domain => url.includes(domain))) {
                         console.log('🔒 Tracking request blocked:', url);
-                        showPrivacyAlert('Tracker blocked', \`Blocked connection to \${url.split('/')[2]}\`);
+                        showPrivacyAlert('Tracker blocked', 'Blocked connection to ' + url.split('/')[2]);
                         return Promise.reject(new Error('Tracking request blocked'));
                     }
                     return originalFetch.apply(this, args);
@@ -1048,18 +1048,18 @@
             function showPrivacyAlert(title, message) {
                 const alertDiv = document.createElement('div');
                 alertDiv.className = 'privacy-alert';
-                alertDiv.innerHTML = \`
+                alertDiv.innerHTML = `
                     <div class="flex items-start">
                         <i data-feather="shield" class="w-4 h-4 text-yellow-500 mr-2 mt-0.5"></i>
                         <div>
-                            <div class="font-medium text-sm">\${title}</div>
-                            <div class="text-xs text-gray-300 mt-1">\${message}</div>
+                            <div class="font-medium text-sm">${title}</div>
+                            <div class="text-xs text-gray-300 mt-1">${message}</div>
                         </div>
                         <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-gray-400 hover:text-white">
                             <i data-feather="x" class="w-3 h-3"></i>
                         </button>
                     </div>
-                \`;
+                `;
                 
                 document.body.appendChild(alertDiv);
                 feather.replace();
@@ -1131,8 +1131,8 @@
         }
 
         function setTheme(theme) {
-            document.body.className = document.body.className.replace(/\\btheme-\\w+/g, '');
-            document.body.classList.add(\`theme-\${theme}\`);
+            document.body.className = document.body.className.replace(/\btheme-\w+/g, '');
+            document.body.classList.add('theme-' + theme);
             
             const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
             preferences.theme = theme;
@@ -1202,10 +1202,10 @@
 
         async function verifyToken(token) {
             try {
-                const response = await fetch(\`\${SERVER_URL}/api/verify-token\`, {
+                const response = await fetch(SERVER_URL + '/api/verify-token', {
                     method: 'GET',
                     headers: {
-                        'Authorization': \`Bearer \${token}\`,
+                        'Authorization': 'Bearer ' + token,
                         'Content-Type': 'application/json'
                     }
                 });
@@ -1364,18 +1364,18 @@
                 }
 
                 const [membersRes, rolesRes] = await Promise.all([
-                    fetch(\`\${SERVER_URL}/api/users\`, {
+                    fetch(SERVER_URL + '/api/users', {
                         method: "GET",
                         headers: {
-                            'Authorization': \`Bearer \${token}\`,
+                            'Authorization': 'Bearer ' + token,
                             'Content-Type': 'application/json'
                         },
                         credentials: "include"
                     }),
-                    fetch(\`\${SERVER_URL}/api/roles\`, {
+                    fetch(SERVER_URL + '/api/roles', {
                         method: "GET",
                         headers: {
-                            'Authorization': \`Bearer \${token}\`,
+                            'Authorization': 'Bearer ' + token,
                             'Content-Type': 'application/json'
                         },
                         credentials: "include"
@@ -1424,12 +1424,12 @@
 
                 setTimeout(() => {
                     if (activeMembers.length === 0) {
-                        container.innerHTML = \`
+                        container.innerHTML = `
                             <div class="text-center py-8 text-gray-400">
                                 <i data-feather="users" class="w-12 h-12 mx-auto mb-4"></i>
                                 <p>No members found</p>
                             </div>
-                        \`;
+                        `;
                     } else {
                         activeMembers.forEach(user => {
                             const safeUsername = user.username || "Unknown";
@@ -1445,17 +1445,17 @@
 
                             const memberDiv = document.createElement("div");
                             memberDiv.className = "flex items-center p-3 rounded-lg hover:bg-purple-800 hover:bg-opacity-50 transition-colors duration-200";
-                            memberDiv.title = \`Role: \${userRole} | Joined: \${user.joined || 'Unknown'}\`;
+                            memberDiv.title = 'Role: ' + userRole + ' | Joined: ' + (user.joined || 'Unknown');
 
-                            memberDiv.innerHTML = \`
-                                <div class="w-10 h-10 rounded-full \${colorClass} flex items-center justify-center mr-3 flex-shrink-0">
-                                    <span class="text-sm font-bold text-white">\${initials}</span>
+                            memberDiv.innerHTML = `
+                                <div class="w-10 h-10 rounded-full ${colorClass} flex items-center justify-center mr-3 flex-shrink-0">
+                                    <span class="text-sm font-bold text-white">${initials}</span>
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <div class="font-medium truncate">\${safeUsername}</div>
-                                    <div class="text-xs text-gray-400 capitalize">\${userRole}</div>
+                                    <div class="font-medium truncate">${safeUsername}</div>
+                                    <div class="text-xs text-gray-400 capitalize">${userRole}</div>
                                 </div>
-                            \`;
+                            `;
                             container.appendChild(memberDiv);
                         });
                     }
@@ -1469,16 +1469,16 @@
 
             } catch (err) {
                 const container = document.getElementById("membersList");
-                container.innerHTML = \`
+                container.innerHTML = `
                     <div class="text-center py-8 text-red-300">
                         <i data-feather="alert-triangle" class="w-12 h-12 mx-auto mb-4"></i>
                         <p class="font-medium">Failed to load members</p>
-                        <p class="text-sm mt-2">\${err.message}</p>
+                        <p class="text-sm mt-2">${err.message}</p>
                         <button onclick="loadMembers()" class="mt-4 px-4 py-2 bg-purple-700 rounded-lg hover:bg-purple-600 transition-colors">
                             Try Again
                         </button>
                     </div>
-                \`;
+                `;
                 feather.replace();
             } finally {
                 isLoadingMembers = false;
@@ -1488,24 +1488,24 @@
         function showNotification(message, type = 'info', duration = 3000) {
             const container = document.getElementById('notificationContainer');
             const notification = document.createElement('div');
-            notification.className = \`notification \${type}\`;
+            notification.className = 'notification ' + type;
             
             let icon = 'info';
             if (type === 'success') icon = 'check-circle';
             if (type === 'error') icon = 'alert-triangle';
             if (type === 'warning') icon = 'alert-circle';
             
-            notification.innerHTML = \`
+            notification.innerHTML = `
                 <div class="notification-icon">
-                    <i data-feather="\${icon}"></i>
+                    <i data-feather="${icon}"></i>
                 </div>
                 <div class="notification-content">
-                    \${message}
+                    ${message}
                 </div>
                 <div class="notification-close" onclick="this.parentElement.classList.add('hidden')">
                     <i data-feather="x"></i>
                 </div>
-            \`;
+            `;
             
             container.appendChild(notification);
             feather.replace();
@@ -1540,9 +1540,9 @@
             const diffInSeconds = Math.floor((now - messageTime) / 1000);
             
             if (diffInSeconds < 60) return 'just now';
-            if (diffInSeconds < 3600) return \`\${Math.floor(diffInSeconds / 60)}m ago\`;
-            if (diffInSeconds < 86400) return \`\${Math.floor(diffInSeconds / 3600)}h ago\`;
-            return \`\${Math.floor(diffInSeconds / 86400)}d ago\`;
+            if (diffInSeconds < 3600) return Math.floor(diffInSeconds / 60) + 'm ago';
+            if (diffInSeconds < 86400) return Math.floor(diffInSeconds / 3600) + 'h ago';
+            return Math.floor(diffInSeconds / 86400) + 'd ago';
         }
 
         // ============ WARNING SYSTEM ============
@@ -1551,10 +1551,10 @@
                 const token = getCookie('AuthToken');
                 if (!token) return;
                 
-                const response = await fetch(\`\${SERVER_URL}/api/check-warnings\`, {
+                const response = await fetch(SERVER_URL + '/api/check-warnings', {
                     method: 'GET',
                     headers: {
-                        'Authorization': \`Bearer \${token}\`,
+                        'Authorization': 'Bearer ' + token,
                         'Content-Type': 'application/json'
                     }
                 });
@@ -1580,10 +1580,10 @@
                     return false;
                 }
                 
-                const response = await fetch(\`\${SERVER_URL}/api/warnings/\${warningId}/dismiss\`, {
+                const response = await fetch(SERVER_URL + '/api/warnings/' + warningId + '/dismiss', {
                     method: 'POST',
                     headers: {
-                        'Authorization': \`Bearer \${token}\`,
+                        'Authorization': 'Bearer ' + token,
                         'Content-Type': 'application/json'
                     }
                 });
@@ -1629,10 +1629,10 @@
                     return;
                 }
                 
-                const response = await fetch(\`\${SERVER_URL}/api/warnings/dismiss-all\`, {
+                const response = await fetch(SERVER_URL + '/api/warnings/dismiss-all', {
                     method: 'POST',
                     headers: {
-                        'Authorization': \`Bearer \${token}\`,
+                        'Authorization': 'Bearer ' + token,
                         'Content-Type': 'application/json'
                     }
                 });
@@ -1649,7 +1649,7 @@
                     });
                     
                     showWarningModal(userWarnings);
-                    showNotification(data.message || \`Dismissed \${data.dismissedCount} warning(s)\`, 'success');
+                    showNotification(data.message || 'Dismissed ' + data.dismissedCount + ' warning(s)', 'success');
                     
                 } else {
                     const errorData = await response.json();
@@ -1673,8 +1673,8 @@
             
             const activeWarnings = warnings.filter(w => !w.dismissed);
             
-            warningCount.textContent = \`\${activeWarnings.length} active warning\${activeWarnings.length !== 1 ? 's' : ''}\`;
-            modalTitle.textContent = \`Warnings (\${activeWarnings.length})\`;
+            warningCount.textContent = activeWarnings.length + ' active warning' + (activeWarnings.length !== 1 ? 's' : '');
+            modalTitle.textContent = 'Warnings (' + activeWarnings.length + ')';
             
             if (activeWarnings.length === 0) {
                 dismissAllBtn.classList.add('hidden');
@@ -1687,31 +1687,31 @@
             activeWarnings.forEach((warning, index) => {
                 const warningElement = document.createElement('div');
                 warningElement.className = 'p-3 rounded-lg bg-red-900 bg-opacity-30 border border-red-700 mb-3';
-                warningElement.innerHTML = \`
+                warningElement.innerHTML = `
                     <div class="flex justify-between items-start mb-2">
-                        <span class="font-medium">Warning #\${index + 1}</span>
+                        <span class="font-medium">Warning #${index + 1}</span>
                         <span class="text-xs px-2 py-1 bg-red-700 rounded">Active</span>
                     </div>
-                    <p class="text-sm mb-2">\${warning.reason}</p>
+                    <p class="text-sm mb-2">${warning.reason}</p>
                     <div class="flex justify-between items-center text-xs text-gray-400">
-                        <span>By: \${warning.issuedBy}</span>
-                        <span>\${new Date(warning.issuedAt).toLocaleDateString()}</span>
+                        <span>By: ${warning.issuedBy}</span>
+                        <span>${new Date(warning.issuedAt).toLocaleDateString()}</span>
                     </div>
-                    <button onclick="dismissWarning('\${warning.id}')" class="w-full mt-2 py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-medium">
+                    <button onclick="dismissWarning('${warning.id}')" class="w-full mt-2 py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-medium">
                         Dismiss This Warning
                     </button>
-                \`;
+                `;
                 warningList.appendChild(warningElement);
             });
             
             if (activeWarnings.length === 0) {
-                warningList.innerHTML = \`
+                warningList.innerHTML = `
                     <div class="text-center py-4">
                         <i data-feather="check-circle" class="w-12 h-12 text-green-400 mx-auto mb-2"></i>
                         <p class="text-green-300 font-medium">All warnings have been dismissed</p>
                         <p class="text-gray-400 text-sm mt-1">You can now close this window</p>
                     </div>
-                \`;
+                `;
             }
             
             modal.classList.remove('hidden');
@@ -1725,7 +1725,7 @@
                 document.getElementById('warningModal').classList.add('hidden');
                 showNotification('Warning modal closed', 'info');
             } else {
-                showNotification(\`You still have \${activeWarnings.length} active warning(s) to dismiss\`, 'warning');
+                showNotification('You still have ' + activeWarnings.length + ' active warning(s) to dismiss', 'warning');
             }
         }
         
@@ -1737,10 +1737,10 @@
                     return;
                 }
                 
-                const response = await fetch(\`\${SERVER_URL}/api/warnings/history\`, {
+                const response = await fetch(SERVER_URL + '/api/warnings/history', {
                     method: 'GET',
                     headers: {
-                        'Authorization': \`Bearer \${token}\`,
+                        'Authorization': 'Bearer ' + token,
                         'Content-Type': 'application/json'
                     }
                 });
@@ -1766,26 +1766,26 @@
             if (warnings && warnings.length > 0) {
                 warnings.forEach(warning => {
                     const warningElement = document.createElement('div');
-                    warningElement.className = \`p-4 rounded-lg \${warning.dismissed ? 'bg-green-900 bg-opacity-30' : 'bg-red-900 bg-opacity-30'}\`;
-                    warningElement.innerHTML = \`
+                    warningElement.className = 'p-4 rounded-lg ' + (warning.dismissed ? 'bg-green-900 bg-opacity-30' : 'bg-red-900 bg-opacity-30');
+                    warningElement.innerHTML = `
                         <div class="flex justify-between items-start">
                             <div>
-                                <p class="font-medium">\${warning.reason}</p>
+                                <p class="font-medium">${warning.reason}</p>
                                 <p class="text-sm text-gray-400 mt-1">
-                                    Issued by \${warning.issuedBy} on \${new Date(warning.issuedAt).toLocaleDateString()}
-                                    \${warning.dismissedAt ? \`<br>Dismissed on \${new Date(warning.dismissedAt).toLocaleDateString()} by \${warning.dismissedBy}\` : ''}
+                                    Issued by ${warning.issuedBy} on ${new Date(warning.issuedAt).toLocaleDateString()}
+                                    ${warning.dismissedAt ? '<br>Dismissed on ' + new Date(warning.dismissedAt).toLocaleDateString() + ' by ' + warning.dismissedBy : ''}
                                 </p>
                             </div>
-                            <span class="px-2 py-1 rounded text-xs \${warning.dismissed ? 'bg-green-700' : 'bg-red-700'}">
-                                \${warning.dismissed ? 'Dismissed' : 'Active'}
+                            <span class="px-2 py-1 rounded text-xs ${warning.dismissed ? 'bg-green-700' : 'bg-red-700'}">
+                                ${warning.dismissed ? 'Dismissed' : 'Active'}
                             </span>
                         </div>
-                        \${!warning.dismissed ? \`
-                            <button onclick="dismissWarning('\${warning.id}')" class="w-full mt-2 py-2 bg-red-700 hover:bg-red-600 rounded text-sm">
+                        ${!warning.dismissed ? `
+                            <button onclick="dismissWarning('${warning.id}')" class="w-full mt-2 py-2 bg-red-700 hover:bg-red-600 rounded text-sm">
                                 Dismiss This Warning
                             </button>
-                        \` : ''}
-                    \`;
+                        ` : ''}
+                    `;
                     historyList.appendChild(warningElement);
                 });
             } else {
@@ -1809,9 +1809,9 @@
                 const token = getCookie('AuthToken');
                 if (!token) return;
                 
-                const response = await fetch(\`\${SERVER_URL}/api/messages\`, {
+                const response = await fetch(SERVER_URL + '/api/messages', {
                     headers: {
-                        'Authorization': \`Bearer \${token}\`
+                        'Authorization': 'Bearer ' + token
                     }
                 });
                 
@@ -1854,26 +1854,26 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = 'glass rounded-lg p-4 mb-3 message-entry';
             messageDiv.style.animation = 'slideInFromLeft 0.3s ease-out';
-            messageDiv.id = \`message-\${message.id}\`;
+            messageDiv.id = 'message-' + message.id;
             
             const timeAgo = getTimeAgo(message.createdAt);
             
-            messageDiv.innerHTML = \`
+            messageDiv.innerHTML = `
                 <div class="flex justify-between items-start mb-2">
                     <div class="flex items-center">
                         <i data-feather="mail" class="w-4 h-4 mr-2 text-purple-400"></i>
-                        <span class="font-medium text-sm">\${escapeHtml(message.from)}</span>
+                        <span class="font-medium text-sm">${escapeHtml(message.from)}</span>
                     </div>
-                    <span class="text-xs text-gray-400">\${timeAgo}</span>
+                    <span class="text-xs text-gray-400">${timeAgo}</span>
                 </div>
-                <p class="text-sm text-gray-300 mb-3">\${escapeHtml(message.message)}</p>
+                <p class="text-sm text-gray-300 mb-3">${escapeHtml(message.message)}</p>
                 <div class="flex justify-end">
-                    <button onclick="dismissMessage('\${message.id}')" 
+                    <button onclick="dismissMessage('${message.id}')" 
                             class="text-xs bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded transition-colors">
                         Dismiss
                     </button>
                 </div>
-            \`;
+            `;
             
             return messageDiv;
         }
@@ -1886,16 +1886,16 @@
                     return;
                 }
                 
-                const response = await fetch(\`\${SERVER_URL}/api/messages/\${messageId}/dismiss\`, {
+                const response = await fetch(SERVER_URL + '/api/messages/' + messageId + '/dismiss', {
                     method: 'POST',
                     headers: {
-                        'Authorization': \`Bearer \${token}\`,
+                        'Authorization': 'Bearer ' + token,
                         'Content-Type': 'application/json'
                     }
                 });
                 
                 if (response.ok) {
-                    const messageElement = document.getElementById(\`message-\${messageId}\`);
+                    const messageElement = document.getElementById('message-' + messageId);
                     if (messageElement) {
                         messageElement.style.animation = 'slideOutToLeft 0.3s ease-in';
                         setTimeout(() => {
@@ -1938,10 +1938,10 @@
                 const token = getCookie('AuthToken');
                 if (!token) return;
                 
-                const response = await fetch(\`\${SERVER_URL}/api/broadcasts\`, {
+                const response = await fetch(SERVER_URL + '/api/broadcasts', {
                     method: 'GET',
                     headers: {
-                        'Authorization': \`Bearer \${token}\`,
+                        'Authorization': 'Bearer ' + token,
                         'Content-Type': 'application/json'
                     }
                 });
@@ -1975,28 +1975,28 @@
             toast.className = 'broadcast-toast glass p-4 rounded-lg mb-2 transform translate-y-20 transition-transform duration-300';
             toast.dataset.broadcastId = broadcast.id;
             
-            toast.innerHTML = \`
+            toast.innerHTML = `
                 <div class="flex items-start">
                     <div class="mr-3 mt-0.5">
                         <i data-feather="bell" class="w-5 h-5 text-yellow-400"></i>
                     </div>
                     <div class="flex-1">
                         <h3 class="font-semibold mb-1">New Announcement</h3>
-                        <p class="text-sm text-gray-300">\${truncateText(broadcast.message, 100)}</p>
+                        <p class="text-sm text-gray-300">${truncateText(broadcast.message, 100)}</p>
                     </div>
-                    <button onclick="hideBroadcastToast('\${broadcast.id}')" class="ml-3 text-gray-400 hover:text-white">
+                    <button onclick="hideBroadcastToast('${broadcast.id}')" class="ml-3 text-gray-400 hover:text-white">
                         <i data-feather="x" class="w-4 h-4"></i>
                     </button>
                 </div>
                 <div class="mt-2 flex justify-end">
-                    <button onclick="showBroadcastModal('\${broadcast.id}')" class="text-sm text-purple-300 hover:text-purple-100 mr-3">
+                    <button onclick="showBroadcastModal('${broadcast.id}')" class="text-sm text-purple-300 hover:text-purple-100 mr-3">
                         View Details
                     </button>
-                    <button onclick="dismissBroadcast('\${broadcast.id}')" class="text-sm text-gray-400 hover:text-white">
+                    <button onclick="dismissBroadcast('${broadcast.id}')" class="text-sm text-gray-400 hover:text-white">
                         Dismiss
                     </button>
                 </div>
-            \`;
+            `;
             
             toastContainer.appendChild(toast);
             feather.replace();
@@ -2012,7 +2012,7 @@
         }
 
         function hideBroadcastToast(broadcastId) {
-            const toast = document.querySelector(\`.broadcast-toast[data-broadcast-id="\${broadcastId}"]\`);
+            const toast = document.querySelector('.broadcast-toast[data-broadcast-id="' + broadcastId + '"]');
             if (toast) {
                 toast.classList.remove('translate-y-0');
                 toast.classList.add('translate-y-20');
@@ -2034,7 +2034,7 @@
             const time = document.getElementById('broadcastTime');
             
             message.textContent = broadcast.message;
-            author.textContent = \`From: \${broadcast.createdBy}\`;
+            author.textContent = 'From: ' + broadcast.createdBy;
             time.textContent = formatTime(new Date(broadcast.createdAt));
             
             currentBroadcastId = broadcastId;
@@ -2060,10 +2060,10 @@
             try {
                 const token = getCookie('AuthToken');
                 if (token) {
-                    await fetch(\`\${SERVER_URL}/api/broadcasts/\${broadcastId}/dismiss\`, {
+                    await fetch(SERVER_URL + '/api/broadcasts/' + broadcastId + '/dismiss', {
                         method: 'POST',
                         headers: {
-                            'Authorization': \`Bearer \${token}\`,
+                            'Authorization': 'Bearer ' + token,
                             'Content-Type': 'application/json'
                         }
                     });
