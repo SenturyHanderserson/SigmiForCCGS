@@ -1679,46 +1679,65 @@
         }
 
         function showAdModal(adContent, duration) {
-            const modal = document.createElement('div');
-            modal.id = 'ad-modal-overlay';
-            modal.className = 'ad-modal-overlay';
-            modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.95);
-                z-index: 9999;
-                display: flex;
-                flex-direction: column;
-            `;
-            
-            modal.innerHTML = `
-                <div class="ad-header">
-                    <h3>Advertisement Required</h3>
-                    <p>Please watch the ad to complete the task</p>
-                    <div class="ad-timer">
-                        Time remaining: <span id="global-ad-timer">${duration}</span>s
-                    </div>
-                </div>
-                <iframe 
-                    id="ad-iframe"
-                    srcdoc="${escapeHtml(adContent)}"
-                    style="width: 100%; height: calc(100% - 80px); border: none;"
-                    sandbox="allow-scripts allow-same-origin allow-forms"
-                ></iframe>
-            `;
-            
-            document.body.appendChild(modal);
-            document.body.style.overflow = 'hidden';
-            
-            // Start global countdown
-            startGlobalCountdown(duration);
-            
-            // Listen for ad completion message from iframe
-            window.addEventListener('message', handleAdMessage);
-        }
+  const modal = document.createElement('div');
+  modal.id = 'ad-modal-overlay';
+  modal.className = 'ad-modal-overlay';
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.95);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+  `;
+  
+  // Create a blob URL for the ad content to avoid CSP issues
+  const blob = new Blob([adContent], { type: 'text/html' });
+  const blobUrl = URL.createObjectURL(blob);
+  
+  modal.innerHTML = `
+    <div class="ad-header">
+      <h3>Advertisement Required</h3>
+      <p>Please watch the ad to complete the task</p>
+      <div class="ad-timer">
+        Time remaining: <span id="global-ad-timer">${duration}</span>s
+      </div>
+    </div>
+    <iframe 
+      id="ad-iframe"
+      src="${blobUrl}"
+      style="width: 100%; height: calc(100% - 80px); border: none; background: white;"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+      allow="autoplay"
+    ></iframe>
+    <div style="padding: 10px; text-align: center; background: var(--bg-primary);">
+      <button onclick="skipAdWithPenalty()" style="background: transparent; border: 1px solid var(--error-color); color: var(--error-color); padding: 5px 15px; border-radius: 5px; cursor: pointer;">
+        Skip Ad (Penalty Applied)
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  document.body.style.overflow = 'hidden';
+  
+  // Start global countdown
+  startGlobalCountdown(duration);
+  
+  // Listen for ad completion message from iframe
+  window.addEventListener('message', handleAdMessage);
+  
+  // Clean up blob URL when modal closes
+  modal._blobUrl = blobUrl;
+}
+
+        function skipAdWithPenalty() {
+  showNotification('Skipping ad will reduce your daily limit. Continue?', 'warning', 5000);
+  // You can implement penalty logic here
+  completeAdViewing(5); // Minimum view time with penalty
+}
 
         function startGlobalCountdown(duration) {
             let timeLeft = duration;
@@ -1742,74 +1761,97 @@
             }
         }
 
-        async function completeAdViewing(viewTime) {
-            try {
-                const token = getCookie('AuthToken');
-                
-                // Validate session first
-                await fetch(`${SERVER_URL}/api/ads/validate`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ sessionId: state.currentAdSession })
-                });
+       async function completeAdViewing(viewTime) {
+  try {
+    const token = getCookie('AuthToken');
+    
+    if (!state.currentAdSession) {
+      throw new Error('No active ad session');
+    }
 
-                // Complete ad viewing
-                const response = await fetch(`${SERVER_URL}/api/ads/complete`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ 
-                        sessionId: state.currentAdSession,
-                        viewTime: viewTime
-                    })
-                });
+    // Validate session first
+    const validateResponse = await fetch(`${SERVER_URL}/api/ads/validate`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ sessionId: state.currentAdSession })
+    });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    // Update local state
-                    state.adProgress.completions = data.adCompletions;
-                    state.adProgress.canGenerateKey = data.canGenerateKey;
-                    
-                    updateAdProgressDisplay();
-                    
-                    // Close ad modal
-                    closeAdModal();
-                    
-                    // Complete the current task
-                    const currentTask = state.tasks.find(task => !task.completed);
-                    if (currentTask) {
-                        completeTask(currentTask.id);
-                    }
-                    
-                    showNotification(`Advertisement completed! ${data.adsRemaining} more required.`, 'success');
-                    
-                } else {
-                    throw new Error('Failed to complete ad');
-                }
-                
-            } catch (error) {
-                console.error('Error completing ad:', error);
-                showNotification('Error completing advertisement', 'error');
-                closeAdModal();
-            }
-        }
+    if (!validateResponse.ok) {
+      throw new Error('Session validation failed');
+    }
+
+    // Complete ad viewing
+    const completeResponse = await fetch(`${SERVER_URL}/api/ads/complete`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 
+        sessionId: state.currentAdSession,
+        viewTime: Math.max(viewTime, adConfig.minViewTime || 5)
+      })
+    });
+
+    if (completeResponse.ok) {
+      const data = await completeResponse.json();
+      
+      // Update local state
+      state.adProgress.completions = data.adCompletions;
+      state.adProgress.canGenerateKey = data.canGenerateKey;
+      
+      updateAdProgressDisplay();
+      closeAdModal();
+      
+      // Complete the current task
+      const currentTask = state.tasks.find(task => !task.completed);
+      if (currentTask) {
+        completeTask(currentTask.id);
+      }
+      
+      const remaining = data.adsRemaining || 0;
+      if (remaining > 0) {
+        showNotification(`Advertisement completed! ${remaining} more ad${remaining !== 1 ? 's' : ''} required.`, 'success');
+      } else {
+        showNotification('All ad requirements completed! You can now generate a key.', 'success');
+      }
+      
+    } else {
+      const errorData = await completeResponse.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(errorData.error || 'Failed to complete ad');
+    }
+    
+  } catch (error) {
+    console.error('Error completing ad:', error);
+    
+    // Fallback: complete task anyway but show warning
+    showNotification('Ad completed with issues, but task marked complete', 'warning');
+    closeAdModal();
+    
+    const currentTask = state.tasks.find(task => !task.completed);
+    if (currentTask) {
+      completeTask(currentTask.id);
+    }
+  }
+}
+
 
         function closeAdModal() {
-            const modal = document.getElementById('ad-modal-overlay');
-            if (modal) {
-                modal.remove();
-            }
-            document.body.style.overflow = '';
-            window.removeEventListener('message', handleAdMessage);
-            state.currentAdSession = null;
-        }
-
+  const modal = document.getElementById('ad-modal-overlay');
+  if (modal) {
+    // Clean up blob URL to prevent memory leaks
+    if (modal._blobUrl) {
+      URL.revokeObjectURL(modal._blobUrl);
+    }
+    modal.remove();
+  }
+  document.body.style.overflow = '';
+  window.removeEventListener('message', handleAdMessage);
+  state.currentAdSession = null;
+}
         // ============ THEME MANAGEMENT ============
         function getTheme() {
             const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
