@@ -1639,44 +1639,41 @@
             }
         }
 
-        async function showAdForTask(taskId) {
-            if (state.adProgress.canGenerateKey) {
-                // If ads are already completed, just complete the task normally
-                completeTask(taskId);
-                return;
-            }
+   // In your showAdForTask function, update the fetch call:
+async function showAdForTask(taskId) {
+  try {
+    const token = getCookie('AuthToken');
+    if (!token) {
+      showNotification('Please login first', 'error');
+      return;
+    }
 
-            try {
-                const token = getCookie('AuthToken');
-                if (!token) {
-                    showNotification('Please login first', 'error');
-                    return;
-                }
+    const response = await fetch(`${SERVER_URL}/api/ads/session`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include' // ← ADD THIS LINE
+    });
 
-                // Get ad session from server
-                const response = await fetch(`${SERVER_URL}/api/ads/session`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Ad session error:', errorText);
+      throw new Error(`Failed to get ad session: ${response.status}`);
+    }
 
-                if (!response.ok) {
-                    throw new Error('Failed to get ad session');
-                }
-
-                const data = await response.json();
-                state.currentAdSession = data.sessionId;
-                
-                // Show ad modal
-                showAdModal(data.adContent, data.duration);
-                
-            } catch (error) {
-                console.error('Error starting ad:', error);
-                showNotification('Error loading advertisement', 'error');
-                // Fallback - complete task anyway for testing
-                completeTask(taskId);
-            }
-        }
+    const data = await response.json();
+    state.currentAdSession = data.sessionId;
+    
+    showAdModal(data.adContent, data.duration);
+    
+  } catch (error) {
+    console.error('Error starting ad:', error);
+    showNotification('Error loading advertisement: ' + error.message, 'error');
+    // Fallback - complete task anyway for testing
+    completeTask(taskId);
+  }
+}
 
         function showAdModal(adContent, duration) {
   const modal = document.createElement('div');
