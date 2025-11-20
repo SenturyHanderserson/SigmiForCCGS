@@ -472,7 +472,7 @@
             </button>
         </div>
     </div>
-
+    <script type="text/javascript" src="//www.highperformanceformat.com/6d03dd6e4c62d2e63b1bba1110f44522/invoke.js"></script>
 	<!-- Warning Modal -->
 	<div id="warningModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
 		<div class="glass rounded-xl p-8 max-w-md w-full mx-4">
@@ -518,29 +518,29 @@
 	</div>
 
 	<!-- Broadcast Modal -->
-	<div id="broadcastModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
-		<div class="glass rounded-xl p-6 max-w-md w-full mx-4">
-			<div class="flex justify-between items-center mb-4">
-				<div class="flex items-center">
-					<div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center mr-3">
-						<i data-feather="bell" class="w-5 h-5 text-white"></i>
-					</div>
-					<h2 class="text-xl font-bold">Announcement</h2>
-				</div>
-				<button onclick="dismissBroadcast()" class="p-1 rounded-full hover:bg-purple-700">
-					<i data-feather="x" class="w-5 h-5"></i>
-				</button>
-			</div>
-			<p id="broadcastMessage" class="text-gray-300 mb-4"></p>
-			<div class="flex justify-between items-center text-sm text-gray-400 mb-4">
-				<span id="broadcastAuthor"></span>
-				<span id="broadcastTime"></span>
-			</div>
-			<button onclick="dismissBroadcast()" class="btn-primary py-2 px-6 rounded-lg font-medium w-full">
-				Acknowledge
-			</button>
-		</div>
-	</div>
+<div id="broadcastModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
+    <div class="glass rounded-xl p-6 max-w-md w-full mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <div class="flex items-center">
+                <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center mr-3">
+                    <i data-feather="bell" class="w-5 h-5 text-white"></i>
+                </div>
+                <h2 class="text-xl font-bold">Announcement</h2>
+            </div>
+            <button id="closeBroadcastModalBtn" class="p-1 rounded-full hover:bg-purple-700">
+                <i data-feather="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <p id="broadcastMessage" class="text-gray-300 mb-4"></p>
+        <div class="flex justify-between items-center text-sm text-gray-400 mb-4">
+            <span id="broadcastAuthor"></span>
+            <span id="broadcastTime"></span>
+        </div>
+        <button id="acknowledgeBroadcastBtn" class="btn-primary py-2 px-6 rounded-lg font-medium w-full">
+            Acknowledge
+        </button>
+    </div>
+</div>
 
     <!-- Loading Overlay - For auto-login verification -->
     <div id="loadingOverlay" class="modal-overlay">
@@ -1959,57 +1959,67 @@
 				}, 300);
 			}
 		}
+function showBroadcastModal(broadcastId) {
+    const broadcast = activeBroadcasts.find(b => b.id === broadcastId);
+    if (!broadcast) return;
+    
+    const modal = document.getElementById('broadcastModal');
+    const message = document.getElementById('broadcastMessage');
+    const author = document.getElementById('broadcastAuthor');
+    const time = document.getElementById('broadcastTime');
+    
+    message.textContent = broadcast.message;
+    author.textContent = `From: ${broadcast.createdBy}`;
+    time.textContent = formatTime(new Date(broadcast.createdAt));
+    
+    modal.dataset.broadcastId = broadcastId;
+    modal.classList.remove('hidden');
+    
+    // Add event listeners for the modal buttons
+    const closeBtn = document.getElementById('closeBroadcastModalBtn');
+    const acknowledgeBtn = document.getElementById('acknowledgeBroadcastBtn');
+    
+    // Remove existing listeners and add new ones
+    closeBtn.onclick = closeBroadcastModal;
+    acknowledgeBtn.onclick = () => {
+        dismissBroadcast(broadcastId);
+        closeBroadcastModal();
+    };
+    
+    hideBroadcastToast(broadcastId);
+}
 
-		function showBroadcastModal(broadcastId) {
-			const broadcast = activeBroadcasts.find(b => b.id === broadcastId);
-			if (!broadcast) return;
-			
-			const modal = document.getElementById('broadcastModal');
-			const message = document.getElementById('broadcastMessage');
-			const author = document.getElementById('broadcastAuthor');
-			const time = document.getElementById('broadcastTime');
-			
-			message.textContent = broadcast.message;
-			author.textContent = `From: ${broadcast.createdBy}`;
-			time.textContent = formatTime(new Date(broadcast.createdAt));
-			
-			modal.dataset.broadcastId = broadcastId;
-			modal.classList.remove('hidden');
-			
-			hideBroadcastToast(broadcastId);
-		}
-
-		async function dismissBroadcast(broadcastId) {
-			try {
-				const token = getCookie('AuthToken');
-				if (token) {
-					await fetch(`${SERVER_URL}/api/broadcasts/${broadcastId}/dismiss`, {
-						method: 'POST',
-						headers: {
-							'Authorization': `Bearer ${token}`,
-							'Content-Type': 'application/json'
-						}
-					});
-				}
-				
-				const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
-				if (!dismissedBroadcasts.includes(broadcastId)) {
-					dismissedBroadcasts.push(broadcastId);
-					localStorage.setItem('dismissedBroadcasts', JSON.stringify(dismissedBroadcasts));
-				}
-				
-				const modal = document.getElementById('broadcastModal');
-				if (modal.dataset.broadcastId === broadcastId) {
-					modal.classList.add('hidden');
-				}
-				
-				hideBroadcastToast(broadcastId);
-				
-			} catch (error) {
-				console.error('Error dismissing broadcast:', error);
-			}
-		}
-
+function closeBroadcastModal() {
+    const modal = document.getElementById('broadcastModal');
+    modal.classList.add('hidden');
+}
+		
+	async function dismissBroadcast(broadcastId) {
+    try {
+        const token = getCookie('AuthToken');
+        if (token) {
+            await fetch(`${SERVER_URL}/api/broadcasts/${broadcastId}/dismiss`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+        
+        const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
+        if (!dismissedBroadcasts.includes(broadcastId)) {
+            dismissedBroadcasts.push(broadcastId);
+            localStorage.setItem('dismissedBroadcasts', JSON.stringify(dismissedBroadcasts));
+        }
+        
+        // Remove from active broadcasts
+        activeBroadcasts = activeBroadcasts.filter(b => b.id !== broadcastId);
+        
+    } catch (error) {
+        console.error('Error dismissing broadcast:', error);
+    }
+}
 		function truncateText(text, maxLength) {
 			if (text.length <= maxLength) return text;
 			return text.substr(0, maxLength) + '...';
@@ -2752,6 +2762,7 @@
     </script>
 </body>
 </html>
+
 
 
 
