@@ -312,6 +312,12 @@
             text-shadow: 0 0 10px var(--success-glow);
         }
 
+        .browse-timer-active {
+            color: var(--accent-primary);
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(142, 68, 173, 0.5);
+        }
+        
         .task-description {
             color: var(--text-secondary);
             margin-bottom: 15px;
@@ -1870,85 +1876,255 @@
             }
         }
 
-        async function startSmartLinkTask(taskId) {
-            try {
-                const token = getCookie('AuthToken');
-                if (!token) {
-                    showNotification('Please login first', 'error');
-                    return;
-                }
+async function startSmartLinkTask(taskId) {
+    try {
+        const token = getCookie('AuthToken');
+        if (!token) {
+            showNotification('Please login first', 'error');
+            return;
+        }
 
-                const response = await fetch(`${SERVER_URL}/api/ads/session`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: 'include'
-                });
+        // Get smart link URL (FIXED ENDPOINT)
+        const response = await fetch(`${SERVER_URL}/api/ads/smartlink`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Smart link session error:', errorText);
-                    throw new Error(`Failed to get smart link session: ${response.status}`);
-                }
+        if (!response.ok) {
+            throw new Error('Failed to get smart link');
+        }
 
-                const data = await response.json();
-                state.currentAdSession = data.sessionId;
-                
-                showSmartLinkModal(data.smartLinkUrl, taskId);
-                
-            } catch (error) {
-                console.error('Error starting smart link:', error);
-                showNotification('Error loading smart link: ' + error.message, 'error');
-                // Fallback - complete task anyway for testing
-                completeTask(taskId);
+        const data = await response.json();
+        state.currentAdSession = data.sessionId;
+
+        // Show modal with instructions
+        showSmartLinkModal(data.smartLinkUrl, taskId, data.sessionId);
+        
+    } catch (error) {
+        console.error('Smart link error:', error);
+        showNotification('Error loading smart link', 'error');
+    }
+}
+       function showSmartLinkModal(smartLinkUrl, taskId, sessionId) {
+    const modal = document.createElement('div');
+    modal.id = 'smart-link-modal';
+    modal.className = 'ad-modal-overlay';
+    
+    modal.innerHTML = `
+        <div class="ad-modal-content">
+            <div class="ad-modal-icon">
+                <i class="fas fa-external-link-alt"></i>
+            </div>
+            <div class="ad-modal-title">Smart Link Required</div>
+            <div class="ad-modal-message">
+                You will be redirected to a smart link. Please browse the page for at least 30 seconds to complete this task.
+                <br><br>
+                <strong>Important:</strong> The link will open in a new tab. Keep it open for 30 seconds.
+            </div>
+            <div class="ad-modal-timer" id="browse-timer">
+                Required browsing time: <strong>30 seconds</strong>
+            </div>
+            <div class="ad-modal-actions">
+                <button class="ad-modal-btn ad-modal-primary" onclick="openSmartLink('${smartLinkUrl}', ${taskId}, '${sessionId}')">
+                    Open Smart Link
+                </button>
+                <button class="ad-modal-btn ad-modal-secondary" onclick="closeSmartLinkModal()">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+function startBrowseTimer(taskId, newTab, sessionId) {
+    let browseTime = 0;
+    const maxTime = 30;
+    
+    // Update UI to show active timer
+    const timerElement = document.getElementById('browse-timer');
+    if (timerElement) {
+        timerElement.innerHTML = `Time remaining: <strong>${maxTime}s</strong>`;
+    }
+    
+    state.taskStartTime = Date.now();
+    state.activeTaskTimer = setInterval(async () => {
+        browseTime++;
+        const remaining = Math.max(0, maxTime - browseTime);
+        
+        // Update UI
+        if (timerElement) {
+            timerElement.innerHTML = `Time remaining: <strong>${remaining}s</strong>`;
+        }
+        
+        // Send progress to server every 5 seconds
+        if (browseTime % 5 === 0) {
+            await updateBrowseProgressOnServer(sessionId, browseTime);
+        }
+        
+        // Check for completion
+        if (browseTime >= maxTime) {
+            await completeBrowseTask(taskId, sessionId, browseTime, true);
+        }
+        
+    }, 1000);
+    
+    // Check if tab is closed
+    state.tabCheckInterval = setInterval(() => {
+        try {
+            if (newTab.closed) {
+                clearInterval(state.activeTaskTimer);
+                clearInterval(state.tabCheckInterval);
+                completeBrowseTask(taskId, sessionId, browseTime, false);
+            }
+        } catch (error) {
+            // Tab checking might fail due to cross-origin restrictions
+            console.log('Tab check unavailable - continuing timer');
+        }
+    }, 2000);
+    
+    // Fallback: auto-complete after 2 minutes max
+    state.timeoutFallback = setTimeout(() => {
+        clearInterval(state.activeTaskTimer);
+        clearInterval(state.tabCheckInterval);
+        completeBrowseTask(taskId, sessionId, Math.min(browseTime, maxTime), false);
+    }, 120000);
+}
+       async function updateBrowseProgressOnServer(sessionId, browseTime) {
+    try {
+        const token = getCookie('AuthToken');
+        const response = await fetch(`${SERVER_URL}/api/ads/verify-browse`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                sessionId: sessionId,
+                browseTime: browseTime
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.completed) {
+                // Task completed via server verification
+                clearInterval(state.activeTaskTimer);
+                clearInterval(state.tabCheckInterval);
+                if (state.timeoutFallback) clearTimeout(state.timeoutFallback);
+                await handleTaskCompletion(taskId, data);
             }
         }
+    } catch (error) {
+        console.error('Failed to update browse progress:', error);
+    }
+}
 
-        function showSmartLinkModal(smartLinkUrl, taskId) {
-            const modal = document.createElement('div');
-            modal.id = 'smart-link-modal';
-            modal.className = 'ad-modal-overlay';
-            
-            modal.innerHTML = `
-                <div class="ad-modal-content">
-                    <div class="ad-modal-icon">
-                        <i class="fas fa-external-link-alt"></i>
-                    </div>
-                    <div class="ad-modal-title">Smart Link Required</div>
-                    <div class="ad-modal-message">
-                        You will be redirected to a smart link. Please browse the page for at least 30 seconds to complete this task.
-                    </div>
-                    <div class="ad-modal-timer">
-                        Required browsing time: <strong>30 seconds</strong>
-                    </div>
-                    <div class="ad-modal-actions">
-                        <button class="ad-modal-btn ad-modal-primary" onclick="openSmartLink('${smartLinkUrl}', ${taskId})">
-                            Open Smart Link
-                        </button>
-                        <button class="ad-modal-btn ad-modal-secondary" onclick="closeSmartLinkModal()">
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(modal);
+       async function completeBrowseTask(taskId, sessionId, browseTime, success) {
+    // Clean up intervals
+    if (state.activeTaskTimer) clearInterval(state.activeTaskTimer);
+    if (state.tabCheckInterval) clearInterval(state.tabCheckInterval);
+    if (state.timeoutFallback) clearTimeout(state.timeoutFallback);
+    
+    try {
+        const token = getCookie('AuthToken');
+        const response = await fetch(`${SERVER_URL}/api/ads/complete`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                sessionId: sessionId,
+                browseTime: browseTime
+            })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            await handleTaskCompletion(taskId, result);
+        } else {
+            throw new Error('Failed to complete task');
         }
+    } catch (error) {
+        console.error('Failed to complete browse task:', error);
+        showNotification('Task completion error - please try again', 'error');
+    }
+}
 
-        function openSmartLink(url, taskId) {
-            // Open in new tab
-            window.open(url, '_blank');
-            
-            // Start timer for this task
-            startTaskTimer(taskId);
-            
-            // Close the modal
-            closeSmartLinkModal();
-            
-            showNotification('Smart link opened in new tab. Please browse for 30 seconds.', 'info');
+async function handleTaskCompletion(taskId, result) {
+    if (result.success) {
+        showNotification('Smart link task completed successfully!', 'success');
+        
+        // Complete the actual task
+        completeTask(taskId);
+        
+        // Update ad progress display
+        state.adProgress.completions = result.adCompletions;
+        state.adProgress.canGenerateKey = result.canGenerateKey;
+        updateAdProgressDisplay();
+        
+        // Check if we can generate key
+        if (result.canGenerateKey && state.tasks.every(task => task.completed)) {
+            generateKey();
         }
+    } else {
+        showNotification(result.error || 'Task not completed', 'error');
+    }
+}
 
+function updateBrowseProgress(remaining) {
+    // Update any progress indicators in the UI
+    const progressElement = document.getElementById('browse-progress');
+    if (progressElement) {
+        progressElement.textContent = `${remaining}s remaining`;
+    }
+}
+
+function resetBrowseProgress() {
+    // Reset any progress indicators
+    const progressElement = document.getElementById('browse-progress');
+    if (progressElement) {
+        progressElement.textContent = '';
+    }
+}
+        
+async function openSmartLink(url, taskId, sessionId) {
+    try {
+        const token = getCookie('AuthToken');
+        
+        // Validate session first
+        await fetch(`${SERVER_URL}/api/ads/validate`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ sessionId: sessionId })
+        });
+
+        // Try to open in new tab
+        const newTab = window.open(url, '_blank');
+        
+        if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+            // Fallback: open in same tab
+            showNotification('Popup blocked! Please allow popups for this site.', 'warning');
+            window.location.href = url;
+            return;
+        }
+        
+        // Start browse timer
+        startBrowseTimer(taskId, newTab, sessionId);
+        showNotification('Smart link opened! Please browse for 30 seconds.', 'info');
+        closeSmartLinkModal();
+        
+    } catch (error) {
+        console.error('Failed to validate session:', error);
+        showNotification('Error starting smart link session', 'error');
+    }
+}
         function startTaskTimer(taskId) {
             state.taskStartTime = Date.now();
             state.activeTaskTimer = setInterval(() => {
@@ -2217,41 +2393,32 @@
             });
         }
 
-        async function completeTask(taskId) {
-            if (taskId < 1 || taskId > state.tasks.length) return;
-            
-            const task = state.tasks[taskId - 1];
-            if (task.completed) return;
-            
-            if (taskId > 1 && !state.tasks[taskId - 2].completed) return;
-            
-            if (state.key || state.existingKey) {
-                showNotification('Tasks are disabled while you have an active key!', 'warning');
-                return;
-            }
-            
-            // Use smart link system for task completion
-            if (!state.adProgress.canGenerateKey) {
-                startSmartLinkTask(taskId);
-                return;
-            }
-            
-            setTimeout(() => {
-                task.completed = true;
-                taskStatusElements[taskId - 1].textContent = 'Completed';
-                taskStatusElements[taskId - 1].classList.add('completed');
-                taskElements[taskId - 1].classList.add('completed');
-                
-                taskElements[taskId - 1].style.animation = 'none';
-                setTimeout(() => {
-                    taskElements[taskId - 1].style.animation = 'pulse 0.5s ease';
-                }, 10);
-                
-                updateProgress();
-                showNotification(`Task ${taskId}: ${task.name} completed!`, 'success');
-            }, 800);
-        }
-
+       function completeTask(taskId) {
+    if (taskId < 1 || taskId > state.tasks.length) return;
+    
+    const task = state.tasks[taskId - 1];
+    if (task.completed) return;
+    
+    if (taskId > 1 && !state.tasks[taskId - 2].completed) return;
+    
+    if (state.key || state.existingKey) {
+        showNotification('Tasks are disabled while you have an active key!', 'warning');
+        return;
+    }
+    
+    // Mark task as completed
+    task.completed = true;
+    taskStatusElements[taskId - 1].textContent = 'Completed';
+    taskStatusElements[taskId - 1].classList.add('completed');
+    taskElements[taskId - 1].classList.add('completed');
+    
+    taskElements[taskId - 1].style.animation = 'none';
+    setTimeout(() => {
+        taskElements[taskId - 1].style.animation = 'pulse 0.5s ease';
+    }, 10);
+    
+    updateProgress();
+}
         // ============ KEY MANAGEMENT ============
         async function checkExistingKey() {
             try {
