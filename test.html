@@ -8,7 +8,7 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
     <style>
         /* Theme Variables */
         body {
@@ -48,6 +48,26 @@
             --glass-border: rgba(0, 0, 0, 0.1) !important;
         }
         
+        .theme-light p:not(.text-transparent),
+        .theme-light span:not(.text-transparent),
+        .theme-light h1:not(.text-transparent),
+        .theme-light h2:not(.text-transparent),
+        .theme-light h3:not(.text-transparent),
+        .theme-light h4:not(.text-transparent),
+        .theme-light h5:not(.text-transparent),
+        .theme-light h6:not(.text-transparent),
+        .theme-light li:not(.text-transparent),
+        .theme-light a:not(.text-transparent),
+        .theme-light div:not(.text-transparent) {
+            color: var(--text-primary) !important;
+        }
+        
+        .theme-light .text-secondary,
+        .theme-light small,
+        .theme-light .muted {
+            color: var(--text-secondary) !important;
+        }
+
         .theme-amoled {
             --bg-primary: #000000 !important;
             --bg-secondary: #111111 !important;
@@ -78,6 +98,15 @@
             transition: background 0.5s ease, color 0.3s ease;
             min-height: 100vh;
         }
+
+        #vanta-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
         
         .glass {
             background: var(--glass-bg);
@@ -104,6 +133,24 @@
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(142, 68, 173, 0.3);
+        }
+        
+        .content-card {
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            border-color: var(--glass-border);
         }
         
         /* Notification system */
@@ -225,219 +272,91 @@
             transition: opacity 0.3s ease;
         }
 
-        /* Message Styles */
-        .message-container {
+        /* Floating action button */
+        .fab {
             position: fixed;
-            top: 70px;
-            left: 20px;
-            z-index: 1001;
-            width: 350px;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .message-alert {
-            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            border-left: 4px solid #ff8c00;
-            border-top: 1px solid rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-        }
-
-        .message-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .message-sender {
-            font-weight: bold;
-            font-size: 0.9em;
-            color: #fff;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-        }
-
-        .message-time {
-            font-size: 0.8em;
-            opacity: 0.9;
-            color: #e0e0e0;
-        }
-
-        .message-content {
-            font-size: 0.95em;
-            line-height: 1.4;
-            margin-bottom: 10px;
-            word-wrap: break-word;
-        }
-
-        .message-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        .message-btn {
-            padding: 5px 12px;
-            border: none;
-            border-radius: 4px;
-            font-size: 0.8em;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .message-dismiss {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-
-        .message-dismiss:hover {
-            background: rgba(255,255,255,0.3);
-            transform: translateY(-1px);
-        }
-
-        .no-messages {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-            font-style: italic;
-        }
-
-        /* Animation keyframes */
-        @keyframes slideInFromLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes slideOutToLeft {
-            from {
-                opacity: 1;
-                transform: translateX(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateX(-100%);
-            }
-        }
-
-        .message-slide-in {
-            animation: slideInFromLeft 0.5s ease forwards;
-        }
-
-        .message-slide-out {
-            animation: slideOutToLeft 0.5s ease forwards;
-        }
-
-        .broadcast-toast {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 24rem;
-        }
-        
-        /* Social Bar Styles */
-        .social-bar {
-            position: fixed;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            z-index: 100;
-        }
-        
-        .social-icon {
-            width: 50px;
-            height: 50px;
+            bottom: 2rem;
+            right: 2rem;
+            width: 3.5rem;
+            height: 3.5rem;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 40;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
         
-        .social-icon:hover {
+        .fab:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Enhanced glass morphism effects */
+        .glass-header {
+            background: rgba(92, 50, 168, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Enhanced backgrounds */
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
+        }
+
+        /* Enhanced card hover effects */
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
         }
-        
-        .facebook { background: linear-gradient(135deg, #3b5998, #4a6fbe); }
-        .twitter { background: linear-gradient(135deg, #1da1f2, #3bb1f4); }
-        .instagram { background: linear-gradient(135deg, #e1306c, #fd5949); }
-        .youtube { background: linear-gradient(135deg, #ff0000, #ff4d4d); }
-        .discord { background: linear-gradient(135deg, #7289da, #8ea1e1); }
-        
-        /* Test Panel Styles */
-        .test-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(15px);
+
+        /* Enhanced text effects */
+        .text-glow {
+            text-shadow: 0 0 10px rgba(142, 68, 173, 0.5);
+        }
+
+        /* Enhanced button styles */
+        .btn-glow {
+            box-shadow: 0 0 15px rgba(142, 68, 173, 0.4);
+        }
+
+        .btn-glow:hover {
+            box-shadow: 0 0 20px rgba(142, 68, 173, 0.6);
+        }
+
+        /* Ad test styles */
+        .ad-container {
+            border: 2px dashed var(--accent-primary);
             border-radius: 12px;
             padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid var(--glass-border);
+            margin: 20px 0;
+            background: rgba(142, 68, 173, 0.1);
         }
         
-        .test-button {
+        .ad-test-button {
             background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
             border: none;
             color: white;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 600;
-            margin: 5px;
+            margin: 10px 5px;
         }
         
-        .test-button:hover {
+        .ad-test-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(142, 68, 173, 0.4);
         }
         
-        .test-button.secondary {
-            background: linear-gradient(135deg, #6c757d, #495057);
-        }
-        
-        .test-button.success {
-            background: linear-gradient(135deg, #28a745, #20c997);
-        }
-        
-        .test-button.warning {
-            background: linear-gradient(135deg, #ffc107, #fd7e14);
-        }
-        
-        .test-button.danger {
-            background: linear-gradient(135deg, #dc3545, #e83e8c);
-        }
-        
-        .code-block {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px 0;
-            font-family: monospace;
-            overflow-x: auto;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .status-indicator {
+        .ad-status {
             display: inline-block;
             width: 10px;
             height: 10px;
@@ -445,354 +364,165 @@
             margin-right: 8px;
         }
         
-        .status-active {
+        .ad-status-active {
             background-color: #28a745;
         }
         
-        .status-inactive {
+        .ad-status-inactive {
             background-color: #dc3545;
         }
     </style>
 </head>
 <body class="min-h-screen text-white font-sans theme-dark">
+    <!-- Vanta.js background -->
+    <div id="vanta-bg"></div>
+    
     <!-- Notification container -->
     <div class="notification-container" id="notificationContainer"></div>
-    
-    <!-- Warning Modal -->
-    <div id="warningModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
-        <div class="glass rounded-xl p-8 max-w-md w-full mx-4">
-            <div class="flex justify-between items-center mb-4">
-                <div class="flex items-center">
-                    <div class="medal-icon mr-3">
-                        <i data-feather="alert-triangle" class="w-8 h-8 text-yellow-400"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold" id="warningModalTitle">Warnings</h2>
-                </div>
-            </div>
-            
-            <div id="warningList" class="mb-6 max-h-60 overflow-y-auto space-y-3">
-                <!-- Warnings will be dynamically populated here -->
-            </div>
-            
-            <div class="flex justify-between items-center text-sm text-gray-400 mb-4">
-                <span id="warningCount">0 active warnings</span>
-                <button id="viewHistoryBtn" class="text-purple-300 hover:text-purple-100">
-                    View History
-                </button>
-            </div>
-            
-            <div class="flex flex-col gap-3">
-                <button id="dismissAllBtn" class="bg-red-600 hover:bg-red-700 py-3 px-6 rounded-lg font-medium">
-                    Dismiss All Warnings
-                </button>
-                <button id="closeWarningBtn" class="bg-gray-600 hover:bg-gray-700 py-2 px-6 rounded-lg font-medium hidden">
-                    Close
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Messages Container -->
-    <div id="messageContainer" class="fixed top-20 left-4 z-[1001] w-80 max-h-[70vh] overflow-y-auto hidden">
-        <div class="glass rounded-xl p-4 mb-3" id="messageHeader" style="display: none;">
-            <div class="flex justify-between items-center mb-2">
-                <h3 class="font-semibold">Messages</h3>
-            </div>
-        </div>
-        <div id="messagesList"></div>
-    </div>
-    
-    <!-- Broadcast Modal -->
-    <div id="broadcastModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
-        <div class="glass rounded-xl p-6 max-w-md w-full mx-4">
-            <div class="flex justify-between items-center mb-4">
-                <div class="flex items-center">
-                    <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center mr-3">
-                        <i data-feather="bell" class="w-5 h-5 text-white"></i>
-                    </div>
-                    <h2 class="text-xl font-bold">Announcement</h2>
-                </div>
-                <button id="closeBroadcastModal" class="p-1 rounded-full hover:bg-purple-700">
-                    <i data-feather="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            <p id="broadcastMessage" class="text-gray-300 mb-4"></p>
-            <div class="flex justify-between items-center text-sm text-gray-400 mb-4">
-                <span id="broadcastAuthor"></span>
-                <span id="broadcastTime"></span>
-            </div>
-            <button id="acknowledgeBroadcast" class="btn-primary py-2 px-6 rounded-lg font-medium w-full">
-                Acknowledge
-            </button>
-        </div>
-    </div>
-
-    <!-- Loading Overlay - For auto-login verification -->
-    <div id="loadingOverlay" class="loading-overlay hidden">
-        <div class="glass rounded-xl p-8 max-w-md w-full mx-4 text-center">
-            <div class="flex justify-center mb-6">
-                <div class="balls-loader">
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                </div>
-            </div>
-            <h2 class="text-2xl font-bold mb-2">Loading content...</h2>
-            <p class="text-gray-300">Please wait while we verify your session</p>
-        </div>
-    </div>
-
-    <!-- Social Bar -->
-    <div class="social-bar">
-        <a href="#" class="social-icon facebook">
-            <i class="fab fa-facebook-f"></i>
-        </a>
-        <a href="#" class="social-icon twitter">
-            <i class="fab fa-twitter"></i>
-        </a>
-        <a href="#" class="social-icon instagram">
-            <i class="fab fa-instagram"></i>
-        </a>
-        <a href="#" class="social-icon youtube">
-            <i class="fab fa-youtube"></i>
-        </a>
-        <a href="#" class="social-icon discord">
-            <i class="fab fa-discord"></i>
-        </a>
-    </div>
 
     <!-- Main Content -->
-    <div class="container mx-auto px-4 py-8">
-        <header class="text-center mb-12">
-            <h1 class="text-4xl font-bold mb-4">Advertisement Test Page</h1>
-            <p class="text-xl text-gray-300 max-w-3xl mx-auto">
-                Test all the core functionality from your application including messages, warnings, broadcasts, verification, themes, and more.
-            </p>
+    <div>
+        <!-- Header -->
+        <header class="glass-header p-4 sticky top-0 z-40">
+            <div class="container mx-auto flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-xl font-bold flex items-center">
+                        <i data-feather="hexagon" class="w-6 h-6 mr-2"></i>
+                        Advertisement Test Page
+                    </h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="themeToggle" class="relative group">
+                        <i data-feather="moon" class="w-6 h-6"></i>
+                        <span class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-purple-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            Toggle Theme
+                        </span>
+                    </button>
+                </div>
+            </div>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Theme Testing Panel -->
-            <div class="test-panel">
-                <h2 class="text-2xl font-bold mb-4 flex items-center">
-                    <i data-feather="palette" class="w-6 h-6 mr-2"></i>
-                    Theme Testing
-                </h2>
-                <p class="mb-4">Test different theme configurations and see how they affect the UI.</p>
-                
-                <div class="flex flex-wrap gap-2 mb-4">
-                    <button class="test-button" onclick="setTheme('dark')">Dark Theme</button>
-                    <button class="test-button" onclick="setTheme('light')">Light Theme</button>
-                    <button class="test-button" onclick="setTheme('amoled')">AMOLED Theme</button>
-                    <button class="test-button" onclick="setTheme('blue')">Blue Theme</button>
-                </div>
-                
-                <div class="code-block">
-                    <span class="text-green-400">// Current theme:</span> <span id="currentTheme" class="text-yellow-300">dark</span>
-                </div>
+        <!-- Main Dashboard -->
+        <main class="container mx-auto p-4 mt-16">
+            <div class="mb-8 text-center">
+                <h2 class="text-3xl font-bold mb-4">Advertisement Testing Dashboard</h2>
+                <p class="text-gray-300 max-w-2xl mx-auto">Test your smartlink integration and advertisement functionality with the tools below.</p>
             </div>
 
-            <!-- Notification Testing Panel -->
-            <div class="test-panel">
-                <h2 class="text-2xl font-bold mb-4 flex items-center">
-                    <i data-feather="bell" class="w-6 h-6 mr-2"></i>
-                    Notification Testing
-                </h2>
-                <p class="mb-4">Test different types of notifications with various durations.</p>
-                
-                <div class="flex flex-wrap gap-2 mb-4">
-                    <button class="test-button" onclick="showNotification('This is an info notification', 'info')">Info</button>
-                    <button class="test-button success" onclick="showNotification('Operation completed successfully!', 'success')">Success</button>
-                    <button class="test-button warning" onclick="showNotification('Warning: This action may have consequences', 'warning')">Warning</button>
-                    <button class="test-button danger" onclick="showNotification('Error: Something went wrong', 'error')">Error</button>
+            <!-- Smartlink Test Section -->
+            <div class="glass-card p-6 mb-8">
+                <div class="flex items-center mb-4">
+                    <i data-feather="external-link" class="w-8 h-8 mr-3 text-purple-400"></i>
+                    <h3 class="text-2xl font-bold">Smartlink Integration Test</h3>
                 </div>
+                <p class="text-gray-300 mb-6">Test your smartlink integration by clicking the button below. This will open a new tab with your advertisement.</p>
                 
-                <div class="code-block">
-                    <span class="text-green-400">// Notification system status:</span> 
-                    <span class="status-indicator status-active"></span>
-                    <span class="text-yellow-300">Active</span>
-                </div>
-            </div>
-
-            <!-- Message System Testing Panel -->
-            <div class="test-panel">
-                <h2 class="text-2xl font-bold mb-4 flex items-center">
-                    <i data-feather="mail" class="w-6 h-6 mr-2"></i>
-                    Message System Testing
-                </h2>
-                <p class="mb-4">Test the message system with different types of messages.</p>
-                
-                <div class="flex flex-wrap gap-2 mb-4">
-                    <button class="test-button" onclick="addTestMessage('info')">Add Info Message</button>
-                    <button class="test-button warning" onclick="addTestMessage('warning')">Add Warning Message</button>
-                    <button class="test-button success" onclick="addTestMessage('success')">Add Success Message</button>
-                    <button class="test-button secondary" onclick="clearAllMessages()">Clear All Messages</button>
-                </div>
-                
-                <div class="code-block">
-                    <span class="text-green-400">// Message system status:</span> 
-                    <span class="status-indicator status-active"></span>
-                    <span class="text-yellow-300">Active</span>
-                </div>
-            </div>
-
-            <!-- Warning System Testing Panel -->
-            <div class="test-panel">
-                <h2 class="text-2xl font-bold mb-4 flex items-center">
-                    <i data-feather="alert-triangle" class="w-6 h-6 mr-2"></i>
-                    Warning System Testing
-                </h2>
-                <p class="mb-4">Test the warning system with different severity levels.</p>
-                
-                <div class="flex flex-wrap gap-2 mb-4">
-                    <button class="test-button warning" onclick="addTestWarning('low')">Add Low Warning</button>
-                    <button class="test-button warning" onclick="addTestWarning('medium')">Add Medium Warning</button>
-                    <button class="test-button danger" onclick="addTestWarning('high')">Add High Warning</button>
-                    <button class="test-button secondary" onclick="clearAllWarnings()">Clear All Warnings</button>
-                </div>
-                
-                <div class="code-block">
-                    <span class="text-green-400">// Active warnings:</span> 
-                    <span id="activeWarningsCount" class="text-yellow-300">0</span>
-                </div>
-            </div>
-
-            <!-- Broadcast System Testing Panel -->
-            <div class="test-panel">
-                <h2 class="text-2xl font-bold mb-4 flex items-center">
-                    <i data-feather="broadcast" class="w-6 h-6 mr-2"></i>
-                    Broadcast System Testing
-                </h2>
-                <p class="mb-4">Test the broadcast system with different types of announcements.</p>
-                
-                <div class="flex flex-wrap gap-2 mb-4">
-                    <button class="test-button" onclick="addTestBroadcast('info')">Info Broadcast</button>
-                    <button class="test-button warning" onclick="addTestBroadcast('warning')">Warning Broadcast</button>
-                    <button class="test-button success" onclick="addTestBroadcast('success')">Success Broadcast</button>
-                    <button class="test-button secondary" onclick="clearAllBroadcasts()">Clear All Broadcasts</button>
-                </div>
-                
-                <div class="code-block">
-                    <span class="text-green-400">// Active broadcasts:</span> 
-                    <span id="activeBroadcastsCount" class="text-yellow-300">0</span>
-                </div>
-            </div>
-
-            <!-- Smartlink Testing Panel -->
-            <div class="test-panel">
-                <h2 class="text-2xl font-bold mb-4 flex items-center">
-                    <i data-feather="external-link" class="w-6 h-6 mr-2"></i>
-                    Smartlink Testing
-                </h2>
-                <p class="mb-4">Test your smartlink integration with the test button.</p>
-                
-                <div class="flex flex-wrap gap-2 mb-4">
-                    <button class="test-button success" onclick="testSmartlink()">Test Smartlink</button>
-                </div>
-                
-                <div class="code-block">
-                    <span class="text-green-400">// Smartlink script:</span>
-                    <div class="mt-2 text-gray-300">
-                        &lt;script type='text/javascript' src='//pl28094519.effectivegatecpm.com/ad/69/58/ad69583a5e36e773f00fc8eba943aecb.js'&gt;&lt;/script&gt;
+                <div class="ad-container">
+                    <h4 class="text-xl font-semibold mb-4">Smartlink Test</h4>
+                    <p class="mb-4">Click the button to test your smartlink integration:</p>
+                    <button id="smartlinkTestBtn" class="ad-test-button btn-glow">
+                        <i data-feather="zap" class="w-4 h-4 mr-2"></i>
+                        Test Smartlink
+                    </button>
+                    <div class="mt-4">
+                        <span class="ad-status ad-status-active"></span>
+                        <span class="text-green-400">Smartlink script loaded successfully</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Verification Testing Panel -->
-            <div class="test-panel">
-                <h2 class="text-2xl font-bold mb-4 flex items-center">
-                    <i data-feather="shield" class="w-6 h-6 mr-2"></i>
-                    Verification Testing
-                </h2>
-                <p class="mb-4">Test the verification system with different scenarios.</p>
-                
-                <div class="flex flex-wrap gap-2 mb-4">
-                    <button class="test-button" onclick="testVerification('success')">Success Verification</button>
-                    <button class="test-button warning" onclick="testVerification('warning')">Warning Verification</button>
-                    <button class="test-button danger" onclick="testVerification('error')">Error Verification</button>
+            <!-- Advertisement Test Section -->
+            <div class="glass-card p-6 mb-8">
+                <div class="flex items-center mb-4">
+                    <i data-feather="trending-up" class="w-8 h-8 mr-3 text-purple-400"></i>
+                    <h3 class="text-2xl font-bold">Advertisement Tests</h3>
                 </div>
+                <p class="text-gray-300 mb-6">Test different types of advertisements and their behaviors.</p>
                 
-                <div class="code-block">
-                    <span class="text-green-400">// Verification system status:</span> 
-                    <span class="status-indicator status-active"></span>
-                    <span class="text-yellow-300">Active</span>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Popup Ad Test -->
+                    <div class="ad-container">
+                        <h4 class="text-xl font-semibold mb-4">Popup Advertisement</h4>
+                        <p class="mb-4">Test a popup advertisement that opens in a new window.</p>
+                        <button id="popupAdTestBtn" class="ad-test-button">
+                            <i data-feather="maximize" class="w-4 h-4 mr-2"></i>
+                            Test Popup Ad
+                        </button>
+                    </div>
+                    
+                    <!-- Redirect Ad Test -->
+                    <div class="ad-container">
+                        <h4 class="text-xl font-semibold mb-4">Redirect Advertisement</h4>
+                        <p class="mb-4">Test a redirect advertisement that navigates to a new page.</p>
+                        <button id="redirectAdTestBtn" class="ad-test-button">
+                            <i data-feather="navigation" class="w-4 h-4 mr-2"></i>
+                            Test Redirect Ad
+                        </button>
+                    </div>
+                    
+                    <!-- Banner Ad Test -->
+                    <div class="ad-container">
+                        <h4 class="text-xl font-semibold mb-4">Banner Advertisement</h4>
+                        <p class="mb-4">Test a banner advertisement display.</p>
+                        <button id="bannerAdTestBtn" class="ad-test-button">
+                            <i data-feather="image" class="w-4 h-4 mr-2"></i>
+                            Test Banner Ad
+                        </button>
+                    </div>
+                    
+                    <!-- Video Ad Test -->
+                    <div class="ad-container">
+                        <h4 class="text-xl font-semibold mb-4">Video Advertisement</h4>
+                        <p class="mb-4">Test a video advertisement player.</p>
+                        <button id="videoAdTestBtn" class="ad-test-button">
+                            <i data-feather="video" class="w-4 h-4 mr-2"></i>
+                            Test Video Ad
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Social Bar Testing Panel -->
-            <div class="test-panel">
-                <h2 class="text-2xl font-bold mb-4 flex items-center">
-                    <i data-feather="share-2" class="w-6 h-6 mr-2"></i>
-                    Social Bar Testing
-                </h2>
-                <p class="mb-4">Test the social media integration bar.</p>
-                
-                <div class="flex flex-wrap gap-2 mb-4">
-                    <button class="test-button" onclick="toggleSocialBar()">Toggle Social Bar</button>
-                    <button class="test-button secondary" onclick="testSocialLinks()">Test Social Links</button>
+            <!-- Ad Performance Section -->
+            <div class="glass-card p-6">
+                <div class="flex items-center mb-4">
+                    <i data-feather="bar-chart-2" class="w-8 h-8 mr-3 text-purple-400"></i>
+                    <h3 class="text-2xl font-bold">Advertisement Performance</h3>
                 </div>
+                <p class="text-gray-300 mb-6">Monitor the performance of your advertisements.</p>
                 
-                <div class="code-block">
-                    <span class="text-green-400">// Social bar status:</span> 
-                    <span id="socialBarStatus" class="text-yellow-300">Visible</span>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="glass p-4 rounded-lg text-center">
+                        <div class="text-3xl font-bold text-purple-400 mb-2" id="adClicks">0</div>
+                        <div class="text-gray-300">Total Clicks</div>
+                    </div>
+                    <div class="glass p-4 rounded-lg text-center">
+                        <div class="text-3xl font-bold text-green-400 mb-2" id="adImpressions">0</div>
+                        <div class="text-gray-300">Impressions</div>
+                    </div>
+                    <div class="glass p-4 rounded-lg text-center">
+                        <div class="text-3xl font-bold text-yellow-400 mb-2" id="adConversions">0</div>
+                        <div class="text-gray-300">Conversions</div>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <!-- System Status Panel -->
-        <div class="test-panel mt-8">
-            <h2 class="text-2xl font-bold mb-4 flex items-center">
-                <i data-feather="activity" class="w-6 h-6 mr-2"></i>
-                System Status
-            </h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="glass-card p-4 rounded-lg">
-                    <div class="flex items-center">
-                        <span class="status-indicator status-active"></span>
-                        <span class="font-semibold">Theme System</span>
-                    </div>
-                    <p class="text-sm text-gray-300 mt-2">Current: <span id="statusTheme" class="text-yellow-300">Dark</span></p>
-                </div>
-                
-                <div class="glass-card p-4 rounded-lg">
-                    <div class="flex items-center">
-                        <span class="status-indicator status-active"></span>
-                        <span class="font-semibold">Notification System</span>
-                    </div>
-                    <p class="text-sm text-gray-300 mt-2">Active notifications: <span id="statusNotifications" class="text-yellow-300">0</span></p>
-                </div>
-                
-                <div class="glass-card p-4 rounded-lg">
-                    <div class="flex items-center">
-                        <span class="status-indicator status-active"></span>
-                        <span class="font-semibold">Message System</span>
-                    </div>
-                    <p class="text-sm text-gray-300 mt-2">Active messages: <span id="statusMessages" class="text-yellow-300">0</span></p>
-                </div>
-                
-                <div class="glass-card p-4 rounded-lg">
-                    <div class="flex items-center">
-                        <span class="status-indicator status-active"></span>
-                        <span class="font-semibold">Warning System</span>
-                    </div>
-                    <p class="text-sm text-gray-300 mt-2">Active warnings: <span id="statusWarnings" class="text-yellow-300">0</span></p>
-                </div>
-            </div>
+        </main>
+        
+        <!-- Floating Action Button -->
+        <div class="fab btn-primary" id="fabBtn" title="Quick Actions">
+            <i data-feather="plus" class="w-6 h-6"></i>
         </div>
     </div>
 
     <script>
-        // Core variables
-        let userWarnings = [];
-        let activeBroadcasts = [];
-        let testMessages = [];
-        let socialBarVisible = true;
+        // Advertisement test data
+        let adClicks = 0;
+        let adImpressions = 0;
+        let adConversions = 0;
+        let currentTheme = 'dark';
 
         // Theme Management Functions
         function getTheme() {
-            const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
-            return preferences.theme || 'dark';
+            return currentTheme;
         }
 
         function setTheme(theme) {
@@ -800,46 +530,77 @@
             document.body.className = document.body.className.replace(/\btheme-\w+/g, '');
             document.body.classList.add(`theme-${theme}`);
             
-            // Update status display
-            document.getElementById('currentTheme').textContent = theme;
-            document.getElementById('statusTheme').textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+            currentTheme = theme;
             
-            // Save to preferences
-            const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
-            preferences.theme = theme;
-            setCookie('UserPreferences', JSON.stringify(preferences), 365);
+            // Update Vanta background if needed
+            initVantaBackground();
+            
+            // Update theme toggle icon
+            const themeIcon = document.querySelector('#themeToggle i');
+            if (theme === 'dark') {
+                themeIcon.setAttribute('data-feather', 'moon');
+            } else {
+                themeIcon.setAttribute('data-feather', 'sun');
+            }
+            feather.replace();
             
             showNotification(`Theme changed to ${theme}`, 'success');
         }
 
-        function applyThemeOnLoad() {
-            const theme = getTheme();
-            setTheme(theme);
-        }
-
-        // Cookie Management Functions
-        function getCookie(name) {
-            const cookieName = name + "=";
-            const decodedCookie = decodeURIComponent(document.cookie);
-            const cookieArray = decodedCookie.split(';');
-            
-            for(let i = 0; i < cookieArray.length; i++) {
-                let cookie = cookieArray[i];
-                while (cookie.charAt(0) === ' ') {
-                    cookie = cookie.substring(1);
-                }
-                if (cookie.indexOf(cookieName) === 0) {
-                    return cookie.substring(cookieName.length, cookie.length);
-                }
+        function toggleTheme() {
+            if (currentTheme === 'dark') {
+                setTheme('light');
+            } else {
+                setTheme('dark');
             }
-            return "";
         }
 
-        function setCookie(name, value, days) {
-            const d = new Date();
-            d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-            const expires = "expires=" + d.toUTCString();
-            document.cookie = name + "=" + value + ";" + expires + ";path=/";
+        function initVantaBackground() {
+            const theme = getTheme();
+            let color, bgColor;
+            
+            switch(theme) {
+                case 'light':
+                    color = 0x6f42c1;
+                    bgColor = 0xf8f9fa;
+                    break;
+                case 'amoled':
+                    color = 0x8e44ad;
+                    bgColor = 0x0;
+                    break;
+                case 'blue':
+                    color = 0x2563eb;
+                    bgColor = 0x0a1931;
+                    break;
+                case 'purple':
+                    color = 0x8e44ad;
+                    bgColor = 0x1a0933;
+                    break;
+                default: // dark
+                    color = 0x8e44ad;
+                    bgColor = 0x1a0933;
+            }
+            
+            if (window.VANTA) {
+                // Destroy existing instance if any
+                if (window.vantaEffect) {
+                    window.vantaEffect.destroy();
+                }
+                
+                window.vantaEffect = VANTA.GLOBE({
+                    el: "#vanta-bg",
+                    mouseControls: true,
+                    touchControls: true,
+                    gyroControls: false,
+                    minHeight: 200.00,
+                    minWidth: 200.00,
+                    scale: 1.00,
+                    scaleMobile: 1.00,
+                    color: color,
+                    backgroundColor: bgColor,
+                    size: 0.8
+                });
+            }
         }
 
         // Notification System
@@ -868,244 +629,22 @@
             container.appendChild(notification);
             feather.replace();
             
-            // Update status
-            updateNotificationStatus();
-            
             // Auto remove after duration
             setTimeout(() => {
                 notification.classList.add('hidden');
-                setTimeout(() => {
-                    notification.remove();
-                    updateNotificationStatus();
-                }, 300);
+                setTimeout(() => notification.remove(), 300);
             }, duration);
         }
-        
-        function updateNotificationStatus() {
-            const notifications = document.querySelectorAll('.notification:not(.hidden)');
-            document.getElementById('statusNotifications').textContent = notifications.length;
-        }
 
-        // Message System Functions
-        function addTestMessage(type) {
-            const messages = {
-                info: {
-                    id: 'msg-' + Date.now(),
-                    from: 'System',
-                    message: 'This is a test informational message.',
-                    createdAt: new Date().toISOString()
-                },
-                warning: {
-                    id: 'msg-' + Date.now(),
-                    from: 'Security System',
-                    message: 'Warning: Unusual activity detected in your account.',
-                    createdAt: new Date().toISOString()
-                },
-                success: {
-                    id: 'msg-' + Date.now(),
-                    from: 'Support Team',
-                    message: 'Your request has been processed successfully!',
-                    createdAt: new Date().toISOString()
-                }
-            };
-            
-            testMessages.push(messages[type]);
-            displayMessages();
-            showNotification(`Added ${type} message`, 'success');
-        }
-        
-        function displayMessages() {
-            const container = document.getElementById('messageContainer');
-            const messagesList = document.getElementById('messagesList');
-            const messageHeader = document.getElementById('messageHeader');
-            
-            messagesList.innerHTML = '';
-            
-            if (testMessages.length === 0) {
-                container.classList.add('hidden');
-                messageHeader.style.display = 'none';
-                document.getElementById('statusMessages').textContent = '0';
-                return;
-            }
-            
-            // Show container and header
-            container.classList.remove('hidden');
-            messageHeader.style.display = 'block';
-            
-            testMessages.forEach((message, index) => {
-                const messageElement = createMessageElement(message);
-                messagesList.appendChild(messageElement);
-            });
-            
-            document.getElementById('statusMessages').textContent = testMessages.length;
-            feather.replace();
-        }
-        
-        function createMessageElement(message) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'glass rounded-lg p-4 mb-3 message-entry';
-            messageDiv.style.animation = 'slideInLeft 0.3s ease-out';
-            messageDiv.id = `message-${message.id}`;
-            
-            const timeAgo = getTimeAgo(message.createdAt);
-            
-            messageDiv.innerHTML = `
-                <div class="flex justify-between items-start mb-2">
-                    <div class="flex items-center">
-                        <i data-feather="mail" class="w-4 h-4 mr-2 text-purple-400"></i>
-                        <span class="font-medium text-sm">${escapeHtml(message.from)}</span>
-                    </div>
-                    <span class="text-xs text-gray-400">${timeAgo}</span>
-                </div>
-                <p class="text-sm text-gray-300 mb-3">${escapeHtml(message.message)}</p>
-                <div class="flex justify-end">
-                    <button onclick="dismissMessage('${message.id}')" 
-                            class="text-xs bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded transition-colors">
-                        Dismiss
-                    </button>
-                </div>
-            `;
-            
-            return messageDiv;
-        }
-        
-        function dismissMessage(messageId) {
-            testMessages = testMessages.filter(msg => msg.id !== messageId);
-            displayMessages();
-            showNotification('Message dismissed', 'success');
-        }
-        
-        function clearAllMessages() {
-            testMessages = [];
-            displayMessages();
-            showNotification('All messages cleared', 'success');
-        }
-
-        // Warning System Functions
-        function addTestWarning(severity) {
-            const warnings = {
-                low: {
-                    id: 'warn-' + Date.now(),
-                    reason: 'Minor policy violation detected.',
-                    issuedBy: 'Moderator',
-                    issuedAt: new Date().toISOString(),
-                    dismissed: false
-                },
-                medium: {
-                    id: 'warn-' + Date.now(),
-                    reason: 'Multiple policy violations detected. Further violations may result in restrictions.',
-                    issuedBy: 'Admin',
-                    issuedAt: new Date().toISOString(),
-                    dismissed: false
-                },
-                high: {
-                    id: 'warn-' + Date.now(),
-                    reason: 'Serious policy violation detected. Account restrictions applied.',
-                    issuedBy: 'System Admin',
-                    issuedAt: new Date().toISOString(),
-                    dismissed: false
-                }
-            };
-            
-            userWarnings.push(warnings[severity]);
-            updateWarningStatus();
-            showNotification(`Added ${severity} severity warning`, 'warning');
-        }
-        
-        function updateWarningStatus() {
-            const activeWarnings = userWarnings.filter(w => !w.dismissed);
-            document.getElementById('activeWarningsCount').textContent = activeWarnings.length;
-            document.getElementById('statusWarnings').textContent = activeWarnings.length;
-        }
-        
-        function clearAllWarnings() {
-            userWarnings = [];
-            updateWarningStatus();
-            showNotification('All warnings cleared', 'success');
-        }
-
-        // Broadcast System Functions
-        function addTestBroadcast(type) {
-            const broadcasts = {
-                info: {
-                    id: 'bc-' + Date.now(),
-                    message: 'System maintenance scheduled for tomorrow at 2 AM UTC.',
-                    createdBy: 'System Admin',
-                    createdAt: new Date().toISOString()
-                },
-                warning: {
-                    id: 'bc-' + Date.now(),
-                    message: 'IMPORTANT: Security update required. Please update your client.',
-                    createdBy: 'Security Team',
-                    createdAt: new Date().toISOString()
-                },
-                success: {
-                    id: 'bc-' + Date.now(),
-                    message: 'New features now available! Check out the updated dashboard.',
-                    createdBy: 'Development Team',
-                    createdAt: new Date().toISOString()
-                }
-            };
-            
-            activeBroadcasts.push(broadcasts[type]);
-            updateBroadcastStatus();
-            showBroadcastToast(broadcasts[type]);
-        }
-        
-        function updateBroadcastStatus() {
-            document.getElementById('activeBroadcastsCount').textContent = activeBroadcasts.length;
-        }
-        
-        function clearAllBroadcasts() {
-            activeBroadcasts = [];
-            updateBroadcastStatus();
-            showNotification('All broadcasts cleared', 'success');
-        }
-        
-        function showBroadcastToast(broadcast) {
-            const toastContainer = document.getElementById('notificationContainer');
-            
-            const toast = document.createElement('div');
-            toast.className = 'notification broadcast';
-            toast.dataset.broadcastId = broadcast.id;
-            
-            toast.innerHTML = `
-                <div class="notification-icon">
-                    <i data-feather="bell" class="text-yellow-400"></i>
-                </div>
-                <div class="notification-content">
-                    <strong>Broadcast:</strong> ${truncateText(broadcast.message, 80)}
-                </div>
-                <div class="notification-close" onclick="dismissBroadcast('${broadcast.id}')">
-                    <i data-feather="x"></i>
-                </div>
-            `;
-            
-            toastContainer.appendChild(toast);
-            feather.replace();
-        }
-        
-        function dismissBroadcast(broadcastId) {
-            activeBroadcasts = activeBroadcasts.filter(b => b.id !== broadcastId);
-            updateBroadcastStatus();
-            
-            const toast = document.querySelector(`.notification[data-broadcast-id="${broadcastId}"]`);
-            if (toast) {
-                toast.classList.add('hidden');
-                setTimeout(() => toast.remove(), 300);
-            }
-        }
-
-        // Smartlink Testing
+        // Smartlink Test Function
         function testSmartlink() {
-            // Open the smartlink in a new tab
+            // Open smartlink in new tab
             const newTab = window.open('', '_blank');
             newTab.document.write(`
                 <!DOCTYPE html>
                 <html>
                 <head>
                     <title>Smartlink Test</title>
-                    <script type='text/javascript' src='//pl28094519.effectivegatecpm.com/ad/69/58/ad69583a5e36e773f00fc8eba943aecb.js'><\/script>
                     <style>
                         body { 
                             font-family: Arial, sans-serif; 
@@ -1129,97 +668,265 @@
                             font-weight: bold;
                         }
                         .success { background: #d4edda; color: #155724; }
-                        .info { background: #d1ecf1; color: #0c5460; }
                     </style>
                 </head>
                 <body>
                     <div class="container">
                         <h1>Smartlink Test Page</h1>
                         <p>This page is testing the smartlink integration.</p>
-                        <div class="status info">
+                        <div class="status success">
                             Smartlink script loaded successfully.
                         </div>
-                        <p>Check the browser console for any script output or errors.</p>
+                        <p>Advertisement content would appear here.</p>
                         <button onclick="window.close()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
                             Close This Tab
                         </button>
                     </div>
+                    <script type='text/javascript' src='//pl28094519.effectivegatecpm.com/ad/69/58/ad69583a5e36e773f00fc8eba943aecb.js'><\/script>
                 </body>
                 </html>
             `);
             newTab.document.close();
             
+            // Update metrics
+            adClicks++;
+            adImpressions += 3; // Simulate multiple impressions
+            updateMetrics();
+            
             showNotification('Smartlink test opened in new tab', 'success');
         }
 
-        // Verification Testing
-        function testVerification(type) {
-            const messages = {
-                success: {
-                    title: 'Verification Successful',
-                    message: 'Your account has been verified successfully.',
-                    type: 'success'
-                },
-                warning: {
-                    title: 'Verification Warning',
-                    message: 'Additional verification may be required for full access.',
-                    type: 'warning'
-                },
-                error: {
-                    title: 'Verification Failed',
-                    message: 'Unable to verify your account. Please try again.',
-                    type: 'error'
-                }
-            };
+        // Advertisement Test Functions
+        function testPopupAd() {
+            // Simulate popup ad
+            const popup = window.open('', '_blank', 'width=600,height=400');
+            popup.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Popup Advertisement</title>
+                    <style>
+                        body { 
+                            font-family: Arial, sans-serif; 
+                            padding: 20px; 
+                            text-align: center;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: white;
+                        }
+                        .ad-content {
+                            margin: 50px auto;
+                            max-width: 400px;
+                        }
+                        .ad-title {
+                            font-size: 24px;
+                            margin-bottom: 20px;
+                        }
+                        .ad-button {
+                            background: #ff6b6b;
+                            color: white;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 5px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            margin-top: 20px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="ad-content">
+                        <div class="ad-title">Special Offer!</div>
+                        <p>Limited time discount on our premium product.</p>
+                        <button class="ad-button" onclick="window.close()">Claim Offer</button>
+                    </div>
+                </body>
+                </html>
+            `);
+            popup.document.close();
             
-            const msg = messages[type];
-            showNotification(`${msg.title}: ${msg.message}`, msg.type);
-        }
-
-        // Social Bar Testing
-        function toggleSocialBar() {
-            const socialBar = document.querySelector('.social-bar');
-            if (socialBarVisible) {
-                socialBar.style.display = 'none';
-                socialBarVisible = false;
-                document.getElementById('socialBarStatus').textContent = 'Hidden';
-                showNotification('Social bar hidden', 'info');
-            } else {
-                socialBar.style.display = 'flex';
-                socialBarVisible = true;
-                document.getElementById('socialBarStatus').textContent = 'Visible';
-                showNotification('Social bar visible', 'success');
-            }
-        }
-        
-        function testSocialLinks() {
-            showNotification('Social links would normally redirect to social media profiles', 'info');
-        }
-
-        // Utility Functions
-        function getTimeAgo(timestamp) {
-            const now = new Date();
-            const messageTime = new Date(timestamp);
-            const diffInSeconds = Math.floor((now - messageTime) / 1000);
+            // Update metrics
+            adClicks++;
+            adImpressions += 2;
+            updateMetrics();
             
-            if (diffInSeconds < 60) return 'just now';
-            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-            return `${Math.floor(diffInSeconds / 86400)}d ago`;
+            showNotification('Popup advertisement test launched', 'info');
         }
 
-        function escapeHtml(unsafe) {
-            return unsafe
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+        function testRedirectAd() {
+            // Simulate redirect ad
+            const redirect = window.open('', '_blank');
+            redirect.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Redirecting...</title>
+                    <style>
+                        body { 
+                            font-family: Arial, sans-serif; 
+                            padding: 20px; 
+                            text-align: center;
+                            background: #f8f9fa;
+                        }
+                        .redirect-message {
+                            margin: 50px auto;
+                            max-width: 500px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="redirect-message">
+                        <h2>Redirecting to Advertisement</h2>
+                        <p>Please wait while we redirect you to our partner's website...</p>
+                        <p>This is a simulation of a redirect advertisement.</p>
+                        <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            Close
+                        </button>
+                    </div>
+                    <script>
+                        // Simulate redirect after 3 seconds
+                        setTimeout(() => {
+                            document.body.innerHTML = '<div class="redirect-message"><h2>Redirect Complete</h2><p>You have been redirected to the advertisement destination.</p><button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Close</button></div>';
+                        }, 3000);
+                    <\/script>
+                </body>
+                </html>
+            `);
+            redirect.document.close();
+            
+            // Update metrics
+            adClicks++;
+            adImpressions += 2;
+            updateMetrics();
+            
+            showNotification('Redirect advertisement test launched', 'info');
         }
 
-        function truncateText(text, maxLength) {
-            if (text.length <= maxLength) return text;
-            return text.substr(0, maxLength) + '...';
+        function testBannerAd() {
+            // Simulate banner ad
+            const banner = window.open('', '_blank', 'width=728,height=90');
+            banner.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Banner Advertisement</title>
+                    <style>
+                        body { 
+                            margin: 0;
+                            padding: 0;
+                            font-family: Arial, sans-serif;
+                        }
+                        .banner-ad {
+                            width: 728px;
+                            height: 90px;
+                            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: #333;
+                            font-weight: bold;
+                            cursor: pointer;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="banner-ad" onclick="window.close()">
+                        🎉 SPECIAL OFFER: Click here to save 20%! 🎉
+                    </div>
+                </body>
+                </html>
+            `);
+            banner.document.close();
+            
+            // Update metrics
+            adClicks++;
+            adImpressions += 5; // Banner ads typically have higher impressions
+            updateMetrics();
+            
+            showNotification('Banner advertisement test launched', 'info');
+        }
+
+        function testVideoAd() {
+            // Simulate video ad
+            const video = window.open('', '_blank', 'width=640,height=480');
+            video.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Video Advertisement</title>
+                    <style>
+                        body { 
+                            margin: 0;
+                            padding: 0;
+                            font-family: Arial, sans-serif;
+                            background: #000;
+                            color: white;
+                        }
+                        .video-container {
+                            width: 640px;
+                            height: 480px;
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            justify-content: center;
+                        }
+                        .video-placeholder {
+                            width: 100%;
+                            height: 360px;
+                            background: #333;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 24px;
+                        }
+                        .video-controls {
+                            padding: 10px;
+                            text-align: center;
+                        }
+                        .skip-button {
+                            background: #ff6b6b;
+                            color: white;
+                            border: none;
+                            padding: 8px 16px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="video-container">
+                        <div class="video-placeholder">
+                            Video Advertisement Playing...
+                        </div>
+                        <div class="video-controls">
+                            <button class="skip-button" onclick="window.close()">Skip Ad</button>
+                        </div>
+                    </div>
+                    <script>
+                        // Simulate ad completion after 5 seconds
+                        setTimeout(() => {
+                            document.querySelector('.video-placeholder').textContent = 'Advertisement Complete - Thank You!';
+                            document.querySelector('.skip-button').textContent = 'Close';
+                        }, 5000);
+                    <\/script>
+                </body>
+                </html>
+            `);
+            video.document.close();
+            
+            // Update metrics
+            adClicks++;
+            adImpressions += 2;
+            adConversions++; // Video ads often have higher conversion rates
+            updateMetrics();
+            
+            showNotification('Video advertisement test launched', 'info');
+        }
+
+        // Update metrics display
+        function updateMetrics() {
+            document.getElementById('adClicks').textContent = adClicks;
+            document.getElementById('adImpressions').textContent = adImpressions;
+            document.getElementById('adConversions').textContent = adConversions;
         }
 
         // Initialize the page
@@ -1227,15 +934,21 @@
             AOS.init();
             feather.replace();
             
-            // Apply theme immediately on page load
-            applyThemeOnLoad();
+            // Initialize Vanta background
+            setTimeout(initVantaBackground, 500);
             
-            // Initialize status displays
-            updateNotificationStatus();
-            updateWarningStatus();
-            updateBroadcastStatus();
+            // Set up event listeners
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            document.getElementById('smartlinkTestBtn').addEventListener('click', testSmartlink);
+            document.getElementById('popupAdTestBtn').addEventListener('click', testPopupAd);
+            document.getElementById('redirectAdTestBtn').addEventListener('click', testRedirectAd);
+            document.getElementById('bannerAdTestBtn').addEventListener('click', testBannerAd);
+            document.getElementById('videoAdTestBtn').addEventListener('click', testVideoAd);
             
-            // Add a welcome notification
+            // Initialize metrics
+            updateMetrics();
+            
+            // Show welcome notification
             setTimeout(() => {
                 showNotification('Advertisement test page loaded successfully!', 'success');
             }, 1000);
