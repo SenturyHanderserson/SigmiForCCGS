@@ -1911,48 +1911,61 @@
 			return container;
 		}
 
-		function showBroadcastToast(broadcast) {
-			const toastContainer = document.getElementById('broadcastToastContainer') || createBroadcastToastContainer();
-			
-			const toast = document.createElement('div');
-			toast.className = 'broadcast-toast glass p-4 rounded-lg mb-2 transform translate-y-20 transition-transform duration-300';
-			toast.dataset.broadcastId = broadcast.id;
-			
-			toast.innerHTML = `
-				<div class="flex items-start">
-					<div class="mr-3 mt-0.5">
-						<i data-feather="bell" class="w-5 h-5 text-yellow-400"></i>
-					</div>
-					<div class="flex-1">
-						<h3 class="font-semibold mb-1">New Announcement</h3>
-						<p class="text-sm text-gray-300">${truncateText(broadcast.message, 100)}</p>
-					</div>
-					<button onclick="hideBroadcastToast('${broadcast.id}')" class="ml-3 text-gray-400 hover:text-white">
-						<i data-feather="x" class="w-4 h-4"></i>
-					</button>
-				</div>
-				<div class="mt-2 flex justify-end">
-					<button onclick="showBroadcastModal('${broadcast.id}')" class="text-sm text-purple-300 hover:text-purple-100 mr-3">
-						View Details
-					</button>
-					<button onclick="dismissBroadcast('${broadcast.id}')" class="text-sm text-gray-400 hover:text-white">
-						Dismiss
-					</button>
-				</div>
-			`;
-			
-			toastContainer.appendChild(toast);
-			feather.replace();
-			
-			setTimeout(() => {
-				toast.classList.remove('translate-y-20');
-				toast.classList.add('translate-y-0');
-			}, 100);
-			
-			setTimeout(() => {
-				hideBroadcastToast(broadcast.id);
-			}, 15000);
-		}
+	function showBroadcastToast(broadcast) {
+    const toastContainer = document.getElementById('broadcastToastContainer') || createBroadcastToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = 'broadcast-toast glass p-4 rounded-lg mb-2 transform translate-y-20 transition-transform duration-300';
+    toast.dataset.broadcastId = broadcast.id;
+    
+    toast.innerHTML = `
+        <div class="flex items-start">
+            <div class="mr-3 mt-0.5">
+                <i data-feather="bell" class="w-5 h-5 text-yellow-400"></i>
+            </div>
+            <div class="flex-1">
+                <h3 class="font-semibold mb-1">New Announcement</h3>
+                <p class="text-sm text-gray-300">${truncateText(broadcast.message, 100)}</p>
+            </div>
+            <button class="ml-3 text-gray-400 hover:text-white close-toast">
+                <i data-feather="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+        <div class="mt-2 flex justify-end">
+            <button class="text-sm text-purple-300 hover:text-purple-100 mr-3 view-details">
+                View Details
+            </button>
+            <button class="text-sm text-gray-400 hover:text-white dismiss-toast">
+                Dismiss
+            </button>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    feather.replace();
+    
+    // Add event listeners
+    toast.querySelector('.close-toast').addEventListener('click', () => {
+        hideBroadcastToast(broadcast.id);
+    });
+    
+    toast.querySelector('.view-details').addEventListener('click', () => {
+        showBroadcastModal(broadcast.id);
+    });
+    
+    toast.querySelector('.dismiss-toast').addEventListener('click', () => {
+        dismissBroadcast(broadcast.id);
+    });
+    
+    setTimeout(() => {
+        toast.classList.remove('translate-y-20');
+        toast.classList.add('translate-y-0');
+    }, 100);
+    
+    setTimeout(() => {
+        hideBroadcastToast(broadcast.id);
+    }, 15000);
+}
 
 		function hideBroadcastToast(broadcastId) {
 			const toast = document.querySelector(`.broadcast-toast[data-broadcast-id="${broadcastId}"]`);
@@ -2807,6 +2820,7 @@
 	<script type="text/javascript" src="//www.highperformanceformat.com/6d03dd6e4c62d2e63b1bba1110f44522/invoke.js"></script>
 </body>
 </html>
+
 
 
 
