@@ -678,11 +678,45 @@
             text-align: center;
             max-width: 80%;
         }
+
+        /* Sticky Sidebar Styles */
+        .sticky-sidebar {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 160px;
+            height: 600px;
+            z-index: 35;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Responsive adjustments for sticky sidebar */
+        @media (max-width: 1024px) {
+            .sticky-sidebar {
+                display: none; /* Hide on smaller screens to prevent overlap */
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen text-white font-sans">
     <!-- Vanta.js background -->
     <div id="vanta-bg"></div>
+    
+    <!-- Sticky Sidebar -->
+    <div class="sticky-sidebar">
+        <script type="text/javascript">
+            atOptions = {
+                'key' : '6d03dd6e4c62d2e63b1bba1110f44522',
+                'format' : 'iframe',
+                'height' : 600,
+                'width' : 160,
+                'params' : {}
+            };
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/6d03dd6e4c62d2e63b1bba1110f44522/invoke.js"></script>
+    </div>
     
     <!-- Notification container -->
     <div class="notification-container" id="notificationContainer"></div>
