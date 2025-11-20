@@ -679,7 +679,7 @@
             max-width: 80%;
         }
 
-        /* Sticky Sidebar Styles */
+        /* Sticky Sidebar Styles - UPDATED */
         .sticky-sidebar {
             position: fixed;
             top: 80px;
@@ -690,12 +690,62 @@
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+        }
+
+        /* Ad container styling */
+        .ad-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Main content adjustments to prevent overlap */
+        .main-content-with-ad {
+            margin-right: 200px; /* Account for ad sidebar width + spacing */
+            transition: margin-right 0.3s ease;
         }
 
         /* Responsive adjustments for sticky sidebar */
         @media (max-width: 1024px) {
             .sticky-sidebar {
+                position: relative;
+                top: auto;
+                right: auto;
+                width: 100%;
+                height: 200px;
+                margin: 20px 0;
                 display: none; /* Hide on smaller screens to prevent overlap */
+            }
+            
+            .main-content-with-ad {
+                margin-right: 0;
+            }
+        }
+
+        /* Mobile ad container */
+        .mobile-ad-container {
+            display: none;
+            width: 100%;
+            height: 120px;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+        }
+
+        @media (max-width: 768px) {
+            .mobile-ad-container {
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
         }
     </style>
@@ -704,14 +754,30 @@
     <!-- Vanta.js background -->
     <div id="vanta-bg"></div>
     
-    <!-- Sticky Sidebar -->
+    <!-- Sticky Sidebar - UPDATED WITH PROPER CONTAINER -->
     <div class="sticky-sidebar">
+        <div class="ad-container">
+            <script type="text/javascript">
+                atOptions = {
+                    'key' : '6d03dd6e4c62d2e63b1bba1110f44522',
+                    'format' : 'iframe',
+                    'height' : 600,
+                    'width' : 160,
+                    'params' : {}
+                };
+            </script>
+            <script type="text/javascript" src="//www.highperformanceformat.com/6d03dd6e4c62d2e63b1bba1110f44522/invoke.js"></script>
+        </div>
+    </div>
+    
+    <!-- Mobile Ad Container -->
+    <div class="mobile-ad-container">
         <script type="text/javascript">
             atOptions = {
                 'key' : '6d03dd6e4c62d2e63b1bba1110f44522',
                 'format' : 'iframe',
-                'height' : 600,
-                'width' : 160,
+                'height' : 120,
+                'width' : 320,
                 'params' : {}
             };
         </script>
@@ -748,7 +814,7 @@
                 <button id="dismissAllBtn" class="bg-red-600 hover:bg-red-700 py-3 px-6 rounded-lg font-medium">
                     Dismiss All Warnings
                 </button>
-                <button id="closeWarningBtn" class="bg-gray-600 hover:bg-gray-700 py-2 px-6 rounded-lg font-medium hidden">
+                <button id="closeWarningBtn" class="background: var(--accent-primary) hover:opacity-90 py-2 px-6 rounded-lg font-medium hidden">
                     Close
                 </button>
             </div>
@@ -1046,8 +1112,8 @@
             </div>
         </div>
 
-        <!-- Main Dashboard -->
-        <main class="container mx-auto p-4 md:ml-64 mt-16">
+        <!-- Main Dashboard - UPDATED WITH AD SPACING -->
+        <main class="container mx-auto p-4 md:ml-64 mt-16 main-content-with-ad">
             <div class="mb-8">
                 <h2 class="text-2xl font-bold mb-4">Welcome back, <span id="usernameDisplay" class="bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">User</span>!</h2>
                 <p class="text-gray-300">Here's what's new since your last visit.</p>
@@ -1212,88 +1278,87 @@
             }, duration);
         }
         
-// Update the toggleFabMenu function (around line 1420) to include the create button
-function toggleFabMenu() {
-    const fabBtn = document.getElementById('fabBtn');
-    const fabExpandedMenu = document.getElementById('fabExpandedMenu');
-    const reportFab = document.getElementById('reportFab');
-    const pollsFab = document.getElementById('pollsFab');
-    const createFab = document.getElementById('createFab'); // Add this line
+        // Update the toggleFabMenu function to include the create button
+        function toggleFabMenu() {
+            const fabBtn = document.getElementById('fabBtn');
+            const fabExpandedMenu = document.getElementById('fabExpandedMenu');
+            const reportFab = document.getElementById('reportFab');
+            const pollsFab = document.getElementById('pollsFab');
+            const createFab = document.getElementById('createFab');
 
-    if (!isFabExpanded) {
-        // Expand the menu
-        fabExpandedMenu.style.display = 'block';
-        
-        // Animate create button (position 1 - top)
-        setTimeout(() => {
-            createFab.classList.add('visible');
-            createFab.style.transform = 'translateY(-210px)'; // Adjust position
-        }, 50);
-        
-        // Animate polls button (position 2 - middle)
-        setTimeout(() => {
-            pollsFab.classList.add('visible');
-            pollsFab.style.transform = 'translateY(-140px)'; // Adjust position
-        }, 150);
-        
-        // Animate report button (position 3 - bottom)
-        setTimeout(() => {
-            reportFab.classList.add('visible');
-            reportFab.style.transform = 'translateY(-70px)'; // Adjust position
-        }, 250);
-        
-        // Rotate main button
-        fabBtn.style.transform = 'rotate(45deg)';
-        
-        isFabExpanded = true;
-    } else {
-        // Collapse the menu
-        createFab.classList.remove('visible'); // Add this line
-        pollsFab.classList.remove('visible');
-        reportFab.classList.remove('visible');
-        
-        createFab.style.transform = 'translateY(0)'; // Add this line
-        pollsFab.style.transform = 'translateY(0)';
-        reportFab.style.transform = 'translateY(0)';
-        
-        // Reset main button rotation
-        fabBtn.style.transform = 'rotate(0deg)';
-        
-        // Hide menu after animation
-        setTimeout(() => {
-            fabExpandedMenu.style.display = 'none';
-        }, 400);
-        
-        isFabExpanded = false;
-    }
-}
+            if (!isFabExpanded) {
+                // Expand the menu
+                fabExpandedMenu.style.display = 'block';
+                
+                // Animate create button (position 1 - top)
+                setTimeout(() => {
+                    createFab.classList.add('visible');
+                    createFab.style.transform = 'translateY(-210px)';
+                }, 50);
+                
+                // Animate polls button (position 2 - middle)
+                setTimeout(() => {
+                    pollsFab.classList.add('visible');
+                    pollsFab.style.transform = 'translateY(-140px)';
+                }, 150);
+                
+                // Animate report button (position 3 - bottom)
+                setTimeout(() => {
+                    reportFab.classList.add('visible');
+                    reportFab.style.transform = 'translateY(-70px)';
+                }, 250);
+                
+                // Rotate main button
+                fabBtn.style.transform = 'rotate(45deg)';
+                
+                isFabExpanded = true;
+            } else {
+                // Collapse the menu
+                createFab.classList.remove('visible');
+                pollsFab.classList.remove('visible');
+                reportFab.classList.remove('visible');
+                
+                createFab.style.transform = 'translateY(0)';
+                pollsFab.style.transform = 'translateY(0)';
+                reportFab.style.transform = 'translateY(0)';
+                
+                // Reset main button rotation
+                fabBtn.style.transform = 'rotate(0deg)';
+                
+                // Hide menu after animation
+                setTimeout(() => {
+                    fabExpandedMenu.style.display = 'none';
+                }, 400);
+                
+                isFabExpanded = false;
+            }
+        }
 
         function handleReportIssue() {
-            // Redirect to down.html
             window.location.href = 'down.html';
         }
 
         function handleVoteOnPolls() {
-            // Redirect to polls.html
             window.location.href = 'polls.html';
         }
 
-function handleCreateGame() {
-        window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/create';
-    }
-    // close fab
-    document.addEventListener('click', function(e) {
-        const fabBtn = document.getElementById('fabBtn');
-        const fabExpandedMenu = document.getElementById('fabExpandedMenu');
-        const createFab = document.getElementById('createFab'); // Add this line
-        
-        if (isFabExpanded && 
-            !fabBtn.contains(e.target) && 
-            !fabExpandedMenu.contains(e.target) &&
-            !createFab.contains(e.target)) { // Add this condition
-            toggleFabMenu();
+        function handleCreateGame() {
+            window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/create';
         }
-    });
+
+        // Close fab when clicking outside
+        document.addEventListener('click', function(e) {
+            const fabBtn = document.getElementById('fabBtn');
+            const fabExpandedMenu = document.getElementById('fabExpandedMenu');
+            const createFab = document.getElementById('createFab');
+            
+            if (isFabExpanded && 
+                !fabBtn.contains(e.target) && 
+                !fabExpandedMenu.contains(e.target) &&
+                !createFab.contains(e.target)) {
+                toggleFabMenu();
+            }
+        });
 
         // Broadcast Modal Functions
         function hideBroadcastModal() {
@@ -1967,11 +2032,6 @@ function handleCreateGame() {
                 });
             }
         }
-        // Add this to the event listeners section (around line 1750)
-    document.getElementById('createFab').addEventListener('click', function() {
-            handleCreateGame();
-            toggleFabMenu();
-        });
 
         // Initialize AOS and Feather Icons
         document.addEventListener('DOMContentLoaded', function() {
@@ -2244,6 +2304,11 @@ function handleCreateGame() {
                 toggleFabMenu();
             });
 
+            document.getElementById('createFab').addEventListener('click', function() {
+                handleCreateGame();
+                toggleFabMenu();
+            });
+
             // Broadcast Modal Close Button
             document.getElementById('closeBroadcastModal').addEventListener('click', hideBroadcastModal);
             document.getElementById('acknowledgeBroadcast').addEventListener('click', hideBroadcastModal);
@@ -2453,7 +2518,7 @@ function handleCreateGame() {
             document.getElementById('loadingModal').classList.remove('hidden');
         }
 
-        // Load Members Function - UPDATED WITH YOUR VERSION
+        // Load Members Function
         let isLoadingMembers = false;
 
         async function loadMembers() {
