@@ -518,29 +518,29 @@
 	</div>
 
 	<!-- Broadcast Modal -->
-	<div id="broadcastModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
-		<div class="glass rounded-xl p-6 max-w-md w-full mx-4">
-			<div class="flex justify-between items-center mb-4">
-				<div class="flex items-center">
-					<div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center mr-3">
-						<i data-feather="bell" class="w-5 h-5 text-white"></i>
-					</div>
-					<h2 class="text-xl font-bold">Announcement</h2>
-				</div>
-				<button onclick="dismissBroadcast()" class="p-1 rounded-full hover:bg-purple-700">
-					<i data-feather="x" class="w-5 h-5"></i>
-				</button>
-			</div>
-			<p id="broadcastMessage" class="text-gray-300 mb-4"></p>
-			<div class="flex justify-between items-center text-sm text-gray-400 mb-4">
-				<span id="broadcastAuthor"></span>
-				<span id="broadcastTime"></span>
-			</div>
-			<button onclick="dismissBroadcast()" class="btn-primary py-2 px-6 rounded-lg font-medium w-full">
-				Acknowledge
-			</button>
-		</div>
-	</div>
+<div id="broadcastModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
+    <div class="glass rounded-xl p-6 max-w-md w-full mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <div class="flex items-center">
+                <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center mr-3">
+                    <i data-feather="bell" class="w-5 h-5 text-white"></i>
+                </div>
+                <h2 class="text-xl font-bold">Announcement</h2>
+            </div>
+            <button id="closeBroadcastBtn" class="p-1 rounded-full hover:bg-purple-700">
+                <i data-feather="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <p id="broadcastMessage" class="text-gray-300 mb-4"></p>
+        <div class="flex justify-between items-center text-sm text-gray-400 mb-4">
+            <span id="broadcastAuthor"></span>
+            <span id="broadcastTime"></span>
+        </div>
+        <button id="acknowledgeBroadcastBtn" class="btn-primary py-2 px-6 rounded-lg font-medium w-full">
+            Acknowledge
+        </button>
+    </div>
+</div>
 
     <!-- Loading Overlay - For auto-login verification -->
     <div id="loadingOverlay" class="modal-overlay">
@@ -1766,20 +1766,27 @@
 			renderGames();
 			setupPagination();
 			
-			// Add event listeners for warning system
-			document.addEventListener('click', function(e) {
-				if (e.target.id === 'viewHistoryBtn' || e.target.closest('#viewHistoryBtn')) {
-					viewWarningHistory();
-				}
-				
-				if (e.target.id === 'dismissAllBtn' || e.target.closest('#dismissAllBtn')) {
-					dismissAllWarnings();
-				}
-				
-				if (e.target.id === 'closeWarningBtn' || e.target.closest('#closeWarningBtn')) {
-					closeWarningModal();
-				}
-			});
+		// Add event listeners for broadcast modal
+		document.addEventListener('click', function(e) {
+		    if (e.target.id === 'closeBroadcastBtn' || e.target.closest('#closeBroadcastBtn')) {
+		        const modal = document.getElementById('broadcastModal');
+		        const broadcastId = modal.dataset.broadcastId;
+		        if (broadcastId) {
+		            dismissBroadcast(broadcastId);
+		        } else {
+		            modal.classList.add('hidden');
+		        }
+		    }
+		    
+		    if (e.target.id === 'acknowledgeBroadcastBtn' || e.target.closest('#acknowledgeBroadcastBtn')) {
+		        const modal = document.getElementById('broadcastModal');
+		        const broadcastId = modal.dataset.broadcastId;
+		        if (broadcastId) {
+		            dismissBroadcast(broadcastId);
+		        } else {
+		            modal.classList.add('hidden');
+		        }
+		    }
 		});
 
 		// Clear intervals when page is unloaded
@@ -2433,43 +2440,68 @@
 		}
 		
 		// Helper function for notifications (if not already present)
-		function showNotification(message, type = 'info', duration = 3000) {
-			// Create notification container if it doesn't exist
-			let container = document.getElementById('notificationContainer');
-			if (!container) {
-				container = document.createElement('div');
-				container.id = 'notificationContainer';
-				container.className = 'notification-container';
-				document.body.appendChild(container);
-			}
-			
-			const notification = document.createElement('div');
-			notification.className = `notification ${type}`;	
-			
-			let icon = 'info';
-			if (type === 'success') icon = 'check-circle';
-			if (type === 'error') icon = 'alert-triangle';
-			if (type === 'warning') icon = 'alert-circle';
-			
-			notification.innerHTML = `
-				<div class="notification-icon">
-					<i data-feather="${icon}"></i>
-				</div>
-				<div class="notification-content">
-					${message}
-				</div>
-				<div class="notification-close" onclick="this.parentElement.remove()">
-					<i data-feather="x"></i>
-				</div>
-			`;
-			
-			container.appendChild(notification);
-			feather.replace();
-			
-			setTimeout(() => {
-				notification.remove();
-			}, duration);
-		}
+	function showNotification(message, type = 'info', duration = 3000) {
+    // Create notification container if it doesn't exist
+    let container = document.getElementById('notificationContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'notificationContainer';
+        container.className = 'fixed top-4 right-4 z-[2000] space-y-2';
+        document.body.appendChild(container);
+    }
+    
+    const notification = document.createElement('div');
+    notification.className = `glass rounded-lg p-4 flex items-center space-x-3 min-w-64 transform translate-x-full transition-transform duration-300 ${type === 'error' ? 'border-l-4 border-red-500' : type === 'success' ? 'border-l-4 border-green-500' : type === 'warning' ? 'border-l-4 border-yellow-500' : 'border-l-4 border-blue-500'}`;
+    
+    let icon = 'info';
+    let iconColor = 'text-blue-400';
+    if (type === 'success') {
+        icon = 'check-circle';
+        iconColor = 'text-green-400';
+    }
+    if (type === 'error') {
+        icon = 'alert-triangle';
+        iconColor = 'text-red-400';
+    }
+    if (type === 'warning') {
+        icon = 'alert-circle';
+        iconColor = 'text-yellow-400';
+    }
+    
+    notification.innerHTML = `
+        <div class="notification-icon ${iconColor}">
+            <i data-feather="${icon}" class="w-5 h-5"></i>
+        </div>
+        <div class="notification-content flex-1 text-sm">
+            ${message}
+        </div>
+        <button class="notification-close text-gray-400 hover:text-white" onclick="this.parentElement.remove()">
+            <i data-feather="x" class="w-4 h-4"></i>
+        </button>
+    `;
+    
+    container.appendChild(notification);
+    feather.replace();
+    
+    // Animate in
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+        notification.classList.add('translate-x-0');
+    }, 10);
+    
+    // Auto remove after duration
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.classList.remove('translate-x-0');
+            notification.classList.add('translate-x-full');
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 300);
+        }
+    }, duration);
+}
 		
         // Filter chips functionality
         function setupFilterChips() {
@@ -2753,6 +2785,7 @@
 	<script type="text/javascript" src="//www.highperformanceformat.com/6d03dd6e4c62d2e63b1bba1110f44522/invoke.js"></script>
 </body>
 </html>
+
 
 
 
