@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Adsterra Smartlink Test</title>
+    <title>Adsterra Test Page</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,17 +13,28 @@
             margin: 20px auto;
         }
         img {
-            width: 200px; /* just for demo */
+            width: 200px;
         }
         button {
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
         }
+        /* Sticky sidebar banner */
+        .sticky-sidebar {
+            position: fixed;
+            right: 0;
+            top: 100px;
+            width: 160px;
+            height: 600px;
+            z-index: 9999;
+            border: 1px solid #ccc;
+            background: #fff;
+        }
     </style>
 </head>
 <body>
-    <h1>Smartlink Test Page</h1>
+    <h1>Smartlink + Ads Test Page</h1>
 
     <!-- Smartlink as text -->
     <div class="ad-container">
@@ -50,5 +61,20 @@
     <div class="ad-container">
         <script type='text/javascript' src='//pl28094519.effectivegatecpm.com/ad/69/58/ad69583a5e36e773f00fc8eba943aecb.js'></script>
     </div>
+
+    <!-- Sticky Sidebar Banner Ad -->
+    <div class="sticky-sidebar">
+        <script type="text/javascript">
+            atOptions = {
+                'key' : '6d03dd6e4c62d2e63b1bba1110f44522',
+                'format' : 'iframe',
+                'height' : 600,
+                'width' : 160,
+                'params' : {}
+            };
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/6d03dd6e4c62d2e63b1bba1110f44522/invoke.js"></script>
+    </div>
+
 </body>
 </html>
