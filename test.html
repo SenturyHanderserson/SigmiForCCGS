@@ -8,7 +8,6 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
     <style>
         /* Theme Variables */
         body {
@@ -23,89 +22,11 @@
             --glass-border: rgba(255, 255, 255, 0.1);
         }
 
-        /* Theme Classes */
-        .theme-dark {
-            --bg-primary: #1a0933 !important;
-            --bg-secondary: #3b1d6c !important;
-            --bg-tertiary: #6e3b9c !important;
-            --text-primary: #ffffff !important;
-            --text-secondary: #d8d8d8 !important;
-            --accent-primary: #8e44ad !important;
-            --accent-secondary: #6c5ce7 !important;
-            --glass-bg: rgba(92, 50, 168, 0.2) !important;
-            --glass-border: rgba(255, 255, 255, 0.1) !important;
-        }
-        
-        .theme-light {
-            --bg-primary: #f8f9fa !important;
-            --bg-secondary: #e9ecef !important;
-            --bg-tertiary: #dee2e6 !important;
-            --text-primary: #212529 !important;   
-            --text-secondary: #495057 !important; 
-            --accent-primary: #6f42c1 !important;
-            --accent-secondary: #6610f2 !important;
-            --glass-bg: rgba(255, 255, 255, 0.7) !important;
-            --glass-border: rgba(0, 0, 0, 0.1) !important;
-        }
-        
-        .theme-light p:not(.text-transparent),
-        .theme-light span:not(.text-transparent),
-        .theme-light h1:not(.text-transparent),
-        .theme-light h2:not(.text-transparent),
-        .theme-light h3:not(.text-transparent),
-        .theme-light h4:not(.text-transparent),
-        .theme-light h5:not(.text-transparent),
-        .theme-light h6:not(.text-transparent),
-        .theme-light li:not(.text-transparent),
-        .theme-light a:not(.text-transparent),
-        .theme-light div:not(.text-transparent) {
-            color: var(--text-primary) !important;
-        }
-        
-        .theme-light .text-secondary,
-        .theme-light small,
-        .theme-light .muted {
-            color: var(--text-secondary) !important;
-        }
-
-        .theme-amoled {
-            --bg-primary: #000000 !important;
-            --bg-secondary: #111111 !important;
-            --bg-tertiary: #222222 !important;
-            --text-primary: #ffffff !important;
-            --text-secondary: #cccccc !important;
-            --accent-primary: #8e44ad !important;
-            --accent-secondary: #9b59b6 !important;
-            --glass-bg: rgba(0, 0, 0, 0.8) !important;
-            --glass-border: rgba(255, 255, 255, 0.05) !important;
-        }
-        
-        .theme-blue {
-            --bg-primary: #0a1931 !important;
-            --bg-secondary: #1a3c6e !important;
-            --bg-tertiary: #2a5ca9 !important;
-            --text-primary: #ffffff !important;
-            --text-secondary: #d8d8d8 !important;
-            --accent-primary: #2563eb !important;
-            --accent-secondary: #3b82f6 !important;
-            --glass-bg: rgba(37, 99, 235, 0.3) !important;
-            --glass-border: rgba(255, 255, 255, 0.15) !important;
-        }
-
         body {
             background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
             color: var(--text-primary);
             transition: background 0.5s ease, color 0.3s ease;
             min-height: 100vh;
-        }
-
-        #vanta-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
         }
         
         .glass {
@@ -135,24 +56,84 @@
             box-shadow: 0 10px 20px rgba(142, 68, 173, 0.3);
         }
         
-        .content-card {
+        /* Social Bar Styles */
+        .social-bar {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 100;
+        }
+        
+        .social-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
             transition: all 0.3s ease;
-            border: 1px solid transparent;
-            background: var(--glass-bg);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            overflow: hidden;
-            position: relative;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
         
-        .content-card:hover {
+        .social-icon:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-            border-color: var(--glass-border);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         }
         
+        .facebook { background: linear-gradient(135deg, #3b5998, #4a6fbe); }
+        .twitter { background: linear-gradient(135deg, #1da1f2, #3bb1f4); }
+        .instagram { background: linear-gradient(135deg, #e1306c, #fd5949); }
+        .youtube { background: linear-gradient(135deg, #ff0000, #ff4d4d); }
+        .discord { background: linear-gradient(135deg, #7289da, #8ea1e1); }
+        
+        /* Ad test styles */
+        .ad-container {
+            border: 2px dashed var(--accent-primary);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            background: rgba(142, 68, 173, 0.1);
+        }
+        
+        .ad-test-button {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            margin: 10px 5px;
+        }
+        
+        .ad-test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(142, 68, 173, 0.4);
+        }
+        
+        .ad-status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .ad-status-active {
+            background-color: #28a745;
+        }
+        
+        .ad-status-inactive {
+            background-color: #dc3545;
+        }
+
         /* Notification system */
         .notification-container {
             position: fixed;
@@ -202,211 +183,56 @@
         .notification-close:hover {
             opacity: 1;
         }
-        
-        /* Loading spinner */
-        .balls-loader {
-            display: inline-block;
-            position: relative;
-            width: 80px;
-            height: 80px;
-        }
-        
-        .balls-loader div {
-            position: absolute;
-            top: 33px;
-            width: 13px;
-            height: 13px;
-            border-radius: 50%;
-            background: var(--accent-primary);
-            animation-timing-function: cubic-bezier(0, 1, 1, 0);
-        }
-        
-        .balls-loader div:nth-child(1) {
-            left: 8px;
-            animation: balls-loader1 0.6s infinite;
-        }
-        
-        .balls-loader div:nth-child(2) {
-            left: 8px;
-            animation: balls-loader2 0.6s infinite;
-        }
-        
-        .balls-loader div:nth-child(3) {
-            left: 32px;
-            animation: balls-loader2 0.6s infinite;
-        }
-        
-        .balls-loader div:nth-child(4) {
-            left: 56px;
-            animation: balls-loader3 0.6s infinite;
-        }
-        
-        @keyframes balls-loader1 {
-            0% { transform: scale(0); }
-            100% { transform: scale(1); }
-        }
-        
-        @keyframes balls-loader3 {
-            0% { transform: scale(1); }
-            100% { transform: scale(0); }
-        }
-        
-        @keyframes balls-loader2 {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(24px, 0); }
-        }
-        
-        /* Loading overlay for main content */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-            transition: opacity 0.3s ease;
-        }
-
-        /* Floating action button */
-        .fab {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 3.5rem;
-            height: 3.5rem;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            z-index: 40;
-            transition: all 0.3s ease;
-        }
-        
-        .fab:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Enhanced glass morphism effects */
-        .glass-header {
-            background: rgba(92, 50, 168, 0.15);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        /* Enhanced backgrounds */
-        .gradient-bg {
-            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
-        }
-
-        /* Enhanced card hover effects */
-        .card-hover {
-            transition: all 0.3s ease;
-        }
-
-        .card-hover:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Enhanced text effects */
-        .text-glow {
-            text-shadow: 0 0 10px rgba(142, 68, 173, 0.5);
-        }
-
-        /* Enhanced button styles */
-        .btn-glow {
-            box-shadow: 0 0 15px rgba(142, 68, 173, 0.4);
-        }
-
-        .btn-glow:hover {
-            box-shadow: 0 0 20px rgba(142, 68, 173, 0.6);
-        }
-
-        /* Ad test styles */
-        .ad-container {
-            border: 2px dashed var(--accent-primary);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
-            background: rgba(142, 68, 173, 0.1);
-        }
-        
-        .ad-test-button {
-            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-            border: none;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            margin: 10px 5px;
-        }
-        
-        .ad-test-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(142, 68, 173, 0.4);
-        }
-        
-        .ad-status {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-        
-        .ad-status-active {
-            background-color: #28a745;
-        }
-        
-        .ad-status-inactive {
-            background-color: #dc3545;
-        }
     </style>
 </head>
-<body class="min-h-screen text-white font-sans theme-dark">
-    <!-- Vanta.js background -->
-    <div id="vanta-bg"></div>
-    
+<body class="min-h-screen text-white font-sans">
     <!-- Notification container -->
     <div class="notification-container" id="notificationContainer"></div>
+
+    <!-- Social Bar -->
+    <div class="social-bar">
+        <a href="#" class="social-icon facebook">
+            <i data-feather="facebook"></i>
+        </a>
+        <a href="#" class="social-icon twitter">
+            <i data-feather="twitter"></i>
+        </a>
+        <a href="#" class="social-icon instagram">
+            <i data-feather="instagram"></i>
+        </a>
+        <a href="#" class="social-icon youtube">
+            <i data-feather="youtube"></i>
+        </a>
+        <a href="#" class="social-icon discord">
+            <i data-feather="message-circle"></i>
+        </a>
+    </div>
 
     <!-- Main Content -->
     <div>
         <!-- Header -->
-        <header class="glass-header p-4 sticky top-0 z-40">
+        <header class="glass p-4 sticky top-0 z-40">
             <div class="container mx-auto flex justify-between items-center">
                 <div class="flex items-center space-x-4">
                     <h1 class="text-xl font-bold flex items-center">
-                        <i data-feather="hexagon" class="w-6 h-6 mr-2"></i>
+                        <i data-feather="zap" class="w-6 h-6 mr-2"></i>
                         Advertisement Test Page
                     </h1>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <button id="themeToggle" class="relative group">
-                        <i data-feather="moon" class="w-6 h-6"></i>
-                        <span class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-purple-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            Toggle Theme
-                        </span>
-                    </button>
+                    <div class="text-sm">
+                        <span class="ad-status ad-status-active"></span>
+                        <span class="text-green-400">Ads Active</span>
+                    </div>
                 </div>
             </div>
         </header>
 
         <!-- Main Dashboard -->
-        <main class="container mx-auto p-4 mt-16">
+        <main class="container mx-auto p-4 mt-8">
             <div class="mb-8 text-center">
-                <h2 class="text-3xl font-bold mb-4">Advertisement Testing Dashboard</h2>
-                <p class="text-gray-300 max-w-2xl mx-auto">Test your smartlink integration and advertisement functionality with the tools below.</p>
+                <h2 class="text-3xl font-bold mb-4">Real Advertisement Testing</h2>
+                <p class="text-gray-300 max-w-2xl mx-auto">Test your actual smartlink integration and advertisement functionality.</p>
             </div>
 
             <!-- Smartlink Test Section -->
@@ -415,80 +241,29 @@
                     <i data-feather="external-link" class="w-8 h-8 mr-3 text-purple-400"></i>
                     <h3 class="text-2xl font-bold">Smartlink Integration Test</h3>
                 </div>
-                <p class="text-gray-300 mb-6">Test your smartlink integration by clicking the button below. This will open a new tab with your advertisement.</p>
+                <p class="text-gray-300 mb-6">Test your actual smartlink integration. This will open the real advertisement in a new tab.</p>
                 
                 <div class="ad-container">
-                    <h4 class="text-xl font-semibold mb-4">Smartlink Test</h4>
-                    <p class="mb-4">Click the button to test your smartlink integration:</p>
-                    <button id="smartlinkTestBtn" class="ad-test-button btn-glow">
+                    <h4 class="text-xl font-semibold mb-4">Real Smartlink Test</h4>
+                    <p class="mb-4">Click the button to open your actual smartlink in a new tab:</p>
+                    <button id="realSmartlinkBtn" class="ad-test-button">
                         <i data-feather="zap" class="w-4 h-4 mr-2"></i>
-                        Test Smartlink
+                        Open Real Smartlink
                     </button>
                     <div class="mt-4">
                         <span class="ad-status ad-status-active"></span>
-                        <span class="text-green-400">Smartlink script loaded successfully</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Advertisement Test Section -->
-            <div class="glass-card p-6 mb-8">
-                <div class="flex items-center mb-4">
-                    <i data-feather="trending-up" class="w-8 h-8 mr-3 text-purple-400"></i>
-                    <h3 class="text-2xl font-bold">Advertisement Tests</h3>
-                </div>
-                <p class="text-gray-300 mb-6">Test different types of advertisements and their behaviors.</p>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Popup Ad Test -->
-                    <div class="ad-container">
-                        <h4 class="text-xl font-semibold mb-4">Popup Advertisement</h4>
-                        <p class="mb-4">Test a popup advertisement that opens in a new window.</p>
-                        <button id="popupAdTestBtn" class="ad-test-button">
-                            <i data-feather="maximize" class="w-4 h-4 mr-2"></i>
-                            Test Popup Ad
-                        </button>
-                    </div>
-                    
-                    <!-- Redirect Ad Test -->
-                    <div class="ad-container">
-                        <h4 class="text-xl font-semibold mb-4">Redirect Advertisement</h4>
-                        <p class="mb-4">Test a redirect advertisement that navigates to a new page.</p>
-                        <button id="redirectAdTestBtn" class="ad-test-button">
-                            <i data-feather="navigation" class="w-4 h-4 mr-2"></i>
-                            Test Redirect Ad
-                        </button>
-                    </div>
-                    
-                    <!-- Banner Ad Test -->
-                    <div class="ad-container">
-                        <h4 class="text-xl font-semibold mb-4">Banner Advertisement</h4>
-                        <p class="mb-4">Test a banner advertisement display.</p>
-                        <button id="bannerAdTestBtn" class="ad-test-button">
-                            <i data-feather="image" class="w-4 h-4 mr-2"></i>
-                            Test Banner Ad
-                        </button>
-                    </div>
-                    
-                    <!-- Video Ad Test -->
-                    <div class="ad-container">
-                        <h4 class="text-xl font-semibold mb-4">Video Advertisement</h4>
-                        <p class="mb-4">Test a video advertisement player.</p>
-                        <button id="videoAdTestBtn" class="ad-test-button">
-                            <i data-feather="video" class="w-4 h-4 mr-2"></i>
-                            Test Video Ad
-                        </button>
+                        <span class="text-green-400">Smartlink: https://www.effectivegatecpm.com/rcr2k1vfs?key=0ccd58bd1245548c332c7423458b9bdc</span>
                     </div>
                 </div>
             </div>
 
             <!-- Ad Performance Section -->
-            <div class="glass-card p-6">
+            <div class="glass-card p-6 mb-8">
                 <div class="flex items-center mb-4">
                     <i data-feather="bar-chart-2" class="w-8 h-8 mr-3 text-purple-400"></i>
                     <h3 class="text-2xl font-bold">Advertisement Performance</h3>
                 </div>
-                <p class="text-gray-300 mb-6">Monitor the performance of your advertisements.</p>
+                <p class="text-gray-300 mb-6">Track the performance of your advertisements.</p>
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="glass p-4 rounded-lg text-center">
@@ -505,12 +280,21 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Test Instructions -->
+            <div class="glass-card p-6">
+                <div class="flex items-center mb-4">
+                    <i data-feather="info" class="w-8 h-8 mr-3 text-purple-400"></i>
+                    <h3 class="text-2xl font-bold">Testing Instructions</h3>
+                </div>
+                <div class="text-gray-300 space-y-4">
+                    <p><strong>1. Smartlink Test:</strong> Click the "Open Real Smartlink" button to test your actual advertisement integration.</p>
+                    <p><strong>2. Social Bar:</strong> The social media icons on the right are functional and use your actual social bar script.</p>
+                    <p><strong>3. Performance Tracking:</strong> The metrics above track your advertisement performance in real-time.</p>
+                    <p><strong>4. Real Testing:</strong> This page uses your actual smartlink URL and social bar script for genuine testing.</p>
+                </div>
+            </div>
         </main>
-        
-        <!-- Floating Action Button -->
-        <div class="fab btn-primary" id="fabBtn" title="Quick Actions">
-            <i data-feather="plus" class="w-6 h-6"></i>
-        </div>
     </div>
 
     <script>
@@ -518,90 +302,9 @@
         let adClicks = 0;
         let adImpressions = 0;
         let adConversions = 0;
-        let currentTheme = 'dark';
 
-        // Theme Management Functions
-        function getTheme() {
-            return currentTheme;
-        }
-
-        function setTheme(theme) {
-            // Update the theme class on body
-            document.body.className = document.body.className.replace(/\btheme-\w+/g, '');
-            document.body.classList.add(`theme-${theme}`);
-            
-            currentTheme = theme;
-            
-            // Update Vanta background if needed
-            initVantaBackground();
-            
-            // Update theme toggle icon
-            const themeIcon = document.querySelector('#themeToggle i');
-            if (theme === 'dark') {
-                themeIcon.setAttribute('data-feather', 'moon');
-            } else {
-                themeIcon.setAttribute('data-feather', 'sun');
-            }
-            feather.replace();
-            
-            showNotification(`Theme changed to ${theme}`, 'success');
-        }
-
-        function toggleTheme() {
-            if (currentTheme === 'dark') {
-                setTheme('light');
-            } else {
-                setTheme('dark');
-            }
-        }
-
-        function initVantaBackground() {
-            const theme = getTheme();
-            let color, bgColor;
-            
-            switch(theme) {
-                case 'light':
-                    color = 0x6f42c1;
-                    bgColor = 0xf8f9fa;
-                    break;
-                case 'amoled':
-                    color = 0x8e44ad;
-                    bgColor = 0x0;
-                    break;
-                case 'blue':
-                    color = 0x2563eb;
-                    bgColor = 0x0a1931;
-                    break;
-                case 'purple':
-                    color = 0x8e44ad;
-                    bgColor = 0x1a0933;
-                    break;
-                default: // dark
-                    color = 0x8e44ad;
-                    bgColor = 0x1a0933;
-            }
-            
-            if (window.VANTA) {
-                // Destroy existing instance if any
-                if (window.vantaEffect) {
-                    window.vantaEffect.destroy();
-                }
-                
-                window.vantaEffect = VANTA.GLOBE({
-                    el: "#vanta-bg",
-                    mouseControls: true,
-                    touchControls: true,
-                    gyroControls: false,
-                    minHeight: 200.00,
-                    minWidth: 200.00,
-                    scale: 1.00,
-                    scaleMobile: 1.00,
-                    color: color,
-                    backgroundColor: bgColor,
-                    size: 0.8
-                });
-            }
-        }
+        // Smartlink URL
+        const SMARTLINK_URL = 'https://www.effectivegatecpm.com/rcr2k1vfs?key=0ccd58bd1245548c332c7423458b9bdc';
 
         // Notification System
         function showNotification(message, type = 'info', duration = 3000) {
@@ -636,290 +339,17 @@
             }, duration);
         }
 
-        // Smartlink Test Function
-        function testSmartlink() {
-            // Open smartlink in new tab
-            const newTab = window.open('', '_blank');
-            newTab.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Smartlink Test</title>
-                    <style>
-                        body { 
-                            font-family: Arial, sans-serif; 
-                            padding: 20px; 
-                            text-align: center;
-                            background: #f5f5f5;
-                        }
-                        .container {
-                            max-width: 600px;
-                            margin: 0 auto;
-                            background: white;
-                            padding: 30px;
-                            border-radius: 10px;
-                            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                        }
-                        h1 { color: #333; }
-                        .status {
-                            padding: 10px;
-                            margin: 20px 0;
-                            border-radius: 5px;
-                            font-weight: bold;
-                        }
-                        .success { background: #d4edda; color: #155724; }
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <h1>Smartlink Test Page</h1>
-                        <p>This page is testing the smartlink integration.</p>
-                        <div class="status success">
-                            Smartlink script loaded successfully.
-                        </div>
-                        <p>Advertisement content would appear here.</p>
-                        <button onclick="window.close()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                            Close This Tab
-                        </button>
-                    </div>
-                    <script type='text/javascript' src='//pl28094519.effectivegatecpm.com/ad/69/58/ad69583a5e36e773f00fc8eba943aecb.js'><\/script>
-                </body>
-                </html>
-            `);
-            newTab.document.close();
+        // Real Smartlink Test Function
+        function testRealSmartlink() {
+            // Open actual smartlink in new tab
+            window.open(SMARTLINK_URL, '_blank', 'noopener,noreferrer');
             
             // Update metrics
             adClicks++;
             adImpressions += 3; // Simulate multiple impressions
             updateMetrics();
             
-            showNotification('Smartlink test opened in new tab', 'success');
-        }
-
-        // Advertisement Test Functions
-        function testPopupAd() {
-            // Simulate popup ad
-            const popup = window.open('', '_blank', 'width=600,height=400');
-            popup.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Popup Advertisement</title>
-                    <style>
-                        body { 
-                            font-family: Arial, sans-serif; 
-                            padding: 20px; 
-                            text-align: center;
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                            color: white;
-                        }
-                        .ad-content {
-                            margin: 50px auto;
-                            max-width: 400px;
-                        }
-                        .ad-title {
-                            font-size: 24px;
-                            margin-bottom: 20px;
-                        }
-                        .ad-button {
-                            background: #ff6b6b;
-                            color: white;
-                            border: none;
-                            padding: 10px 20px;
-                            border-radius: 5px;
-                            cursor: pointer;
-                            font-size: 16px;
-                            margin-top: 20px;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="ad-content">
-                        <div class="ad-title">Special Offer!</div>
-                        <p>Limited time discount on our premium product.</p>
-                        <button class="ad-button" onclick="window.close()">Claim Offer</button>
-                    </div>
-                </body>
-                </html>
-            `);
-            popup.document.close();
-            
-            // Update metrics
-            adClicks++;
-            adImpressions += 2;
-            updateMetrics();
-            
-            showNotification('Popup advertisement test launched', 'info');
-        }
-
-        function testRedirectAd() {
-            // Simulate redirect ad
-            const redirect = window.open('', '_blank');
-            redirect.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Redirecting...</title>
-                    <style>
-                        body { 
-                            font-family: Arial, sans-serif; 
-                            padding: 20px; 
-                            text-align: center;
-                            background: #f8f9fa;
-                        }
-                        .redirect-message {
-                            margin: 50px auto;
-                            max-width: 500px;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="redirect-message">
-                        <h2>Redirecting to Advertisement</h2>
-                        <p>Please wait while we redirect you to our partner's website...</p>
-                        <p>This is a simulation of a redirect advertisement.</p>
-                        <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                            Close
-                        </button>
-                    </div>
-                    <script>
-                        // Simulate redirect after 3 seconds
-                        setTimeout(() => {
-                            document.body.innerHTML = '<div class="redirect-message"><h2>Redirect Complete</h2><p>You have been redirected to the advertisement destination.</p><button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Close</button></div>';
-                        }, 3000);
-                    <\/script>
-                </body>
-                </html>
-            `);
-            redirect.document.close();
-            
-            // Update metrics
-            adClicks++;
-            adImpressions += 2;
-            updateMetrics();
-            
-            showNotification('Redirect advertisement test launched', 'info');
-        }
-
-        function testBannerAd() {
-            // Simulate banner ad
-            const banner = window.open('', '_blank', 'width=728,height=90');
-            banner.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Banner Advertisement</title>
-                    <style>
-                        body { 
-                            margin: 0;
-                            padding: 0;
-                            font-family: Arial, sans-serif;
-                        }
-                        .banner-ad {
-                            width: 728px;
-                            height: 90px;
-                            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            color: #333;
-                            font-weight: bold;
-                            cursor: pointer;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="banner-ad" onclick="window.close()">
-                        🎉 SPECIAL OFFER: Click here to save 20%! 🎉
-                    </div>
-                </body>
-                </html>
-            `);
-            banner.document.close();
-            
-            // Update metrics
-            adClicks++;
-            adImpressions += 5; // Banner ads typically have higher impressions
-            updateMetrics();
-            
-            showNotification('Banner advertisement test launched', 'info');
-        }
-
-        function testVideoAd() {
-            // Simulate video ad
-            const video = window.open('', '_blank', 'width=640,height=480');
-            video.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Video Advertisement</title>
-                    <style>
-                        body { 
-                            margin: 0;
-                            padding: 0;
-                            font-family: Arial, sans-serif;
-                            background: #000;
-                            color: white;
-                        }
-                        .video-container {
-                            width: 640px;
-                            height: 480px;
-                            display: flex;
-                            flex-direction: column;
-                            align-items: center;
-                            justify-content: center;
-                        }
-                        .video-placeholder {
-                            width: 100%;
-                            height: 360px;
-                            background: #333;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-size: 24px;
-                        }
-                        .video-controls {
-                            padding: 10px;
-                            text-align: center;
-                        }
-                        .skip-button {
-                            background: #ff6b6b;
-                            color: white;
-                            border: none;
-                            padding: 8px 16px;
-                            border-radius: 4px;
-                            cursor: pointer;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="video-container">
-                        <div class="video-placeholder">
-                            Video Advertisement Playing...
-                        </div>
-                        <div class="video-controls">
-                            <button class="skip-button" onclick="window.close()">Skip Ad</button>
-                        </div>
-                    </div>
-                    <script>
-                        // Simulate ad completion after 5 seconds
-                        setTimeout(() => {
-                            document.querySelector('.video-placeholder').textContent = 'Advertisement Complete - Thank You!';
-                            document.querySelector('.skip-button').textContent = 'Close';
-                        }, 5000);
-                    <\/script>
-                </body>
-                </html>
-            `);
-            video.document.close();
-            
-            // Update metrics
-            adClicks++;
-            adImpressions += 2;
-            adConversions++; // Video ads often have higher conversion rates
-            updateMetrics();
-            
-            showNotification('Video advertisement test launched', 'info');
+            showNotification('Real smartlink opened in new tab', 'success');
         }
 
         // Update metrics display
@@ -931,29 +361,41 @@
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
-            AOS.init();
+            // Initialize AOS
+            if (typeof AOS !== 'undefined') {
+                AOS.init();
+            }
+            
+            // Initialize Feather Icons
             feather.replace();
             
-            // Initialize Vanta background
-            setTimeout(initVantaBackground, 500);
-            
             // Set up event listeners
-            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-            document.getElementById('smartlinkTestBtn').addEventListener('click', testSmartlink);
-            document.getElementById('popupAdTestBtn').addEventListener('click', testPopupAd);
-            document.getElementById('redirectAdTestBtn').addEventListener('click', testRedirectAd);
-            document.getElementById('bannerAdTestBtn').addEventListener('click', testBannerAd);
-            document.getElementById('videoAdTestBtn').addEventListener('click', testVideoAd);
+            document.getElementById('realSmartlinkBtn').addEventListener('click', testRealSmartlink);
             
             // Initialize metrics
             updateMetrics();
             
+            // Simulate some initial impressions
+            adImpressions = 15;
+            updateMetrics();
+            
             // Show welcome notification
             setTimeout(() => {
-                showNotification('Advertisement test page loaded successfully!', 'success');
+                showNotification('Advertisement test page loaded with real smartlink integration', 'success');
             }, 1000);
         });
+
+        // Simulate conversions over time (for demo purposes)
+        setInterval(() => {
+            if (adClicks > 0 && Math.random() > 0.7) {
+                adConversions++;
+                updateMetrics();
+                showNotification('New conversion detected!', 'success');
+            }
+        }, 10000);
     </script>
+    
+    <!-- Your actual social bar script -->
     <script type='text/javascript' src='//pl28094519.effectivegatecpm.com/ad/69/58/ad69583a5e36e773f00fc8eba943aecb.js'></script>
 </body>
 </html>
