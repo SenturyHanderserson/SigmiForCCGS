@@ -2781,10 +2781,33 @@
             // Reinitialize feather icons for the new content
             feather.replace();
         }
-    </script>
+		}); // Close the DOMContentLoaded event listener
+
+		// Add event listeners for warning modal buttons
+		document.addEventListener('DOMContentLoaded', function() {
+			document.getElementById('dismissAllBtn')?.addEventListener('click', dismissAllWarnings);
+			document.getElementById('closeWarningBtn')?.addEventListener('click', closeWarningModal);
+			document.getElementById('viewHistoryBtn')?.addEventListener('click', viewWarningHistory);
+		});
+
+		// Make functions globally available
+		window.dismissWarning = dismissWarning;
+		window.dismissAllWarnings = dismissAllWarnings;
+		window.closeWarningModal = closeWarningModal;
+		window.viewWarningHistory = viewWarningHistory;
+		window.showBroadcastModal = showBroadcastModal;
+		window.hideBroadcastToast = hideBroadcastToast;
+		window.dismissBroadcast = dismissBroadcast;
+		window.dismissMessage = dismissMessage;
+		window.handleGameClick = handleGameClick;
+		window.handleReportGame = handleReportGame;
+		window.redirectToLogin = redirectToLogin;
+		window.closeLoginModal = closeLoginModal;
+	</script>
 	<script type="text/javascript" src="//www.highperformanceformat.com/6d03dd6e4c62d2e63b1bba1110f44522/invoke.js"></script>
 </body>
 </html>
+
 
 
 
