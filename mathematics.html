@@ -1848,177 +1848,210 @@
     // ============ GAME UNLOCK SYSTEM ============
     
     // Function to check if a game is unlocked
-    function isGameUnlocked(gameId) {
-        const unlockedGames = JSON.parse(getCookie('UnlockedGames') || '{}');
-        const unlockInfo = unlockedGames[gameId];
-        
-        if (!unlockInfo) return false;
-        
-        // Check if unlock period has expired
-        const unlockTime = new Date(unlockInfo.unlockTime);
-        const currentTime = new Date();
-        const timeDiff = currentTime - unlockTime;
-        
-        return timeDiff < UNLOCK_DURATION;
-    }
+function isGameUnlocked(gameId) {
+    const unlockedGames = JSON.parse(getCookie('UnlockedGames') || '{}');
+    const unlockInfo = unlockedGames[gameId];
     
+    if (!unlockInfo) return false;
+    
+    // Check if unlock period has expired
+    const unlockTime = new Date(unlockInfo.unlockTime);
+    const currentTime = new Date();
+    const timeDiff = currentTime - unlockTime;
+    
+    return timeDiff < UNLOCK_DURATION;
+}
+
+function updateUnlockStatus() {
+    const gameCards = document.querySelectorAll('.game-card');
+    
+    gameCards.forEach(card => {
+        const gameId = parseInt(card.getAttribute('data-game-id'));
+        const isUnlocked = isGameUnlocked(gameId);
+        const unlockBadge = card.querySelector('.unlock-badge');
+        
+        // Remove existing unlock badge
+        if (unlockBadge) {
+            unlockBadge.remove();
+        }
+        
+        // Add unlock badge if game is unlocked
+        if (isUnlocked) {
+            const newUnlockBadge = document.createElement('div');
+            newUnlockBadge.className = 'unlock-badge absolute top-2 left-10 bg-green-500 text-white text-xs px-2 py-1 rounded-full z-10';
+            newUnlockBadge.textContent = 'Unlocked';
+            
+            // Find the image container to insert the badge
+            const imageContainer = card.querySelector('.relative.mb-4');
+            if (imageContainer) {
+                imageContainer.appendChild(newUnlockBadge);
+            }
+        }
+    });
+}
+
+		
     // Function to unlock a game
-    function unlockGame(gameId) {
-        const unlockedGames = JSON.parse(getCookie('UnlockedGames') || '{}');
-        unlockedGames[gameId] = {
-            unlockTime: new Date().toISOString()
-        };
-        setCookie('UnlockedGames', JSON.stringify(unlockedGames), 365);
+	function unlockGame(gameId) {
+	    const unlockedGames = JSON.parse(getCookie('UnlockedGames') || '{}');
+	    unlockedGames[gameId] = {
+	        unlockTime: new Date().toISOString()
+	    };
+	    setCookie('UnlockedGames', JSON.stringify(unlockedGames), 365);
+	    
+	    // Update unlock status immediately
+	    updateUnlockStatus();
+	}
+	    
+		function showUnlockModal(game) {
+		    currentGameToUnlock = game;
+		    unlockCountdown = 5;
+		    document.getElementById('timerDisplay').textContent = unlockCountdown;
+		    document.getElementById('unlockModal').classList.add('active');
+		    
+		    // Reset the checkbox
+		    document.getElementById('dontShowAgain').checked = false;
+		}
+    
+		function closeUnlockModal() {
+		    document.getElementById('unlockModal').classList.remove('active');
+		    currentGameToUnlock = null;
+		    if (unlockTimer) {
+		        clearInterval(unlockTimer);
+		        unlockTimer = null;
+		    }
+		}
+    
+  // Function to handle the unlock process
+function handleUnlockProcess() {
+    const dontShowAgain = document.getElementById('dontShowAgain').checked;
+    
+    if (dontShowAgain) {
+        setCookie('DontShowAdModal', 'true', 365);
     }
     
-    // Function to show the unlock modal
-    function showUnlockModal(game) {
-        currentGameToUnlock = game;
-        unlockCountdown = 5;
+    // Open the ad in a new tab
+    const adWindow = window.open(AD_URL, '_blank');
+    
+    // Start the countdown
+    unlockTimer = setInterval(() => {
+        unlockCountdown--;
         document.getElementById('timerDisplay').textContent = unlockCountdown;
-        document.getElementById('unlockModal').classList.add('active');
         
-        // Reset the checkbox
-        document.getElementById('dontShowAgain').checked = false;
-    }
-    
-    // Function to close the unlock modal
-    function closeUnlockModal() {
-        document.getElementById('unlockModal').classList.remove('active');
-        currentGameToUnlock = null;
-        if (unlockTimer) {
+        if (unlockCountdown <= 0) {
             clearInterval(unlockTimer);
             unlockTimer = null;
-        }
-    }
-    
-    // Function to handle the unlock process
-    function handleUnlockProcess() {
-        const dontShowAgain = document.getElementById('dontShowAgain').checked;
-        
-        if (dontShowAgain) {
-            setCookie('DontShowAdModal', 'true', 365);
-        }
-        
-        // Open the ad in a new tab
-        const adWindow = window.open(AD_URL, '_blank');
-        
-        // Start the countdown
-        unlockTimer = setInterval(() => {
-            unlockCountdown--;
-            document.getElementById('timerDisplay').textContent = unlockCountdown;
             
-            if (unlockCountdown <= 0) {
-                clearInterval(unlockTimer);
-                unlockTimer = null;
+            // Unlock the game
+            if (currentGameToUnlock) {
+                unlockGame(currentGameToUnlock.id);
                 
-                // Unlock the game
-                if (currentGameToUnlock) {
-                    unlockGame(currentGameToUnlock.id);
-                    
-                    // Close the ad window after 5 seconds
-                    setTimeout(() => {
-                        if (adWindow && !adWindow.closed) {
-                            adWindow.close();
-                        }
-                    }, 5000);
-                    
-                    // Open the game
-                    window.open(currentGameToUnlock.url, '_blank');
-                }
+                // Close the ad window after 5 seconds
+                setTimeout(() => {
+                    if (adWindow && !adWindow.closed) {
+                        adWindow.close();
+                    }
+                }, 5000);
                 
-                closeUnlockModal();
+                // Open the game
+                window.open(currentGameToUnlock.url, '_blank');
             }
-        }, 1000);
-    }
+            
+            closeUnlockModal();
+        }
+    }, 1000);
+}
     
     // ============ GAME COUNTDOWN OVERLAY SYSTEM ============
     
     // Function to show countdown overlay on a game card
-    function showGameCountdown(gameId, gameTitle) {
-        // Get the game card element
-        const gameCard = document.querySelector(`.game-card[data-game-id="${gameId}"]`);
-        if (!gameCard) return;
+function showGameCountdown(gameId, gameTitle) {
+    // Get the game card element
+    const gameCard = document.querySelector(`.game-card[data-game-id="${gameId}"]`);
+    if (!gameCard) return;
+    
+    // Create countdown overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'countdown-overlay';
+    overlay.id = `countdown-${gameId}`;
+    
+    overlay.innerHTML = `
+        <div class="countdown-text">Preparing to launch</div>
+        <div class="countdown-number" id="countdown-number-${gameId}">${COUNTDOWN_DURATION}</div>
+        <div class="countdown-message">Please wait while we prepare ${gameTitle}</div>
+    `;
+    
+    // Add overlay to game card
+    gameCard.appendChild(overlay);
+    
+    // Start countdown
+    let countdown = COUNTDOWN_DURATION;
+    gameCountdowns[gameId] = setInterval(() => {
+        countdown--;
+        const countdownElement = document.getElementById(`countdown-number-${gameId}`);
+        if (countdownElement) {
+            countdownElement.textContent = countdown;
+        }
         
-        // Create countdown overlay
-        const overlay = document.createElement('div');
-        overlay.className = 'countdown-overlay';
-        overlay.id = `countdown-${gameId}`;
-        
-        overlay.innerHTML = `
-            <div class="countdown-text">Preparing to launch</div>
-            <div class="countdown-number" id="countdown-number-${gameId}">${COUNTDOWN_DURATION}</div>
-            <div class="countdown-message">Please wait while we prepare ${gameTitle}</div>
-        `;
-        
-        // Add overlay to game card
-        gameCard.appendChild(overlay);
-        
-        // Start countdown
-        let countdown = COUNTDOWN_DURATION;
-        gameCountdowns[gameId] = setInterval(() => {
-            countdown--;
-            const countdownElement = document.getElementById(`countdown-number-${gameId}`);
-            if (countdownElement) {
-                countdownElement.textContent = countdown;
-            }
+        if (countdown <= 0) {
+            clearInterval(gameCountdowns[gameId]);
+            delete gameCountdowns[gameId];
             
-            if (countdown <= 0) {
-                clearInterval(gameCountdowns[gameId]);
-                delete gameCountdowns[gameId];
-                
-                // Remove overlay
-                overlay.remove();
-                
-                // Open the game
-                const game = gamesData.find(g => g.id === gameId);
-                if (game) {
-                    window.open(game.url, '_blank');
-                }
+            // Remove overlay
+            overlay.remove();
+            
+            // Open the game
+            const game = gamesData.find(g => g.id === gameId);
+            if (game) {
+                window.open(game.url, '_blank');
             }
-        }, 1000);
+        }
+    }, 1000);
+}
+
+    // Function to handle game click with countdown logic
+function handleGameClick(game) {
+    if (!isLoggedIn()) {
+        showLoginModal();
+        return false;
     }
     
-    // Function to handle game click with countdown logic
-    function handleGameClick(game) {
-        if (!isLoggedIn()) {
-            showLoginModal();
-            return false;
-        }
-        
-        // Check if game is already unlocked
-        if (isGameUnlocked(game.id)) {
-            // Game is unlocked, open directly
-            window.open(game.url, '_blank');
-            return true;
-        }
-        
-        // Check if user has chosen to skip the modal
-        if (getCookie('DontShowAdModal') === 'true') {
-            // Skip modal, open popup directly and show countdown
-            const adWindow = window.open(AD_URL, '_blank');
-            
-            // Unlock the game
-            unlockGame(game.id);
-            
-            // Show countdown overlay
-            showGameCountdown(game.id, game.title);
-            
-            // Close the ad window after 5 seconds
-            setTimeout(() => {
-                if (adWindow && !adWindow.closed) {
-                    adWindow.close();
-                }
-            }, 5000);
-            
-            return true;
-        }
-        
-        // Show the unlock modal
-        showUnlockModal(game);
+    // Update unlock status before checking
+    updateUnlockStatus();
+    
+    // Check if game is already unlocked
+    if (isGameUnlocked(game.id)) {
+        // Game is unlocked, open directly
+        window.open(game.url, '_blank');
         return true;
     }
     
+    // Check if user has chosen to skip the modal
+    if (getCookie('DontShowAdModal') === 'true') {
+        // Skip modal, open popup directly and show countdown
+        const adWindow = window.open(AD_URL, '_blank');
+        
+        // Unlock the game
+        unlockGame(game.id);
+        
+        // Show countdown overlay
+        showGameCountdown(game.id, game.title);
+        
+        // Close the ad window after 5 seconds
+        setTimeout(() => {
+            if (adWindow && !adWindow.closed) {
+                adWindow.close();
+            }
+        }, 5000);
+        
+        return true;
+    }
+    
+    // Show the unlock modal
+    showUnlockModal(game);
+    return true;
+}
+
     // ============ VERIFICATION LOGIC ============
     
     // Function to check if user is logged in
@@ -3091,3 +3124,4 @@
 </script>
 </body>
 </html>
+
