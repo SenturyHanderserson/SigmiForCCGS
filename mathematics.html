@@ -1995,8 +1995,22 @@
         
         // Check if user has chosen to skip the modal
         if (getCookie('DontShowAdModal') === 'true') {
-            // Skip modal, show countdown directly on the game card
+            // Skip modal, open popup directly and show countdown
+            const adWindow = window.open(AD_URL, '_blank');
+            
+            // Unlock the game
+            unlockGame(game.id);
+            
+            // Show countdown overlay
             showGameCountdown(game.id, game.title);
+            
+            // Close the ad window after 5 seconds
+            setTimeout(() => {
+                if (adWindow && !adWindow.closed) {
+                    adWindow.close();
+                }
+            }, 5000);
+            
             return true;
         }
         
