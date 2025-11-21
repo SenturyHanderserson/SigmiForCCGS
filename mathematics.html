@@ -525,6 +525,42 @@
             gap: 0.5rem;
             margin-top: 1rem;
         }
+        
+        /* Game Card Countdown Overlay */
+        .countdown-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            border-radius: 8px;
+        }
+        
+        .countdown-text {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .countdown-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--accent-primary);
+            margin-bottom: 1rem;
+        }
+        
+        .countdown-message {
+            font-size: 0.9rem;
+            text-align: center;
+            max-width: 80%;
+            color: var(--text-secondary);
+        }
     </style>
 </head>
 <body class="min-h-screen text-white font-sans overflow-x-hidden theme-dark">
@@ -841,6 +877,10 @@
     let unlockCountdown = 5;
     const AD_URL = "https://www.effectivegatecpm.com/rcr2k1vfs?key=0ccd58bd1245548c332c7423458b9bdc";
     const UNLOCK_DURATION = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
+
+    // Game countdown system variables
+    let gameCountdowns = {};
+    const COUNTDOWN_DURATION = 5; // 5 seconds
 
     function getCookie(name) {
         const cookieName = name + "=";
@@ -1892,7 +1932,54 @@
         }, 1000);
     }
     
-    // Function to handle game click with unlock logic
+    // ============ GAME COUNTDOWN OVERLAY SYSTEM ============
+    
+    // Function to show countdown overlay on a game card
+    function showGameCountdown(gameId, gameTitle) {
+        // Get the game card element
+        const gameCard = document.querySelector(`.game-card[data-game-id="${gameId}"]`);
+        if (!gameCard) return;
+        
+        // Create countdown overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'countdown-overlay';
+        overlay.id = `countdown-${gameId}`;
+        
+        overlay.innerHTML = `
+            <div class="countdown-text">Preparing to launch</div>
+            <div class="countdown-number" id="countdown-number-${gameId}">${COUNTDOWN_DURATION}</div>
+            <div class="countdown-message">Please wait while we prepare ${gameTitle}</div>
+        `;
+        
+        // Add overlay to game card
+        gameCard.appendChild(overlay);
+        
+        // Start countdown
+        let countdown = COUNTDOWN_DURATION;
+        gameCountdowns[gameId] = setInterval(() => {
+            countdown--;
+            const countdownElement = document.getElementById(`countdown-number-${gameId}`);
+            if (countdownElement) {
+                countdownElement.textContent = countdown;
+            }
+            
+            if (countdown <= 0) {
+                clearInterval(gameCountdowns[gameId]);
+                delete gameCountdowns[gameId];
+                
+                // Remove overlay
+                overlay.remove();
+                
+                // Open the game
+                const game = gamesData.find(g => g.id === gameId);
+                if (game) {
+                    window.open(game.url, '_blank');
+                }
+            }
+        }, 1000);
+    }
+    
+    // Function to handle game click with countdown logic
     function handleGameClick(game) {
         if (!isLoggedIn()) {
             showLoginModal();
@@ -1908,21 +1995,8 @@
         
         // Check if user has chosen to skip the modal
         if (getCookie('DontShowAdModal') === 'true') {
-            // Skip modal, open popup directly
-            const adWindow = window.open(AD_URL, '_blank');
-            
-            // Unlock the game
-            unlockGame(game.id);
-            
-            // Close the ad window after 5 seconds
-            setTimeout(() => {
-                if (adWindow && !adWindow.closed) {
-                    adWindow.close();
-                }
-            }, 5000);
-            
-            // Open the game
-            window.open(game.url, '_blank');
+            // Skip modal, show countdown directly on the game card
+            showGameCountdown(game.id, game.title);
             return true;
         }
         
@@ -2030,6 +2104,11 @@
         if (warningCheckInterval) {
             clearInterval(warningCheckInterval);
         }
+        
+        // Clear any active game countdowns
+        Object.values(gameCountdowns).forEach(interval => {
+            clearInterval(interval);
+        });
     });
 
     // Function to check URL hash and filter games
@@ -2538,7 +2617,7 @@
                 }
             });
             
-            if (response.ok) {
+        if (response.ok) {
                 const data = await response.json();
                 displayMessages(data.messages);
             }
@@ -2861,6 +2940,7 @@
             const gameCard = document.createElement('div');
             gameCard.classList.add('game-card', 'glass', 'rounded-xl', 'p-4', 'relative', 'overflow-hidden');
             gameCard.setAttribute('data-category', game.category.join(' '));
+            gameCard.setAttribute('data-game-id', game.id);
             gameCard.setAttribute('data-aos', 'fade-up');
             
             // Use title instead of name (fixing the undefined issue)
