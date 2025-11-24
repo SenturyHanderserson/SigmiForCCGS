@@ -556,11 +556,12 @@
                                 <span id="gamesCount" class="font-bold">0</span> games
                             </div>
                         </div>
-                        <div id="gamesList" class="space-y-4 pr-2">
-                            <div class="text-center py-12 text-gray-400">
-                                <i data-feather="package" class="w-12 h-12 mx-auto mb-4 opacity-50"></i>
-                                <p class="text-lg">Loading games...</p>
-                                <p class="text-sm mt-2">Please wait while we fetch your games</p>
+                        <div id="gamesList" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                                <div class="text-center py-12 text-gray-400">
+                                    <i data-feather="package" class="w-12 h-12 mx-auto mb-4 opacity-50"></i>
+                                    <p class="text-lg">Loading games...</p>
+                                    <p class="text-sm mt-2">Please wait while we fetch your games</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -991,7 +992,6 @@
             }
         }
 
-        // Display games in list
 // Display games in list
 function displayGames(games) {
     const container = document.getElementById('gamesList');
@@ -1009,7 +1009,8 @@ function displayGames(games) {
     }
 
     container.innerHTML = games.map(game => `
-        <div class="game-card glass rounded-xl p-4" data-aos="fade-up">
+        <div class="game-card glass rounded-xl p-4">
+            <!-- REMOVED: data-aos="fade-up" -->
             <div class="flex flex-col sm:flex-row gap-4">
                 <div class="flex-shrink-0">
                     <img src="${game.image}" alt="${game.title}" 
@@ -1078,9 +1079,8 @@ function displayGames(games) {
     `).join('');
     
     feather.replace();
-    AOS.refresh();
-}
-        // Delete game
+    // No need for AOS.refresh() since we removed AOS from these elements
+}     // Delete game
         async function deleteGame(gameId, gameTitle) {
             if (!confirm(`Are you sure you want to delete "${gameTitle}"?\n\nThis will:\n• Remove the game from mathematics.html\n• Delete the game page (if internal)\n• Delete the image file (if hosted on our server)\n\nThis action cannot be undone!`)) {
                 return;
