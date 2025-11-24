@@ -992,93 +992,94 @@
         }
 
         // Display games in list
-        function displayGames(games) {
-            const container = document.getElementById('gamesList');
-            
-            if (games.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-12 text-gray-400">
-                        <i data-feather="package" class="w-16 h-16 mx-auto mb-4 opacity-50"></i>
-                        <p class="text-lg">No games uploaded yet</p>
-                        <p class="text-sm mt-2">Upload your first game to get started</p>
-                    </div>
-                `;
-                feather.replace();
-                return;
-            }
+// Display games in list
+function displayGames(games) {
+    const container = document.getElementById('gamesList');
+    
+    if (games.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-12 text-gray-400">
+                <i data-feather="package" class="w-16 h-16 mx-auto mb-4 opacity-50"></i>
+                <p class="text-lg">No games uploaded yet</p>
+                <p class="text-sm mt-2">Upload your first game to get started</p>
+            </div>
+        `;
+        feather.replace();
+        return;
+    }
 
-            container.innerHTML = games.map(game => `
-                <div class="game-card glass rounded-xl p-4" data-aos="fade-up">
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        <div class="flex-shrink-0">
-                            <img src="${game.image}" alt="${game.title}" 
-                                 class="w-16 h-16 object-cover rounded-lg border-2 border-gray-600">
+    container.innerHTML = games.map(game => `
+        <div class="game-card glass rounded-xl p-4" data-aos="fade-up">
+            <div class="flex flex-col sm:flex-row gap-4">
+                <div class="flex-shrink-0">
+                    <img src="${game.image}" alt="${game.title}" 
+                         class="w-16 h-16 object-cover rounded-lg border-2 border-gray-600">
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+                        <div>
+                            <h3 class="font-semibold text-lg truncate">${game.title}</h3>
+                            <p class="text-gray-400 text-sm mt-1 line-clamp-2">${game.description}</p>
                         </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
-                                <div>
-                                    <h3 class="font-semibold text-lg truncate">${game.title}</h3>
-                                    <p class="text-gray-400 text-sm mt-1 line-clamp-2">${game.description}</p>
-                                </div>
-                                <div class="text-right text-sm text-gray-400">
-                                    <div class="font-mono">ID: ${game.id}</div>
-                                    <div>${new Date(game.createdAt).toLocaleDateString()}</div>
-                                </div>
-                            </div>
-                            
-                            <div class="flex flex-wrap items-center gap-3 mb-3">
-                                <div class="flex items-center space-x-1 text-sm">
-                                    <i data-feather="star" class="w-4 h-4 text-yellow-400"></i>
-                                    <span>${game.rating}/5</span>
-                                </div>
-                                <div class="flex items-center space-x-1 text-sm">
-                                    <i data-feather="play" class="w-4 h-4 text-green-400"></i>
-                                    <span>${game.playCount.toLocaleString()} plays</span>
-                                </div>
-                                <div class="flex items-center space-x-1 text-sm">
-                                    <i data-feather="user" class="w-4 h-4 text-blue-400"></i>
-                                    <span>${game.createdBy}</span>
-                                </div>
-                                <div class="flex items-center space-x-1 text-sm">
-                                    <i data-feather="${game.requiresAuth ? 'lock' : 'globe'}" class="w-4 h-4 ${game.requiresAuth ? 'text-red-400' : 'text-green-400'}"></i>
-                                    <span>${game.requiresAuth ? 'Auth Required' : 'Public'}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="flex flex-wrap gap-1 mb-4">
-                                ${game.category.map(cat => `
-                                    <span class="category-tag text-xs">${cat}</span>
-                                `).join('')}
-                            </div>
-                            
-                            <div class="flex items-center space-x-2">
-                                ${game.gamePageUrl ? `
-                                    <a href="${game.gamePageUrl}" target="_blank" 
-                                       class="btn-primary px-3 py-2 rounded-lg text-sm flex items-center space-x-1 flex-1 justify-center">
-                                        <i data-feather="external-link" class="w-4 h-4"></i>
-                                        <span>View Game</span>
-                                    </a>
-                                ` : `
-                                    <a href="${game.url}" target="_blank" 
-                                       class="btn-primary px-3 py-2 rounded-lg text-sm flex items-center space-x-1 flex-1 justify-center">
-                                        <i data-feather="external-link" class="w-4 h-4"></i>
-                                        <span>View Game</span>
-                                    </a>
-                                `}
-                                <button onclick="deleteGame(${game.id}, '${game.title.replace(/'/g, "\\'")}')" 
-                                        class="btn-danger px-3 py-2 rounded-lg text-sm flex items-center space-x-1">
-                                    <i data-feather="trash-2" class="w-4 h-4"></i>
-                                    <span>Delete</span>
-                                </button>
-                            </div>
+                        <div class="text-right text-sm text-gray-400">
+                            <div class="font-mono">ID: ${game.id}</div>
+                            <div>${new Date(game.createdAt).toLocaleDateString()}</div>
                         </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center gap-3 mb-3">
+                        <div class="flex items-center space-x-1 text-sm">
+                            <i data-feather="star" class="w-4 h-4 text-yellow-400"></i>
+                            <span>${game.rating}/5</span>
+                        </div>
+                        <div class="flex items-center space-x-1 text-sm">
+                            <i data-feather="play" class="w-4 h-4 text-green-400"></i>
+                            <span>${game.playCount.toLocaleString()} plays</span>
+                        </div>
+                        <div class="flex items-center space-x-1 text-sm">
+                            <i data-feather="user" class="w-4 h-4 text-blue-400"></i>
+                            <span>${game.createdBy}</span>
+                        </div>
+                        <div class="flex items-center space-x-1 text-sm">
+                            <i data-feather="${game.requiresAuth ? 'lock' : 'globe'}" class="w-4 h-4 ${game.requiresAuth ? 'text-red-400' : 'text-green-400'}"></i>
+                            <span>${game.requiresAuth ? 'Auth Required' : 'Public'}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-1 mb-4">
+                        ${game.category.map(cat => `
+                            <span class="category-tag text-xs">${cat}</span>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        ${game.gamePageUrl ? `
+                            <a href="${game.gamePageUrl}" target="_blank" 
+                               class="btn-primary px-3 py-2 rounded-lg text-sm flex items-center space-x-1 flex-1 justify-center">
+                                <i data-feather="external-link" class="w-4 h-4"></i>
+                                <span>View Game</span>
+                            </a>
+                        ` : `
+                            <a href="${game.url}" target="_blank" 
+                               class="btn-primary px-3 py-2 rounded-lg text-sm flex items-center space-x-1 flex-1 justify-center">
+                                <i data-feather="external-link" class="w-4 h-4"></i>
+                                <span>View Game</span>
+                            </a>
+                        `}
+                        <button onclick="deleteGame(${game.id}, '${game.title.replace(/'/g, "\\'")}')" 
+                                class="btn-danger px-3 py-2 rounded-lg text-sm flex items-center space-x-1">
+                            <i data-feather="trash-2" class="w-4 h-4"></i>
+                            <span>Delete</span>
+                        </button>
                     </div>
                 </div>
-            `).join('');
-            
-            feather.replace();
-        }
-
+            </div>
+        </div>
+    `).join('');
+    
+    feather.replace();
+    AOS.refresh();
+}
         // Delete game
         async function deleteGame(gameId, gameTitle) {
             if (!confirm(`Are you sure you want to delete "${gameTitle}"?\n\nThis will:\n• Remove the game from mathematics.html\n• Delete the game page (if internal)\n• Delete the image file (if hosted on our server)\n\nThis action cannot be undone!`)) {
