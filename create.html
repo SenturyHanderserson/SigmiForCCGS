@@ -452,30 +452,7 @@
                     </div>
                 </div>
             </div>
-
-<!-- Moderator Upload Activity Panel (Admin Only) -->
-            <div id="moderatorActivityPanel" class="glass rounded-2xl p-8 mt-8 hidden" data-aos="fade-up">
-                <div class="flex items-center mb-8">
-                    <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center mr-4">
-                        <i data-feather="activity" class="w-6 h-6 text-white"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-2xl font-bold gradient-text">Moderator Upload Activity</h2>
-                        <p class="text-gray-400">Track recent game uploads by moderators+</p>
-                    </div>
-                    <div class="ml-auto stats-badge">
-                        <span id="moderatorsCount" class="font-bold">0</span> moderators
-                    </div>
-                </div>
-            
-                <div id="moderatorActivityList" class="space-y-4">
-                    <!-- Activity items will be populated here -->
-                    <div class="text-center py-8 text-gray-400">
-                        <i data-feather="loader" class="w-12 h-12 mx-auto mb-4 animate-spin"></i>
-                        <p>Loading moderator activity...</p>
-                    </div>
-                </div>
-            </div>
+        
             
 
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
@@ -620,6 +597,30 @@
                 </div>
             </div>
 
+          <div id="moderatorActivityPanel" class="glass rounded-2xl p-8 mt-8 hidden" data-aos="fade-up">
+                        <div class="flex items-center mb-8">
+                            <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center mr-4">
+                                <i data-feather="activity" class="w-6 h-6 text-white"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold gradient-text">Moderator Upload Activity</h2>
+                                <p class="text-gray-400">Track recent game uploads by moderators+</p>
+                            </div>
+                            <div class="ml-auto stats-badge">
+                                <span id="moderatorsCount" class="font-bold">0</span> moderators
+                            </div>
+                        </div>
+                    
+                        <div id="moderatorActivityList" class="space-y-4">
+                            <!-- Activity items will be populated here -->
+                            <div class="text-center py-8 text-gray-400">
+                                <i data-feather="loader" class="w-12 h-12 mx-auto mb-4 animate-spin"></i>
+                                <p>Loading moderator activity...</p>
+                            </div>
+                        </div>
+                    </div>
+
+        
             <!-- Tutorial Section - Moved to bottom -->
             <div class="glass rounded-2xl p-8 mt-8" data-aos="fade-up">
                 <div class="flex items-center mb-8">
