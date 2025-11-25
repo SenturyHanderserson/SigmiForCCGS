@@ -200,6 +200,33 @@
             opacity: 1;
             visibility: visible;
         }
+    .moderator-activity-item {
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+    }
+    
+    .moderator-activity-item:hover {
+        border-left-color: rgba(139, 92, 246, 0.5);
+        transform: translateX(4px);
+    }
+    
+    .warning-indicator {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    .status-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+    }
+
         
         .auth-content {
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
@@ -425,6 +452,31 @@
                     </div>
                 </div>
             </div>
+
+<!-- Moderator Upload Activity Panel (Admin Only) -->
+            <div id="moderatorActivityPanel" class="glass rounded-2xl p-8 mt-8 hidden" data-aos="fade-up">
+                <div class="flex items-center mb-8">
+                    <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center mr-4">
+                        <i data-feather="activity" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold gradient-text">Moderator Upload Activity</h2>
+                        <p class="text-gray-400">Track recent game uploads by moderators+</p>
+                    </div>
+                    <div class="ml-auto stats-badge">
+                        <span id="moderatorsCount" class="font-bold">0</span> moderators
+                    </div>
+                </div>
+            
+                <div id="moderatorActivityList" class="space-y-4">
+                    <!-- Activity items will be populated here -->
+                    <div class="text-center py-8 text-gray-400">
+                        <i data-feather="loader" class="w-12 h-12 mx-auto mb-4 animate-spin"></i>
+                        <p>Loading moderator activity...</p>
+                    </div>
+                </div>
+            </div>
+            
 
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
                 <!-- Upload Form -->
@@ -738,57 +790,62 @@
         });
 
         // Check authentication
-        async function checkAuth() {
-            showLoading(true);
-            
-            authToken = getCookie('AuthToken');
-            currentUser = localStorage.getItem('currentUser');
-            userRole = localStorage.getItem('userRole');
+async function checkAuth() {
+    showLoading(true);
+    
+    authToken = getCookie('AuthToken');
+    currentUser = localStorage.getItem('currentUser');
+    userRole = localStorage.getItem('userRole');
 
-            if (!authToken || !currentUser) {
-                showLoading(false);
-                showAuthModal();
-                return;
-            }
+    if (!authToken || !currentUser) {
+        showLoading(false);
+        showAuthModal();
+        return;
+    }
 
-            try {
-                const isValid = await verifyToken(authToken);
-                if (isValid) {
-                    const userInfo = await getUserInfo();
-                    if (userInfo) {
-                        currentUser = userInfo.username;
-                        userRole = userInfo.role;
+    try {
+        const isValid = await verifyToken(authToken);
+        if (isValid) {
+            const userInfo = await getUserInfo();
+            if (userInfo) {
+                currentUser = userInfo.username;
+                userRole = userInfo.role;
 
-                        // Load all roles to check permissions properly
-                        await loadAllRoles();
+                // Load all roles to check permissions properly
+                await loadAllRoles();
 
-                        // Check if user has moderator permissions using role properties
-                        if (!isModeratorClass(userRole) && !isAdminClass(userRole) && !isFullAccess(userRole)) {
-                            showLoading(false);
-                            showNotification('Insufficient permissions. Moderator access required.', 'error');
-                            setTimeout(() => {
-                                redirectToLogin();
-                            }, 2000);
-                            return;
-                        }
-
-                        showMainContent();
-                        loadExistingGames();
-                        setupEventListeners();
-                    } else {
-                        throw new Error('Failed to get user info');
-                    }
-                } else {
-                    throw new Error('Invalid token');
+                // Check if user has moderator permissions using role properties
+                if (!isModeratorClass(userRole) && !isAdminClass(userRole) && !isFullAccess(userRole)) {
+                    showLoading(false);
+                    showNotification('Insufficient permissions. Moderator access required.', 'error');
+                    setTimeout(() => {
+                        redirectToLogin();
+                    }, 2000);
+                    return;
                 }
-            } catch (error) {
-                console.error('Auth error:', error);
-                showLoading(false);
-                showAuthModal();
-            } finally {
-                showLoading(false);
+
+                showMainContent();
+                loadExistingGames();
+                setupEventListeners();
+                
+                // Load moderator activity if user is admin+
+                if (isAdminClass(userRole) || isFullAccess(userRole)) {
+                    loadModeratorActivity();
+                }
+            } else {
+                throw new Error('Failed to get user info');
             }
+        } else {
+            throw new Error('Invalid token');
         }
+    } catch (error) {
+        console.error('Auth error:', error);
+        showLoading(false);
+        showAuthModal();
+    } finally {
+        showLoading(false);
+    }
+}
 
         // Verify token with server
         async function verifyToken(token) {
@@ -1080,7 +1137,125 @@ function displayGames(games) {
     
     feather.replace();
     // No need for AOS.refresh() since we removed AOS from these elements
-}     // Delete game
+}  
+// Load moderator upload activity
+async function loadModeratorActivity() {
+    try {
+        const response = await fetch(`${SERVER_URL}/api/moderator-upload-activity`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            displayModeratorActivity(data.moderatorActivity);
+            document.getElementById('moderatorsCount').textContent = data.totalModerators;
+            
+            // Show the panel
+            document.getElementById('moderatorActivityPanel').classList.remove('hidden');
+        } else {
+            throw new Error('Failed to load moderator activity');
+        }
+    } catch (error) {
+        console.error('Error loading moderator activity:', error);
+        document.getElementById('moderatorActivityList').innerHTML = `
+            <div class="text-center py-8 text-red-400">
+                <i data-feather="alert-triangle" class="w-12 h-12 mx-auto mb-4"></i>
+                <p>Failed to load moderator activity</p>
+                <button onclick="loadModeratorActivity()" class="btn-primary px-4 py-2 rounded-xl mt-4">
+                    Try Again
+                </button>
+            </div>
+        `;
+        feather.replace();
+    }
+}
+
+// Display moderator activity
+function displayModeratorActivity(activity) {
+    const container = document.getElementById('moderatorActivityList');
+    
+    if (activity.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-12 text-gray-400">
+                <i data-feather="users" class="w-16 h-16 mx-auto mb-4 opacity-50"></i>
+                <p class="text-lg">No moderators found</p>
+                <p class="text-sm mt-2">There are no users with moderator permissions</p>
+            </div>
+        `;
+        feather.replace();
+        return;
+    }
+
+    container.innerHTML = activity.map(moderator => `
+        <div class="glass rounded-xl p-6 transition-all duration-300 hover:bg-opacity-50">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-center space-x-4 flex-1">
+                    <!-- User Info -->
+                    <div class="flex items-center space-x-3 min-w-0 flex-1">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center font-bold text-white text-sm">
+                                ${moderator.username.charAt(0).toUpperCase()}
+                            </div>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center space-x-2">
+                                <h3 class="font-semibold text-lg truncate">${moderator.username}</h3>
+                                ${moderator.warningLevel >= 1 ? `
+                                    <span class="flex items-center space-x-1">
+                                        ${moderator.warningLevel >= 1 ? `<span class="text-yellow-500 text-lg">!</span>` : ''}
+                                        ${moderator.warningLevel >= 2 ? `
+                                            <span class="text-red-500 text-lg animate-bounce" style="animation-duration: 0.5s">!</span>
+                                        ` : ''}
+                                    </span>
+                                ` : ''}
+                            </div>
+                            <div class="flex items-center space-x-3 text-sm text-gray-400 mt-1">
+                                <span class="category-tag">${moderator.role}</span>
+                                <span>${moderator.totalGames} game${moderator.totalGames === 1 ? '' : 's'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Status -->
+                    <div class="flex items-center space-x-3">
+                        <div class="text-right">
+                            <div class="font-semibold" style="color: ${moderator.statusColor}">
+                                ${moderator.statusText}
+                            </div>
+                            ${moderator.mostRecentUpload ? `
+                                <div class="text-xs text-gray-400 mt-1 truncate max-w-[200px]" title="${moderator.mostRecentUpload.title}">
+                                    "${moderator.mostRecentUpload.title}"
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="w-4 h-4 rounded-full" style="background-color: ${moderator.statusColor}"></div>
+                    </div>
+                </div>
+            </div>
+            
+            ${moderator.mostRecentUpload ? `
+                <div class="mt-4 pt-4 border-t border-gray-700">
+                    <div class="flex justify-between items-center text-sm text-gray-400">
+                        <span>Last upload: ${new Date(moderator.mostRecentUpload.date).toLocaleDateString()}</span>
+                        <span class="flex items-center space-x-1">
+                            <i data-feather="clock" class="w-4 h-4"></i>
+                            <span>${new Date(moderator.mostRecentUpload.date).toLocaleTimeString()}</span>
+                        </span>
+                    </div>
+                </div>
+            ` : ''}
+        </div>
+    `).join('');
+    
+    feather.replace();
+}
+
+  
+        
+        
+        // Delete game
         async function deleteGame(gameId, gameTitle) {
             if (!confirm(`Are you sure you want to delete "${gameTitle}"?\n\nThis will:\n• Remove the game from mathematics.html\n• Delete the game page (if internal)\n• Delete the image file (if hosted on our server)\n\nThis action cannot be undone!`)) {
                 return;
