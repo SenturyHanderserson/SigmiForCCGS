@@ -596,29 +596,33 @@
                     </div>
                 </div>
             </div>
-
-          <div id="moderatorActivityPanel" class="glass rounded-2xl p-8 mt-8 hidden" data-aos="fade-up">
-                        <div class="flex items-center mb-8">
-                            <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center mr-4">
-                                <i data-feather="activity" class="w-6 h-6 text-white"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-2xl font-bold gradient-text">Moderator+ Upload Activity</h2>
-                                <p class="text-gray-400">Track recent game uploads by Moderators, Admins and Owners</p>
-                            </div>
-                            <div class="ml-auto stats-badge">
-                                <span id="moderatorsCount" class="font-bold">0</span> Moderators, Admins and Owners
-                            </div>
-                        </div>
-                    
-                        <div id="moderatorActivityList" class="space-y-4">
-                            <!-- Activity items will be populated here -->
-                            <div class="text-center py-8 text-gray-400">
-                                <i data-feather="loader" class="w-12 h-12 mx-auto mb-4 animate-spin"></i>
-                                <p>Loading moderator+ activity...</p>
-                            </div>
-                        </div>
+        
+        <div id="moderatorActivityPanel" class="glass rounded-2xl p-6 mt-6 hidden" data-aos="fade-up">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
+                        <i data-feather="activity" class="w-5 h-5 text-white"></i>
                     </div>
+                    <div>
+                        <h2 class="text-xl font-bold gradient-text">Moderator+ Activity</h2>
+                        <p class="text-gray-400 text-sm">Recent uploads by staff</p>
+                    </div>
+                </div>
+                <div class="stats-badge text-sm">
+                    <span id="moderatorsCount" class="font-bold">0</span> staff
+                </div>
+            </div>
+            
+            <div class="max-h-80 overflow-y-auto pr-2">
+                <div id="moderatorActivityList" class="space-y-3">
+                    <!-- Activity items will be populated here -->
+                    <div class="text-center py-6 text-gray-400">
+                        <i data-feather="loader" class="w-8 h-8 mx-auto mb-3 animate-spin"></i>
+                        <p class="text-sm">Loading staff activity...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         
             <!-- Tutorial Section - Moved to bottom -->
@@ -1173,16 +1177,14 @@ async function loadModeratorActivity() {
     }
 }
 
-// Display moderator activity
 function displayModeratorActivity(activity) {
     const container = document.getElementById('moderatorActivityList');
     
     if (activity.length === 0) {
         container.innerHTML = `
-            <div class="text-center py-12 text-gray-400">
-                <i data-feather="users" class="w-16 h-16 mx-auto mb-4 opacity-50"></i>
-                <p class="text-lg">No moderators found</p>
-                <p class="text-sm mt-2">There are no users with moderator permissions</p>
+            <div class="text-center py-6 text-gray-400">
+                <i data-feather="users" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                <p class="text-sm">No staff members found</p>
             </div>
         `;
         feather.replace();
@@ -1190,63 +1192,49 @@ function displayModeratorActivity(activity) {
     }
 
     container.innerHTML = activity.map(moderator => `
-        <div class="glass rounded-xl p-6 transition-all duration-300 hover:bg-opacity-50">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div class="flex items-center space-x-4 flex-1">
-                    <!-- User Info -->
-                    <div class="flex items-center space-x-3 min-w-0 flex-1">
-                        <div class="flex-shrink-0">
-                            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center font-bold text-white text-sm">
-                                ${moderator.username.charAt(0).toUpperCase()}
-                            </div>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <div class="flex items-center space-x-2">
-                                <h3 class="font-semibold text-lg truncate">${moderator.username}</h3>
-                                ${moderator.warningLevel >= 1 ? `
-                                    <span class="flex items-center space-x-1">
-                                        ${moderator.warningLevel >= 1 ? `<span class="text-yellow-500 text-lg">!</span>` : ''}
-                                        ${moderator.warningLevel >= 2 ? `
-                                            <span class="text-red-500 text-lg animate-bounce" style="animation-duration: 0.5s">!</span>
-                                        ` : ''}
-                                    </span>
-                                ` : ''}
-                            </div>
-                            <div class="flex items-center space-x-3 text-sm text-gray-400 mt-1">
-                                <span class="category-tag">${moderator.role}</span>
-                                <span>${moderator.totalGames} game${moderator.totalGames === 1 ? '' : 's'}</span>
-                            </div>
+        <div class="glass rounded-lg p-4 transition-all duration-300 hover:bg-opacity-50 border border-gray-700">
+            <div class="flex items-center justify-between">
+                <!-- User Info -->
+                <div class="flex items-center space-x-3 min-w-0 flex-1">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs">
+                            ${moderator.username.charAt(0).toUpperCase()}
                         </div>
                     </div>
-                    
-                    <!-- Status -->
-                    <div class="flex items-center space-x-3">
-                        <div class="text-right">
-                            <div class="font-semibold" style="color: ${moderator.statusColor}">
-                                ${moderator.statusText}
-                            </div>
-                            ${moderator.mostRecentUpload ? `
-                                <div class="text-xs text-gray-400 mt-1 truncate max-w-[200px]" title="${moderator.mostRecentUpload.title}">
-                                    "${moderator.mostRecentUpload.title}"
-                                </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center space-x-2">
+                            <h3 class="font-semibold text-sm truncate">${moderator.username}</h3>
+                            ${moderator.warningLevel >= 1 ? `
+                                <span class="flex items-center space-x-0">
+                                    ${moderator.warningLevel >= 1 ? `<span class="text-yellow-500 text-sm">!</span>` : ''}
+                                    ${moderator.warningLevel >= 2 ? `
+                                        <span class="text-red-500 text-sm animate-bounce" style="animation-duration: 0.5s">!</span>
+                                    ` : ''}
+                                </span>
                             ` : ''}
                         </div>
-                        <div class="w-4 h-4 rounded-full" style="background-color: ${moderator.statusColor}"></div>
+                        <div class="flex items-center space-x-2 text-xs text-gray-400 mt-0.5">
+                            <span class="bg-gray-700 px-1.5 py-0.5 rounded text-xs">${moderator.role}</span>
+                            <span>${moderator.totalGames}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Status -->
+                <div class="flex items-center space-x-2 text-right">
+                    <div class="w-2 h-2 rounded-full flex-shrink-0" style="background-color: ${moderator.statusColor}"></div>
+                    <div>
+                        <div class="font-medium text-xs" style="color: ${moderator.statusColor}">
+                            ${moderator.statusText}
+                        </div>
+                        ${moderator.mostRecentUpload ? `
+                            <div class="text-xs text-gray-500 mt-0.5 truncate max-w-[120px]" title="${moderator.mostRecentUpload.title}">
+                                ${moderator.mostRecentUpload.title}
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
             </div>
-            
-            ${moderator.mostRecentUpload ? `
-                <div class="mt-4 pt-4 border-t border-gray-700">
-                    <div class="flex justify-between items-center text-sm text-gray-400">
-                        <span>Last upload: ${new Date(moderator.mostRecentUpload.date).toLocaleDateString()}</span>
-                        <span class="flex items-center space-x-1">
-                            <i data-feather="clock" class="w-4 h-4"></i>
-                            <span>${new Date(moderator.mostRecentUpload.date).toLocaleTimeString()}</span>
-                        </span>
-                    </div>
-                </div>
-            ` : ''}
         </div>
     `).join('');
     
