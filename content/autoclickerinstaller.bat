@@ -53,7 +53,12 @@ echo Downloading Python installer...
 echo This may take a few minutes depending on your internet speed...
 echo.
 
-powershell -Command "Invoke-WebRequest -Uri 'https://github.com/SenturyHanderserson/SigmiForCCGS/raw/refs/heads/main/content/Python%203.13%20Installer.exe' -OutFile 'python-installer.exe'" >nul 2>nul
+REM Use official Python download instead of GitHub
+powershell -Command "Invoke-WebRequest -Uri 'https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe' -OutFile 'python-installer.exe'"
+if %errorlevel% neq 0 (
+    echo [ERROR] Failed to download Python installer. Trying alternative mirror...
+    powershell -Command "Invoke-WebRequest -Uri 'https://www.python.org/ftp/python/3.10.0/python-3.10.0-amd64.exe' -OutFile 'python-installer.exe'"
+)
 
 if not exist "python-installer.exe" (
     echo [ERROR] Failed to download Python installer.
@@ -139,7 +144,7 @@ echo.
 set INSTALL_SUCCESS=0
 
 echo Installing pyautogui, keyboard, win10toast, and psutil...
-pip install pyautogui keyboard win10toast psutil >nul 2>nul
+pip install pyautogui keyboard win10toast psutil
 if %errorlevel% equ 0 (
     echo [SUCCESS] Packages installed successfully!
     set INSTALL_SUCCESS=1
@@ -147,7 +152,7 @@ if %errorlevel% equ 0 (
 )
 
 echo Method 1 failed, trying alternative method...
-python -m pip install pyautogui keyboard win10toast psutil >nul 2>nul
+python -m pip install pyautogui keyboard win10toast psutil
 if %errorlevel% equ 0 (
     echo [SUCCESS] Packages installed successfully via python -m pip!
     set INSTALL_SUCCESS=1
@@ -155,7 +160,7 @@ if %errorlevel% equ 0 (
 )
 
 echo Method 2 failed, trying with --user flag...
-pip install --user pyautogui keyboard win10toast psutil >nul 2>nul
+pip install --user pyautogui keyboard win10toast psutil
 if %errorlevel% equ 0 (
     echo [SUCCESS] Packages installed successfully with --user flag!
     set INSTALL_SUCCESS=1
@@ -163,7 +168,7 @@ if %errorlevel% equ 0 (
 )
 
 echo Method 3 failed, trying python -m pip with --user...
-python -m pip install --user pyautogui keyboard win10toast psutil >nul 2>nul
+python -m pip install --user pyautogui keyboard win10toast psutil
 if %errorlevel% equ 0 (
     echo [SUCCESS] Packages installed successfully via python -m pip --user!
     set INSTALL_SUCCESS=1
@@ -199,6 +204,11 @@ if %errorlevel% equ 0 (
 echo.
 echo Creating Auto Clicker folder...
 if not exist "autoclicker" mkdir autoclicker
+if not exist "autoclicker" (
+    echo [ERROR] Failed to create folder!
+    pause
+    exit /b 1
+)
 echo [SUCCESS] Folder created successfully!
 goto DOWNLOAD_FILES
 
@@ -207,26 +217,31 @@ echo.
 echo Downloading Auto Clicker files...
 echo.
 
-REM Download both Python backend and VBS launcher
-powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/MinecraftEducation.py' -OutFile 'autoclicker\MinecraftEducation.py'" >nul 2>nul
-powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/refs/heads/main/content/launcher.vbs' -OutFile 'autoclicker\launcher.vbs'" >nul 2>nul
+REM Download with better error handling
+echo Downloading backend file...
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/content/MinecraftEducation.py' -OutFile 'autoclicker\MinecraftEducation.py'"
+if %errorlevel% neq 0 (
+    echo [ERROR] Failed to download backend file from primary source.
+    echo Trying alternative download method...
+    curl -L -o "autoclicker\MinecraftEducation.py" "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/content/MinecraftEducation.py"
+)
 
-if exist autoclicker\MinecraftEducation.py (
-    echo [SUCCESS] Backend downloaded successfully!
-) else (
-    echo [ERROR] Failed to download backend file.
+if not exist "autoclicker\MinecraftEducation.py" (
+    echo [ERROR] Failed to download backend file after all attempts.
+    echo Please check your internet connection and try again.
     pause
     exit /b 1
 )
+echo [SUCCESS] Backend downloaded successfully!
 
-if exist autoclicker\launcher.vbs (
-    echo [SUCCESS] VBS launcher downloaded successfully!
-    goto START_BACKEND
-) else (
-    echo [ERROR] Failed to download VBS launcher.
-    pause
-    exit /b 1
+echo Downloading VBS launcher...
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/content/launcher.vbs' -OutFile 'autoclicker\launcher.vbs'"
+if not exist "autoclicker\launcher.vbs" (
+    echo [WARNING] Failed to download VBS launcher. Creating basic one...
+    echo Set WshShell = CreateObject(""WScript.Shell"") > "autoclicker\launcher.vbs"
+    echo WshShell.Run ""python MinecraftEducation.py"", 0, False >> "autoclicker\launcher.vbs"
 )
+echo [SUCCESS] VBS launcher ready!
 
 :START_BACKEND
 echo.
@@ -238,7 +253,12 @@ REM Start the backend using the VBS script (completely hidden)
 cd autoclicker
 start launcher.vbs
 cd..
-timeout /t 3 /nobreak >nul
+timeout /t 5 /nobreak >nul
+
+:CHECK_BACKEND_RUNNING
+echo Checking if backend started successfully...
+timeout /t 2 /nobreak >nul
+powershell -Command "try { $response = Invoke-WebRequest -Uri 'http://localhost:8080/status.json' -TimeoutSec 2; echo [SUCCESS] Backend is running!; exit 0 } catch { echo [WARNING] Backend may not be running properly; exit 1 }"
 
 :OPEN_WEB_INTERFACE
 echo.
