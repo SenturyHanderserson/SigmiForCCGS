@@ -561,6 +561,81 @@
             max-width: 80%;
             color: var(--text-secondary);
         }
+        
+        /* Admin Ad Toggle Styles */
+        .admin-toggle-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            display: none;
+        }
+        
+        .admin-toggle {
+            display: flex;
+            align-items: center;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-switch.active {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+        }
+        
+        .toggle-switch.active::after {
+            transform: translateX(26px);
+        }
+        
+        .toggle-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .admin-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: linear-gradient(135deg, #ff8c00, #ff5500);
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body class="min-h-screen text-white font-sans overflow-x-hidden theme-dark">
@@ -569,6 +644,15 @@
     
     <!-- Particles -->
     <div class="particles" id="particles"></div>
+    
+    <!-- Admin Ad Toggle -->
+    <div id="adminToggleContainer" class="admin-toggle-container">
+        <div class="admin-toggle" id="adminToggle">
+            <div class="toggle-switch" id="toggleSwitch"></div>
+            <span class="toggle-label">Ads</span>
+            <div class="admin-badge">ADMIN</div>
+        </div>
+    </div>
     
     <!-- Login Modal -->
     <div id="loginModal" class="login-modal">
@@ -611,7 +695,10 @@
         </div>
     </div>
     
-    <script type="text/javascript" src="//www.highperformanceformat.com/6d03dd6e4c62d2e63b1bba1110f44522/invoke.js"></script>
+    <div id="adContainer">
+        <script type="text/javascript" src="//www.highperformanceformat.com/6d03dd6e4c62d2e63b1bba1110f44522/invoke.js"></script>
+    </div>
+    
 	<!-- Warning Modal -->
 	<div id="warningModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
 		<div class="glass rounded-xl p-8 max-w-md w-full mx-4">
@@ -882,6 +969,11 @@
     let gameCountdowns = {};
     const COUNTDOWN_DURATION = 5; // 5 seconds
 
+    // Admin/MOD ad toggle variables
+    let allRoles = {};
+    let userRole = null;
+    let adsEnabled = true;
+
     function getCookie(name) {
         const cookieName = name + "=";
         const decodedCookie = decodeURIComponent(document.cookie);
@@ -974,6 +1066,123 @@
                 color: color,
                 backgroundColor: bgColor,
                 size: 0.8
+            });
+        }
+    }
+
+    // Role-based permission functions
+    async function loadAllRoles() {
+        try {
+            const token = getCookie('AuthToken');
+            const response = await fetch(`${SERVER_URL}/api/roles`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to load roles');
+            }
+            
+            const data = await response.json();
+            allRoles = data.roles || {};
+            return allRoles;
+        } catch (error) {
+            console.error('Load all roles error:', error);
+            return {};
+        }
+    }
+
+    function isModeratorClass(role) {
+        const roleConfig = allRoles[role];
+        if (!roleConfig) return false;
+        
+        // Check for moderator tag OR check weight as fallback
+        return roleConfig.moderator || roleConfig.admin || roleConfig.fullaccess || 
+               (roleConfig.weight >= 40 && roleConfig.weight <= 60);
+    }
+
+    function isAdminClass(role) {
+        const roleConfig = allRoles[role];
+        if (!roleConfig) return false;
+        
+        // Check for admin tag OR fullaccess tag OR Owner role OR check weight as fallback
+        return roleConfig.admin || roleConfig.fullaccess || role === "Owner" ||
+               (roleConfig.weight >= 61 && roleConfig.weight <= 99);
+    }
+
+    function isFullAccess(role) {
+        const roleConfig = allRoles[role];
+        if (!roleConfig) return false;
+        
+        // Check for fullaccess tag OR Owner role OR check weight as fallback
+        return roleConfig.fullaccess || role === "Owner" || roleConfig.weight >= 100;
+    }
+
+    // Admin/MOD ad toggle functions
+    function showAdminToggle() {
+        const adminToggleContainer = document.getElementById('adminToggleContainer');
+        adminToggleContainer.style.display = 'block';
+        
+        // Set initial state
+        const toggleSwitch = document.getElementById('toggleSwitch');
+        if (adsEnabled) {
+            toggleSwitch.classList.add('active');
+        } else {
+            toggleSwitch.classList.remove('active');
+        }
+        
+        // Add click event listener
+        document.getElementById('adminToggle').addEventListener('click', toggleAds);
+    }
+
+    function toggleAds() {
+        const toggleSwitch = document.getElementById('toggleSwitch');
+        const adContainer = document.getElementById('adContainer');
+        
+        adsEnabled = !adsEnabled;
+        
+        if (adsEnabled) {
+            toggleSwitch.classList.add('active');
+            adContainer.style.display = 'block';
+            showNotification('Ads enabled', 'success');
+        } else {
+            toggleSwitch.classList.remove('active');
+            adContainer.style.display = 'none';
+            showNotification('Ads disabled', 'info');
+        }
+        
+        // Save preference
+        const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
+        preferences.adsEnabled = adsEnabled;
+        setCookie('UserPreferences', JSON.stringify(preferences), 365);
+    }
+
+    function checkAdminAccess() {
+        const token = getCookie('AuthToken');
+        const currentUser = localStorage.getItem('currentUser');
+        userRole = localStorage.getItem('userRole');
+        
+        if (token && currentUser && userRole) {
+            // Load roles and check permissions
+            loadAllRoles().then(() => {
+                if (isModeratorClass(userRole) || isAdminClass(userRole) || isFullAccess(userRole)) {
+                    showAdminToggle();
+                    
+                    // Load ad preference
+                    const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
+                    if (preferences.adsEnabled !== undefined) {
+                        adsEnabled = preferences.adsEnabled;
+                    }
+                    
+                    // Apply initial ad state
+                    const adContainer = document.getElementById('adContainer');
+                    if (!adsEnabled) {
+                        adContainer.style.display = 'none';
+                    }
+                }
             });
         }
     }
@@ -1792,7 +2001,7 @@
             {
                 id: 82,
                 title: "Deal or No Deal",
-                description: "Deal or No Deal is a game show where a player picks a briefcase and then opens others to see what money they missed. A “Banker” offers them money to stop, and they must choose: deal or no deal.",
+                description: "Deal or No Deal is a game show where a player picks a briefcase and then opens others to see what money they missed. A "Banker" offers them money to stop, and they must choose: deal or no deal.",
                 rating: 4,
                 category: ["strategy"],
                 image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Deal_or_No_Deal_1763953808466.png",
@@ -1902,7 +2111,7 @@
             {
                 id: 93,
                 title: "Jack Smith",
-                description: "Jacksmith is a crafting-focused adventure game where you forge weapons for heroes and help them battle monsters using gear you’ve created.",
+                description: "Jacksmith is a crafting-focused adventure game where you forge weapons for heroes and help them battle monsters using gear you've created.",
                 rating: 4.6,
                 category: ["strategy", "simulation"],
                 image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Jack_Smith_1764030396973.png",
@@ -1961,7 +2170,7 @@
             {
                 id: 100,
                 title: "Tag",
-                description: "Tag is a simple chase game where one player is “it” and tries to touch the other players. When someone gets tagged, they become the new “it.” Everyone runs, dodges, and tries not to get caught. The game keeps going until players decide to stop.",
+                description: "Tag is a simple chase game where one player is "it" and tries to touch the other players. When someone gets tagged, they become the new "it." Everyone runs, dodges, and tries not to get caught. The game keeps going until players decide to stop.",
                 rating: 5,
                 category: ["multiplayer"],
                 image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Tag_1764123525589.png",
@@ -2281,6 +2490,9 @@ function handleGameClick(game) {
                     // Set up periodic checking
                     broadcastCheckInterval = setInterval(checkForBroadcasts, 2 * 60 * 1000);
                     warningCheckInterval = setInterval(checkForWarnings, 5 * 60 * 1000);
+                    
+                    // Check for admin/MOD access
+                    checkAdminAccess();
                 } else {
                     showLoginModal();
                 }
@@ -3303,5 +3515,3 @@ function handleGameClick(game) {
 </script>
 </body>
 </html>
-
-
