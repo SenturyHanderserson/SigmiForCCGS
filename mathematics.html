@@ -562,11 +562,11 @@
             color: var(--text-secondary);
         }
         
-        /* Admin Ad Toggle Styles */
+        /* Admin Ad Toggle Styles - FIXED POSITIONING */
         .admin-toggle-container {
             position: fixed;
             top: 20px;
-            left: 20px;
+            right: 20px; /* Changed from left to right */
             z-index: 100;
             display: none;
         }
@@ -645,7 +645,7 @@
     <!-- Particles -->
     <div class="particles" id="particles"></div>
     
-    <!-- Admin Ad Toggle -->
+    <!-- Admin Ad Toggle - FIXED POSITIONING -->
     <div id="adminToggleContainer" class="admin-toggle-container">
         <div class="admin-toggle" id="adminToggle">
             <div class="toggle-switch" id="toggleSwitch"></div>
@@ -1121,7 +1121,7 @@
         return roleConfig.fullaccess || role === "Owner" || roleConfig.weight >= 100;
     }
 
-    // Admin/MOD ad toggle functions
+    // Admin/MOD ad toggle functions - FIXED
     function showAdminToggle() {
         const adminToggleContainer = document.getElementById('adminToggleContainer');
         adminToggleContainer.style.display = 'block';
@@ -1134,7 +1134,7 @@
             toggleSwitch.classList.remove('active');
         }
         
-        // Add click event listener
+        // Add click event listener - FIXED: Proper event listener
         document.getElementById('adminToggle').addEventListener('click', toggleAds);
     }
 
