@@ -561,6 +561,81 @@
             max-width: 80%;
             color: var(--text-secondary);
         }
+        
+        /* Admin Ad Toggle Styles */
+        .admin-toggle-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            display: none;
+        }
+        
+        .admin-toggle {
+            display: flex;
+            align-items: center;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-switch.active {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+        }
+        
+        .toggle-switch.active::after {
+            transform: translateX(26px);
+        }
+        
+        .toggle-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .admin-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: linear-gradient(135deg, #ff8c00, #ff5500);
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body class="min-h-screen text-white font-sans overflow-x-hidden theme-dark">
@@ -569,6 +644,15 @@
     
     <!-- Particles -->
     <div class="particles" id="particles"></div>
+    
+    <!-- Admin Ad Toggle -->
+    <div id="adminToggleContainer" class="admin-toggle-container">
+        <div class="admin-toggle" id="adminToggle">
+            <div class="toggle-switch" id="toggleSwitch"></div>
+            <span class="toggle-label">Ads</span>
+            <div class="admin-badge">ADMIN</div>
+        </div>
+    </div>
     
     <!-- Login Modal -->
     <div id="loginModal" class="login-modal">
@@ -611,7 +695,10 @@
         </div>
     </div>
     
-    <script type="text/javascript" src="//www.highperformanceformat.com/6d03dd6e4c62d2e63b1bba1110f44522/invoke.js"></script>
+    <div id="adContainer">
+        <script type="text/javascript" src="//www.highperformanceformat.com/6d03dd6e4c62d2e63b1bba1110f44522/invoke.js"></script>
+    </div>
+    
 	<!-- Warning Modal -->
 	<div id="warningModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
 		<div class="glass rounded-xl p-8 max-w-md w-full mx-4">
@@ -882,6 +969,11 @@
     let gameCountdowns = {};
     const COUNTDOWN_DURATION = 5; // 5 seconds
 
+    // Admin/MOD ad toggle variables
+    let allRoles = {};
+    let userRole = null;
+    let adsEnabled = true;
+
     function getCookie(name) {
         const cookieName = name + "=";
         const decodedCookie = decodeURIComponent(document.cookie);
@@ -978,8 +1070,126 @@
         }
     }
 
-    // Game data (unchanged)
-    const gamesData = [{
+    // Role-based permission functions
+    async function loadAllRoles() {
+        try {
+            const token = getCookie('AuthToken');
+            const response = await fetch(`${SERVER_URL}/api/roles`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to load roles');
+            }
+            
+            const data = await response.json();
+            allRoles = data.roles || {};
+            return allRoles;
+        } catch (error) {
+            console.error('Load all roles error:', error);
+            return {};
+        }
+    }
+
+    function isModeratorClass(role) {
+        const roleConfig = allRoles[role];
+        if (!roleConfig) return false;
+        
+        // Check for moderator tag OR check weight as fallback
+        return roleConfig.moderator || roleConfig.admin || roleConfig.fullaccess || 
+               (roleConfig.weight >= 40 && roleConfig.weight <= 60);
+    }
+
+    function isAdminClass(role) {
+        const roleConfig = allRoles[role];
+        if (!roleConfig) return false;
+        
+        // Check for admin tag OR fullaccess tag OR Owner role OR check weight as fallback
+        return roleConfig.admin || roleConfig.fullaccess || role === "Owner" ||
+               (roleConfig.weight >= 61 && roleConfig.weight <= 99);
+    }
+
+    function isFullAccess(role) {
+        const roleConfig = allRoles[role];
+        if (!roleConfig) return false;
+        
+        // Check for fullaccess tag OR Owner role OR check weight as fallback
+        return roleConfig.fullaccess || role === "Owner" || roleConfig.weight >= 100;
+    }
+
+    // Admin/MOD ad toggle functions
+    function showAdminToggle() {
+        const adminToggleContainer = document.getElementById('adminToggleContainer');
+        adminToggleContainer.style.display = 'block';
+        
+        // Set initial state
+        const toggleSwitch = document.getElementById('toggleSwitch');
+        if (adsEnabled) {
+            toggleSwitch.classList.add('active');
+        } else {
+            toggleSwitch.classList.remove('active');
+        }
+        
+        // Add click event listener
+        document.getElementById('adminToggle').addEventListener('click', toggleAds);
+    }
+
+    function toggleAds() {
+        const toggleSwitch = document.getElementById('toggleSwitch');
+        const adContainer = document.getElementById('adContainer');
+        
+        adsEnabled = !adsEnabled;
+        
+        if (adsEnabled) {
+            toggleSwitch.classList.add('active');
+            adContainer.style.display = 'block';
+            showNotification('Ads enabled', 'success');
+        } else {
+            toggleSwitch.classList.remove('active');
+            adContainer.style.display = 'none';
+            showNotification('Ads disabled', 'info');
+        }
+        
+        // Save preference
+        const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
+        preferences.adsEnabled = adsEnabled;
+        setCookie('UserPreferences', JSON.stringify(preferences), 365);
+    }
+
+    function checkAdminAccess() {
+        const token = getCookie('AuthToken');
+        const currentUser = localStorage.getItem('currentUser');
+        userRole = localStorage.getItem('userRole');
+        
+        if (token && currentUser && userRole) {
+            // Load roles and check permissions
+            loadAllRoles().then(() => {
+                if (isModeratorClass(userRole) || isAdminClass(userRole) || isFullAccess(userRole)) {
+                    showAdminToggle();
+                    
+                    // Load ad preference
+                    const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
+                    if (preferences.adsEnabled !== undefined) {
+                        adsEnabled = preferences.adsEnabled;
+                    }
+                    
+                    // Apply initial ad state
+                    const adContainer = document.getElementById('adContainer');
+                    if (!adsEnabled) {
+                        adContainer.style.display = 'none';
+                    }
+                }
+            });
+        }
+    }
+
+    // Game data (fixed syntax errors)
+    const gamesData = [
+        {
             id: 1,
             title: "Minecraft Java",
             description: "A replica of Minecraft Java Edition in your browser! Uses cracked accounts.",
@@ -1722,7 +1932,7 @@
         {
             id: 75,
             title: "Papa's Pizzaria",
-            description: "Papa’s Pizzaria is a fun, fast-paced cooking game where you take orders, bake pizzas, and serve customers to keep the restaurant running smoothly.",
+            description: "Papa's Pizzaria is a fun, fast-paced cooking game where you take orders, bake pizzas, and serve customers to keep the restaurant running smoothly.",
             rating: 4.1,
             category: ["simulation"],
             image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Papa_s_Pizzaria_1763352091901.png",
@@ -1762,7 +1972,7 @@
         {
             id: 79,
             title: "Boxing Random",
-            description: "Boxing Random is a chaotic and funny physics-based boxing game where each round changes the fighters’ movements, making every punch unpredictable.",
+            description: "Boxing Random is a chaotic and funny physics-based boxing game where each round changes the fighters' movements, making every punch unpredictable.",
             rating: 4.3,
             category: ["new"],
             image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Boxing_Random_1763505528544.png",
@@ -1782,192 +1992,194 @@
         {
             id: 81,
             title: "Papa's Scooparia",
-            description: "Papa’s Scooparia is a fun time-management game where you bake cookies and build custom ice-cream sundaes for a growing line of hungry customers.",
+            description: "Papa's Scooparia is a fun time-management game where you bake cookies and build custom ice-cream sundaes for a growing line of hungry customers.",
             rating: 4.7,
             category: ["simulation"],
             image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Papa_s_Scooparia_1763596150833.png",
             playCount: 12000,
             url: "english/papa_s_scooparia"
         },
-            {
-                id: 82,
-                title: "Deal or No Deal",
-                description: "Deal or No Deal is a game show where a player picks a briefcase and then opens others to see what money they missed. A “Banker” offers them money to stop, and they must choose: deal or no deal.",
-                rating: 4,
-                category: ["strategy"],
-                image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Deal_or_No_Deal_1763953808466.png",
-                playCount: 2400,
-                url: "english/deal_or_no_deal"
-            },
-            {
-                id: 83,
-                title: "Doodle Jump",
-                description: "Doodle Jump is a simple jumping game where you guide a little character upward by bouncing on platforms, avoiding obstacles, and collecting power-ups. The goal is to climb as high as possible without falling or getting hit.",
-                rating: 4,
-                category: ["new"],
-                image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Doodle_Jump_1763954159999.png",
-                playCount: 2500,
-                url: "english/doodle_jump"
-            },
-            {
-                id: 84,
-                title: "Moto X3M",
-                description: "Moto X3M is a fast motorbike stunt game where you race through tricky tracks, perform jumps, avoid obstacles, and try to reach the finish line as quickly as possible.",
-                rating: 5,
-                category: ["action"],
-                image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Moto_X3M_1763955619365.png",
-                playCount: 2600,
-                url: "english/moto_x3m"
-            },
-            {
-                id: 85,
-                title: "Moto X3M 2",
-                description: "Moto X3M 2 is the sequel to the stunt bike game where you ride through new, harder obstacle courses, do flips and jumps, and try to finish each level as fast as you can without crashing.",
-                rating: 5,
-                category: ["action"],
-                image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Moto_X3M_2_1763955943896.png",
-                playCount: 2800,
-                url: "english/moto_x3m_2"
-            },
-            {
-                id: 86,
-                title: "Moto X3M Pool",
-                description: "Moto X3M Pool Party is a motorbike stunt game set in a water-themed world. You ride through slides, pools, and tricky obstacles, trying to finish each level quickly without crashing.",
-                rating: 5,
-                category: ["action"],
-                image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Moto_X3M_Pool_1763956259446.png",
-                playCount: 3000,
-                url: "english/moto_x3m_pool"
-            },
-            {
-                id: 87,
-                title: "Moto X3M Spooky",
-                description: "Moto X3M Spooky Land is a Halloween-themed stunt bike game where you race through creepy levels filled with ghosts, traps, and spooky obstacles, trying to finish fast without crashing.",
-                rating: 4,
-                category: ["action"],
-                image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Moto_X3M_Spooky_1763956686675.png",
-                playCount: 5000,
-                url: "english/moto_x3m_spooky"
-            },
-            {
-                id: 88,
-                title: "Pacman",
-                description: "Pac-Man is a classic arcade game where you guide a yellow character through a maze, eating dots while avoiding ghosts. Eating special power pellets lets you chase the ghosts for extra points.",
-                rating: 3.5,
-                category: ["popular"],
-                image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Pacman_1763961719534.png",
-                playCount: 3000,
-                url: "english/pacman"
-            },
-            {
-                id: 89,
-                title: "Parking Fury",
-                description: "Parking Fury is a driving game where you carefully steer cars into marked parking spots without crashing. Each level gets trickier with tighter spaces and more obstacles.",
-                rating: 4,
-                category: ["strategy"],
-                image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Parking_Fury_1763962093061.png",
-                playCount: 2400,
-                url: "english/parking_fury"
-            },
-            {
-                id: 90,
-                title: "Parking Fury 2",
-                description: "Parking Fury 2 is a parking game where you drive different cars into tight parking spots while avoiding walls and traffic. Levels get harder with sharper turns and more obstacles.",
-                rating: 4,
-                category: ["strategy"],
-                image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Parking_Fury_2_1763962253601.png",
-                playCount: 2300,
-                url: "english/parking_fury_2"
-            },
-            {
-                id: 91,
-                title: "Five Nights at Freddy's",
-                description: "Five Nights at Freddy's is a horror game where you play as a night security guard in a haunted pizzeria. You must survive the night by monitoring animatronic characters that move around and can attack you.",
-                rating: 4,
-                category: ["strategy"],
-                image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Five_Nights_at_Freddy_s_1763962565085.png",
-                playCount: 4000,
-                url: "english/five_nights_at_freddy_s"
-            },
-            {
-                id: 92,
-                title: "3D Bowling",
-                description: "Go Bowling! In this realistic bowling experience, you can live out your pro bowler dreams! #67",
-                rating: 4.4,
-                category: ["new"],
-                image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/3D_Bowling_1764020648177.jpeg",
-                playCount: 67000,
-                url: "english/3d_bowling"
-            },
-            {
-                id: 93,
-                title: "Jack Smith",
-                description: "Jacksmith is a crafting-focused adventure game where you forge weapons for heroes and help them battle monsters using gear you’ve created.",
-                rating: 4.6,
-                category: ["strategy", "simulation"],
-                image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Jack_Smith_1764030396973.png",
-                playCount: 9300,
-                url: "english/jack_smith"
-            },
-            {
-                id: 94,
-                title: "Getting Over It",
-                description: "A game that will make you angry! Requested by Azza Josh",
-                rating: 4.2,
-                category: ["new"],
-                image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Getting_Over_It_1764036028480.jpeg",
-                playCount: 7000,
-                url: "english/getting_over_it"
-            },
-            {
-                id: 95,
-                title: "Cluster Rush",
-                description: "Jump over trucks to get to an area! Dont get run over or you suck.",
-                rating: 4.2,
-                category: ["new", "action"],
-                image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Cluster_Rush_1764036167744.jpeg",
-                playCount: 8000,
-                url: "english/cluster_rush"
-            },
-            {
-                id: 96,
-                title: "Papas Burgeria",
-                description: "Make burgers for an ever growing line of hungry Customers!",
-                rating: 3.9,
-                category: ["new"],
-                image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Papas_Burgeria_1764036521499.jpeg",
-                playCount: 6000,
-                url: "english/papas_burgeria"
-            },
-            {
-                id: 97,
-                title: "Bubble Pop Adventures!",
-                description: "Pop Bubbles and have fun! six seven six seven mr gunderson",
-                rating: 3.6,
-                category: ["new"],
-                image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Bubble_Pop_Adventures__1764122789299.jpeg",
-                playCount: 5000,
-                url: "english/bubble_pop_adventures_"
-            },{
-                id: 99,
-                title: "Block The Pig!",
-                description: "Requested by Hamish S, you gotta stop the pig from escaping from mr gundo",
-                rating: 4.1,
-                category: ["new"],
-                image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Block_The_Pig__1764122974649.jpeg",
-                playCount: 6700,
-                url: "english/block_the_pig_"
-            },
-            {
-                id: 100,
-                title: "Tag",
-                description: "Tag is a simple chase game where one player is “it” and tries to touch the other players. When someone gets tagged, they become the new “it.” Everyone runs, dodges, and tries not to get caught. The game keeps going until players decide to stop.",
-                rating: 5,
-                category: ["multiplayer"],
-                image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Tag_1764123525589.png",
-                playCount: 4000,
-                url: "https://games.construct.net/39/5545/embed.html?uid=0&o=1"
-            }];
+        {
+            id: 82,
+            title: "Deal or No Deal",
+            description: "Deal or No Deal is a game show where a player picks a briefcase and then opens others to see what money they missed. A 'Banker' offers them money to stop, and they must choose: deal or no deal.",
+            rating: 4,
+            category: ["strategy"],
+            image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Deal_or_No_Deal_1763953808466.png",
+            playCount: 2400,
+            url: "english/deal_or_no_deal"
+        },
+        {
+            id: 83,
+            title: "Doodle Jump",
+            description: "Doodle Jump is a simple jumping game where you guide a little character upward by bouncing on platforms, avoiding obstacles, and collecting power-ups. The goal is to climb as high as possible without falling or getting hit.",
+            rating: 4,
+            category: ["new"],
+            image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Doodle_Jump_1763954159999.png",
+            playCount: 2500,
+            url: "english/doodle_jump"
+        },
+        {
+            id: 84,
+            title: "Moto X3M",
+            description: "Moto X3M is a fast motorbike stunt game where you race through tricky tracks, perform jumps, avoid obstacles, and try to reach the finish line as quickly as possible.",
+            rating: 5,
+            category: ["action"],
+            image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Moto_X3M_1763955619365.png",
+            playCount: 2600,
+            url: "english/moto_x3m"
+        },
+        {
+            id: 85,
+            title: "Moto X3M 2",
+            description: "Moto X3M 2 is the sequel to the stunt bike game where you ride through new, harder obstacle courses, do flips and jumps, and try to finish each level as fast as you can without crashing.",
+            rating: 5,
+            category: ["action"],
+            image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Moto_X3M_2_1763955943896.png",
+            playCount: 2800,
+            url: "english/moto_x3m_2"
+        },
+        {
+            id: 86,
+            title: "Moto X3M Pool",
+            description: "Moto X3M Pool Party is a motorbike stunt game set in a water-themed world. You ride through slides, pools, and tricky obstacles, trying to finish each level quickly without crashing.",
+            rating: 5,
+            category: ["action"],
+            image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Moto_X3M_Pool_1763956259446.png",
+            playCount: 3000,
+            url: "english/moto_x3m_pool"
+        },
+        {
+            id: 87,
+            title: "Moto X3M Spooky",
+            description: "Moto X3M Spooky Land is a Halloween-themed stunt bike game where you race through creepy levels filled with ghosts, traps, and spooky obstacles, trying to finish fast without crashing.",
+            rating: 4,
+            category: ["action"],
+            image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Moto_X3M_Spooky_1763956686675.png",
+            playCount: 5000,
+            url: "english/moto_x3m_spooky"
+        },
+        {
+            id: 88,
+            title: "Pacman",
+            description: "Pac-Man is a classic arcade game where you guide a yellow character through a maze, eating dots while avoiding ghosts. Eating special power pellets lets you chase the ghosts for extra points.",
+            rating: 3.5,
+            category: ["popular"],
+            image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Pacman_1763961719534.png",
+            playCount: 3000,
+            url: "english/pacman"
+        },
+        {
+            id: 89,
+            title: "Parking Fury",
+            description: "Parking Fury is a driving game where you carefully steer cars into marked parking spots without crashing. Each level gets trickier with tighter spaces and more obstacles.",
+            rating: 4,
+            category: ["strategy"],
+            image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Parking_Fury_1763962093061.png",
+            playCount: 2400,
+            url: "english/parking_fury"
+        },
+        {
+            id: 90,
+            title: "Parking Fury 2",
+            description: "Parking Fury 2 is a parking game where you drive different cars into tight parking spots while avoiding walls and traffic. Levels get harder with sharper turns and more obstacles.",
+            rating: 4,
+            category: ["strategy"],
+            image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Parking_Fury_2_1763962253601.png",
+            playCount: 2300,
+            url: "english/parking_fury_2"
+        },
+        {
+            id: 91,
+            title: "Five Nights at Freddy's",
+            description: "Five Nights at Freddy's is a horror game where you play as a night security guard in a haunted pizzeria. You must survive the night by monitoring animatronic characters that move around and can attack you.",
+            rating: 4,
+            category: ["strategy"],
+            image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Five_Nights_at_Freddy_s_1763962565085.png",
+            playCount: 4000,
+            url: "english/five_nights_at_freddy_s"
+        },
+        {
+            id: 92,
+            title: "3D Bowling",
+            description: "Go Bowling! In this realistic bowling experience, you can live out your pro bowler dreams! #67",
+            rating: 4.4,
+            category: ["new"],
+            image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/3D_Bowling_1764020648177.jpeg",
+            playCount: 67000,
+            url: "english/3d_bowling"
+        },
+        {
+            id: 93,
+            title: "Jack Smith",
+            description: "Jacksmith is a crafting-focused adventure game where you forge weapons for heroes and help them battle monsters using gear you've created.",
+            rating: 4.6,
+            category: ["strategy", "simulation"],
+            image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Jack_Smith_1764030396973.png",
+            playCount: 9300,
+            url: "english/jack_smith"
+        },
+        {
+            id: 94,
+            title: "Getting Over It",
+            description: "A game that will make you angry! Requested by Azza Josh",
+            rating: 4.2,
+            category: ["new"],
+            image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Getting_Over_It_1764036028480.jpeg",
+            playCount: 7000,
+            url: "english/getting_over_it"
+        },
+        {
+            id: 95,
+            title: "Cluster Rush",
+            description: "Jump over trucks to get to an area! Dont get run over or you suck.",
+            rating: 4.2,
+            category: ["new", "action"],
+            image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Cluster_Rush_1764036167744.jpeg",
+            playCount: 8000,
+            url: "english/cluster_rush"
+        },
+        {
+            id: 96,
+            title: "Papas Burgeria",
+            description: "Make burgers for an ever growing line of hungry Customers!",
+            rating: 3.9,
+            category: ["new"],
+            image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Papas_Burgeria_1764036521499.jpeg",
+            playCount: 6000,
+            url: "english/papas_burgeria"
+        },
+        {
+            id: 97,
+            title: "Bubble Pop Adventures!",
+            description: "Pop Bubbles and have fun! six seven six seven mr gunderson",
+            rating: 3.6,
+            category: ["new"],
+            image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Bubble_Pop_Adventures__1764122789299.jpeg",
+            playCount: 5000,
+            url: "english/bubble_pop_adventures_"
+        },
+        {
+            id: 99,
+            title: "Block The Pig!",
+            description: "Requested by Hamish S, you gotta stop the pig from escaping from mr gundo",
+            rating: 4.1,
+            category: ["new"],
+            image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Block_The_Pig__1764122974649.jpeg",
+            playCount: 6700,
+            url: "english/block_the_pig_"
+        },
+        {
+            id: 100,
+            title: "Tag",
+            description: "Tag is a simple chase game where one player is 'it' and tries to touch the other players. When someone gets tagged, they become the new 'it.' Everyone runs, dodges, and tries not to get caught. The game keeps going until players decide to stop.",
+            rating: 5,
+            category: ["multiplayer"],
+            image: "https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/images/Tag_1764123525589.png",
+            playCount: 4000,
+            url: "https://games.construct.net/39/5545/embed.html?uid=0&o=1"
+        }
+    ];
 
     // Global variables to track filtering state
     let currentFilter = 'all';
@@ -2281,6 +2493,9 @@ function handleGameClick(game) {
                     // Set up periodic checking
                     broadcastCheckInterval = setInterval(checkForBroadcasts, 2 * 60 * 1000);
                     warningCheckInterval = setInterval(checkForWarnings, 5 * 60 * 1000);
+                    
+                    // Check for admin/MOD access
+                    checkAdminAccess();
                 } else {
                     showLoginModal();
                 }
@@ -3303,4 +3518,3 @@ function handleGameClick(game) {
 </script>
 </body>
 </html>
-
