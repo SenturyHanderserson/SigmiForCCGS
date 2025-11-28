@@ -2410,6 +2410,13 @@ function handleGameClick(game) {
     // Update unlock status before checking
     updateUnlockStatus();
     
+    // Check if user is admin/MOD and ads are disabled
+    if ((isModeratorClass(userRole) || isAdminClass(userRole) || isFullAccess(userRole)) && !adsEnabled) {
+        // Admin/MOD with ads disabled - directly open the game
+        window.open(game.url, '_blank');
+        return true;
+    }
+    
     // Check if game is already unlocked
     if (isGameUnlocked(game.id)) {
         // Game is unlocked, open directly
