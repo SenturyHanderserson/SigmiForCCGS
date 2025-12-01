@@ -485,6 +485,25 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(255, 140, 0, 0.4);
         }
+        
+        /* Main Content Container - Adjusted for Sidebar Ads */
+        .main-content-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        @media (min-width: 1400px) {
+            .main-content-container {
+                max-width: 1100px;
+            }
+        }
+        
+        @media (min-width: 1600px) {
+            .main-content-container {
+                max-width: 1200px;
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen text-white font-sans overflow-x-hidden theme-dark">
@@ -621,7 +640,7 @@
     
     <!-- Header -->
     <header class="glass p-4 sticky top-0 z-40">
-        <div class="container mx-auto flex justify-between items-center">
+        <div class="main-content-container flex justify-between items-center">
             <div class="flex items-center space-x-4">
                 <a href="index" class="flex items-center">
                     <i data-feather="arrow-left" class="w-6 h-6 mr-2"></i>
@@ -641,7 +660,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8">
+    <main class="main-content-container py-8">
         <!-- Page Header -->
         <section class="mb-12 text-center">
             <h1 class="text-4xl md:text-5xl font-bold mb-4 neon-text">All Games</h1>
@@ -724,7 +743,7 @@
 
     <!-- Footer -->
     <footer class="glass mt-16 py-8">
-        <div class="container mx-auto px-4">
+        <div class="main-content-container">
             <div class="flex flex-col md:flex-row justify-between items-center">
                 <div class="mb-6 md:mb-0">
                     <div class="flex items-center">
