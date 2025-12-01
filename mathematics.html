@@ -448,193 +448,42 @@
             filter: brightness(0) invert(0);
         }
         
-        /* Unlock Modal Styles */
-        .unlock-modal {
+        /* Sidebar Ad Styles */
+        .sidebar-ad {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 50;
         }
         
-        .unlock-modal.active {
-            opacity: 1;
-            visibility: visible;
+        .sidebar-ad-left {
+            left: 10px;
         }
         
-        .unlock-content {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 2rem;
-            max-width: 450px;
-            width: 90%;
-            text-align: center;
-            transform: scale(0.9);
-            transition: transform 0.3s ease;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        .sidebar-ad-right {
+            right: 10px;
         }
         
-        .unlock-modal.active .unlock-content {
-            transform: scale(1);
-        }
-        
-        .unlock-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 1rem;
-            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 20px rgba(142, 68, 173, 0.5);
-        }
-        
-        .timer-display {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin: 1rem 0;
-            padding: 0.5rem;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            display: inline-block;
-        }
-        
-        .unlock-options {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-        
-        .dont-show-again {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-        
-        /* Game Card Countdown Overlay */
-        .countdown-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 20;
-            border-radius: 8px;
-        }
-        
-        .countdown-text {
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-        
-        .countdown-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: var(--accent-primary);
-            margin-bottom: 1rem;
-        }
-        
-        .countdown-message {
-            font-size: 0.9rem;
-            text-align: center;
-            max-width: 80%;
-            color: var(--text-secondary);
-        }
-        
-        /* Admin Ad Toggle Styles - FIXED POSITIONING */
-        .admin-toggle-container {
-            position: fixed;
-            top: 20px;
-            right: 20px; /* Changed from left to right */
-            z-index: 100;
-            display: none;
-        }
-        
-        .admin-toggle {
-            display: flex;
-            align-items: center;
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            border-radius: 30px;
-            padding: 8px 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .admin-toggle:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        .toggle-switch {
-            position: relative;
-            width: 50px;
-            height: 24px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            margin-right: 10px;
-            transition: all 0.3s ease;
-        }
-        
-        .toggle-switch::after {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 20px;
-            height: 20px;
-            background: white;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-        
-        .toggle-switch.active {
-            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-        }
-        
-        .toggle-switch.active::after {
-            transform: translateX(26px);
-        }
-        
-        .toggle-label {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-        
-        .admin-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
+        /* Support Button Styles */
+        .support-btn {
             background: linear-gradient(135deg, #ff8c00, #ff5500);
             color: white;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 10px;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
             font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(255, 140, 0, 0.3);
+        }
+        
+        .support-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 140, 0, 0.4);
         }
     </style>
 </head>
@@ -645,14 +494,35 @@
     <!-- Particles -->
     <div class="particles" id="particles"></div>
     
-    <!-- Admin Ad Toggle - FIXED POSITIONING -->
-    <div id="adminToggleContainer" class="admin-toggle-container">
-        <div class="admin-toggle" id="adminToggle">
-            <div class="toggle-switch" id="toggleSwitch"></div>
-            <span class="toggle-label">Ads</span>
-            <div class="admin-badge">ADMIN</div>
-        </div>
+    <!-- Sidebar Ads -->
+    <div class="sidebar-ad sidebar-ad-left">
+        <script type="text/javascript">
+            atOptions = {
+                'key' : '6d03dd6e4c62d2e63b1bba1110f44522',
+                'format' : 'iframe',
+                'height' : 600,
+                'width' : 160,
+                'params' : {}
+            };
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/6d03dd6e4c62d2e63b1bba1110f44522/invoke.js"></script>
     </div>
+    
+    <div class="sidebar-ad sidebar-ad-right">
+        <script type="text/javascript">
+            atOptions = {
+                'key' : '6d03dd6e4c62d2e63b1bba1110f44522',
+                'format' : 'iframe',
+                'height' : 600,
+                'width' : 160,
+                'params' : {}
+            };
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/6d03dd6e4c62d2e63b1bba1110f44522/invoke.js"></script>
+    </div>
+    
+    <!-- Background Script Ad -->
+    <script type='text/javascript' src='//pl28094519.effectivegatecpm.com/ad/69/58/ad69583a5e36e773f00fc8eba943aecb.js'></script>
     
     <!-- Login Modal -->
     <div id="loginModal" class="login-modal">
@@ -669,34 +539,6 @@
                 Continue as Guest
             </button>
         </div>
-    </div>
-    
-    <!-- Unlock Modal -->
-    <div id="unlockModal" class="unlock-modal">
-        <div class="unlock-content">
-            <div class="unlock-icon">
-                <i data-feather="lock" class="w-10 h-10 text-white"></i>
-            </div>
-            <h2 class="text-2xl font-bold mb-4">Support Developers</h2>
-            <p class="text-gray-300 mb-4">To support the developers of this website, a new tab will open with an advertisement. Please keep it open for 5 seconds.</p>
-            <div class="timer-display" id="timerDisplay">5</div>
-            <div class="unlock-options">
-                <button id="unlockOkBtn" class="btn-primary py-3 px-6 rounded-lg font-medium w-full">
-                    OK
-                </button>
-                <button id="unlockCancelBtn" class="py-2 px-4 rounded-lg border border-purple-700 text-purple-300 hover:bg-purple-800 hover:bg-opacity-50 transition w-full">
-                    Cancel
-                </button>
-            </div>
-            <div class="dont-show-again">
-                <input type="checkbox" id="dontShowAgain">
-                <label for="dontShowAgain" class="text-sm">Don't show this again</label>
-            </div>
-        </div>
-    </div>
-    
-    <div id="adContainer">
-        <script type="text/javascript" src="//www.highperformanceformat.com/6d03dd6e4c62d2e63b1bba1110f44522/invoke.js"></script>
     </div>
     
 	<!-- Warning Modal -->
@@ -934,14 +776,12 @@
                     </div>
                 </div>
                 <div class="md:w-1/3">
-                    <h3 class="text-sm font-semibold uppercase mb-4">Subscribe to our newsletter</h3>
-                    <div class="flex">
-                        <input type="email" placeholder="Your email" class="px-4 py-2 rounded-l-lg bg-purple-900 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 w-full">
-                        <button class="btn-primary px-4 py-2 rounded-r-lg">
-                            <i data-feather="send" class="w-5 h-5"></i>
-                        </button>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-2">We'll never share your email with anyone else.</p>
+                    <h3 class="text-sm font-semibold uppercase mb-4">Support the Developer</h3>
+                    <button id="supportBtn" class="support-btn w-full">
+                        <i data-feather="heart" class="w-5 h-5"></i>
+                        Support Me
+                    </button>
+                    <p class="text-xs text-gray-400 mt-2">Your support helps keep this site running and ad-free.</p>
                 </div>
             </div>
             <div class="mt-8 text-center text-gray-400 text-sm">
@@ -958,235 +798,6 @@
 	let warningCheckInterval = null;
 	const SERVER_URL = 'https://proxyforsigmi.onrender.com';
     
-    // Game unlock system variables
-    let currentGameToUnlock = null;
-    let unlockTimer = null;
-    let unlockCountdown = 5;
-    const AD_URL = "https://www.effectivegatecpm.com/rcr2k1vfs?key=0ccd58bd1245548c332c7423458b9bdc";
-    const UNLOCK_DURATION = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
-
-    // Game countdown system variables
-    let gameCountdowns = {};
-    const COUNTDOWN_DURATION = 5; // 5 seconds
-
-    // Admin/MOD ad toggle variables
-    let allRoles = {};
-    let userRole = null;
-    let adsEnabled = true;
-
-    function getCookie(name) {
-        const cookieName = name + "=";
-        const decodedCookie = decodeURIComponent(document.cookie);
-        const cookieArray = decodedCookie.split(';');
-        
-        for(let i = 0; i < cookieArray.length; i++) {
-            let cookie = cookieArray[i];
-            while (cookie.charAt(0) === ' ') {
-                cookie = cookie.substring(1);
-            }
-            if (cookie.indexOf(cookieName) === 0) {
-                return cookie.substring(cookieName.length, cookie.length);
-            }
-        }
-        return "";
-    }
-
-    function setCookie(name, value, days) {
-        const date = new Date();
-        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-        const expires = "expires=" + date.toUTCString();
-        document.cookie = name + "=" + value + ";" + expires + ";path=/";
-    }
-
-    function getTheme() {
-        const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
-        return preferences.theme || 'dark';
-    }
-
-    function setTheme(theme) {
-        // Update the theme class on body
-        document.body.className = document.body.className.replace(/\btheme-\w+/g, '');
-        document.body.classList.add(`theme-${theme}`);
-        
-        // Save to preferences
-        const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
-        preferences.theme = theme;
-        setCookie('UserPreferences', JSON.stringify(preferences), 365);
-        
-        // Update Vanta background to match theme
-        initVantaBackground();
-    }
-
-    function applyThemeOnLoad() {
-        const theme = getTheme();
-        setTheme(theme);
-    }
-
-    function initVantaBackground() {
-        const theme = getTheme();
-        let color, bgColor;
-        
-        switch(theme) {
-            case 'light':
-                color = 0x6f42c1;
-                bgColor = 0xf8f9fa;
-                break;
-            case 'amoled':
-                color = 0x8e44ad;
-                bgColor = 0x0;
-                break;
-            case 'blue':
-                color = 0x2563eb;
-                bgColor = 0x0a1931;
-                break;
-            case 'purple':
-                color = 0x8e44ad;
-                bgColor = 0x1a0933;
-                break;
-            default: // dark
-                color = 0x8e44ad;
-                bgColor = 0x1a0933;
-        }
-        
-        if (window.VANTA) {
-            // Destroy existing instance if any
-            if (window.vantaEffect) {
-                window.vantaEffect.destroy();
-            }
-            
-            window.vantaEffect = VANTA.GLOBE({
-                el: "#vanta-bg",
-                mouseControls: true,
-                touchControls: true,
-                gyroControls: false,
-                minHeight: 200.00,
-                minWidth: 200.00,
-                scale: 1.00,
-                scaleMobile: 1.00,
-                color: color,
-                backgroundColor: bgColor,
-                size: 0.8
-            });
-        }
-    }
-
-    // Role-based permission functions
-    async function loadAllRoles() {
-        try {
-            const token = getCookie('AuthToken');
-            const response = await fetch(`${SERVER_URL}/api/roles`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error('Failed to load roles');
-            }
-            
-            const data = await response.json();
-            allRoles = data.roles || {};
-            return allRoles;
-        } catch (error) {
-            console.error('Load all roles error:', error);
-            return {};
-        }
-    }
-
-    function isModeratorClass(role) {
-        const roleConfig = allRoles[role];
-        if (!roleConfig) return false;
-        
-        // Check for moderator tag OR check weight as fallback
-        return roleConfig.moderator || roleConfig.admin || roleConfig.fullaccess || 
-               (roleConfig.weight >= 40 && roleConfig.weight <= 60);
-    }
-
-    function isAdminClass(role) {
-        const roleConfig = allRoles[role];
-        if (!roleConfig) return false;
-        
-        // Check for admin tag OR fullaccess tag OR Owner role OR check weight as fallback
-        return roleConfig.admin || roleConfig.fullaccess || role === "Owner" ||
-               (roleConfig.weight >= 61 && roleConfig.weight <= 99);
-    }
-
-    function isFullAccess(role) {
-        const roleConfig = allRoles[role];
-        if (!roleConfig) return false;
-        
-        // Check for fullaccess tag OR Owner role OR check weight as fallback
-        return roleConfig.fullaccess || role === "Owner" || roleConfig.weight >= 100;
-    }
-
-    // Admin/MOD ad toggle functions - FIXED
-    function showAdminToggle() {
-        const adminToggleContainer = document.getElementById('adminToggleContainer');
-        adminToggleContainer.style.display = 'block';
-        
-        // Set initial state
-        const toggleSwitch = document.getElementById('toggleSwitch');
-        if (adsEnabled) {
-            toggleSwitch.classList.add('active');
-        } else {
-            toggleSwitch.classList.remove('active');
-        }
-        
-        // Add click event listener - FIXED: Proper event listener
-        document.getElementById('adminToggle').addEventListener('click', toggleAds);
-    }
-
-    function toggleAds() {
-        const toggleSwitch = document.getElementById('toggleSwitch');
-        const adContainer = document.getElementById('adContainer');
-        
-        adsEnabled = !adsEnabled;
-        
-        if (adsEnabled) {
-            toggleSwitch.classList.add('active');
-            adContainer.style.display = 'block';
-            showNotification('Ads enabled', 'success');
-        } else {
-            toggleSwitch.classList.remove('active');
-            adContainer.style.display = 'none';
-            showNotification('Ads disabled', 'info');
-        }
-        
-        // Save preference
-        const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
-        preferences.adsEnabled = adsEnabled;
-        setCookie('UserPreferences', JSON.stringify(preferences), 365);
-    }
-
-    function checkAdminAccess() {
-        const token = getCookie('AuthToken');
-        const currentUser = localStorage.getItem('currentUser');
-        userRole = localStorage.getItem('userRole');
-        
-        if (token && currentUser && userRole) {
-            // Load roles and check permissions
-            loadAllRoles().then(() => {
-                if (isModeratorClass(userRole) || isAdminClass(userRole) || isFullAccess(userRole)) {
-                    showAdminToggle();
-                    
-                    // Load ad preference
-                    const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
-                    if (preferences.adsEnabled !== undefined) {
-                        adsEnabled = preferences.adsEnabled;
-                    }
-                    
-                    // Apply initial ad state
-                    const adContainer = document.getElementById('adContainer');
-                    if (!adsEnabled) {
-                        adContainer.style.display = 'none';
-                    }
-                }
-            });
-        }
-    }
-
     // Game data (fixed syntax errors)
     const gamesData = [
         {
@@ -2202,6 +1813,102 @@
     // Apply theme on page load
     applyThemeOnLoad();
     
+    function getCookie(name) {
+        const cookieName = name + "=";
+        const decodedCookie = decodeURIComponent(document.cookie);
+        const cookieArray = decodedCookie.split(';');
+        
+        for(let i = 0; i < cookieArray.length; i++) {
+            let cookie = cookieArray[i];
+            while (cookie.charAt(0) === ' ') {
+                cookie = cookie.substring(1);
+            }
+            if (cookie.indexOf(cookieName) === 0) {
+                return cookie.substring(cookieName.length, cookie.length);
+            }
+        }
+        return "";
+    }
+
+    function setCookie(name, value, days) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        const expires = "expires=" + date.toUTCString();
+        document.cookie = name + "=" + value + ";" + expires + ";path=/";
+    }
+
+    function getTheme() {
+        const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
+        return preferences.theme || 'dark';
+    }
+
+    function setTheme(theme) {
+        // Update the theme class on body
+        document.body.className = document.body.className.replace(/\btheme-\w+/g, '');
+        document.body.classList.add(`theme-${theme}`);
+        
+        // Save to preferences
+        const preferences = JSON.parse(getCookie('UserPreferences') || '{}');
+        preferences.theme = theme;
+        setCookie('UserPreferences', JSON.stringify(preferences), 365);
+        
+        // Update Vanta background to match theme
+        initVantaBackground();
+    }
+
+    function applyThemeOnLoad() {
+        const theme = getTheme();
+        setTheme(theme);
+    }
+
+    function initVantaBackground() {
+        const theme = getTheme();
+        let color, bgColor;
+        
+        switch(theme) {
+            case 'light':
+                color = 0x6f42c1;
+                bgColor = 0xf8f9fa;
+                break;
+            case 'amoled':
+                color = 0x8e44ad;
+                bgColor = 0x0;
+                break;
+            case 'blue':
+                color = 0x2563eb;
+                bgColor = 0x0a1931;
+                break;
+            case 'purple':
+                color = 0x8e44ad;
+                bgColor = 0x1a0933;
+                break;
+            default: // dark
+                color = 0x8e44ad;
+                bgColor = 0x1a0933;
+        }
+        
+        if (window.VANTA) {
+            // Destroy existing instance if any
+            if (window.vantaEffect) {
+                window.vantaEffect.destroy();
+            }
+            
+            window.vantaEffect = VANTA.GLOBE({
+                el: "#vanta-bg",
+                mouseControls: true,
+                touchControls: true,
+                gyroControls: false,
+                minHeight: 200.00,
+                minWidth: 200.00,
+                scale: 1.00,
+                scaleMobile: 1.00,
+                color: color,
+                backgroundColor: bgColor,
+                size: 0.8
+            });
+        }
+    }
+    
     function createParticles() {
         const particlesContainer = document.getElementById('particles');
         const particleCount = 50;
@@ -2235,222 +1942,6 @@
             particlesContainer.appendChild(particle);
         }
     }
-    
-    // ============ GAME UNLOCK SYSTEM ============
-    
-    // Function to check if a game is unlocked
-function isGameUnlocked(gameId) {
-    const unlockedGames = JSON.parse(getCookie('UnlockedGames') || '{}');
-    const unlockInfo = unlockedGames[gameId];
-    
-    if (!unlockInfo) return false;
-    
-    // Check if unlock period has expired
-    const unlockTime = new Date(unlockInfo.unlockTime);
-    const currentTime = new Date();
-    const timeDiff = currentTime - unlockTime;
-    
-    return timeDiff < UNLOCK_DURATION;
-}
-
-function updateUnlockStatus() {
-    const gameCards = document.querySelectorAll('.game-card');
-    
-    gameCards.forEach(card => {
-        const gameId = parseInt(card.getAttribute('data-game-id'));
-        const isUnlocked = isGameUnlocked(gameId);
-        const unlockBadge = card.querySelector('.unlock-badge');
-        
-        // Remove existing unlock badge
-        if (unlockBadge) {
-            unlockBadge.remove();
-        }
-        
-        // Add unlock badge if game is unlocked
-        if (isUnlocked) {
-            const newUnlockBadge = document.createElement('div');
-            newUnlockBadge.className = 'unlock-badge absolute top-2 left-10 bg-green-500 text-white text-xs px-2 py-1 rounded-full z-10';
-            newUnlockBadge.textContent = 'Unlocked';
-            
-            // Find the image container to insert the badge
-            const imageContainer = card.querySelector('.relative.mb-4');
-            if (imageContainer) {
-                imageContainer.appendChild(newUnlockBadge);
-            }
-        }
-    });
-}
-
-		
-    // Function to unlock a game
-	function unlockGame(gameId) {
-	    const unlockedGames = JSON.parse(getCookie('UnlockedGames') || '{}');
-	    unlockedGames[gameId] = {
-	        unlockTime: new Date().toISOString()
-	    };
-	    setCookie('UnlockedGames', JSON.stringify(unlockedGames), 365);
-	    
-	    // Update unlock status immediately
-	    updateUnlockStatus();
-	}
-	    
-		function showUnlockModal(game) {
-		    currentGameToUnlock = game;
-		    unlockCountdown = 5;
-		    document.getElementById('timerDisplay').textContent = unlockCountdown;
-		    document.getElementById('unlockModal').classList.add('active');
-		    
-		    // Reset the checkbox
-		    document.getElementById('dontShowAgain').checked = false;
-		}
-    
-		function closeUnlockModal() {
-		    document.getElementById('unlockModal').classList.remove('active');
-		    currentGameToUnlock = null;
-		    if (unlockTimer) {
-		        clearInterval(unlockTimer);
-		        unlockTimer = null;
-		    }
-		}
-    
-  // Function to handle the unlock process
-function handleUnlockProcess() {
-    const dontShowAgain = document.getElementById('dontShowAgain').checked;
-    
-    if (dontShowAgain) {
-        setCookie('DontShowAdModal', 'true', 365);
-    }
-    
-    // Open the ad in a new tab
-    const adWindow = window.open(AD_URL, '_blank');
-    
-    // Start the countdown
-    unlockTimer = setInterval(() => {
-        unlockCountdown--;
-        document.getElementById('timerDisplay').textContent = unlockCountdown;
-        
-        if (unlockCountdown <= 0) {
-            clearInterval(unlockTimer);
-            unlockTimer = null;
-            
-            // Unlock the game
-            if (currentGameToUnlock) {
-                unlockGame(currentGameToUnlock.id);
-                
-                // Close the ad window after 5 seconds
-                setTimeout(() => {
-                    if (adWindow && !adWindow.closed) {
-                        adWindow.close();
-                    }
-                }, 5000);
-                
-                // Open the game
-                window.open(currentGameToUnlock.url, '_blank');
-            }
-            
-            closeUnlockModal();
-        }
-    }, 1000);
-}
-    
-    // ============ GAME COUNTDOWN OVERLAY SYSTEM ============
-    
-    // Function to show countdown overlay on a game card
-function showGameCountdown(gameId, gameTitle) {
-    // Get the game card element
-    const gameCard = document.querySelector(`.game-card[data-game-id="${gameId}"]`);
-    if (!gameCard) return;
-    
-    // Create countdown overlay
-    const overlay = document.createElement('div');
-    overlay.className = 'countdown-overlay';
-    overlay.id = `countdown-${gameId}`;
-    
-    overlay.innerHTML = `
-        <div class="countdown-text">Preparing to launch</div>
-        <div class="countdown-number" id="countdown-number-${gameId}">${COUNTDOWN_DURATION}</div>
-        <div class="countdown-message">Please wait while we prepare ${gameTitle}</div>
-    `;
-    
-    // Add overlay to game card
-    gameCard.appendChild(overlay);
-    
-    // Start countdown
-    let countdown = COUNTDOWN_DURATION;
-    gameCountdowns[gameId] = setInterval(() => {
-        countdown--;
-        const countdownElement = document.getElementById(`countdown-number-${gameId}`);
-        if (countdownElement) {
-            countdownElement.textContent = countdown;
-        }
-        
-        if (countdown <= 0) {
-            clearInterval(gameCountdowns[gameId]);
-            delete gameCountdowns[gameId];
-            
-            // Remove overlay
-            overlay.remove();
-            
-            // Open the game
-            const game = gamesData.find(g => g.id === gameId);
-            if (game) {
-                window.open(game.url, '_blank');
-            }
-        }
-    }, 1000);
-}
-
-    // Function to handle game click with countdown logic
-function handleGameClick(game) {
-    if (!isLoggedIn()) {
-        showLoginModal();
-        return false;
-    }
-    
-    // Update unlock status before checking
-    updateUnlockStatus();
-    
-    // Check if user is admin/MOD and ads are disabled
-    if ((isModeratorClass(userRole) || isAdminClass(userRole) || isFullAccess(userRole)) && !adsEnabled) {
-        // Admin/MOD with ads disabled - directly open the game
-        window.open(game.url, '_blank');
-        return true;
-    }
-    
-    // Check if game is already unlocked
-    if (isGameUnlocked(game.id)) {
-        // Game is unlocked, open directly
-        window.open(game.url, '_blank');
-        return true;
-    }
-    
-    // Check if user has chosen to skip the modal
-    if (getCookie('DontShowAdModal') === 'true') {
-        // Skip modal, open popup directly and show countdown
-        const adWindow = window.open(AD_URL, '_blank');
-        
-        // Unlock the game
-        unlockGame(game.id);
-        
-        // Show countdown overlay
-        showGameCountdown(game.id, game.title);
-        
-        // Close the ad window after 5 seconds
-        setTimeout(() => {
-            if (adWindow && !adWindow.closed) {
-                adWindow.close();
-            }
-        }, 5000);
-        
-        return true;
-    }
-    
-    // Show the unlock modal
-    showUnlockModal(game);
-    return true;
-}
-
-    // ============ VERIFICATION LOGIC ============
     
     // Function to check if user is logged in
     function isLoggedIn() {
@@ -2500,9 +1991,6 @@ function handleGameClick(game) {
                     // Set up periodic checking
                     broadcastCheckInterval = setInterval(checkForBroadcasts, 2 * 60 * 1000);
                     warningCheckInterval = setInterval(checkForWarnings, 5 * 60 * 1000);
-                    
-                    // Check for admin/MOD access
-                    checkAdminAccess();
                 } else {
                     showLoginModal();
                 }
@@ -2539,9 +2027,10 @@ function handleGameClick(game) {
             }
         });
         
-        // Add event listeners for unlock modal
-        document.getElementById('unlockOkBtn').addEventListener('click', handleUnlockProcess);
-        document.getElementById('unlockCancelBtn').addEventListener('click', closeUnlockModal);
+        // Add event listener for support button
+        document.getElementById('supportBtn').addEventListener('click', function() {
+            window.open('https://www.effectivegatecpm.com/rcr2k1vfs?key=0ccd58bd1245548c332c7423458b9bdc', '_blank');
+        });
     });
 
     // Clear intervals when page is unloaded
@@ -2552,11 +2041,6 @@ function handleGameClick(game) {
         if (warningCheckInterval) {
             clearInterval(warningCheckInterval);
         }
-        
-        // Clear any active game countdowns
-        Object.values(gameCountdowns).forEach(interval => {
-            clearInterval(interval);
-        });
     });
 
     // Function to check URL hash and filter games
@@ -2613,6 +2097,18 @@ function handleGameClick(game) {
         
         // Redirect to down.html with the parameters
         window.location.href = `down.html?${params.toString()}`;
+    }
+    
+    // Handle game click - directly open the game
+    function handleGameClick(game) {
+        if (!isLoggedIn()) {
+            showLoginModal();
+            return false;
+        }
+        
+        // Directly open the game
+        window.open(game.url, '_blank');
+        return true;
     }
     
     // Broadcast System Functions
@@ -3400,17 +2896,12 @@ function handleGameClick(game) {
                 'images/extraIcons/megaphone.png' : 
                 'images/extraIcons/megaphonewhite.png';
             
-            // Check if game is unlocked
-            const isUnlocked = isGameUnlocked(game.id);
-            
             gameCard.innerHTML = `
                 <div class="relative mb-4 rounded-lg overflow-hidden">
                     <!-- Report Button -->
                     <button class="report-btn" onclick="handleReportGame(${game.id}, '${gameTitle.replace(/'/g, "\\'")}')" title="Report Game Not Working">
                         <img src="${megaphoneIcon}" alt="Report">
                     </button>
-                    
-                    ${isUnlocked ? '<div class="absolute top-2 left-10 bg-green-500 text-white text-xs px-2 py-1 rounded-full z-10">Unlocked</div>' : ''}
                     
                     <img src="${game.image}" alt="${gameTitle}" class="w-full h-40 object-cover fallback-img" onerror="this.onerror=null; this.classList.add('fallback-img'); this.nextElementSibling.textContent='${gameTitle.charAt(0)}'">
                     <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70"></div>
