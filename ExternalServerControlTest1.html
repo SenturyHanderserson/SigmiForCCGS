@@ -409,6 +409,65 @@
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
         }
 
+        /* Server Down Overlay */
+        .server-down-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 5000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .server-down-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .server-down-content {
+            background: linear-gradient(135deg, #1a0933 0%, #3b1d6c 50%, #6e3b9c 100%);
+            border-radius: 16px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            border: 2px solid rgba(239, 68, 68, 0.3);
+            box-shadow: 0 0 40px rgba(239, 68, 68, 0.2);
+        }
+        
+        .server-down-overlay.active .server-down-content {
+            transform: scale(1);
+        }
+        
+        .server-down-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.5);
+            animation: pulse-red 2s infinite;
+        }
+        
+        @keyframes pulse-red {
+            0% { transform: scale(1); box-shadow: 0 0 30px rgba(239, 68, 68, 0.5); }
+            50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(239, 68, 68, 0.7); }
+            100% { transform: scale(1); box-shadow: 0 0 30px rgba(239, 68, 68, 0.5); }
+        }
+
         /* Instructions Section */
         .instructions-section {
             position: relative;
@@ -416,6 +475,14 @@
             padding: 4rem 2rem;
             background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
             min-height: 100vh;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+        }
+        
+        .instructions-section.active {
+            opacity: 1;
+            visibility: visible;
         }
 
         .instructions-grid {
@@ -559,6 +626,43 @@
     <!-- Vanta.js background -->
     <div id="vanta-bg"></div>
     
+    <!-- Server Down Overlay -->
+    <div id="serverDownOverlay" class="server-down-overlay">
+        <div class="server-down-content">
+            <div class="server-down-icon">
+                <i data-feather="server" class="w-12 h-12 text-white"></i>
+            </div>
+            <h2 class="text-3xl font-bold mb-4">Server Currently Down</h2>
+            <p class="text-gray-300 mb-6 text-lg">Our authentication server is temporarily unavailable. This could be due to:</p>
+            <div class="text-left mb-6 space-y-3">
+                <div class="flex items-center">
+                    <i data-feather="alert-circle" class="w-5 h-5 mr-3 text-yellow-400"></i>
+                    <span>Server maintenance or updates</span>
+                </div>
+                <div class="flex items-center">
+                    <i data-feather="wifi-off" class="w-5 h-5 mr-3 text-red-400"></i>
+                    <span>Network connectivity issues</span>
+                </div>
+                <div class="flex items-center">
+                    <i data-feather="clock" class="w-5 h-5 mr-3 text-blue-400"></i>
+                    <span>Temporary service interruption</span>
+                </div>
+            </div>
+            <p class="text-gray-300 mb-8">Please try again in a few minutes. If the problem persists, contact the administrator.</p>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <button id="retryConnectionBtn" class="btn-primary py-3 px-6 rounded-lg font-medium flex-1">
+                    <i data-feather="refresh-cw" class="w-5 h-5 inline mr-2"></i>
+                    Retry Connection
+                </button>
+                <button onclick="window.location.href='https://senturyhanderserson.github.io/SigmiForCCGS/'" 
+                        class="bg-gray-600 hover:bg-gray-700 py-3 px-6 rounded-lg font-medium flex-1">
+                    <i data-feather="home" class="w-5 h-5 inline mr-2"></i>
+                    Return Home
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Warning Modal -->
     <div id="warningModal" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black bg-opacity-80 backdrop-blur-sm hidden">
         <div class="glass rounded-xl p-8 max-w-md w-full mx-4">
@@ -639,8 +743,8 @@
                     <div></div>
                 </div>
             </div>
-            <h2 class="text-2xl font-bold mb-2">Checking authentication...</h2>
-            <p class="text-gray-300">Please wait while we verify your session</p>
+            <h2 class="text-2xl font-bold mb-2">Initializing Virtual Machine...</h2>
+            <p class="text-gray-300">Loading interface components</p>
         </div>
     </div>
     
@@ -720,7 +824,7 @@
     <div class="notification-container" id="notificationContainer"></div>
 
     <!-- Instructions Section -->
-    <section id="instructionsSection" class="instructions-section hidden">
+    <section id="instructionsSection" class="instructions-section">
         <div class="container mx-auto">
             <div class="text-center mb-12">
                 <h2 class="text-4xl font-bold mb-4">Moonlight Streaming Guide</h2>
@@ -859,6 +963,8 @@
         let activeBroadcasts = [];
         let broadcastCheckInterval = null;
         let warningCheckInterval = null;
+        let isServerOnline = false;
+        let authCheckTimeout = null;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -868,7 +974,7 @@
             initializeEventListeners();
             
             // Start authentication check immediately
-            setTimeout(checkAuthentication, 500); // Small delay to ensure DOM is ready
+            setTimeout(performAuthenticationCheck, 500); // Small delay to ensure DOM is ready
         });
 
         // Initialize Vanta.js background
@@ -894,6 +1000,9 @@
         function initializeEventListeners() {
             // Login redirect
             document.getElementById('loginRedirectBtn').addEventListener('click', redirectToLogin);
+            
+            // Retry connection button
+            document.getElementById('retryConnectionBtn').addEventListener('click', retryConnection);
             
             // Topbar toggle
             document.getElementById('topbarToggle').addEventListener('click', toggleTopbar);
@@ -1041,16 +1150,53 @@
             }
         }
 
-        // Authentication Flow - FIXED VERSION
-        async function checkAuthentication() {
+        // Main Authentication Flow
+        async function performAuthenticationCheck() {
             // Update loading message
-            document.querySelector('#loadingOverlay h2').textContent = 'Checking authentication...';
+            document.querySelector('#loadingOverlay h2').textContent = 'Checking authentication server...';
             
             const token = getCookie('AuthToken');
             const username = localStorage.getItem('currentUser');
             
             console.log('Auth check - Token:', token ? 'Present' : 'Missing', 'Username:', username);
             
+            // Set timeout for server response
+            authCheckTimeout = setTimeout(() => {
+                if (!isServerOnline) {
+                    console.log('Server connection timeout');
+                    showServerDownOverlay();
+                }
+            }, 10000); // 10 second timeout
+            
+            // First check if server is reachable
+            try {
+                const serverCheck = await fetch(`${SERVER_URL}/api/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    signal: AbortSignal.timeout(5000) // 5 second timeout for health check
+                });
+                
+                if (serverCheck.ok) {
+                    isServerOnline = true;
+                    clearTimeout(authCheckTimeout);
+                    console.log('Server is online, proceeding with authentication');
+                    
+                    // Now check authentication
+                    await checkAuthentication(token, username);
+                } else {
+                    throw new Error('Server health check failed');
+                }
+            } catch (error) {
+                console.error('Server health check failed:', error);
+                clearTimeout(authCheckTimeout);
+                showServerDownOverlay();
+            }
+        }
+
+        // Authentication Check
+        async function checkAuthentication(token, username) {
             if (!token || !username) {
                 console.log('No token or username found, showing login modal');
                 setTimeout(() => {
@@ -1071,7 +1217,8 @@
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
-                    credentials: 'include'
+                    credentials: 'include',
+                    signal: AbortSignal.timeout(5000)
                 });
                 
                 console.log('Verification response status:', response.status);
@@ -1085,21 +1232,9 @@
                         currentToken = token;
                         document.getElementById('usernameDisplay').textContent = username;
                         
-                        // Update loading message
-                        document.querySelector('#loadingOverlay h2').textContent = 'Loading VM interface...';
-                        
+                        // Success - Load full interface
                         setTimeout(() => {
-                            hideLoadingOverlay();
-                            hideLoginModal();
-                            
-                            // Initialize authenticated systems
-                            initializeAuthenticatedSystems();
-                            
-                            // Update button text if user is authenticated
-                            document.getElementById('loginRedirectBtn').textContent = 'Start VM Session';
-                            
-                            // Show success notification
-                            showNotification('Authentication successful! Ready to start VM session.', 'success');
+                            loadFullInterface();
                         }, 1000);
                         
                     } else {
@@ -1112,8 +1247,36 @@
                 }
             } catch (error) {
                 console.error('Authentication error:', error);
-                handleInvalidToken();
+                if (error.name === 'AbortError') {
+                    showServerDownOverlay();
+                } else {
+                    handleInvalidToken();
+                }
             }
+        }
+
+        function loadFullInterface() {
+            console.log('Loading full interface for user:', currentUser);
+            
+            // Hide loading overlay
+            hideLoadingOverlay();
+            
+            // Hide login modal if it's visible
+            hideLoginModal();
+            
+            // Show header and interface elements
+            document.getElementById('headerOverlay').classList.remove('hidden');
+            document.getElementById('topbarToggle').classList.remove('hidden');
+            document.getElementById('instructionsSection').classList.add('active');
+            
+            // Update button text
+            document.getElementById('loginRedirectBtn').textContent = 'Start VM Session';
+            
+            // Initialize authenticated systems
+            initializeAuthenticatedSystems();
+            
+            // Show success notification
+            showNotification('Virtual Machine interface loaded successfully!', 'success');
         }
 
         function handleInvalidToken() {
@@ -1128,18 +1291,36 @@
             }, 500);
         }
 
+        function showServerDownOverlay() {
+            console.log('Showing server down overlay');
+            hideLoadingOverlay();
+            hideLoginModal();
+            document.getElementById('serverDownOverlay').classList.add('active');
+            showNotification('Authentication server is currently unavailable', 'error', 5000);
+        }
+
+        function hideServerDownOverlay() {
+            document.getElementById('serverDownOverlay').classList.remove('active');
+        }
+
+        function retryConnection() {
+            console.log('Retrying connection...');
+            hideServerDownOverlay();
+            showLoadingOverlay('Retrying connection...', 'Attempting to reach authentication server');
+            setTimeout(performAuthenticationCheck, 1000);
+        }
+
         function showLoginModal() {
             console.log('Showing login modal');
             document.getElementById('loginModal').classList.add('active');
             document.getElementById('headerOverlay').classList.add('hidden');
             document.getElementById('topbarToggle').classList.add('hidden');
+            document.getElementById('instructionsSection').classList.remove('active');
         }
 
         function hideLoginModal() {
             console.log('Hiding login modal');
             document.getElementById('loginModal').classList.remove('active');
-            document.getElementById('headerOverlay').classList.remove('hidden');
-            document.getElementById('topbarToggle').classList.remove('hidden');
         }
 
         function redirectToLogin() {
@@ -1198,7 +1379,7 @@
                     
                     // Show instructions after connection
                     setTimeout(() => {
-                        document.getElementById('instructionsSection').classList.remove('hidden');
+                        document.getElementById('instructionsSection').classList.add('active');
                     }, 1000);
                     
                 } else {
@@ -1260,7 +1441,8 @@
                         'Content-Type': 'application/json',
                         'X-Forwarded-From': SERVER_URL
                     },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify(payload),
+                    signal: AbortSignal.timeout(10000)
                 });
                 
                 if (!response.ok) {
@@ -2308,6 +2490,7 @@
             if (broadcastCheckInterval) clearInterval(broadcastCheckInterval);
             if (warningCheckInterval) clearInterval(warningCheckInterval);
             if (statsInterval) clearInterval(statsInterval);
+            if (authCheckTimeout) clearTimeout(authCheckTimeout);
         });
 
         // Simulate Moonlight connection for testing
@@ -2316,6 +2499,8 @@
             currentToken = 'simulated_token';
             document.getElementById('usernameDisplay').textContent = currentUser;
             hideLoginModal();
+            hideLoadingOverlay();
+            loadFullInterface();
             
             // Show Moonlight container
             document.getElementById('moonlightContainer').classList.remove('hidden');
@@ -2326,11 +2511,11 @@
             
             // Start performance monitoring
             startPerformanceMonitoring();
-            
-            // Show instructions
-            setTimeout(() => {
-                document.getElementById('instructionsSection').classList.remove('hidden');
-            }, 1000);
+        };
+
+        // Simulate server down for testing
+        window.simulateServerDown = function() {
+            showServerDownOverlay();
         };
 
         // Add this to window for testing
