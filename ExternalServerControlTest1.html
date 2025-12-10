@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Testing External Games - Sigmi Team</title>
+    <title>Virtual Machine - Sigmi Team</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
@@ -628,8 +628,8 @@
         </div>
     </div>
 
-    <!-- Loading Overlay - For auto-login verification -->
-    <div id="loadingOverlay" class="loading-overlay hidden">
+    <!-- Loading Overlay - Show immediately on load -->
+    <div id="loadingOverlay" class="loading-overlay">
         <div class="glass rounded-xl p-8 max-w-md w-full mx-4 text-center">
             <div class="flex justify-center mb-6">
                 <div class="balls-loader">
@@ -639,7 +639,7 @@
                     <div></div>
                 </div>
             </div>
-            <h2 class="text-2xl font-bold mb-2">Loading content...</h2>
+            <h2 class="text-2xl font-bold mb-2">Checking authentication...</h2>
             <p class="text-gray-300">Please wait while we verify your session</p>
         </div>
     </div>
@@ -680,7 +680,7 @@
     </div>
 
     <!-- Header Overlay -->
-    <div id="headerOverlay" class="header-overlay">
+    <div id="headerOverlay" class="header-overlay hidden">
         <div class="container mx-auto px-4 flex justify-between items-center">
             <div class="flex items-center space-x-4">
                 <a href="https://senturyhanderserson.github.io/SigmiForCCGS/" class="p-2 rounded-full hover:bg-purple-700 transition">
@@ -701,8 +701,8 @@
         </div>
     </div>
 
-    <!-- Login Modal -->
-    <div id="loginModal" class="login-modal active">
+    <!-- Login Modal - Initially hidden -->
+    <div id="loginModal" class="login-modal">
         <div class="login-content">
             <div class="medal-icon">
                 <i data-feather="cpu" class="w-10 h-10 text-white"></i>
@@ -866,7 +866,9 @@
             feather.replace();
             initVantaBackground();
             initializeEventListeners();
-            checkAuthentication();
+            
+            // Start authentication check immediately
+            setTimeout(checkAuthentication, 500); // Small delay to ensure DOM is ready
         });
 
         // Initialize Vanta.js background
@@ -1039,21 +1041,30 @@
             }
         }
 
-        // Authentication Flow
+        // Authentication Flow - FIXED VERSION
         async function checkAuthentication() {
-            showLoadingOverlay('Checking authentication...', 'Verifying your session');
+            // Update loading message
+            document.querySelector('#loadingOverlay h2').textContent = 'Checking authentication...';
             
             const token = getCookie('AuthToken');
             const username = localStorage.getItem('currentUser');
             
+            console.log('Auth check - Token:', token ? 'Present' : 'Missing', 'Username:', username);
+            
             if (!token || !username) {
-                hideLoadingOverlay();
-                showLoginModal();
+                console.log('No token or username found, showing login modal');
+                setTimeout(() => {
+                    hideLoadingOverlay();
+                    showLoginModal();
+                }, 500);
                 return;
             }
             
             // Verify token with server
             try {
+                document.querySelector('#loadingOverlay h2').textContent = 'Verifying session...';
+                
+                console.log('Verifying token with server...');
                 const response = await fetch(`${SERVER_URL}/api/verify-token`, {
                     method: 'GET',
                     headers: {
@@ -1063,28 +1074,40 @@
                     credentials: 'include'
                 });
                 
+                console.log('Verification response status:', response.status);
+                
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('Verification data:', data);
+                    
                     if (data.valid) {
                         currentUser = username;
                         currentToken = token;
                         document.getElementById('usernameDisplay').textContent = username;
-                        hideLoginModal();
-                        hideLoadingOverlay();
                         
-                        // Initialize authenticated systems
-                        initializeAuthenticatedSystems();
+                        // Update loading message
+                        document.querySelector('#loadingOverlay h2').textContent = 'Loading VM interface...';
                         
-                        // Check for warnings and broadcasts
-                        checkForWarnings();
-                        checkForBroadcasts();
+                        setTimeout(() => {
+                            hideLoadingOverlay();
+                            hideLoginModal();
+                            
+                            // Initialize authenticated systems
+                            initializeAuthenticatedSystems();
+                            
+                            // Update button text if user is authenticated
+                            document.getElementById('loginRedirectBtn').textContent = 'Start VM Session';
+                            
+                            // Show success notification
+                            showNotification('Authentication successful! Ready to start VM session.', 'success');
+                        }, 1000);
                         
-                        // Don't auto-initialize Moonlight session - let user choose
-                        showNotification('Authentication successful! Click "Sign In" to start VM session', 'success');
                     } else {
+                        console.log('Token invalid according to server');
                         handleInvalidToken();
                     }
                 } else {
+                    console.log('Token verification failed with status:', response.status);
                     handleInvalidToken();
                 }
             } catch (error) {
@@ -1094,41 +1117,56 @@
         }
 
         function handleInvalidToken() {
-            hideLoadingOverlay();
-            showLoginModal();
-            setCookie('AuthToken', '', -1);
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('userRole');
-            showNotification('Session expired. Please sign in again.', 'warning');
+            console.log('Handling invalid token');
+            setTimeout(() => {
+                hideLoadingOverlay();
+                showLoginModal();
+                setCookie('AuthToken', '', -1);
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('userRole');
+                showNotification('Session expired. Please sign in again.', 'warning');
+            }, 500);
         }
 
         function showLoginModal() {
+            console.log('Showing login modal');
             document.getElementById('loginModal').classList.add('active');
             document.getElementById('headerOverlay').classList.add('hidden');
             document.getElementById('topbarToggle').classList.add('hidden');
         }
 
         function hideLoginModal() {
+            console.log('Hiding login modal');
             document.getElementById('loginModal').classList.remove('active');
             document.getElementById('headerOverlay').classList.remove('hidden');
             document.getElementById('topbarToggle').classList.remove('hidden');
         }
 
         function redirectToLogin() {
+            console.log('Redirect/login button clicked');
             if (currentUser && currentToken) {
                 // User is already authenticated, start Moonlight session
+                console.log('Starting Moonlight session for user:', currentUser);
                 initializeMoonlightSession();
             } else {
                 // Redirect to main site for authentication
+                console.log('Redirecting to main site for authentication');
                 window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/';
             }
         }
 
         // Initialize all systems that require authentication
         function initializeAuthenticatedSystems() {
+            console.log('Initializing authenticated systems for user:', currentUser);
             initMessageSystem();
             initWarningSystem();
             initBroadcastSystem();
+            
+            // Check for warnings and broadcasts
+            setTimeout(() => {
+                checkForWarnings();
+                checkForBroadcasts();
+            }, 2000);
         }
 
         // Moonlight Session Management
