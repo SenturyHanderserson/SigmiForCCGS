@@ -2846,6 +2846,7 @@ async function loadPermissionSets() {
     return permissionSets;
 }
 // Create new role - UPDATED to use server-side permission sets
+// Create new role - FIXED VERSION for Moderators
 async function createNewRole() {
     const roleName = document.getElementById('newRoleName').value.trim();
     const description = document.getElementById('roleDescription').value.trim();
@@ -2870,27 +2871,51 @@ async function createNewRole() {
         return;
     }
 
+    // Load permission sets
+    let selectedPermissions = [];
+    const isModerator = isModeratorClass(currentUserRole) && !isAdminClass(currentUserRole);
     
-    // Only allow moderators to assign permissions they're allowed to
-    if (isModeratorClass(currentUserRole) && !isAdminClass(currentUserRole)) {
-        // Moderators can only assign these specific permissions
-        const moderatorAllowedPermissions = ['basic_access', 'view_reports'];
-        
-        if (permissions === 'basic') {
-            selectedPermissions = permissionSets.basic || ['basic_access'];
-        } else if (permissions === 'moderator') {
-            // Even if they select "moderator", restrict to what they can actually assign
-            selectedPermissions = moderatorAllowedPermissions;
-        } else {
-            // For admin/full, still restrict to moderator-allowed permissions
-            selectedPermissions = moderatorAllowedPermissions;
-        }
-        
-        console.log('Moderator creating role with permissions:', selectedPermissions);
-    } else {
-        // Admins/Owners can use full permission sets from server
-        selectedPermissions = permissionSets[permissions] || permissionSets.basic;
+    // Map UI selection to actual permission arrays
+    if (permissions === 'basic') {
+        selectedPermissions = permissionSets.basic || ['basic_access'];
+    } else if (permissions === 'moderator') {
+        // Moderators creating "moderator" roles should get limited permissions
+        selectedPermissions = ['basic_access', 'view_reports']; // Limited for safety
+    } else if (permissions === 'admin') {
+        selectedPermissions = permissionSets.admin || ['basic_access', 'view_reports', 'issue_warnings', 'send_messages', 'blacklist_users', 'assign_roles'];
+    } else if (permissions === 'full') {
+        selectedPermissions = permissionSets.full || ['basic_access', 'view_reports', 'issue_warnings', 'send_messages', 'blacklist_users', 'assign_roles', 'manage_roles', 'delete_users'];
     }
+    
+    // For moderators, limit permissions regardless of selection
+    if (isModerator) {
+        selectedPermissions = ['basic_access', 'view_reports']; // Hard limit for moderators
+        console.log('Moderator creating role with limited permissions:', selectedPermissions);
+    }
+    
+    // Get current user's role data for canAssign validation
+    const currentUserRoleConfig = allRoles[currentUserRole];
+    const currentUserWeight = currentUserRoleConfig?.weight || 0;
+    
+    // Determine safe assignable roles based on user permissions
+    let canAssignRoles = ['Member']; // Default
+    
+    if (currentUserRoleConfig && currentUserRoleConfig.canAssign) {
+        // Filter to only roles with lower weight than the new role
+        const requestedWeight = weight || Math.max(1, currentUserWeight - 1);
+        canAssignRoles = currentUserRoleConfig.canAssign.filter(assignableRole => {
+            const assignableRoleConfig = allRoles[assignableRole];
+            if (!assignableRoleConfig) return false;
+            return assignableRoleConfig.weight < requestedWeight;
+        });
+    }
+    
+    // If no safe roles found, use empty array
+    if (canAssignRoles.length === 0) {
+        canAssignRoles = [];
+    }
+    
+    console.log('Creating role with canAssign:', canAssignRoles);
     
     try {
         const token = getCookie('AuthToken');
@@ -2906,7 +2931,7 @@ async function createNewRole() {
                 description: description || `Custom role: ${roleName}`,
                 permissions: selectedPermissions,
                 weight: weight,
-                canAssign: ['Member'] // Default - can assign Member role
+                canAssign: canAssignRoles
             })
         });
         
