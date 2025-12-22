@@ -2874,17 +2874,34 @@ async function createNewRole() {
     // Load permission sets
     let selectedPermissions = [];
     const isModerator = isModeratorClass(currentUserRole) && !isAdminClass(currentUserRole);
+    const isAdmin = isAdminClass(currentUserRole);
+    const isFullAccessUser = isFullAccess(currentUserRole);
     
     // Map UI selection to actual permission arrays
     if (permissions === 'basic') {
         selectedPermissions = permissionSets.basic || ['basic_access'];
     } else if (permissions === 'moderator') {
-        // Moderators creating "moderator" roles should get limited permissions
-        selectedPermissions = ['basic_access', 'view_reports']; // Limited for safety
+        // Check if user has permission to create moderator roles
+        if (isModerator) {
+            // Moderators creating "moderator" roles get limited permissions
+            selectedPermissions = ['basic_access', 'view_reports'];
+        } else {
+            selectedPermissions = permissionSets.moderator || ['basic_access', 'view_reports', 'issue_warnings', 'send_messages'];
+        }
     } else if (permissions === 'admin') {
-        selectedPermissions = permissionSets.admin || ['basic_access', 'view_reports', 'issue_warnings', 'send_messages', 'blacklist_users', 'assign_roles'];
+        // Only admins/full access can create admin roles
+        if (isAdmin || isFullAccessUser) {
+            selectedPermissions = permissionSets.admin || ['basic_access', 'view_reports', 'issue_warnings', 'send_messages', 'blacklist_users', 'assign_roles'];
+        } else {
+            selectedPermissions = ['basic_access', 'view_reports']; // Fallback for moderators
+        }
     } else if (permissions === 'full') {
-        selectedPermissions = permissionSets.full || ['basic_access', 'view_reports', 'issue_warnings', 'send_messages', 'blacklist_users', 'assign_roles', 'manage_roles', 'delete_users'];
+        // Only full access (Owner) can create full access roles
+        if (isFullAccessUser) {
+            selectedPermissions = permissionSets.full || ['basic_access', 'view_reports', 'issue_warnings', 'send_messages', 'blacklist_users', 'assign_roles', 'manage_roles', 'delete_users'];
+        } else {
+            selectedPermissions = permissionSets.basic || ['basic_access']; // Fallback
+        }
     }
     
     // For moderators, limit permissions regardless of selection
@@ -2896,26 +2913,57 @@ async function createNewRole() {
     // Get current user's role data for canAssign validation
     const currentUserRoleConfig = allRoles[currentUserRole];
     const currentUserWeight = currentUserRoleConfig?.weight || 0;
+    const requestedWeight = weight || Math.max(1, currentUserWeight - 1);
     
     // Determine safe assignable roles based on user permissions
-    let canAssignRoles = ['Member']; // Default
+    let canAssignRoles = [];
     
-    if (currentUserRoleConfig && currentUserRoleConfig.canAssign) {
-        // Filter to only roles with lower weight than the new role
-        const requestedWeight = weight || Math.max(1, currentUserWeight - 1);
-        canAssignRoles = currentUserRoleConfig.canAssign.filter(assignableRole => {
-            const assignableRoleConfig = allRoles[assignableRole];
-            if (!assignableRoleConfig) return false;
-            return assignableRoleConfig.weight < requestedWeight;
-        });
-    }
-    
-    // If no safe roles found, use empty array
-    if (canAssignRoles.length === 0) {
+    // Default assignable roles based on user type
+    if (isFullAccessUser) {
+        // Owner can assign any role except Owner
+        canAssignRoles = Object.keys(allRoles).filter(role => role !== "Owner" && allRoles[role].weight < requestedWeight);
+    } else if (isAdmin) {
+        // Admins can assign roles with lower weight
+        if (currentUserRoleConfig && currentUserRoleConfig.canAssign) {
+            canAssignRoles = currentUserRoleConfig.canAssign.filter(assignableRole => {
+                const assignableRoleConfig = allRoles[assignableRole];
+                if (!assignableRoleConfig) return false;
+                return assignableRoleConfig.weight < requestedWeight;
+            });
+        } else {
+            canAssignRoles = ['Member']; // Default fallback
+        }
+    } else if (isModerator) {
+        // Moderators: Start with roles they can assign, then filter by weight
+        if (currentUserRoleConfig && currentUserRoleConfig.canAssign) {
+            canAssignRoles = currentUserRoleConfig.canAssign.filter(assignableRole => {
+                const assignableRoleConfig = allRoles[assignableRole];
+                if (!assignableRoleConfig) return false;
+                
+                // Must have lower weight than new role AND weight ≤ 20 (moderator safety cap)
+                const hasLowerWeight = assignableRoleConfig.weight < requestedWeight;
+                const isLowWeightRole = assignableRoleConfig.weight <= 20;
+                
+                return hasLowerWeight && isLowWeightRole;
+            });
+        }
+        // If no safe roles found or empty array, leave as empty array
+    } else {
+        // Basic users can't create roles, but just in case
         canAssignRoles = [];
     }
     
-    console.log('Creating role with canAssign:', canAssignRoles);
+    // Ensure we're not including the new role itself
+    canAssignRoles = canAssignRoles.filter(role => role !== roleName);
+    
+    console.log('Creating role with:', {
+        roleName,
+        weight: requestedWeight,
+        permissions: selectedPermissions,
+        canAssign: canAssignRoles,
+        userType: isFullAccessUser ? 'Owner' : isAdmin ? 'Admin' : isModerator ? 'Moderator' : 'Basic',
+        userWeight: currentUserWeight
+    });
     
     try {
         const token = getCookie('AuthToken');
@@ -2936,12 +2984,36 @@ async function createNewRole() {
         });
         
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to create role');
+            // Try to parse error as JSON first
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const error = await response.json();
+                throw new Error(error.error || error.message || error.details || 'Failed to create role');
+            } else {
+                // If not JSON, get text
+                const text = await response.text();
+                throw new Error(`Server error (${response.status}): ${text.substring(0, 200)}`);
+            }
         }
         
         const result = await response.json();
-        alert('✅ ' + result.message);
+        
+        // Show success message with role details
+        let successMessage = `✅ ${result.message}`;
+        if (result.securityNote) {
+            successMessage += `\n\n${result.securityNote}`;
+        }
+        if (result.restrictions) {
+            successMessage += `\n\nRestrictions applied:`;
+            if (result.restrictions.maxWeight) {
+                successMessage += `\n• Max weight: ${result.restrictions.maxWeight}`;
+            }
+            if (result.restrictions.allowedPermissions) {
+                successMessage += `\n• Permissions: ${result.restrictions.allowedPermissions.join(', ')}`;
+            }
+        }
+        
+        alert(successMessage);
         
         // Close modal and reset form
         closeModal('roleCreationModal');
@@ -2951,11 +3023,30 @@ async function createNewRole() {
         await loadRolesList();
         await loadAllRoles(); // Reload all roles to get the new one
         
+        // If user is moderator, refresh their limits
+        if (isModerator) {
+            setTimeout(getModeratorCooldowns, 1000);
+        }
+        
     } catch (error) {
         console.error('Create role error:', error);
-        alert('❌ Error: ' + error.message);
+        
+        // Provide more helpful error messages
+        let errorMessage = `❌ Error: ${error.message}`;
+        
+        // Check for common errors and provide suggestions
+        if (error.message.includes('Cannot set assignable roles')) {
+            errorMessage += '\n\nSuggestion: Try leaving "Assignable Roles" empty or select only low-weight roles you can assign.';
+        } else if (error.message.includes('weight')) {
+            errorMessage += '\n\nSuggestion: Try lowering the weight value.';
+        } else if (error.message.includes('permission')) {
+            errorMessage += '\n\nSuggestion: You may not have permission to create roles with those settings.';
+        }
+        
+        alert(errorMessage);
     }
 }
+
 
 // Reset role creation form
 function resetRoleForm() {
