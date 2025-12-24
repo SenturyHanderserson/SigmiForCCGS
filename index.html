@@ -8,6 +8,7 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
     <link class="favicon" rel="icon" type="image/x-icon" href="https://quiz-50.github.io/media/drive.ico">
     <style>
@@ -212,6 +213,11 @@
         
         .notification-close:hover {
             opacity: 1;
+        }
+        .chat-fab {
+            background: linear-gradient(135deg, #8e44ad 0%, #6c5ce7 100%);
+            bottom: -4rem;
+            right: 0;
         }
         
         /* Loading spinner */
@@ -1100,6 +1106,9 @@
                 <i data-feather="bar-chart-2" class="w-5 h-5 text-white"></i>
                 <div id="pollsNotification" class="notification-indicator hidden"></div>
             </div>
+            <div class="fab-menu-item chat-fab" id="chatFab" title="Community Help">
+                <i class="material-icons" style="font-size: 20px; color: white;">chat_bubble</i>
+            </div>
             <div class="fab-menu-item report-fab" id="reportFab" title="Report Issue">
                 <i data-feather="alert-triangle" class="w-5 h-5 text-white"></i>
             </div>
@@ -1239,62 +1248,13 @@
             }, duration);
         }
         
-// Update the toggleFabMenu function (around line 1420) to include the create button
-function toggleFabMenu() {
-    const fabBtn = document.getElementById('fabBtn');
-    const fabExpandedMenu = document.getElementById('fabExpandedMenu');
-    const reportFab = document.getElementById('reportFab');
-    const pollsFab = document.getElementById('pollsFab');
-    const createFab = document.getElementById('createFab'); // Add this line
 
-    if (!isFabExpanded) {
-        // Expand the menu
-        fabExpandedMenu.style.display = 'block';
-        
-        // Animate create button (position 1 - top)
-        setTimeout(() => {
-            createFab.classList.add('visible');
-            createFab.style.transform = 'translateY(-210px)'; // Adjust position
-        }, 50);
-        
-        // Animate polls button (position 2 - middle)
-        setTimeout(() => {
-            pollsFab.classList.add('visible');
-            pollsFab.style.transform = 'translateY(-140px)'; // Adjust position
-        }, 150);
-        
-        // Animate report button (position 3 - bottom)
-        setTimeout(() => {
-            reportFab.classList.add('visible');
-            reportFab.style.transform = 'translateY(-70px)'; // Adjust position
-        }, 250);
-        
-        // Rotate main button
-        fabBtn.style.transform = 'rotate(45deg)';
-        
-        isFabExpanded = true;
-    } else {
-        // Collapse the menu
-        createFab.classList.remove('visible'); // Add this line
-        pollsFab.classList.remove('visible');
-        reportFab.classList.remove('visible');
-        
-        createFab.style.transform = 'translateY(0)'; // Add this line
-        pollsFab.style.transform = 'translateY(0)';
-        reportFab.style.transform = 'translateY(0)';
-        
-        // Reset main button rotation
-        fabBtn.style.transform = 'rotate(0deg)';
-        
-        // Hide menu after animation
-        setTimeout(() => {
-            fabExpandedMenu.style.display = 'none';
-        }, 400);
-        
-        isFabExpanded = false;
-    }
+
+        // Add this new function for chat button
+function handleCommunityHelp() {
+    // Open community help in a new tab
+    window.open('https://communityhelp.linewize.org', '_blank');
 }
-
         function handleReportIssue() {
             // Redirect to down.html
             window.location.href = 'down.html';
@@ -1309,18 +1269,20 @@ function handleCreateGame() {
         window.location.href = 'https://senturyhanderserson.github.io/SigmiForCCGS/create';
     }
     // close fab
-    document.addEventListener('click', function(e) {
-        const fabBtn = document.getElementById('fabBtn');
-        const fabExpandedMenu = document.getElementById('fabExpandedMenu');
-        const createFab = document.getElementById('createFab'); // Add this line
-        
-        if (isFabExpanded && 
-            !fabBtn.contains(e.target) && 
-            !fabExpandedMenu.contains(e.target) &&
-            !createFab.contains(e.target)) { // Add this condition
-            toggleFabMenu();
-        }
-    });
+document.addEventListener('click', function(e) {
+    const fabBtn = document.getElementById('fabBtn');
+    const fabExpandedMenu = document.getElementById('fabExpandedMenu');
+    const createFab = document.getElementById('createFab');
+    const chatFab = document.getElementById('chatFab'); // Add this line
+    
+    if (isFabExpanded && 
+        !fabBtn.contains(e.target) && 
+        !fabExpandedMenu.contains(e.target) &&
+        !createFab.contains(e.target) &&
+        !chatFab.contains(e.target)) { // Add this condition
+        toggleFabMenu();
+    }
+});
 
         // Broadcast Modal Functions
         function hideBroadcastModal() {
@@ -1408,6 +1370,7 @@ async function checkPollNotifications() {
 }
 
 // Function to update the notification UI
+// Function to update the notification UI
 function updatePollNotificationUI() {
     const quickActionsNotification = document.getElementById('quickActionsNotification');
     const pollsNotification = document.getElementById('pollsNotification');
@@ -1433,34 +1396,42 @@ function updatePollNotificationUI() {
 }
 
 // Update the toggleFabMenu function to handle notification movement
+// Update the toggleFabMenu function
 function toggleFabMenu() {
     const fabBtn = document.getElementById('fabBtn');
     const fabExpandedMenu = document.getElementById('fabExpandedMenu');
     const reportFab = document.getElementById('reportFab');
     const pollsFab = document.getElementById('pollsFab');
     const createFab = document.getElementById('createFab');
+    const chatFab = document.getElementById('chatFab'); // Add this line
 
     if (!isFabExpanded) {
         // Expand the menu
         fabExpandedMenu.style.display = 'block';
         
-        // Animate create button (position 1 - top)
+        // Animate chat button (new position - top)
+        setTimeout(() => {
+            chatFab.classList.add('visible');
+            chatFab.style.transform = 'translateY(-280px)'; // Top position
+        }, 50);
+        
+        // Animate create button (position 2)
         setTimeout(() => {
             createFab.classList.add('visible');
             createFab.style.transform = 'translateY(-210px)';
-        }, 50);
+        }, 150);
         
-        // Animate polls button (position 2 - middle)
+        // Animate polls button (position 3)
         setTimeout(() => {
             pollsFab.classList.add('visible');
             pollsFab.style.transform = 'translateY(-140px)';
-        }, 150);
+        }, 250);
         
-        // Animate report button (position 3 - bottom)
+        // Animate report button (position 4 - bottom)
         setTimeout(() => {
             reportFab.classList.add('visible');
             reportFab.style.transform = 'translateY(-70px)';
-        }, 250);
+        }, 350);
         
         // Rotate main button
         fabBtn.style.transform = 'rotate(45deg)';
@@ -1468,10 +1439,12 @@ function toggleFabMenu() {
         isFabExpanded = true;
     } else {
         // Collapse the menu
+        chatFab.classList.remove('visible'); // Add this line
         createFab.classList.remove('visible');
         pollsFab.classList.remove('visible');
         reportFab.classList.remove('visible');
         
+        chatFab.style.transform = 'translateY(0)'; // Add this line
         createFab.style.transform = 'translateY(0)';
         pollsFab.style.transform = 'translateY(0)';
         reportFab.style.transform = 'translateY(0)';
@@ -1490,7 +1463,6 @@ function toggleFabMenu() {
     // Update notification positions when menu state changes
     updatePollNotificationUI();
 }
-
 // Initialize polls notification system
 function initPollsNotificationSystem() {
     // Check for poll notifications after a short delay
@@ -2444,21 +2416,26 @@ function checkAfterPollsReturn() {
             });
         }
         
-        function initializeFABSystem() {
-            document.getElementById('fabBtn').addEventListener('click', toggleFabMenu);
-            document.getElementById('reportFab').addEventListener('click', function() {
-                handleReportIssue();
-                toggleFabMenu();
-            });
-            document.getElementById('pollsFab').addEventListener('click', function() {
-                handleVoteOnPolls();
-                toggleFabMenu();
-            });
-            document.getElementById('createFab').addEventListener('click', function() {
-                handleCreateGame();
-                toggleFabMenu();
-            });
-        }
+      function initializeFABSystem() {
+    document.getElementById('fabBtn').addEventListener('click', toggleFabMenu);
+    document.getElementById('reportFab').addEventListener('click', function() {
+        handleReportIssue();
+        toggleFabMenu();
+    });
+    document.getElementById('pollsFab').addEventListener('click', function() {
+        handleVoteOnPolls();
+        toggleFabMenu();
+    });
+    document.getElementById('createFab').addEventListener('click', function() {
+        handleCreateGame();
+        toggleFabMenu();
+    });
+    // Add this new event listener
+    document.getElementById('chatFab').addEventListener('click', function() {
+        handleCommunityHelp();
+        toggleFabMenu();
+    });
+}
         
         function initializeModalSystems() {
             // Broadcast Modal
