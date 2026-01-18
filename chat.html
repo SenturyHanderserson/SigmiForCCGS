@@ -135,28 +135,25 @@
             height: calc(100vh - 80px);
             display: flex;
             flex-direction: column;
-            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             margin-top: 0.5rem;
         }
         
         .messages-container {
             flex: 1;
             overflow-y: auto;
-            padding: 1.5rem;
+            padding: 1rem;
             background: rgba(10, 10, 20, 0.2);
             position: relative;
         }
         
         .message-bubble {
-            max-width: 75%;
-            margin-bottom: 1rem;
-            padding: 1rem 1.25rem;
-            border-radius: 20px;
+            max-width: 70%;
+            margin-bottom: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 18px;
             position: relative;
             animation: messageSlideIn 0.3s ease-out;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             word-wrap: break-word;
             word-break: break-word;
             transition: all 0.3s ease;
@@ -166,9 +163,9 @@
             background: var(--sent-bubble);
             margin-left: auto;
             border-bottom-right-radius: 5px;
-            border-top-left-radius: 20px;
+            border-top-left-radius: 18px;
             border-top-right-radius: 5px;
-            border-bottom-left-radius: 20px;
+            border-bottom-left-radius: 18px;
             color: white;
         }
         
@@ -179,31 +176,31 @@
             border: 1px solid var(--glass-border);
             margin-right: auto;
             border-bottom-left-radius: 5px;
-            border-top-right-radius: 20px;
+            border-top-right-radius: 18px;
             border-top-left-radius: 5px;
-            border-bottom-right-radius: 20px;
+            border-bottom-right-radius: 18px;
         }
         
         .message-sender {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
-            margin-bottom: 0.4rem;
+            margin-bottom: 0.3rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
         }
         
         .message-content {
-            line-height: 1.5;
-            font-size: 1rem;
+            line-height: 1.4;
+            font-size: 0.95rem;
             white-space: pre-wrap;
         }
         
         .message-time {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             opacity: 0.7;
             text-align: right;
-            margin-top: 0.5rem;
+            margin-top: 0.4rem;
             display: flex;
             align-items: center;
             justify-content: flex-end;
@@ -213,25 +210,25 @@
         .typing-indicator {
             display: inline-flex;
             align-items: center;
-            padding: 0.75rem 1.25rem;
+            padding: 0.6rem 1rem;
             background: var(--received-bubble);
-            border-radius: 20px;
+            border-radius: 18px;
             border: 1px solid var(--glass-border);
-            max-width: 75%;
+            max-width: 70%;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             margin-left: 1rem;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
         
         .typing-dots {
             display: flex;
-            gap: 0.3rem;
+            gap: 0.25rem;
         }
         
         .typing-dot {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             background: var(--text-secondary);
             border-radius: 50%;
             animation: typing 1.4s infinite;
@@ -261,6 +258,17 @@
             }
         }
         
+        @keyframes messageDelete {
+            from { 
+                opacity: 1; 
+                transform: scale(1); 
+            }
+            to { 
+                opacity: 0; 
+                transform: scale(0.8); 
+            }
+        }
+        
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.7; }
@@ -276,10 +284,10 @@
         }
         
         .load-more-btn {
-            width: calc(100% - 3rem);
+            width: calc(100% - 2rem);
             text-align: center;
-            padding: 0.75rem;
-            margin: 0 auto 1.5rem auto;
+            padding: 0.6rem;
+            margin: 0 auto 1rem auto;
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
             border-radius: 12px;
@@ -298,8 +306,8 @@
         
         .message-actions {
             position: absolute;
-            right: 0.75rem;
-            top: 0.75rem;
+            right: 0.6rem;
+            top: 0.6rem;
             opacity: 0;
             transition: opacity 0.2s ease;
             display: flex;
@@ -314,14 +322,14 @@
             background: rgba(0, 0, 0, 0.4);
             border: none;
             color: white;
-            width: 26px;
-            height: 26px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             transition: all 0.2s ease;
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
@@ -333,19 +341,19 @@
         }
         
         .online-indicator {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             background: #10B981;
             border-radius: 50%;
             display: inline-block;
-            margin-right: 0.5rem;
-            box-shadow: 0 0 8px #10B981;
+            margin-right: 0.4rem;
+            box-shadow: 0 0 6px #10B981;
         }
         
         .role-badge {
-            font-size: 0.7rem;
-            padding: 0.2rem 0.6rem;
-            border-radius: 12px;
+            font-size: 0.6rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 10px;
             background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
             font-weight: 500;
             text-transform: uppercase;
@@ -355,17 +363,17 @@
         
         /* Scrollbar styling */
         .messages-container::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
         
         .messages-container::-webkit-scrollbar-track {
             background: rgba(0, 0, 0, 0.1);
-            border-radius: 4px;
+            border-radius: 3px;
         }
         
         .messages-container::-webkit-scrollbar-thumb {
             background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-            border-radius: 4px;
+            border-radius: 3px;
         }
         
         .messages-container::-webkit-scrollbar-thumb:hover {
@@ -375,17 +383,17 @@
         /* New message indicator */
         .new-messages-indicator {
             position: absolute;
-            bottom: 20px;
+            bottom: 15px;
             left: 50%;
             transform: translateX(-50%);
             background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
             color: white;
-            padding: 0.6rem 1.25rem;
+            padding: 0.5rem 1rem;
             border-radius: 20px;
             cursor: pointer;
             z-index: 10;
             box-shadow: 0 4px 15px rgba(142, 68, 173, 0.4);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -395,9 +403,9 @@
         /* Welcome banner */
         .welcome-banner {
             background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-            border-radius: 15px;
-            padding: 1.25rem;
-            margin-bottom: 1.5rem;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
             text-align: center;
             animation: fadeIn 0.5s ease;
             color: white;
@@ -414,7 +422,7 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--glass-border);
-            padding: 0.75rem 1rem;
+            padding: 0.6rem 1rem;
         }
         
         /* Floating action button */
@@ -422,8 +430,8 @@
             position: fixed;
             right: 1.5rem;
             bottom: 6rem;
-            width: 45px;
-            height: 45px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
             display: flex;
@@ -446,9 +454,9 @@
         .message-divider {
             display: flex;
             align-items: center;
-            margin: 1.5rem 0;
+            margin: 1rem 0;
             color: var(--text-secondary);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 500;
         }
         
@@ -458,7 +466,7 @@
             flex: 1;
             height: 1px;
             background: var(--glass-border);
-            margin: 0 1rem;
+            margin: 0 0.8rem;
         }
         
         /* Connection status */
@@ -466,9 +474,9 @@
             position: fixed;
             top: 1rem;
             right: 1rem;
-            padding: 0.5rem 1rem;
+            padding: 0.4rem 0.8rem;
             border-radius: 20px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             z-index: 1000;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
@@ -476,7 +484,7 @@
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
         }
         
         .connection-status.connected {
@@ -492,21 +500,21 @@
         /* Empty state */
         .empty-state {
             text-align: center;
-            padding: 3rem 1rem;
+            padding: 2rem 1rem;
             color: var(--text-secondary);
         }
         
         .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
+            font-size: 2.5rem;
+            margin-bottom: 0.8rem;
             opacity: 0.5;
         }
         
         /* Input styles */
         .chat-input {
             transition: all 0.2s ease;
-            min-height: 50px;
-            max-height: 120px;
+            min-height: 45px;
+            max-height: 100px;
             resize: none;
         }
         
@@ -519,37 +527,37 @@
         .balls-loader {
             display: inline-block;
             position: relative;
-            width: 80px;
-            height: 80px;
+            width: 70px;
+            height: 70px;
         }
         
         .balls-loader div {
             position: absolute;
-            top: 33px;
-            width: 13px;
-            height: 13px;
+            top: 28px;
+            width: 11px;
+            height: 11px;
             border-radius: 50%;
             background: var(--accent-primary);
             animation-timing-function: cubic-bezier(0, 1, 1, 0);
         }
         
         .balls-loader div:nth-child(1) {
-            left: 8px;
+            left: 6px;
             animation: balls-loader1 0.6s infinite;
         }
         
         .balls-loader div:nth-child(2) {
-            left: 8px;
+            left: 6px;
             animation: balls-loader2 0.6s infinite;
         }
         
         .balls-loader div:nth-child(3) {
-            left: 32px;
+            left: 28px;
             animation: balls-loader2 0.6s infinite;
         }
         
         .balls-loader div:nth-child(4) {
-            left: 56px;
+            left: 50px;
             animation: balls-loader3 0.6s infinite;
         }
         
@@ -565,7 +573,7 @@
         
         @keyframes balls-loader2 {
             0% { transform: translate(0, 0); }
-            100% { transform: translate(24px, 0); }
+            100% { transform: translate(22px, 0); }
         }
         
         /* Settings dropdown */
@@ -579,8 +587,8 @@
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid var(--glass-border);
             border-radius: 8px;
-            padding: 0.5rem;
-            min-width: 180px;
+            padding: 0.4rem;
+            min-width: 160px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             opacity: 0;
             visibility: hidden;
@@ -597,11 +605,11 @@
         .settings-dropdown button {
             width: 100%;
             text-align: left;
-            padding: 0.5rem 0.75rem;
+            padding: 0.4rem 0.6rem;
             border-radius: 6px;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
             transition: background 0.2s ease;
         }
         
@@ -632,13 +640,13 @@
         
         .message-notification {
             position: absolute;
-            top: -10px;
-            right: 10px;
+            top: -8px;
+            right: 8px;
             background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
             color: white;
-            font-size: 0.7rem;
-            padding: 2px 8px;
-            border-radius: 10px;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 8px;
             animation: pulseNotification 1s ease;
             z-index: 1;
         }
@@ -646,6 +654,32 @@
         @keyframes pulseNotification {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
+        }
+        
+        /* Deleted message placeholder */
+        .message-deleted {
+            opacity: 0.5;
+            background: rgba(100, 100, 100, 0.1) !important;
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+        }
+        
+        .deleted-message-text {
+            font-style: italic;
+            color: var(--text-secondary);
+        }
+        
+        /* Compact layout */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
     </style>
 </head>
@@ -690,9 +724,9 @@
     </div>
 
     <!-- Main Chat Container -->
-    <div id="mainContent" class="hidden">
+    <div id="mainContent" class="hidden main-content">
         <!-- Enhanced Header -->
-        <header class="chat-header sticky top-0 z-40">
+        <header class="chat-header">
             <div class="container mx-auto flex justify-between items-center">
                 <div class="flex items-center space-x-3">
                     <a href="https://senturyhanderserson.github.io/SigmiForCCGS/" class="p-2 rounded-full hover:bg-purple-700 transition duration-300" title="Back to Home">
@@ -730,8 +764,8 @@
         </header>
 
         <!-- Chat Area -->
-        <main class="container mx-auto px-4 h-full">
-            <div class="glass-card chat-container h-full">
+        <main class="chat-area">
+            <div class="chat-container h-full">
                 <!-- Messages Container -->
                 <div id="messagesContainer" class="messages-container">
                     <!-- Messages will be loaded here -->
@@ -761,7 +795,7 @@
                                         class="w-full px-4 py-3 rounded-full bg-purple-900 bg-opacity-50 border border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none chat-input"
                                         maxlength="1000"
                                         rows="1"
-                                        style="min-height: 50px;"
+                                        style="min-height: 45px;"
                                     ></textarea>
                                     <div class="absolute right-3 bottom-3 flex items-center gap-2">
                                         <span id="charCount" class="text-xs text-gray-400">
@@ -811,6 +845,9 @@
         let loadedMessageIds = new Set();
         let soundEnabled = true;
         let settingsDropdownVisible = false;
+        
+        // Track deleted messages
+        let deletedMessageIds = new Set();
         
         // Track pending messages that haven't been confirmed by server
         let pendingMessages = new Map();
@@ -896,7 +933,7 @@
             // Auto-resize textarea
             messageInput.addEventListener('input', function() {
                 this.style.height = 'auto';
-                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+                this.style.height = Math.min(this.scrollHeight, 100) + 'px';
                 
                 charCount.textContent = `${this.value.length}/1000`;
                 
@@ -991,7 +1028,7 @@
                 document.getElementById('loadingOverlay').classList.add('hidden');
                 document.getElementById('mainContent').classList.remove('hidden');
                 
-                // Start polling for new messages
+                // Start polling for new messages and deletions
                 startPolling();
                 
                 // Update online status
@@ -1040,6 +1077,7 @@
                 if (data.success) {
                     // Clear loaded message IDs
                     loadedMessageIds.clear();
+                    deletedMessageIds.clear();
                     
                     // Store messages
                     messages = data.messages || [];
@@ -1109,8 +1147,10 @@
                 const data = await response.json();
                 
                 if (data.success && data.messages.length > 0) {
-                    // Filter out any messages we already have
-                    const newMessages = data.messages.filter(msg => !loadedMessageIds.has(msg.id));
+                    // Filter out any messages we already have or that are deleted
+                    const newMessages = data.messages.filter(msg => 
+                        !loadedMessageIds.has(msg.id) && !deletedMessageIds.has(msg.id)
+                    );
                     
                     if (newMessages.length > 0) {
                         // Add to beginning of messages array
@@ -1354,28 +1394,34 @@
                 messageDiv.title = "Sending...";
             }
             
+            // Check if message is deleted
+            const isDeleted = deletedMessageIds.has(message.id);
+            
             // Role badge for non-members
-            const roleBadge = message.role && message.role !== 'Member' ? 
+            const roleBadge = message.role && message.role !== 'Member' && !isDeleted ? 
                 `<span class="role-badge">${message.role}</span>` : '';
             
             // Online indicator
-            const onlineIndicator = onlineUsers.has(message.username) ? 
+            const onlineIndicator = onlineUsers.has(message.username) && !isDeleted ? 
                 `<span class="online-indicator" title="Online"></span>` : '';
             
             messageDiv.innerHTML = `
                 <div class="message-sender">
                     ${onlineIndicator}
-                    <span class="font-bold">${message.username}</span>
+                    <span class="font-bold">${isDeleted ? 'Deleted User' : message.username}</span>
                     ${roleBadge}
                     ${isPending ? '<span class="text-xs text-yellow-400 ml-2">(Sending...)</span>' : ''}
                 </div>
-                <div class="message-content">${escapeHtml(message.content)}</div>
+                <div class="message-content ${isDeleted ? 'deleted-message-text' : ''}">
+                    ${isDeleted ? '[Message deleted]' : escapeHtml(message.content)}
+                </div>
                 <div class="message-time">
                     <i data-feather="clock" class="w-3 h-3"></i>
                     ${timeDisplay}
                     ${isPending ? '<i data-feather="loader" class="w-3 h-3 ml-2 animate-spin"></i>' : ''}
+                    ${isDeleted ? '<span class="text-xs text-gray-500 ml-2">(deleted)</span>' : ''}
                 </div>
-                ${isCurrentUser && !isPending ? `
+                ${isCurrentUser && !isPending && !isDeleted ? `
                     <div class="message-actions">
                         <button class="message-action-btn delete-message-btn" title="Delete">
                             <i data-feather="trash-2" class="w-3 h-3"></i>
@@ -1384,13 +1430,18 @@
                 ` : ''}
             `;
             
-            // Add delete event listener
-            if (isCurrentUser && !isPending) {
+            // Add delete event listener if not deleted
+            if (isCurrentUser && !isPending && !isDeleted) {
                 const deleteBtn = messageDiv.querySelector('.delete-message-btn');
                 deleteBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     deleteMessage(message.id);
                 });
+            }
+            
+            // Add deleted message styling
+            if (isDeleted) {
+                messageDiv.classList.add('message-deleted');
             }
             
             return messageDiv;
@@ -1652,10 +1703,45 @@
                     });
                     
                     if (data.messages && data.messages.length > 0) {
-                        // Filter out messages we already have
+                        // First, check for deleted messages
+                        const currentMessageIds = new Set(messages.map(m => m.id));
+                        const incomingMessageIds = new Set(data.messages.map(m => m.id));
+                        
+                        // Find messages that are missing from incoming data (might be deleted)
+                        const potentiallyDeleted = Array.from(currentMessageIds).filter(id => 
+                            !incomingMessageIds.has(id) && !deletedMessageIds.has(id)
+                        );
+                        
+                        if (potentiallyDeleted.length > 0) {
+                            console.log('Potentially deleted messages:', potentiallyDeleted);
+                            
+                            // Verify deletions by checking each potentially deleted message
+                            for (const messageId of potentiallyDeleted) {
+                                try {
+                                    const deleteCheckResponse = await fetch(`${SERVER_URL}/api/chat/messages/${messageId}/exists`, {
+                                        headers: {
+                                            'Authorization': `Bearer ${token}`,
+                                            'Content-Type': 'application/json'
+                                        }
+                                    });
+                                    
+                                    if (deleteCheckResponse.ok) {
+                                        const deleteData = await deleteCheckResponse.json();
+                                        if (!deleteData.exists) {
+                                            // Message was deleted, update UI
+                                            handleMessageDeleted(messageId);
+                                        }
+                                    }
+                                } catch (error) {
+                                    console.error('Error checking message deletion:', error);
+                                }
+                            }
+                        }
+                        
+                        // Filter out messages we already have or that are deleted
                         const newMessages = data.messages.filter(msg => {
                             // Check by ID first
-                            if (loadedMessageIds.has(msg.id)) {
+                            if (loadedMessageIds.has(msg.id) || deletedMessageIds.has(msg.id)) {
                                 return false;
                             }
                             
@@ -1663,7 +1749,7 @@
                             const isDuplicate = messages.some(existing => 
                                 existing.username === msg.username &&
                                 existing.content === msg.content &&
-                                Math.abs(new Date(existing.timestamp) - new Date(msg.timestamp)) < 5000 // Within 5 seconds
+                                Math.abs(new Date(existing.timestamp) - new Date(msg.timestamp)) < 5000
                             );
                             
                             return !isDuplicate;
@@ -1743,6 +1829,81 @@
                     }, 3000);
                 }
             }
+        }
+
+        // Handle message deletion from other users
+        function handleMessageDeleted(messageId) {
+            console.log('Handling deleted message:', messageId);
+            
+            // Mark as deleted
+            deletedMessageIds.add(messageId);
+            
+            // Find and update the message in the DOM
+            const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+            if (messageElement) {
+                // Add deletion animation
+                messageElement.style.animation = 'messageDelete 0.3s ease';
+                
+                setTimeout(() => {
+                    // Update the message content to show it's deleted
+                    const contentDiv = messageElement.querySelector('.message-content');
+                    const senderDiv = messageElement.querySelector('.message-sender');
+                    const actionsDiv = messageElement.querySelector('.message-actions');
+                    
+                    if (contentDiv) {
+                        contentDiv.textContent = '[Message deleted]';
+                        contentDiv.classList.add('deleted-message-text');
+                    }
+                    
+                    if (senderDiv) {
+                        const usernameSpan = senderDiv.querySelector('.font-bold');
+                        if (usernameSpan) {
+                            usernameSpan.textContent = 'Deleted User';
+                        }
+                        
+                        // Remove role badge
+                        const roleBadge = senderDiv.querySelector('.role-badge');
+                        if (roleBadge) {
+                            roleBadge.remove();
+                        }
+                        
+                        // Remove online indicator
+                        const onlineIndicator = senderDiv.querySelector('.online-indicator');
+                        if (onlineIndicator) {
+                            onlineIndicator.remove();
+                        }
+                    }
+                    
+                    // Remove delete button
+                    if (actionsDiv) {
+                        actionsDiv.remove();
+                    }
+                    
+                    // Add deleted styling
+                    messageElement.classList.add('message-deleted');
+                    
+                    // Add deletion indicator to time
+                    const timeDiv = messageElement.querySelector('.message-time');
+                    if (timeDiv) {
+                        const deletedSpan = document.createElement('span');
+                        deletedSpan.className = 'text-xs text-gray-500 ml-2';
+                        deletedSpan.textContent = '(deleted)';
+                        timeDiv.appendChild(deletedSpan);
+                    }
+                    
+                    // Reset animation
+                    messageElement.style.animation = '';
+                }, 300);
+            }
+            
+            // Remove from messages array if present
+            const messageIndex = messages.findIndex(m => m.id === messageId);
+            if (messageIndex !== -1) {
+                messages.splice(messageIndex, 1);
+            }
+            
+            // Remove from loaded message IDs
+            loadedMessageIds.delete(messageId);
         }
 
         // Function to show notification when messages arrive
@@ -1858,14 +2019,9 @@
                     throw new Error('Failed to delete message');
                 }
                 
-                // Remove message from UI
-                const messageEl = document.querySelector(`[data-message-id="${messageId}"]`);
-                if (messageEl) {
-                    messageEl.style.animation = 'messageSlideIn 0.3s reverse';
-                    setTimeout(() => {
-                        messageEl.remove();
-                    }, 300);
-                }
+                // Mark as deleted locally
+                deletedMessageIds.add(messageId);
+                handleMessageDeleted(messageId);
                 
                 // Remove from messages array
                 messages = messages.filter(m => m.id !== messageId);
@@ -1899,6 +2055,7 @@
                     // Clear local state
                     messages = [];
                     loadedMessageIds.clear();
+                    deletedMessageIds.clear();
                     newestMessageId = null;
                     oldestMessageId = null;
                     pendingMessages.clear();
