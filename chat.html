@@ -159,6 +159,7 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             word-wrap: break-word;
             word-break: break-word;
+            transition: all 0.3s ease;
         }
         
         .message-bubble.sent {
@@ -607,6 +608,45 @@
         .settings-dropdown button:hover {
             background: rgba(255, 255, 255, 0.1);
         }
+        
+        /* New Message Highlight Styles */
+        .new-message-highlight {
+            animation: highlightMessage 2s ease;
+            background: linear-gradient(135deg, rgba(142, 68, 173, 0.1) 0%, rgba(108, 92, 231, 0.1) 100%);
+            border-left: 3px solid var(--accent-primary);
+        }
+        
+        @keyframes highlightMessage {
+            0% {
+                background: linear-gradient(135deg, rgba(142, 68, 173, 0.3) 0%, rgba(108, 92, 231, 0.3) 100%);
+                transform: translateX(-10px);
+            }
+            50% {
+                background: linear-gradient(135deg, rgba(142, 68, 173, 0.2) 0%, rgba(108, 92, 231, 0.2) 100%);
+                transform: translateX(0);
+            }
+            100% {
+                background: linear-gradient(135deg, rgba(142, 68, 173, 0.1) 0%, rgba(108, 92, 231, 0.1) 100%);
+            }
+        }
+        
+        .message-notification {
+            position: absolute;
+            top: -10px;
+            right: 10px;
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            animation: pulseNotification 1s ease;
+            z-index: 1;
+        }
+        
+        @keyframes pulseNotification {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
     </style>
 </head>
 <body class="min-h-screen text-white font-sans theme-dark">
@@ -1004,7 +1044,7 @@
                     // Store messages
                     messages = data.messages || [];
                     
-                    // Sort messages by timestamp to ensure correct order
+                    // Ensure proper chronological order (oldest first)
                     messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
                     
                     // Track loaded message IDs
@@ -1014,6 +1054,8 @@
                     if (messages.length > 0) {
                         newestMessageId = messages[messages.length - 1]?.id;
                         oldestMessageId = messages[0]?.id;
+                        console.log('Initial newestMessageId:', newestMessageId);
+                        console.log('Initial oldestMessageId:', oldestMessageId);
                     }
                     
                     // Render messages
@@ -1185,6 +1227,71 @@
             }
             
             feather.replace();
+        }
+
+        // New function to render messages with visual indicator
+        function renderNewMessages(messagesToRender) {
+            if (messagesToRender.length === 0) return;
+            
+            const container = document.getElementById('messagesContainer');
+            const wasNearBottom = isNearBottom;
+            
+            // Create a temporary container to build messages
+            const fragment = document.createDocumentFragment();
+            
+            // Group messages by date
+            const messagesByDate = groupMessagesByDate(messagesToRender);
+            
+            // Render messages grouped by date
+            Object.keys(messagesByDate).forEach(date => {
+                // Check if we need a new date divider
+                const existingDividers = container.querySelectorAll('.message-divider');
+                let needsDivider = true;
+                
+                if (existingDividers.length > 0) {
+                    const lastDivider = existingDividers[existingDividers.length - 1];
+                    if (lastDivider.textContent === date) {
+                        needsDivider = false;
+                    }
+                }
+                
+                if (needsDivider) {
+                    // Add date divider
+                    const dateDivider = createDateDivider(date);
+                    fragment.appendChild(dateDivider);
+                }
+                
+                // Add messages for this date with slide-in animation
+                messagesByDate[date].forEach(message => {
+                    const messageEl = createMessageElement(message);
+                    
+                    // Add new message indicator animation
+                    if (!wasNearBottom) {
+                        messageEl.classList.add('new-message-highlight');
+                        setTimeout(() => {
+                            messageEl.classList.remove('new-message-highlight');
+                        }, 2000);
+                    }
+                    
+                    fragment.appendChild(messageEl);
+                });
+            });
+            
+            // Append all new messages at once
+            container.appendChild(fragment);
+            feather.replace();
+            
+            // Update scroll position if near bottom
+            if (wasNearBottom) {
+                setTimeout(() => {
+                    scrollToBottom();
+                }, 50);
+            }
+            
+            // Show notification badge for new messages
+            if (messagesToRender.length > 0 && wasNearBottom) {
+                showMessageNotification(messagesToRender.length);
+            }
         }
 
         function groupMessagesByDate(messages) {
@@ -1507,11 +1614,22 @@
             try {
                 const token = getCookie('AuthToken');
                 const params = new URLSearchParams();
+                
                 if (newestMessageId) {
-                    params.append('after', newestMessageId);
+                    // Get the timestamp of our newest known message
+                    const newestKnownMessage = messages.find(m => m.id === newestMessageId);
+                    if (newestKnownMessage && newestKnownMessage.timestamp) {
+                        params.append('afterTime', newestKnownMessage.timestamp);
+                        console.log('Polling with timestamp after:', newestKnownMessage.timestamp);
+                    } else {
+                        params.append('after', newestMessageId);
+                        console.log('Polling after message ID:', newestMessageId);
+                    }
+                } else {
+                    console.log('No newestMessageId, polling for all messages');
                 }
                 
-                console.log('Polling for new messages after:', newestMessageId);
+                console.log('Polling for new messages...');
                 
                 const response = await fetch(`${SERVER_URL}/api/chat/messages/new?${params}`, {
                     headers: {
@@ -1533,19 +1651,29 @@
                         onlineUsers: data.onlineUsers?.length || 0
                     });
                     
-                    // Filter out messages we already have
                     if (data.messages && data.messages.length > 0) {
-                        const newMessages = data.messages.filter(msg => 
-                            !loadedMessageIds.has(msg.id) && 
-                            !Array.from(pendingMessages.values()).some(pending => 
-                                pending.content === msg.content && 
-                                pending.username === msg.username &&
-                                Math.abs(new Date(pending.timestamp) - new Date(msg.timestamp)) < 1000
-                            )
-                        );
+                        // Filter out messages we already have
+                        const newMessages = data.messages.filter(msg => {
+                            // Check by ID first
+                            if (loadedMessageIds.has(msg.id)) {
+                                return false;
+                            }
+                            
+                            // Additional check: messages with similar content and timestamp from same user
+                            const isDuplicate = messages.some(existing => 
+                                existing.username === msg.username &&
+                                existing.content === msg.content &&
+                                Math.abs(new Date(existing.timestamp) - new Date(msg.timestamp)) < 5000 // Within 5 seconds
+                            );
+                            
+                            return !isDuplicate;
+                        });
                         
                         if (newMessages.length > 0) {
                             console.log('New messages found:', newMessages.length);
+                            
+                            // Sort messages by timestamp (oldest first) for proper rendering
+                            newMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
                             
                             // Track new message IDs
                             newMessages.forEach(msg => loadedMessageIds.add(msg.id));
@@ -1554,17 +1682,14 @@
                             messages = [...messages, ...newMessages];
                             
                             // Update newestMessageId to the latest message
-                            if (newMessages.length > 0) {
-                                // Find the message with the latest timestamp
-                                const latestMessage = newMessages.reduce((latest, current) => 
-                                    new Date(current.timestamp) > new Date(latest.timestamp) ? current : latest
-                                );
+                            const latestMessage = newMessages[newMessages.length - 1];
+                            if (latestMessage && latestMessage.id) {
                                 newestMessageId = latestMessage.id;
                                 console.log('Updated newestMessageId to:', newestMessageId);
                             }
                             
-                            // Render new messages
-                            renderMessages(newMessages);
+                            // Render new messages with a visual indicator
+                            renderNewMessages(newMessages);
                             
                             // Update unread messages count if not near bottom
                             if (!isNearBottom) {
@@ -1573,7 +1698,7 @@
                             }
                             
                             // Play sound for new messages
-                            if (soundEnabled && !isNearBottom) {
+                            if (soundEnabled && !isNearBottom && newMessages.length > 0) {
                                 playMessageSound();
                             }
                             
@@ -1617,6 +1742,25 @@
                         reconnect();
                     }, 3000);
                 }
+            }
+        }
+
+        // Function to show notification when messages arrive
+        function showMessageNotification(count) {
+            const container = document.getElementById('messagesContainer');
+            const notification = document.createElement('div');
+            notification.className = 'message-notification';
+            notification.textContent = count === 1 ? '1 new message' : `${count} new messages`;
+            
+            // Find last message and add notification
+            const messages = container.querySelectorAll('.message-bubble');
+            if (messages.length > 0) {
+                const lastMessage = messages[messages.length - 1];
+                lastMessage.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
             }
         }
 
