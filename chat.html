@@ -772,8 +772,8 @@
         let soundEnabled = true;
         let settingsDropdownVisible = false;
         
-        // NEW: Track pending messages that haven't been confirmed by server
-        let pendingMessages = new Map(); // Map of tempId -> {message, tempId}
+        // Track pending messages that haven't been confirmed by server
+        let pendingMessages = new Map();
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -887,7 +887,6 @@
             
             // Settings dropdown
             document.getElementById('chatSettingsBtn').addEventListener('click', toggleSettingsDropdown);
-            document.addEventListener('click', closeSettingsDropdown);
             
             // Settings buttons
             document.getElementById('clearChatBtn').addEventListener('click', clearChat);
@@ -1005,7 +1004,7 @@
                     // Store messages
                     messages = data.messages || [];
                     
-                    // FIXED: Sort messages by timestamp to ensure correct order
+                    // Sort messages by timestamp to ensure correct order
                     messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
                     
                     // Track loaded message IDs
@@ -1013,8 +1012,8 @@
                     
                     // Set message IDs for pagination
                     if (messages.length > 0) {
-                        newestMessageId = messages[messages.length - 1]?.id; // Last one is newest
-                        oldestMessageId = messages[0]?.id; // First one is oldest
+                        newestMessageId = messages[messages.length - 1]?.id;
+                        oldestMessageId = messages[0]?.id;
                     }
                     
                     // Render messages
@@ -1126,12 +1125,44 @@
                 return;
             }
             
-            // Group messages by date
-            const messagesByDate = groupMessagesByDate(messagesToRender);
-            
-            // Render messages grouped by date
-            Object.keys(messagesByDate).forEach(date => {
-                if (prepend) {
+            // For appending new messages (not prepending older ones)
+            if (!prepend) {
+                // Group messages by date
+                const messagesByDate = groupMessagesByDate(messagesToRender);
+                
+                // Render messages grouped by date
+                Object.keys(messagesByDate).forEach(date => {
+                    // Check if we need a new date divider
+                    const existingDividers = container.querySelectorAll('.message-divider');
+                    let needsDivider = true;
+                    
+                    if (existingDividers.length > 0) {
+                        const lastDivider = existingDividers[existingDividers.length - 1];
+                        if (lastDivider.textContent === date) {
+                            needsDivider = false;
+                        }
+                    }
+                    
+                    if (needsDivider) {
+                        // Add date divider
+                        const dateDivider = createDateDivider(date);
+                        container.appendChild(dateDivider);
+                    }
+                    
+                    // Add messages for this date
+                    messagesByDate[date].forEach(message => {
+                        const messageEl = createMessageElement(message);
+                        container.appendChild(messageEl);
+                    });
+                });
+            } else {
+                // For prepending older messages (load more)
+                const messagesByDate = groupMessagesByDate(messagesToRender);
+                
+                // Reverse the dates to maintain chronological order when prepending
+                const reversedDates = Object.keys(messagesByDate).reverse();
+                
+                reversedDates.forEach(date => {
                     // Add date divider
                     const dateDivider = createDateDivider(date);
                     const loadMoreBtn = container.querySelector('.load-more-btn');
@@ -1142,7 +1173,7 @@
                     }
                     
                     // Add messages for this date (in reverse order for prepend)
-                    [...messagesByDate[date]].reverse().forEach(message => {
+                    messagesByDate[date].reverse().forEach(message => {
                         const messageEl = createMessageElement(message);
                         if (loadMoreBtn) {
                             container.insertBefore(messageEl, loadMoreBtn);
@@ -1150,18 +1181,8 @@
                             container.prepend(messageEl);
                         }
                     });
-                } else {
-                    // Add date divider
-                    const dateDivider = createDateDivider(date);
-                    container.appendChild(dateDivider);
-                    
-                    // Add messages for this date
-                    messagesByDate[date].forEach(message => {
-                        const messageEl = createMessageElement(message);
-                        container.appendChild(messageEl);
-                    });
-                }
-            });
+                });
+            }
             
             feather.replace();
         }
@@ -1510,25 +1531,26 @@
                             !loadedMessageIds.has(msg.id) && 
                             !Array.from(pendingMessages.values()).some(pending => 
                                 pending.content === msg.content && 
-                                pending.username === msg.username
+                                pending.username === msg.username &&
+                                Math.abs(new Date(pending.timestamp) - new Date(msg.timestamp)) < 1000
                             )
                         );
                         
                         if (newMessages.length > 0) {
+                            console.log('New messages received:', newMessages.length);
+                            
                             // Track new message IDs
                             newMessages.forEach(msg => loadedMessageIds.add(msg.id));
                             
                             // Add to messages array
                             messages = [...messages, ...newMessages];
                             
-                            // FIXED: Update newestMessageId to the latest message in ALL messages
-                            // Sort messages by timestamp descending to get the newest
-                            const sortedMessages = [...messages].sort((a, b) => 
-                                new Date(b.timestamp) - new Date(a.timestamp)
+                            // Update newestMessageId to the latest message
+                            const latestMessage = newMessages.reduce((latest, current) => 
+                                new Date(current.timestamp) > new Date(latest.timestamp) ? current : latest
                             );
-                            
-                            if (sortedMessages.length > 0) {
-                                newestMessageId = sortedMessages[0].id;
+                            if (latestMessage && latestMessage.id) {
+                                newestMessageId = latestMessage.id;
                             }
                             
                             // Render new messages
