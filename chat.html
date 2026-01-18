@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Community Chat - Sigmi Team</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Replace Tailwind CDN with self-hosted version or remove for production -->
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
@@ -972,72 +973,71 @@
         }
 
         async function loadInitialMessages() {
-       async function loadInitialMessages() {
-    try {
-        const token = getCookie('AuthToken');
-        const params = new URLSearchParams({
-            limit: '50'
-        });
-        
-        console.log('Loading initial messages...');
-        
-        const response = await fetch(`${SERVER_URL}/api/chat/messages?${params}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
+            try {
+                const token = getCookie('AuthToken');
+                const params = new URLSearchParams({
+                    limit: '50'
+                });
+                
+                console.log('Loading initial messages...');
+                
+                const response = await fetch(`${SERVER_URL}/api/chat/messages?${params}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to load messages: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Messages loaded:', data.messages?.length || 0);
+                
+                if (data.success) {
+                    // Clear loaded message IDs
+                    loadedMessageIds.clear();
+                    
+                    // Store messages
+                    messages = data.messages || [];
+                    
+                    // FIXED: Sort messages by timestamp to ensure correct order
+                    messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                    
+                    // Track loaded message IDs
+                    messages.forEach(msg => loadedMessageIds.add(msg.id));
+                    
+                    // Set message IDs for pagination
+                    if (messages.length > 0) {
+                        newestMessageId = messages[messages.length - 1]?.id; // Last one is newest
+                        oldestMessageId = messages[0]?.id; // First one is oldest
+                    }
+                    
+                    // Render messages
+                    renderMessages(messages, true);
+                    
+                    hasMoreMessages = data.hasMore || false;
+                    
+                    // Auto-scroll to bottom
+                    setTimeout(() => {
+                        scrollToBottom();
+                    }, 100);
+                    
+                    // Show welcome message if no messages
+                    if (messages.length === 0) {
+                        showEmptyState('No messages yet. Be the first to say hello!');
+                    }
+                    
+                } else {
+                    throw new Error('Failed to load messages');
+                }
+                
+            } catch (error) {
+                console.error('Error loading initial messages:', error);
+                throw error;
             }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Failed to load messages: ${response.status}`);
         }
-        
-        const data = await response.json();
-        console.log('Messages loaded:', data.messages?.length || 0);
-        
-        if (data.success) {
-            // Clear loaded message IDs
-            loadedMessageIds.clear();
-            
-            // Store messages
-            messages = data.messages || [];
-            
-            // FIXED: Sort messages by timestamp to ensure correct order
-            messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-            
-            // Track loaded message IDs
-            messages.forEach(msg => loadedMessageIds.add(msg.id));
-            
-            // Set message IDs for pagination
-            if (messages.length > 0) {
-                newestMessageId = messages[messages.length - 1]?.id; // Last one is newest
-                oldestMessageId = messages[0]?.id; // First one is oldest
-            }
-            
-            // Render messages
-            renderMessages(messages, true);
-            
-            hasMoreMessages = data.hasMore || false;
-            
-            // Auto-scroll to bottom
-            setTimeout(() => {
-                scrollToBottom();
-            }, 100);
-            
-            // Show welcome message if no messages
-            if (messages.length === 0) {
-                showEmptyState('No messages yet. Be the first to say hello!');
-            }
-            
-        } else {
-            throw new Error('Failed to load messages');
-        }
-        
-    } catch (error) {
-        console.error('Error loading initial messages:', error);
-        throw error;
-    }
-}
 
         async function loadMoreMessages() {
             if (loadingMore || !oldestMessageId) return;
@@ -1380,105 +1380,106 @@
                 // Silent fail for typing indicator
             }
         }
-async function pollNewMessages() {
-    try {
-        const token = getCookie('AuthToken');
-        const params = new URLSearchParams();
-        if (newestMessageId) {
-            params.append('after', newestMessageId);
-        }
-        
-        const response = await fetch(`${SERVER_URL}/api/chat/messages/new?${params}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error('Poll failed');
-        }
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            // Filter out messages we already have
-            if (data.messages && data.messages.length > 0) {
-                const newMessages = data.messages.filter(msg => !loadedMessageIds.has(msg.id));
+
+        async function pollNewMessages() {
+            try {
+                const token = getCookie('AuthToken');
+                const params = new URLSearchParams();
+                if (newestMessageId) {
+                    params.append('after', newestMessageId);
+                }
                 
-                if (newMessages.length > 0) {
-                    // Track new message IDs
-                    newMessages.forEach(msg => loadedMessageIds.add(msg.id));
-                    
-                    // Add to messages array
-                    messages = [...messages, ...newMessages];
-                    
-                    // FIXED: Update newestMessageId to the latest message in ALL messages
-                    // Sort messages by timestamp descending to get the newest
-                    const sortedMessages = [...messages].sort((a, b) => 
-                        new Date(b.timestamp) - new Date(a.timestamp)
-                    );
-                    
-                    if (sortedMessages.length > 0) {
-                        newestMessageId = sortedMessages[0].id;
+                const response = await fetch(`${SERVER_URL}/api/chat/messages/new?${params}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Poll failed');
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Filter out messages we already have
+                    if (data.messages && data.messages.length > 0) {
+                        const newMessages = data.messages.filter(msg => !loadedMessageIds.has(msg.id));
+                        
+                        if (newMessages.length > 0) {
+                            // Track new message IDs
+                            newMessages.forEach(msg => loadedMessageIds.add(msg.id));
+                            
+                            // Add to messages array
+                            messages = [...messages, ...newMessages];
+                            
+                            // FIXED: Update newestMessageId to the latest message in ALL messages
+                            // Sort messages by timestamp descending to get the newest
+                            const sortedMessages = [...messages].sort((a, b) => 
+                                new Date(b.timestamp) - new Date(a.timestamp)
+                            );
+                            
+                            if (sortedMessages.length > 0) {
+                                newestMessageId = sortedMessages[0].id;
+                            }
+                            
+                            // Render new messages
+                            renderMessages(newMessages);
+                            
+                            // Update unread messages count if not near bottom
+                            if (!isNearBottom) {
+                                unreadMessages += newMessages.length;
+                                updateNewMessagesIndicator();
+                            }
+                            
+                            // Play sound for new messages
+                            if (soundEnabled && !isNearBottom) {
+                                playMessageSound();
+                            }
+                            
+                            // Auto-scroll if user is near bottom
+                            if (isNearBottom) {
+                                setTimeout(() => {
+                                    scrollToBottom();
+                                }, 100);
+                            }
+                        }
                     }
                     
-                    // Render new messages
-                    renderMessages(newMessages);
-                    
-                    // Update unread messages count if not near bottom
-                    if (!isNearBottom) {
-                        unreadMessages += newMessages.length;
-                        updateNewMessagesIndicator();
+                    // Update online users
+                    if (data.onlineUsers) {
+                        updateOnlineUsers(data.onlineUsers);
                     }
                     
-                    // Play sound for new messages
-                    if (soundEnabled && !isNearBottom) {
-                        playMessageSound();
+                    // Update typing indicators
+                    if (data.typingUsers) {
+                        updateTypingIndicator(data.typingUsers);
                     }
                     
-                    // Auto-scroll if user is near bottom
-                    if (isNearBottom) {
-                        setTimeout(() => {
-                            scrollToBottom();
-                        }, 100);
-                    }
+                    // Update connection status
+                    updateConnectionStatus(true);
+                    
+                    // Reset reconnect attempts on successful poll
+                    reconnectAttempts = 0;
+                    
+                } else {
+                    throw new Error('Poll failed');
+                }
+                
+            } catch (error) {
+                console.error('Poll error:', error);
+                reconnectAttempts++;
+                updateConnectionStatus(false);
+                
+                if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+                    showNotification('Connection lost. Reconnecting...', 'warning');
+                    setTimeout(() => {
+                        reconnect();
+                    }, 3000);
                 }
             }
-            
-            // Update online users
-            if (data.onlineUsers) {
-                updateOnlineUsers(data.onlineUsers);
-            }
-            
-            // Update typing indicators
-            if (data.typingUsers) {
-                updateTypingIndicator(data.typingUsers);
-            }
-            
-            // Update connection status
-            updateConnectionStatus(true);
-            
-            // Reset reconnect attempts on successful poll
-            reconnectAttempts = 0;
-            
-        } else {
-            throw new Error('Poll failed');
         }
-        
-    } catch (error) {
-        console.error('Poll error:', error);
-        reconnectAttempts++;
-        updateConnectionStatus(false);
-        
-        if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-            showNotification('Connection lost. Reconnecting...', 'warning');
-            setTimeout(() => {
-                reconnect();
-            }, 3000);
-        }
-    }
-}
 
         function updateOnlineUsers(users) {
             onlineUsers = new Set(users.filter(u => u !== currentUser));
