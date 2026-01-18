@@ -1511,6 +1511,8 @@
                     params.append('after', newestMessageId);
                 }
                 
+                console.log('Polling for new messages after:', newestMessageId);
+                
                 const response = await fetch(`${SERVER_URL}/api/chat/messages/new?${params}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -1525,6 +1527,12 @@
                 const data = await response.json();
                 
                 if (data.success) {
+                    console.log('Poll response:', {
+                        messageCount: data.messages?.length || 0,
+                        typingUsers: data.typingUsers?.length || 0,
+                        onlineUsers: data.onlineUsers?.length || 0
+                    });
+                    
                     // Filter out messages we already have
                     if (data.messages && data.messages.length > 0) {
                         const newMessages = data.messages.filter(msg => 
@@ -1537,7 +1545,7 @@
                         );
                         
                         if (newMessages.length > 0) {
-                            console.log('New messages received:', newMessages.length);
+                            console.log('New messages found:', newMessages.length);
                             
                             // Track new message IDs
                             newMessages.forEach(msg => loadedMessageIds.add(msg.id));
@@ -1546,11 +1554,13 @@
                             messages = [...messages, ...newMessages];
                             
                             // Update newestMessageId to the latest message
-                            const latestMessage = newMessages.reduce((latest, current) => 
-                                new Date(current.timestamp) > new Date(latest.timestamp) ? current : latest
-                            );
-                            if (latestMessage && latestMessage.id) {
+                            if (newMessages.length > 0) {
+                                // Find the message with the latest timestamp
+                                const latestMessage = newMessages.reduce((latest, current) => 
+                                    new Date(current.timestamp) > new Date(latest.timestamp) ? current : latest
+                                );
                                 newestMessageId = latestMessage.id;
+                                console.log('Updated newestMessageId to:', newestMessageId);
                             }
                             
                             // Render new messages
