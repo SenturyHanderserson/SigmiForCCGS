@@ -162,6 +162,22 @@
             transition: all 0.3s ease;
         }
         
+        /* Deleted message style */
+        .message-bubble.deleted {
+            opacity: 0.5;
+            background: rgba(100, 100, 100, 0.2) !important;
+            border: 1px dashed rgba(255, 255, 255, 0.1);
+        }
+        
+        .message-bubble.deleted .message-content {
+            font-style: italic;
+            color: var(--text-secondary);
+        }
+        
+        .message-bubble.deleted .message-sender {
+            opacity: 0.7;
+        }
+        
         .message-bubble.sent {
             background: var(--sent-bubble);
             margin-left: auto;
@@ -700,6 +716,154 @@
             font-size: 0.4rem;
             padding: 0.08rem 0.25rem;
         }
+        
+        /* Notification System Styles - FIXED */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 350px;
+            pointer-events: none;
+        }
+        
+        .notification {
+            pointer-events: auto;
+            background: linear-gradient(135deg, rgba(30, 30, 46, 0.95) 0%, rgba(26, 26, 40, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: notificationSlideIn 0.3s ease-out;
+            transform-origin: top right;
+            opacity: 1;
+            transition: all 0.3s ease;
+            max-width: 100%;
+            overflow: hidden;
+        }
+        
+        .notification.hidden {
+            opacity: 0;
+            transform: translateX(100%) scale(0.9);
+        }
+        
+        .notification.success {
+            border-left: 4px solid #10B981;
+        }
+        
+        .notification.error {
+            border-left: 4px solid #EF4444;
+        }
+        
+        .notification.warning {
+            border-left: 4px solid #F59E0B;
+        }
+        
+        .notification.info {
+            border-left: 4px solid #3B82F6;
+        }
+        
+        .notification-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .notification-icon i {
+            width: 18px;
+            height: 18px;
+            stroke-width: 2.5;
+        }
+        
+        .notification.success .notification-icon i {
+            color: #10B981;
+        }
+        
+        .notification.error .notification-icon i {
+            color: #EF4444;
+        }
+        
+        .notification.warning .notification-icon i {
+            color: #F59E0B;
+        }
+        
+        .notification.info .notification-icon i {
+            color: #3B82F6;
+        }
+        
+        .notification-content {
+            flex: 1;
+            font-size: 14px;
+            line-height: 1.4;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+        
+        .notification-close {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+            flex-shrink: 0;
+            margin-left: 5px;
+        }
+        
+        .notification-close:hover {
+            opacity: 1;
+        }
+        
+        .notification-close i {
+            width: 16px;
+            height: 16px;
+            stroke-width: 2.5;
+        }
+        
+        @keyframes notificationSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+        
+        /* Delete animation */
+        @keyframes messageDelete {
+            from {
+                opacity: 1;
+                transform: scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: scale(0.8);
+                height: 0;
+                margin: 0;
+                padding: 0;
+            }
+        }
+        
+        .message-deleting {
+            animation: messageDelete 0.3s ease forwards !important;
+            overflow: hidden !important;
+            pointer-events: none !important;
+        }
     </style>
 </head>
 <body class="min-h-screen text-white font-sans theme-dark">
@@ -864,6 +1028,7 @@
         let loadedMessageIds = new Set();
         let soundEnabled = true;
         let settingsDropdownVisible = false;
+        let deletedMessageIds = new Set(); // Track deleted messages
         
         // Track pending messages that haven't been confirmed by server
         let pendingMessages = new Map();
@@ -1107,6 +1272,7 @@
                 if (data.success) {
                     // Clear loaded message IDs
                     loadedMessageIds.clear();
+                    deletedMessageIds.clear();
                     
                     // Store messages
                     messages = data.messages || [];
@@ -1176,8 +1342,10 @@
                 const data = await response.json();
                 
                 if (data.success && data.messages.length > 0) {
-                    // Filter out any messages we already have
-                    const newMessages = data.messages.filter(msg => !loadedMessageIds.has(msg.id));
+                    // Filter out any messages we already have or are deleted
+                    const newMessages = data.messages.filter(msg => 
+                        !loadedMessageIds.has(msg.id) && !deletedMessageIds.has(msg.id)
+                    );
                     
                     if (newMessages.length > 0) {
                         // Add to beginning of messages array
@@ -1434,6 +1602,11 @@
                 messageDiv.title = "Sending...";
             }
             
+            // Check if message is deleted
+            if (message.deleted) {
+                messageDiv.classList.add('deleted');
+            }
+            
             // Role badge for non-members
             const roleBadge = message.role && message.role !== 'Member' ? 
                 `<span class="${badgeClass}">${message.role}</span>` : '';
@@ -1442,6 +1615,11 @@
             const onlineIndicator = onlineUsers.has(message.username) ? 
                 `<span class="online-indicator" title="Online"></span>` : '';
             
+            // Message content - show "Message deleted" if deleted
+            const messageContent = message.deleted ? 
+                '<span class="italic opacity-70">Message deleted</span>' : 
+                escapeHtml(message.content);
+            
             messageDiv.innerHTML = `
                 <div class="message-sender">
                     ${onlineIndicator}
@@ -1449,13 +1627,13 @@
                     ${roleBadge}
                     ${isPending ? '<span class="text-xs text-yellow-400 ml-2">(Sending...)</span>' : ''}
                 </div>
-                <div class="message-content">${escapeHtml(message.content)}</div>
+                <div class="message-content">${messageContent}</div>
                 <div class="message-time">
                     <i data-feather="clock" class="w-3 h-3"></i>
                     ${timeDisplay}
                     ${isPending ? '<i data-feather="loader" class="w-3 h-3 ml-2 animate-spin"></i>' : ''}
                 </div>
-                ${isCurrentUser && !isPending ? `
+                ${isCurrentUser && !isPending && !message.deleted ? `
                     <div class="message-actions">
                         <button class="message-action-btn delete-message-btn" title="Delete">
                             <i data-feather="trash-2" class="w-3 h-3"></i>
@@ -1465,7 +1643,7 @@
             `;
             
             // Add delete event listener
-            if (isCurrentUser && !isPending) {
+            if (isCurrentUser && !isPending && !message.deleted) {
                 const deleteBtn = messageDiv.querySelector('.delete-message-btn');
                 deleteBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -1709,6 +1887,10 @@
                     console.log('No newestMessageId, polling for all messages');
                 }
                 
+                // Also get deleted messages
+                const deletedSince = localStorage.getItem('lastPollTime') || Date.now() - 60000;
+                params.append('deletedSince', deletedSince);
+                
                 console.log('Polling for new messages...');
                 
                 const response = await fetch(`${SERVER_URL}/api/chat/messages/new?${params}`, {
@@ -1727,15 +1909,22 @@
                 if (data.success) {
                     console.log('Poll response:', {
                         messageCount: data.messages?.length || 0,
+                        deletedMessages: data.deletedMessages?.length || 0,
                         typingUsers: data.typingUsers?.length || 0,
                         onlineUsers: data.onlineUsers?.length || 0
                     });
                     
+                    // Handle deleted messages first
+                    if (data.deletedMessages && data.deletedMessages.length > 0) {
+                        console.log('Processing deleted messages:', data.deletedMessages.length);
+                        handleDeletedMessages(data.deletedMessages);
+                    }
+                    
                     if (data.messages && data.messages.length > 0) {
-                        // Filter out messages we already have
+                        // Filter out messages we already have or are deleted
                         const newMessages = data.messages.filter(msg => {
                             // Check by ID first
-                            if (loadedMessageIds.has(msg.id)) {
+                            if (loadedMessageIds.has(msg.id) || deletedMessageIds.has(msg.id)) {
                                 return false;
                             }
                             
@@ -1807,6 +1996,9 @@
                     // Reset reconnect attempts on successful poll
                     reconnectAttempts = 0;
                     
+                    // Update last poll time
+                    localStorage.setItem('lastPollTime', Date.now());
+                    
                 } else {
                     throw new Error('Poll failed');
                 }
@@ -1823,6 +2015,54 @@
                     }, 3000);
                 }
             }
+        }
+
+        // Function to handle deleted messages
+        function handleDeletedMessages(deletedMessageIdsList) {
+            deletedMessageIdsList.forEach(deletedId => {
+                // Add to deleted message tracking
+                deletedMessageIds.add(deletedId);
+                
+                // Find the message element in the DOM
+                const messageElement = document.querySelector(`[data-message-id="${deletedId}"]`);
+                if (messageElement) {
+                    // Animate and mark as deleted
+                    messageElement.classList.add('message-deleting');
+                    
+                    setTimeout(() => {
+                        // Update the message to show as deleted instead of removing it
+                        messageElement.classList.remove('message-deleting');
+                        messageElement.classList.add('deleted');
+                        
+                        // Update the message content
+                        const contentDiv = messageElement.querySelector('.message-content');
+                        if (contentDiv) {
+                            contentDiv.innerHTML = '<span class="italic opacity-70">Message deleted</span>';
+                        }
+                        
+                        // Remove delete button if present
+                        const deleteBtn = messageElement.querySelector('.delete-message-btn');
+                        if (deleteBtn) {
+                            deleteBtn.remove();
+                        }
+                        
+                        // Remove actions container if empty
+                        const actionsContainer = messageElement.querySelector('.message-actions');
+                        if (actionsContainer && actionsContainer.children.length === 0) {
+                            actionsContainer.remove();
+                        }
+                        
+                        feather.replace();
+                    }, 300);
+                }
+                
+                // Remove from messages array
+                const messageIndex = messages.findIndex(m => m.id === deletedId);
+                if (messageIndex !== -1) {
+                    // Mark as deleted in the messages array
+                    messages[messageIndex].deleted = true;
+                }
+            });
         }
 
         // Function to show notification when messages arrive
@@ -1938,18 +2178,47 @@
                     throw new Error('Failed to delete message');
                 }
                 
-                // Remove message from UI
+                // Add to deleted messages tracking
+                deletedMessageIds.add(messageId);
+                
+                // Remove message from UI with animation
                 const messageEl = document.querySelector(`[data-message-id="${messageId}"]`);
                 if (messageEl) {
-                    messageEl.style.animation = 'messageSlideIn 0.3s reverse';
+                    // Animate deletion
+                    messageEl.classList.add('message-deleting');
+                    
                     setTimeout(() => {
-                        messageEl.remove();
+                        // Instead of removing, mark as deleted
+                        messageEl.classList.remove('message-deleting');
+                        messageEl.classList.add('deleted');
+                        
+                        // Update the message content
+                        const contentDiv = messageEl.querySelector('.message-content');
+                        if (contentDiv) {
+                            contentDiv.innerHTML = '<span class="italic opacity-70">Message deleted</span>';
+                        }
+                        
+                        // Remove delete button
+                        const deleteBtn = messageEl.querySelector('.delete-message-btn');
+                        if (deleteBtn) {
+                            deleteBtn.remove();
+                        }
+                        
+                        // Remove actions container if empty
+                        const actionsContainer = messageEl.querySelector('.message-actions');
+                        if (actionsContainer && actionsContainer.children.length === 0) {
+                            actionsContainer.remove();
+                        }
+                        
+                        feather.replace();
                     }, 300);
                 }
                 
-                // Remove from messages array
-                messages = messages.filter(m => m.id !== messageId);
-                loadedMessageIds.delete(messageId);
+                // Update messages array
+                const messageIndex = messages.findIndex(m => m.id === messageId);
+                if (messageIndex !== -1) {
+                    messages[messageIndex].deleted = true;
+                }
                 
                 showNotification('Message deleted', 'success');
                 
@@ -1979,9 +2248,14 @@
                     // Clear local state
                     messages = [];
                     loadedMessageIds.clear();
+                    deletedMessageIds.clear();
                     newestMessageId = null;
                     oldestMessageId = null;
                     pendingMessages.clear();
+                    
+                    // Clear the messages container
+                    const container = document.getElementById('messagesContainer');
+                    container.innerHTML = '';
                     
                     // Show empty state
                     showEmptyState('Chat cleared. Start a new conversation!');
@@ -2134,10 +2408,26 @@
             container.appendChild(notification);
             feather.replace();
             
+            // Remove notification after duration
             setTimeout(() => {
                 notification.classList.add('hidden');
-                setTimeout(() => notification.remove(), 300);
+                setTimeout(() => {
+                    if (notification.parentNode === container) {
+                        container.removeChild(notification);
+                    }
+                }, 300);
             }, duration);
+            
+            // Also remove on click
+            notification.addEventListener('click', function(e) {
+                if (e.target.closest('.notification-close')) return;
+                this.classList.add('hidden');
+                setTimeout(() => {
+                    if (this.parentNode === container) {
+                        container.removeChild(this);
+                    }
+                }, 300);
+            });
         }
 
         function initVantaBackground() {
