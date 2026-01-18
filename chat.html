@@ -1010,7 +1010,7 @@
     let loadedMessageIds = new Set();
     let soundEnabled = true;
     let settingsDropdownVisible = false;
-    let lastDeletedCheck = Date.now(); // Track when we last checked for deleted messages
+    let deletedMessageIds = new Set(); // Track IDs of messages we know are deleted
         
     // Track pending messages that haven't been confirmed by server
     let pendingMessages = new Map();
@@ -1254,6 +1254,7 @@
             if (data.success) {
                 // Clear loaded message IDs
                 loadedMessageIds.clear();
+                deletedMessageIds.clear();
                 
                 // Store messages
                 messages = data.messages || [];
@@ -1323,8 +1324,10 @@
             const data = await response.json();
             
             if (data.success && data.messages.length > 0) {
-                // Filter out any messages we already have
-                const newMessages = data.messages.filter(msg => !loadedMessageIds.has(msg.id));
+                // Filter out any messages we already have or are deleted
+                const newMessages = data.messages.filter(msg => 
+                    !loadedMessageIds.has(msg.id) && !deletedMessageIds.has(msg.id)
+                );
                 
                 if (newMessages.length > 0) {
                     // Add to beginning of messages array
@@ -1459,956 +1462,991 @@
         // Render messages grouped by date
         Object.keys(messagesByDate).forEach(date => {
             // Check if we need a new date divider
-                const existingDividers = container.querySelectorAll('.message-divider');
-                let needsDivider = true;
-                
-                if (existingDividers.length > 0) {
-                    const lastDivider = existingDividers[existingDividers.length - 1];
-                    if (lastDivider.textContent === date) {
-                        needsDivider = false;
-                    }
+            const existingDividers = container.querySelectorAll('.message-divider');
+            let needsDivider = true;
+            
+            if (existingDividers.length > 0) {
+                const lastDivider = existingDividers[existingDividers.length - 1];
+                if (lastDivider.textContent === date) {
+                    needsDivider = false;
                 }
-                
-                if (needsDivider) {
-                    // Add date divider
-                    const dateDivider = createDateDivider(date);
-                    fragment.appendChild(dateDivider);
-                }
-                
-                // Add messages for this date with slide-in animation
-                messagesByDate[date].forEach(message => {
-                    const messageEl = createMessageElement(message);
-                    
-                    // Add new message indicator animation
-                    if (!wasNearBottom) {
-                        messageEl.classList.add('new-message-highlight');
-                        setTimeout(() => {
-                            messageEl.classList.remove('new-message-highlight');
-                        }, 2000);
-                    }
-                    
-                    fragment.appendChild(messageEl);
-                });
-            });
-            
-            // Append all new messages at once
-            container.appendChild(fragment);
-            feather.replace();
-            
-            // Update scroll position if near bottom
-            if (wasNearBottom) {
-                setTimeout(() => {
-                    scrollToBottom();
-                }, 50);
             }
             
-            // Show notification badge for new messages
-            if (messagesToRender.length > 0 && wasNearBottom) {
-                showMessageNotification(messagesToRender.length);
-            }
-        }
-
-        function groupMessagesByDate(messages) {
-            const groups = {};
-            
-            messages.forEach(message => {
-                const messageDate = new Date(message.timestamp);
-                const dateKey = messageDate.toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
-                
-                if (!groups[dateKey]) {
-                    groups[dateKey] = [];
-                }
-                
-                groups[dateKey].push(message);
-            });
-            
-            return groups;
-        }
-
-        function createDateDivider(date) {
-            const divider = document.createElement('div');
-            divider.className = 'message-divider';
-            divider.textContent = date;
-            return divider;
-        }
-
-        function createMessageElement(message, isPending = false) {
-            const isCurrentUser = message.username === currentUser;
-            const timestamp = new Date(message.timestamp);
-            const now = new Date();
-            
-            let timeDisplay;
-            if (now.toDateString() === timestamp.toDateString()) {
-                // Today - show time only
-                timeDisplay = timestamp.toLocaleTimeString('en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-            } else {
-                // Another day - show date and time
-                timeDisplay = timestamp.toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
+            if (needsDivider) {
+                // Add date divider
+                const dateDivider = createDateDivider(date);
+                fragment.appendChild(dateDivider);
             }
             
-            // Get role color class
-            const roleClass = roleColors[message.role] || DEFAULT_ROLE_COLOR;
-            
-            // Determine badge class based on role name length
-            let badgeClass = 'role-badge';
-            if (message.role && message.role.length > 15) {
-                badgeClass += ' role-extremely-long';
-            } else if (message.role && message.role.length > 10) {
-                badgeClass += ' role-very-long';
-            } else if (message.role && message.role.length > 6) {
-                badgeClass += ' role-long';
-            }
-            
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message-bubble ${isCurrentUser ? 'sent' : 'received'}`;
-            messageDiv.dataset.messageId = message.id;
-            
-            if (isPending) {
-                messageDiv.classList.add('opacity-70');
-                messageDiv.title = "Sending...";
-            }
-            
-            // Role badge for non-members
-            const roleBadge = message.role && message.role !== 'Member' ? 
-                `<span class="${badgeClass}">${message.role}</span>` : '';
-            
-            // Online indicator
-            const onlineIndicator = onlineUsers.has(message.username) ? 
-                `<span class="online-indicator" title="Online"></span>` : '';
-            
-            messageDiv.innerHTML = `
-                <div class="message-sender">
-                    ${onlineIndicator}
-                    <span class="font-bold ${roleClass}">${message.username}</span>
-                    ${roleBadge}
-                    ${isPending ? '<span class="text-xs text-yellow-400 ml-2">(Sending...)</span>' : ''}
-                </div>
-                <div class="message-content">${escapeHtml(message.content)}</div>
-                <div class="message-time">
-                    <i data-feather="clock" class="w-3 h-3"></i>
-                    ${timeDisplay}
-                    ${isPending ? '<i data-feather="loader" class="w-3 h-3 ml-2 animate-spin"></i>' : ''}
-                </div>
-                ${isCurrentUser && !isPending ? `
-                    <div class="message-actions">
-                        <button class="message-action-btn delete-message-btn" title="Delete">
-                            <i data-feather="trash-2" class="w-3 h-3"></i>
-                        </button>
-                    </div>
-                ` : ''}
-            `;
-            
-            // Add delete event listener
-            if (isCurrentUser && !isPending) {
-                const deleteBtn = messageDiv.querySelector('.delete-message-btn');
-                deleteBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    deleteMessage(message.id);
-                });
-            }
-            
-            return messageDiv;
-        }
-
-        function addLoadMoreButton() {
-            const container = document.getElementById('messagesContainer');
-            const existingBtn = container.querySelector('.load-more-btn');
-            if (existingBtn) return;
-            
-            const loadMoreBtn = document.createElement('div');
-            loadMoreBtn.className = 'load-more-btn';
-            loadMoreBtn.innerHTML = `
-                <i data-feather="chevron-up" class="w-4 h-4 inline mr-2"></i>
-                Load older messages
-            `;
-            loadMoreBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (!loadingMore && oldestMessageId) {
-                    loadMoreBtn.innerHTML = `
-                        <div class="inline-block mr-2">
-                            <div class="balls-loader" style="width: 20px; height: 20px;">
-                                <div style="width: 5px; height: 5px;"></div>
-                                <div style="width: 5px; height: 5px;"></div>
-                                <div style="width: 5px; height: 5px;"></div>
-                                <div style="width: 5px; height: 5px;"></div>
-                            </div>
-                        </div>
-                        Loading...
-                    `;
-                    feather.replace();
-                    loadMoreMessages();
-                }
-            });
-            container.appendChild(loadMoreBtn);
-            feather.replace();
-        }
-
-        function showEmptyState(message) {
-            const container = document.getElementById('messagesContainer');
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i data-feather="message-square" class="w-12 h-12 mx-auto mb-4"></i>
-                    <h3 class="text-lg font-medium mb-2">${message}</h3>
-                    <p class="text-sm opacity-75">Start the conversation!</p>
-                </div>
-            `;
-            feather.replace();
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const content = input.value.trim();
-            
-            if (!content) {
-                showNotification('Please enter a message', 'warning');
-                return;
-            }
-            
-            if (content.length > 1000) {
-                showNotification('Message too long (max 1000 characters)', 'error');
-                return;
-            }
-            
-            try {
-                const token = getCookie('AuthToken');
+            // Add messages for this date with slide-in animation
+            messagesByDate[date].forEach(message => {
+                const messageEl = createMessageElement(message);
                 
-                // Disable input while sending
-                input.disabled = true;
-                
-                // Create a temporary message ID for local echo
-                const tempId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-                
-                // Create local message object for immediate display
-                const tempMessage = {
-                    id: tempId,
-                    username: currentUser,
-                    role: currentUserRole,
-                    content: content,
-                    timestamp: new Date().toISOString(),
-                    isPending: true
-                };
-                
-                // Store in pending messages
-                pendingMessages.set(tempId, tempMessage);
-                
-                // Add message to UI immediately (local echo)
-                const messageElement = createMessageElement(tempMessage, true);
-                const container = document.getElementById('messagesContainer');
-                container.appendChild(messageElement);
-                feather.replace();
-                
-                // Scroll to show new message
-                if (isNearBottom) {
+                // Add new message indicator animation
+                if (!wasNearBottom) {
+                    messageEl.classList.add('new-message-highlight');
                     setTimeout(() => {
-                        scrollToBottom();
-                    }, 100);
+                        messageEl.classList.remove('new-message-highlight');
+                    }, 2000);
                 }
                 
-                // Send to server
-                const response = await fetch(`${SERVER_URL}/api/chat/send`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        content: content,
-                        channel: 'general'
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to send message');
-                }
-                
-                const data = await response.json();
-                
-                // Clear input and reset height
-                input.value = '';
-                input.style.height = 'auto';
-                document.getElementById('charCount').textContent = '0/1000';
-                
-                // Remove from pending messages
-                pendingMessages.delete(tempId);
-                
-                // Update the temporary message with the real server message
-                if (data.message && data.message.id) {
-                    const serverMessage = data.message;
-                    
-                    // Add to messages array
-                    messages.push(serverMessage);
-                    loadedMessageIds.add(serverMessage.id);
-                    
-                    // Update newestMessageId
-                    newestMessageId = serverMessage.id;
-                    
-                    // Find and update the temporary message in the DOM
-                    const tempElement = document.querySelector(`[data-message-id="${tempId}"]`);
-                    if (tempElement) {
-                        // Update the data attribute
-                        tempElement.dataset.messageId = serverMessage.id;
-                        
-                        // Create new message element
-                        const newMessageElement = createMessageElement(serverMessage);
-                        
-                        // Replace the temporary element
-                        tempElement.parentNode.replaceChild(newMessageElement, tempElement);
-                        feather.replace();
-                    }
-                }
-                
-                // Play sound
-                if (soundEnabled) {
-                    playMessageSound();
-                }
-                
-                // Trigger immediate poll to get any other new messages
-                setTimeout(() => pollNewMessages(), 500);
-                
-            } catch (error) {
-                console.error('Error sending message:', error);
-                showNotification('Failed to send message', 'error');
-                
-                // Mark pending message as failed
-                const tempId = Array.from(pendingMessages.keys())[0];
-                if (tempId) {
-                    const tempElement = document.querySelector(`[data-message-id="${tempId}"]`);
-                    if (tempElement) {
-                        tempElement.classList.add('opacity-50');
-                        tempElement.classList.remove('opacity-70');
-                        tempElement.title = "Failed to send";
-                        
-                        const errorIndicator = document.createElement('span');
-                        errorIndicator.className = 'text-xs text-red-400 ml-2';
-                        errorIndicator.textContent = '(Failed)';
-                        
-                        const senderDiv = tempElement.querySelector('.message-sender');
-                        if (senderDiv) {
-                            senderDiv.appendChild(errorIndicator);
-                        }
-                        
-                        const timeDiv = tempElement.querySelector('.message-time');
-                        if (timeDiv) {
-                            const loaderIcon = timeDiv.querySelector('i[data-feather="loader"]');
-                            if (loaderIcon) {
-                                loaderIcon.setAttribute('data-feather', 'x-circle');
-                                feather.replace();
-                            }
-                        }
-                    }
-                    pendingMessages.delete(tempId);
-                }
-            } finally {
-                input.disabled = false;
-                input.focus();
-            }
-        }
-
-        async function sendTypingIndicator() {
-            try {
-                const token = getCookie('AuthToken');
-                
-                await fetch(`${SERVER_URL}/api/chat/typing`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        channel: 'general'
-                    })
-                });
-                
-            } catch (error) {
-                // Silent fail for typing indicator
-            }
-        }
-
-        async function pollNewMessages() {
-            try {
-                const token = getCookie('AuthToken');
-                const params = new URLSearchParams();
-                
-                if (newestMessageId) {
-                    // Get the timestamp of our newest known message
-                    const newestKnownMessage = messages.find(m => m.id === newestMessageId);
-                    if (newestKnownMessage && newestKnownMessage.timestamp) {
-                        params.append('afterTime', newestKnownMessage.timestamp);
-                        console.log('Polling with timestamp after:', newestKnownMessage.timestamp);
-                    } else {
-                        params.append('after', newestMessageId);
-                        console.log('Polling after message ID:', newestMessageId);
-                    }
-                } else {
-                    console.log('No newestMessageId, polling for all messages');
-                }
-                
-                console.log('Polling for new messages...');
-                
-                const response = await fetch(`${SERVER_URL}/api/chat/messages/new?${params}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Poll failed');
-                }
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    console.log('Poll response:', {
-                        messageCount: data.messages?.length || 0,
-                        typingUsers: data.typingUsers?.length || 0,
-                        onlineUsers: data.onlineUsers?.length || 0
-                    });
-                    
-                    if (data.messages && data.messages.length > 0) {
-                        // Filter out messages we already have
-                        const newMessages = data.messages.filter(msg => {
-                            // Check by ID first
-                            if (loadedMessageIds.has(msg.id)) {
-                                return false;
-                            }
-                            
-                            // Additional check: messages with similar content and timestamp from same user
-                            const isDuplicate = messages.some(existing => 
-                                existing.username === msg.username &&
-                                existing.content === msg.content &&
-                                Math.abs(new Date(existing.timestamp) - new Date(msg.timestamp)) < 5000 // Within 5 seconds
-                            );
-                            
-                            return !isDuplicate;
-                        });
-                        
-                        if (newMessages.length > 0) {
-                            console.log('New messages found:', newMessages.length);
-                            
-                            // Sort messages by timestamp (oldest first) for proper rendering
-                            newMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-                            
-                            // Track new message IDs
-                            newMessages.forEach(msg => loadedMessageIds.add(msg.id));
-                            
-                            // Add to messages array
-                            messages = [...messages, ...newMessages];
-                            
-                            // Update newestMessageId to the latest message
-                            const latestMessage = newMessages[newMessages.length - 1];
-                            if (latestMessage && latestMessage.id) {
-                                newestMessageId = latestMessage.id;
-                                console.log('Updated newestMessageId to:', newestMessageId);
-                            }
-                            
-                            // Render new messages with a visual indicator
-                            renderNewMessages(newMessages);
-                            
-                            // Update unread messages count if not near bottom
-                            if (!isNearBottom) {
-                                unreadMessages += newMessages.length;
-                                updateNewMessagesIndicator();
-                            }
-                            
-                            // Play sound for new messages
-                            if (soundEnabled && !isNearBottom && newMessages.length > 0) {
-                                playMessageSound();
-                            }
-                            
-                            // Auto-scroll if user is near bottom
-                            if (isNearBottom) {
-                                setTimeout(() => {
-                                    scrollToBottom();
-                                }, 100);
-                            }
-                        }
-                    }
-                    
-                    // Update online users
-                    if (data.onlineUsers) {
-                        updateOnlineUsers(data.onlineUsers);
-                    }
-                    
-                    // Update typing indicators
-                    if (data.typingUsers) {
-                        updateTypingIndicator(data.typingUsers);
-                    }
-                    
-                    // Update connection status
-                    updateConnectionStatus(true);
-                    
-                    // Reset reconnect attempts on successful poll
-                    reconnectAttempts = 0;
-                    
-                    // Check for deleted messages (every 5 polls to reduce server load)
-                    if (Date.now() - lastDeletedCheck > 10000) { // 10 seconds
-                        checkForDeletedMessages();
-                        lastDeletedCheck = Date.now();
-                    }
-                    
-                } else {
-                    throw new Error('Poll failed');
-                }
-                
-            } catch (error) {
-                console.error('Poll error:', error);
-                reconnectAttempts++;
-                updateConnectionStatus(false);
-                
-                if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-                    showNotification('Connection lost. Reconnecting...', 'warning');
-                    setTimeout(() => {
-                        reconnect();
-                    }, 3000);
-                }
-            }
-        }
-
-        // NEW FUNCTION: Check for messages that have been deleted by other users
-        async function checkForDeletedMessages() {
-            try {
-                const token = getCookie('AuthToken');
-                
-                // Get recent messages from server (last 50 should be enough)
-                const response = await fetch(`${SERVER_URL}/api/chat/messages?limit=50`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    return; // Silently fail, we'll try again next time
-                }
-                
-                const data = await response.json();
-                
-                if (data.success && data.messages) {
-                    // Create a set of message IDs that exist on the server
-                    const serverMessageIds = new Set(data.messages.map(msg => msg.id));
-                    
-                    // Check our recent messages (last 50)
-                    const recentMessages = messages.slice(-50);
-                    
-                    // Find messages we have that don't exist on the server (deleted messages)
-                    recentMessages.forEach(localMessage => {
-                        if (!serverMessageIds.has(localMessage.id)) {
-                            // This message was deleted on the server
-                            removeDeletedMessage(localMessage.id);
-                        }
-                    });
-                }
-                
-            } catch (error) {
-                console.error('Error checking for deleted messages:', error);
-                // Don't show notification for this, it's a background check
-            }
+                fragment.appendChild(messageEl);
+            });
+        });
+        
+        // Append all new messages at once
+        container.appendChild(fragment);
+        feather.replace();
+        
+        // Update scroll position if near bottom
+        if (wasNearBottom) {
+            setTimeout(() => {
+                scrollToBottom();
+            }, 50);
         }
         
-        // NEW FUNCTION: Remove a deleted message from the UI
-        function removeDeletedMessage(messageId) {
+        // Show notification badge for new messages
+        if (messagesToRender.length > 0 && wasNearBottom) {
+            showMessageNotification(messagesToRender.length);
+        }
+    }
+
+    function groupMessagesByDate(messages) {
+        const groups = {};
+        
+        messages.forEach(message => {
+            const messageDate = new Date(message.timestamp);
+            const dateKey = messageDate.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            if (!groups[dateKey]) {
+                groups[dateKey] = [];
+            }
+            
+            groups[dateKey].push(message);
+        });
+        
+        return groups;
+    }
+
+    function createDateDivider(date) {
+        const divider = document.createElement('div');
+        divider.className = 'message-divider';
+        divider.textContent = date;
+        return divider;
+    }
+
+    function createMessageElement(message, isPending = false) {
+        const isCurrentUser = message.username === currentUser;
+        const timestamp = new Date(message.timestamp);
+        const now = new Date();
+        
+        let timeDisplay;
+        if (now.toDateString() === timestamp.toDateString()) {
+            // Today - show time only
+            timeDisplay = timestamp.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } else {
+            // Another day - show date and time
+            timeDisplay = timestamp.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        // Get role color class
+        const roleClass = roleColors[message.role] || DEFAULT_ROLE_COLOR;
+        
+        // Determine badge class based on role name length
+        let badgeClass = 'role-badge';
+        if (message.role && message.role.length > 15) {
+            badgeClass += ' role-extremely-long';
+        } else if (message.role && message.role.length > 10) {
+            badgeClass += ' role-very-long';
+        } else if (message.role && message.role.length > 6) {
+            badgeClass += ' role-long';
+        }
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message-bubble ${isCurrentUser ? 'sent' : 'received'}`;
+        messageDiv.dataset.messageId = message.id;
+        
+        if (isPending) {
+            messageDiv.classList.add('opacity-70');
+            messageDiv.title = "Sending...";
+        }
+        
+        // Check if message is deleted
+        if (deletedMessageIds.has(message.id)) {
+            return createDeletedMessageElement(message);
+        }
+        
+        // Role badge for non-members
+        const roleBadge = message.role && message.role !== 'Member' ? 
+            `<span class="${badgeClass}">${message.role}</span>` : '';
+        
+        // Online indicator
+        const onlineIndicator = onlineUsers.has(message.username) ? 
+            `<span class="online-indicator" title="Online"></span>` : '';
+        
+        messageDiv.innerHTML = `
+            <div class="message-sender">
+                ${onlineIndicator}
+                <span class="font-bold ${roleClass}">${message.username}</span>
+                ${roleBadge}
+                ${isPending ? '<span class="text-xs text-yellow-400 ml-2">(Sending...)</span>' : ''}
+            </div>
+            <div class="message-content">${escapeHtml(message.content)}</div>
+            <div class="message-time">
+                <i data-feather="clock" class="w-3 h-3"></i>
+                ${timeDisplay}
+                ${isPending ? '<i data-feather="loader" class="w-3 h-3 ml-2 animate-spin"></i>' : ''}
+            </div>
+            ${isCurrentUser && !isPending ? `
+                <div class="message-actions">
+                    <button class="message-action-btn delete-message-btn" title="Delete">
+                        <i data-feather="trash-2" class="w-3 h-3"></i>
+                    </button>
+                </div>
+            ` : ''}
+        `;
+        
+        // Add delete event listener
+        if (isCurrentUser && !isPending) {
+            const deleteBtn = messageDiv.querySelector('.delete-message-btn');
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteMessage(message.id);
+            });
+        }
+        
+        return messageDiv;
+    }
+
+    // Create a deleted message element (shows "Message deleted" instead of removing)
+    function createDeletedMessageElement(message) {
+        const isCurrentUser = message.username === currentUser;
+        const timestamp = new Date(message.timestamp);
+        const now = new Date();
+        
+        let timeDisplay;
+        if (now.toDateString() === timestamp.toDateString()) {
+            timeDisplay = timestamp.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } else {
+            timeDisplay = timestamp.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        const roleClass = roleColors[message.role] || DEFAULT_ROLE_COLOR;
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message-bubble ${isCurrentUser ? 'sent' : 'received'} deleted-message`;
+        messageDiv.dataset.messageId = message.id;
+        
+        messageDiv.innerHTML = `
+            <div class="message-sender">
+                <span class="font-bold ${roleClass}">${message.username}</span>
+                <span class="text-xs text-gray-400 ml-2">(deleted)</span>
+            </div>
+            <div class="message-content italic text-gray-400">Message deleted</div>
+            <div class="message-time">
+                <i data-feather="clock" class="w-3 h-3"></i>
+                ${timeDisplay}
+            </div>
+        `;
+        
+        return messageDiv;
+    }
+
+    function addLoadMoreButton() {
+        const container = document.getElementById('messagesContainer');
+        const existingBtn = container.querySelector('.load-more-btn');
+        if (existingBtn) return;
+        
+        const loadMoreBtn = document.createElement('div');
+        loadMoreBtn.className = 'load-more-btn';
+        loadMoreBtn.innerHTML = `
+            <i data-feather="chevron-up" class="w-4 h-4 inline mr-2"></i>
+            Load older messages
+        `;
+        loadMoreBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!loadingMore && oldestMessageId) {
+                loadMoreBtn.innerHTML = `
+                    <div class="inline-block mr-2">
+                        <div class="balls-loader" style="width: 20px; height: 20px;">
+                            <div style="width: 5px; height: 5px;"></div>
+                            <div style="width: 5px; height: 5px;"></div>
+                            <div style="width: 5px; height: 5px;"></div>
+                            <div style="width: 5px; height: 5px;"></div>
+                        </div>
+                    </div>
+                    Loading...
+                `;
+                feather.replace();
+                loadMoreMessages();
+            }
+        });
+        container.appendChild(loadMoreBtn);
+        feather.replace();
+    }
+
+    function showEmptyState(message) {
+        const container = document.getElementById('messagesContainer');
+        container.innerHTML = `
+            <div class="empty-state">
+                <i data-feather="message-square" class="w-12 h-12 mx-auto mb-4"></i>
+                <h3 class="text-lg font-medium mb-2">${message}</h3>
+                <p class="text-sm opacity-75">Start the conversation!</p>
+            </div>
+        `;
+        feather.replace();
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const content = input.value.trim();
+        
+        if (!content) {
+            showNotification('Please enter a message', 'warning');
+            return;
+        }
+        
+        if (content.length > 1000) {
+            showNotification('Message too long (max 1000 characters)', 'error');
+            return;
+        }
+        
+        try {
+            const token = getCookie('AuthToken');
+            
+            // Disable input while sending
+            input.disabled = true;
+            
+            // Create a temporary message ID for local echo
+            const tempId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+            
+            // Create local message object for immediate display
+            const tempMessage = {
+                id: tempId,
+                username: currentUser,
+                role: currentUserRole,
+                content: content,
+                timestamp: new Date().toISOString(),
+                isPending: true
+            };
+            
+            // Store in pending messages
+            pendingMessages.set(tempId, tempMessage);
+            
+            // Add message to UI immediately (local echo)
+            const messageElement = createMessageElement(tempMessage, true);
+            const container = document.getElementById('messagesContainer');
+            container.appendChild(messageElement);
+            feather.replace();
+            
+            // Scroll to show new message
+            if (isNearBottom) {
+                setTimeout(() => {
+                    scrollToBottom();
+                }, 100);
+            }
+            
+            // Send to server
+            const response = await fetch(`${SERVER_URL}/api/chat/send`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    content: content,
+                    channel: 'general'
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to send message');
+            }
+            
+            const data = await response.json();
+            
+            // Clear input and reset height
+            input.value = '';
+            input.style.height = 'auto';
+            document.getElementById('charCount').textContent = '0/1000';
+            
+            // Remove from pending messages
+            pendingMessages.delete(tempId);
+            
+            // Update the temporary message with the real server message
+            if (data.message && data.message.id) {
+                const serverMessage = data.message;
+                
+                // Add to messages array
+                messages.push(serverMessage);
+                loadedMessageIds.add(serverMessage.id);
+                
+                // Update newestMessageId
+                newestMessageId = serverMessage.id;
+                
+                // Find and update the temporary message in the DOM
+                const tempElement = document.querySelector(`[data-message-id="${tempId}"]`);
+                if (tempElement) {
+                    // Update the data attribute
+                    tempElement.dataset.messageId = serverMessage.id;
+                    
+                    // Create new message element
+                    const newMessageElement = createMessageElement(serverMessage);
+                    
+                    // Replace the temporary element
+                    tempElement.parentNode.replaceChild(newMessageElement, tempElement);
+                    feather.replace();
+                }
+            }
+            
+            // Play sound
+            if (soundEnabled) {
+                playMessageSound();
+            }
+            
+            // Trigger immediate poll to get any other new messages
+            setTimeout(() => pollNewMessages(), 500);
+            
+        } catch (error) {
+            console.error('Error sending message:', error);
+            showNotification('Failed to send message', 'error');
+            
+            // Mark pending message as failed
+            const tempId = Array.from(pendingMessages.keys())[0];
+            if (tempId) {
+                const tempElement = document.querySelector(`[data-message-id="${tempId}"]`);
+                if (tempElement) {
+                    tempElement.classList.add('opacity-50');
+                    tempElement.classList.remove('opacity-70');
+                    tempElement.title = "Failed to send";
+                    
+                    const errorIndicator = document.createElement('span');
+                    errorIndicator.className = 'text-xs text-red-400 ml-2';
+                    errorIndicator.textContent = '(Failed)';
+                    
+                    const senderDiv = tempElement.querySelector('.message-sender');
+                    if (senderDiv) {
+                        senderDiv.appendChild(errorIndicator);
+                    }
+                    
+                    const timeDiv = tempElement.querySelector('.message-time');
+                    if (timeDiv) {
+                        const loaderIcon = timeDiv.querySelector('i[data-feather="loader"]');
+                        if (loaderIcon) {
+                            loaderIcon.setAttribute('data-feather', 'x-circle');
+                            feather.replace();
+                        }
+                    }
+                }
+                pendingMessages.delete(tempId);
+            }
+        } finally {
+            input.disabled = false;
+            input.focus();
+        }
+    }
+
+    async function sendTypingIndicator() {
+        try {
+            const token = getCookie('AuthToken');
+            
+            await fetch(`${SERVER_URL}/api/chat/typing`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    channel: 'general'
+                })
+            });
+            
+        } catch (error) {
+            // Silent fail for typing indicator
+        }
+    }
+
+    async function pollNewMessages() {
+        try {
+            const token = getCookie('AuthToken');
+            const params = new URLSearchParams();
+            
+            if (newestMessageId) {
+                // Get the timestamp of our newest known message
+                const newestKnownMessage = messages.find(m => m.id === newestMessageId);
+                if (newestKnownMessage && newestKnownMessage.timestamp) {
+                    params.append('afterTime', newestKnownMessage.timestamp);
+                } else {
+                    params.append('after', newestMessageId);
+                }
+            }
+            
+            console.log('Polling for new messages...');
+            
+            const response = await fetch(`${SERVER_URL}/api/chat/messages/new?${params}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Poll failed');
+            }
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // ALWAYS check for deleted messages first (every poll!)
+                await checkForDeletedMessages();
+                
+                console.log('Poll response:', {
+                    messageCount: data.messages?.length || 0,
+                    typingUsers: data.typingUsers?.length || 0,
+                    onlineUsers: data.onlineUsers?.length || 0
+                });
+                
+                if (data.messages && data.messages.length > 0) {
+                    // Filter out messages we already have or are deleted
+                    const newMessages = data.messages.filter(msg => 
+                        !loadedMessageIds.has(msg.id) && !deletedMessageIds.has(msg.id)
+                    );
+                    
+                    if (newMessages.length > 0) {
+                        console.log('New messages found:', newMessages.length);
+                        
+                        // Sort messages by timestamp (oldest first) for proper rendering
+                        newMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                        
+                        // Track new message IDs
+                        newMessages.forEach(msg => loadedMessageIds.add(msg.id));
+                        
+                        // Add to messages array
+                        messages = [...messages, ...newMessages];
+                        
+                        // Update newestMessageId to the latest message
+                        const latestMessage = newMessages[newMessages.length - 1];
+                        if (latestMessage && latestMessage.id) {
+                            newestMessageId = latestMessage.id;
+                        }
+                        
+                        // Render new messages with a visual indicator
+                        renderNewMessages(newMessages);
+                        
+                        // Update unread messages count if not near bottom
+                        if (!isNearBottom) {
+                            unreadMessages += newMessages.length;
+                            updateNewMessagesIndicator();
+                        }
+                        
+                        // Play sound for new messages
+                        if (soundEnabled && !isNearBottom && newMessages.length > 0) {
+                            playMessageSound();
+                        }
+                        
+                        // Auto-scroll if user is near bottom
+                        if (isNearBottom) {
+                            setTimeout(() => {
+                                scrollToBottom();
+                            }, 100);
+                        }
+                    }
+                }
+                
+                // Update online users
+                if (data.onlineUsers) {
+                    updateOnlineUsers(data.onlineUsers);
+                }
+                
+                // Update typing indicators
+                if (data.typingUsers) {
+                    updateTypingIndicator(data.typingUsers);
+                }
+                
+                // Update connection status
+                updateConnectionStatus(true);
+                
+                // Reset reconnect attempts on successful poll
+                reconnectAttempts = 0;
+                
+            } else {
+                throw new Error('Poll failed');
+            }
+            
+        } catch (error) {
+            console.error('Poll error:', error);
+            reconnectAttempts++;
+            updateConnectionStatus(false);
+            
+            if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+                showNotification('Connection lost. Reconnecting...', 'warning');
+                setTimeout(() => {
+                    reconnect();
+                }, 3000);
+            }
+        }
+    }
+
+    // FASTER: Check for deleted messages every poll (2 seconds)
+    async function checkForDeletedMessages() {
+        try {
+            const token = getCookie('AuthToken');
+            
+            // Get recent messages from server (only need IDs for checking)
+            const response = await fetch(`${SERVER_URL}/api/chat/messages?limit=100`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                return; // Silently fail, we'll try again next poll
+            }
+            
+            const data = await response.json();
+            
+            if (data.success && data.messages) {
+                // Create a set of message IDs that exist on the server
+                const serverMessageIds = new Set(data.messages.map(msg => msg.id));
+                
+                // Check our recent messages (last 100)
+                const recentMessages = messages.slice(-100);
+                
+                // Find messages we have that don't exist on the server (deleted messages)
+                const newlyDeleted = [];
+                
+                recentMessages.forEach(localMessage => {
+                    if (!serverMessageIds.has(localMessage.id) && !deletedMessageIds.has(localMessage.id)) {
+                        // This message was deleted on the server
+                        newlyDeleted.push(localMessage.id);
+                        deletedMessageIds.add(localMessage.id);
+                    }
+                });
+                
+                // Update UI for newly deleted messages
+                if (newlyDeleted.length > 0) {
+                    console.log('Found deleted messages:', newlyDeleted);
+                    updateDeletedMessagesUI(newlyDeleted);
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error checking for deleted messages:', error);
+            // Don't show notification, it's a background check
+        }
+    }
+    
+    // Update UI for deleted messages
+    function updateDeletedMessagesUI(deletedIds) {
+        deletedIds.forEach(messageId => {
             // Find the message element in the DOM
             const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
             if (messageElement) {
-                // Add delete animation
-                messageElement.classList.add('message-deleting');
-                
-                // Remove after animation completes
-                setTimeout(() => {
-                    messageElement.remove();
-                }, 300);
-            }
-            
-            // Remove from local state
-            messages = messages.filter(m => m.id !== messageId);
-            loadedMessageIds.delete(messageId);
-            
-            // Update newestMessageId if we deleted the newest message
-            if (newestMessageId === messageId && messages.length > 0) {
-                newestMessageId = messages[messages.length - 1].id;
-            }
-            
-            // Update oldestMessageId if we deleted the oldest message
-            if (oldestMessageId === messageId && messages.length > 0) {
-                oldestMessageId = messages[0].id;
-            }
-        }
-
-        // Function to show notification when messages arrive
-        function showMessageNotification(count) {
-            const container = document.getElementById('messagesContainer');
-            const notification = document.createElement('div');
-            notification.className = 'message-notification';
-            notification.textContent = count === 1 ? '1 new message' : `${count} new messages`;
-            
-            // Find last message and add notification
-            const messages = container.querySelectorAll('.message-bubble');
-            if (messages.length > 0) {
-                const lastMessage = messages[messages.length - 1];
-                lastMessage.appendChild(notification);
-                
-                setTimeout(() => {
-                    notification.remove();
-                }, 3000);
-            }
-        }
-
-        function updateOnlineUsers(users) {
-            onlineUsers = new Set(users.filter(u => u !== currentUser));
-            const onlineCount = onlineUsers.size + 1; // Include current user
-            
-            document.getElementById('onlineCountText').textContent = 
-                `${onlineCount} user${onlineCount !== 1 ? 's' : ''} online`;
-        }
-
-        function updateTypingIndicator(users) {
-            const typingIndicator = document.getElementById('typingIndicator');
-            const typingUsersEl = document.getElementById('typingUsers');
-            
-            const filteredUsers = users.filter(u => u !== currentUser);
-            
-            if (filteredUsers.length > 0) {
-                let text = '';
-                if (filteredUsers.length === 1) {
-                    text = `${filteredUsers[0]} is typing...`;
-                } else if (filteredUsers.length === 2) {
-                    text = `${filteredUsers[0]} and ${filteredUsers[1]} are typing...`;
-                } else {
-                    text = `${filteredUsers[0]} and ${filteredUsers.length - 1} others are typing...`;
+                // Replace with "deleted" version
+                const message = messages.find(m => m.id === messageId);
+                if (message) {
+                    const deletedElement = createDeletedMessageElement(message);
+                    messageElement.parentNode.replaceChild(deletedElement, messageElement);
+                    feather.replace();
                 }
-                
-                typingUsersEl.textContent = text;
-                typingIndicator.classList.remove('hidden');
-                
-                // Clear previous timeout
-                if (typingTimeout) {
-                    clearTimeout(typingTimeout);
-                }
-                
-                // Hide typing indicator after 3 seconds
-                typingTimeout = setTimeout(() => {
-                    typingIndicator.classList.add('hidden');
-                }, 3000);
+            }
+        });
+    }
+
+    // Function to show notification when messages arrive
+    function showMessageNotification(count) {
+        const container = document.getElementById('messagesContainer');
+        const notification = document.createElement('div');
+        notification.className = 'message-notification';
+        notification.textContent = count === 1 ? '1 new message' : `${count} new messages`;
+        
+        // Find last message and add notification
+        const messages = container.querySelectorAll('.message-bubble');
+        if (messages.length > 0) {
+            const lastMessage = messages[messages.length - 1];
+            lastMessage.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+    }
+
+    function updateOnlineUsers(users) {
+        onlineUsers = new Set(users.filter(u => u !== currentUser));
+        const onlineCount = onlineUsers.size + 1; // Include current user
+        
+        document.getElementById('onlineCountText').textContent = 
+            `${onlineCount} user${onlineCount !== 1 ? 's' : ''} online`;
+    }
+
+    function updateTypingIndicator(users) {
+        const typingIndicator = document.getElementById('typingIndicator');
+        const typingUsersEl = document.getElementById('typingUsers');
+        
+        const filteredUsers = users.filter(u => u !== currentUser);
+        
+        if (filteredUsers.length > 0) {
+            let text = '';
+            if (filteredUsers.length === 1) {
+                text = `${filteredUsers[0]} is typing...`;
+            } else if (filteredUsers.length === 2) {
+                text = `${filteredUsers[0]} and ${filteredUsers[1]} are typing...`;
             } else {
+                text = `${filteredUsers[0]} and ${filteredUsers.length - 1} others are typing...`;
+            }
+            
+            typingUsersEl.textContent = text;
+            typingIndicator.classList.remove('hidden');
+            
+            // Clear previous timeout
+            if (typingTimeout) {
+                clearTimeout(typingTimeout);
+            }
+            
+            // Hide typing indicator after 3 seconds
+            typingTimeout = setTimeout(() => {
                 typingIndicator.classList.add('hidden');
-            }
+            }, 3000);
+        } else {
+            typingIndicator.classList.add('hidden');
         }
+    }
 
-        function updateNewMessagesIndicator() {
-            const indicator = document.getElementById('newMessagesIndicator');
-            if (unreadMessages > 0) {
-                indicator.style.display = 'flex';
-                indicator.innerHTML = `
-                    <i data-feather="chevron-down" class="w-4 h-4"></i>
-                    <span>${unreadMessages} new message${unreadMessages !== 1 ? 's' : ''}</span>
-                `;
-                feather.replace();
-            } else {
-                indicator.style.display = 'none';
-            }
-        }
-
-        function updateConnectionStatus(connected) {
-            const statusEl = document.getElementById('connectionStatus');
-            
-            if (connected) {
-                statusEl.className = 'connection-status connected';
-                statusEl.innerHTML = `
-                    <i data-feather="wifi" class="w-4 h-4"></i>
-                    <span>Connected</span>
-                `;
-            } else {
-                statusEl.className = 'connection-status disconnected';
-                statusEl.innerHTML = `
-                    <i data-feather="wifi-off" class="w-4 h-4"></i>
-                    <span>Reconnecting...</span>
-                `;
-            }
-            feather.replace();
-        }
-
-        async function deleteMessage(messageId) {
-            if (!confirm('Are you sure you want to delete this message?')) {
-                return;
-            }
-            
-            try {
-                const token = getCookie('AuthToken');
-                
-                const response = await fetch(`${SERVER_URL}/api/chat/messages/${messageId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to delete message');
-                }
-                
-                // Remove message from UI with animation
-                removeDeletedMessage(messageId);
-                
-                showNotification('Message deleted', 'success');
-                
-            } catch (error) {
-                console.error('Error deleting message:', error);
-                showNotification('Failed to delete message', 'error');
-            }
-        }
-
-        async function clearChat() {
-            if (!confirm('This will delete all chat messages. Are you sure?')) {
-                return;
-            }
-            
-            try {
-                const token = getCookie('AuthToken');
-                
-                const response = await fetch(`${SERVER_URL}/api/chat/clear`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (response.ok) {
-                    // Clear local state
-                    messages = [];
-                    loadedMessageIds.clear();
-                    newestMessageId = null;
-                    oldestMessageId = null;
-                    pendingMessages.clear();
-                    
-                    // Clear the messages container
-                    const container = document.getElementById('messagesContainer');
-                    container.innerHTML = '';
-                    
-                    // Show empty state
-                    showEmptyState('Chat cleared. Start a new conversation!');
-                    
-                    showNotification('Chat cleared successfully', 'success');
-                } else {
-                    throw new Error('Failed to clear chat');
-                }
-                
-            } catch (error) {
-                console.error('Error clearing chat:', error);
-                showNotification('Failed to clear chat', 'error');
-            }
-        }
-
-        function toggleSound() {
-            soundEnabled = !soundEnabled;
-            const btn = document.getElementById('toggleSoundBtn');
-            if (soundEnabled) {
-                showNotification('Sounds enabled', 'success');
-                btn.innerHTML = '<i data-feather="bell-off" class="w-4 h-4"></i> Disable Sounds';
-            } else {
-                showNotification('Sounds disabled', 'info');
-                btn.innerHTML = '<i data-feather="bell" class="w-4 h-4"></i> Enable Sounds';
-            }
-            feather.replace();
-            closeSettingsDropdown();
-        }
-
-        function playMessageSound() {
-            // Simple notification sound using Web Audio API
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                oscillator.frequency.value = 800;
-                oscillator.type = 'sine';
-                
-                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-                
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.1);
-            } catch (error) {
-                console.error('Error playing sound:', error);
-            }
-        }
-
-        function startPolling() {
-            // Poll every 2 seconds for new messages
-            if (pollInterval) {
-                clearInterval(pollInterval);
-            }
-            pollInterval = setInterval(pollNewMessages, 2000);
-        }
-
-        function stopPolling() {
-            if (pollInterval) {
-                clearInterval(pollInterval);
-                pollInterval = null;
-            }
-        }
-
-        async function reconnect() {
-            console.log('Attempting to reconnect...');
-            stopPolling();
-            updateConnectionStatus(false);
-            
-            try {
-                // Try to load latest messages
-                await pollNewMessages();
-                
-                // If successful, restart polling
-                startPolling();
-                updateConnectionStatus(true);
-                showNotification('Reconnected successfully!', 'success');
-                reconnectAttempts = 0;
-                
-            } catch (error) {
-                console.error('Reconnection failed:', error);
-                // Try again in 5 seconds
-                setTimeout(() => {
-                    if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS * 2) {
-                        reconnect();
-                    }
-                }, 5000);
-            }
-        }
-
-        async function updateOnlineStatus(isOnline) {
-            try {
-                const token = getCookie('AuthToken');
-                
-                await fetch(`${SERVER_URL}/api/chat/online`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        isOnline: isOnline
-                    })
-                });
-                
-            } catch (error) {
-                console.error('Error updating online status:', error);
-            }
-        }
-
-        function scrollToBottom() {
-            const container = document.getElementById('messagesContainer');
-            container.scrollTop = container.scrollHeight;
-            unreadMessages = 0;
-            updateNewMessagesIndicator();
-            document.getElementById('scrollToBottomBtn').classList.add('hidden');
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML.replace(/\n/g, '<br>');
-        }
-
-        function showNotification(message, type = 'info', duration = 3000) {
-            const container = document.getElementById('notificationContainer');
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            
-            let icon = 'info';
-            if (type === 'success') icon = 'check-circle';
-            if (type === 'error') icon = 'alert-triangle';
-            if (type === 'warning') icon = 'alert-circle';
-            
-            notification.innerHTML = `
-                <div class="notification-icon">
-                    <i data-feather="${icon}"></i>
-                </div>
-                <div class="notification-content">
-                    ${message}
-                </div>
-                <div class="notification-close">
-                    <i data-feather="x"></i>
-                </div>
+    function updateNewMessagesIndicator() {
+        const indicator = document.getElementById('newMessagesIndicator');
+        if (unreadMessages > 0) {
+            indicator.style.display = 'flex';
+            indicator.innerHTML = `
+                <i data-feather="chevron-down" class="w-4 h-4"></i>
+                <span>${unreadMessages} new message${unreadMessages !== 1 ? 's' : ''}</span>
             `;
-            
-            container.appendChild(notification);
             feather.replace();
+        } else {
+            indicator.style.display = 'none';
+        }
+    }
+
+    function updateConnectionStatus(connected) {
+        const statusEl = document.getElementById('connectionStatus');
+        
+        if (connected) {
+            statusEl.className = 'connection-status connected';
+            statusEl.innerHTML = `
+                <i data-feather="wifi" class="w-4 h-4"></i>
+                <span>Connected</span>
+            `;
+        } else {
+            statusEl.className = 'connection-status disconnected';
+            statusEl.innerHTML = `
+                <i data-feather="wifi-off" class="w-4 h-4"></i>
+                <span>Reconnecting...</span>
+            `;
+        }
+        feather.replace();
+    }
+
+    async function deleteMessage(messageId) {
+        if (!confirm('Are you sure you want to delete this message?')) {
+            return;
+        }
+        
+        try {
+            const token = getCookie('AuthToken');
             
-            // Add click event to close button
-            const closeBtn = notification.querySelector('.notification-close');
-            closeBtn.addEventListener('click', function() {
-                notification.classList.add('hidden');
-                setTimeout(() => {
-                    if (notification.parentNode === container) {
-                        container.removeChild(notification);
-                    }
-                }, 300);
+            const response = await fetch(`${SERVER_URL}/api/chat/messages/${messageId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
             });
             
-            // Remove notification after duration
-            setTimeout(() => {
-                notification.classList.add('hidden');
-                setTimeout(() => {
-                    if (notification.parentNode === container) {
-                        container.removeChild(notification);
-                    }
-                }, 300);
-            }, duration);
-        }
-
-        function initVantaBackground() {
-            if (window.VANTA) {
-                if (window.vantaEffect) {
-                    window.vantaEffect.destroy();
+            if (!response.ok) {
+                throw new Error('Failed to delete message');
+            }
+            
+            // Mark as deleted locally immediately
+            deletedMessageIds.add(messageId);
+            
+            // Update UI to show "Message deleted"
+            const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+            if (messageElement) {
+                const message = messages.find(m => m.id === messageId);
+                if (message) {
+                    const deletedElement = createDeletedMessageElement(message);
+                    messageElement.parentNode.replaceChild(deletedElement, messageElement);
+                    feather.replace();
                 }
-                
-                window.vantaEffect = VANTA.GLOBE({
-                    el: "#vanta-bg",
-                    mouseControls: true,
-                    touchControls: true,
-                    gyroControls: false,
-                    minHeight: 200.00,
-                    minWidth: 200.00,
-                    scale: 1.00,
-                    scaleMobile: 1.00,
-                    color: 0x8e44ad,
-                    backgroundColor: 0x1a0933,
-                    size: 0.8
-                });
             }
+            
+            showNotification('Message deleted', 'success');
+            
+        } catch (error) {
+            console.error('Error deleting message:', error);
+            showNotification('Failed to delete message', 'error');
         }
+    }
 
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', () => {
-            stopPolling();
-            updateOnlineStatus(false);
-        });
-
-        // Handle visibility change
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                updateOnlineStatus(false);
+    async function clearChat() {
+        if (!confirm('This will delete all chat messages. Are you sure?')) {
+            return;
+        }
+        
+        try {
+            const token = getCookie('AuthToken');
+            
+            const response = await fetch(`${SERVER_URL}/api/chat/clear`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                // Clear local state
+                messages = [];
+                loadedMessageIds.clear();
+                deletedMessageIds.clear();
+                newestMessageId = null;
+                oldestMessageId = null;
+                pendingMessages.clear();
+                
+                // Clear the messages container
+                const container = document.getElementById('messagesContainer');
+                container.innerHTML = '';
+                
+                // Show empty state
+                showEmptyState('Chat cleared. Start a new conversation!');
+                
+                showNotification('Chat cleared successfully', 'success');
             } else {
-                updateOnlineStatus(true);
+                throw new Error('Failed to clear chat');
             }
+            
+        } catch (error) {
+            console.error('Error clearing chat:', error);
+            showNotification('Failed to clear chat', 'error');
+        }
+    }
+
+    function toggleSound() {
+        soundEnabled = !soundEnabled;
+        const btn = document.getElementById('toggleSoundBtn');
+        if (soundEnabled) {
+            showNotification('Sounds enabled', 'success');
+            btn.innerHTML = '<i data-feather="bell-off" class="w-4 h-4"></i> Disable Sounds';
+        } else {
+            showNotification('Sounds disabled', 'info');
+            btn.innerHTML = '<i data-feather="bell" class="w-4 h-4"></i> Enable Sounds';
+        }
+        feather.replace();
+        closeSettingsDropdown();
+    }
+
+    function playMessageSound() {
+        // Simple notification sound using Web Audio API
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        } catch (error) {
+            console.error('Error playing sound:', error);
+        }
+    }
+
+    function startPolling() {
+        // Poll every 2 seconds for new messages
+        if (pollInterval) {
+            clearInterval(pollInterval);
+        }
+        pollInterval = setInterval(pollNewMessages, 2000);
+    }
+
+    function stopPolling() {
+        if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+        }
+    }
+
+    async function reconnect() {
+        console.log('Attempting to reconnect...');
+        stopPolling();
+        updateConnectionStatus(false);
+        
+        try {
+            // Try to load latest messages
+            await pollNewMessages();
+            
+            // If successful, restart polling
+            startPolling();
+            updateConnectionStatus(true);
+            showNotification('Reconnected successfully!', 'success');
+            reconnectAttempts = 0;
+            
+        } catch (error) {
+            console.error('Reconnection failed:', error);
+            // Try again in 5 seconds
+            setTimeout(() => {
+                if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS * 2) {
+                    reconnect();
+                }
+            }, 5000);
+        }
+    }
+
+    async function updateOnlineStatus(isOnline) {
+        try {
+            const token = getCookie('AuthToken');
+            
+            await fetch(`${SERVER_URL}/api/chat/online`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    isOnline: isOnline
+                })
+            });
+            
+        } catch (error) {
+            console.error('Error updating online status:', error);
+        }
+    }
+
+    function scrollToBottom() {
+        const container = document.getElementById('messagesContainer');
+        container.scrollTop = container.scrollHeight;
+        unreadMessages = 0;
+        updateNewMessagesIndicator();
+        document.getElementById('scrollToBottomBtn').classList.add('hidden');
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML.replace(/\n/g, '<br>');
+    }
+
+    function showNotification(message, type = 'info', duration = 3000) {
+        const container = document.getElementById('notificationContainer');
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        
+        let icon = 'info';
+        if (type === 'success') icon = 'check-circle';
+        if (type === 'error') icon = 'alert-triangle';
+        if (type === 'warning') icon = 'alert-circle';
+        
+        notification.innerHTML = `
+            <div class="notification-icon">
+                <i data-feather="${icon}"></i>
+            </div>
+            <div class="notification-content">
+                ${message}
+            </div>
+            <div class="notification-close">
+                <i data-feather="x"></i>
+            </div>
+        `;
+        
+        container.appendChild(notification);
+        feather.replace();
+        
+        // Add click event to close button
+        const closeBtn = notification.querySelector('.notification-close');
+        closeBtn.addEventListener('click', function() {
+            notification.classList.add('hidden');
+            setTimeout(() => {
+                if (notification.parentNode === container) {
+                    container.removeChild(notification);
+                }
+            }, 300);
         });
-    </script>
-</body>
+        
+        // Remove notification after duration
+        setTimeout(() => {
+            notification.classList.add('hidden');
+            setTimeout(() => {
+                if (notification.parentNode === container) {
+                    container.removeChild(notification);
+                }
+            }, 300);
+        }, duration);
+    }
+
+    function initVantaBackground() {
+        if (window.VANTA) {
+            if (window.vantaEffect) {
+                window.vantaEffect.destroy();
+            }
+            
+            window.vantaEffect = VANTA.GLOBE({
+                el: "#vanta-bg",
+                mouseControls: true,
+                touchControls: true,
+                gyroControls: false,
+                minHeight: 200.00,
+                minWidth: 200.00,
+                scale: 1.00,
+                scaleMobile: 1.00,
+                color: 0x8e44ad,
+                backgroundColor: 0x1a0933,
+                size: 0.8
+            });
+        }
+    }
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+        stopPolling();
+        updateOnlineStatus(false);
+    });
+
+    // Handle visibility change
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            updateOnlineStatus(false);
+        } else {
+            updateOnlineStatus(true);
+        }
+    });
+</script>
 </html>
