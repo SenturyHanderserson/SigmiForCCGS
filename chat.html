@@ -1104,7 +1104,7 @@
         }
     }
     
-    /* Role-based name colors */
+    /* Role-based name colors - Will be overridden by server-fetched colors */
     .role-owner { color: #FF0000 !important; }
     .role-admin { color: #FF6B6B !important; }
     .role-moderator { color: #4ECDC4 !important; }
@@ -1112,6 +1112,15 @@
     .role-supporter { color: #06D6A0 !important; }
     .role-member { color: #118AB2 !important; }
     .role-guest { color: #6C757D !important; }
+    
+    /* Dynamic role colors from server */
+    .role-color-owner { color: #FF0000 !important; }
+    .role-color-admin { color: #FF6B6B !important; }
+    .role-color-moderator { color: #4ECDC4 !important; }
+    .role-color-developer { color: #FFD166 !important; }
+    .role-color-supporter { color: #06D6A0 !important; }
+    .role-color-member { color: #118AB2 !important; }
+    .role-color-guest { color: #6C757D !important; }
     
     /* Scrollbar styling */
     .channels-list::-webkit-scrollbar,
@@ -1466,7 +1475,7 @@
     let currentUser = null;
     let currentUserRole = null;
     let currentChannel = 'general';
-    let messages = [];
+    let messages = []; // Messages for current channel only
     let channels = [];
     let allRoles = [];
     let loadingMore = false;
@@ -1488,19 +1497,13 @@
     let pendingMessages = new Map();
     let isSwitchingChannel = false;
     let channelSwitchTimeout = null;
+    let roleColors = {}; // Will be populated from server
+    let DEFAULT_ROLE_COLOR = 'role-member'; // Fallback color
 
-    // Role color mapping
-    const roleColors = {
-        'Owner': 'role-owner',
-        'Admin': 'role-admin',
-        'Moderator': 'role-moderator',
-        'Developer': 'role-developer',
-        'Supporter': 'role-supporter',
-        'Member': 'role-member',
-        'Guest': 'role-guest'
-    };
-
-    const DEFAULT_ROLE_COLOR = 'role-member';
+    // Per-channel message state (isolated message storage)
+    let channelMessages = new Map(); // channelId -> {messages: [], newestId: null, oldestId: null}
+    let channelLoadedIds = new Map(); // channelId -> Set of loaded message IDs
+    let channelDeletedIds = new Map(); // channelId -> Set of deleted message IDs
 
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
@@ -1565,6 +1568,9 @@
             currentUser = storedUser;
             currentUserRole = localStorage.getItem('userRole') || 'Member';
             
+            // Load role colors from server
+            await loadRoleColors();
+            
             // Start chat functionality
             await initializeChat();
             
@@ -1580,6 +1586,65 @@
             // Show error state
             showEmptyState('Failed to load messages. Please try refreshing.');
         }
+    }
+
+    async function loadRoleColors() {
+        try {
+            const token = getCookie('AuthToken');
+            const response = await fetch(`${SERVER_URL}/api/roles`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.roles && typeof data.roles === 'object') {
+                    // Extract role colors from server response
+                    Object.entries(data.roles).forEach(([roleName, roleConfig]) => {
+                        if (roleConfig.color) {
+                            roleColors[roleName] = roleConfig.color;
+                        }
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error loading role colors:', error);
+            // Use default role colors if server fails
+            roleColors = {
+                'Owner': '#FF0000',
+                'Admin': '#FF6B6B',
+                'Moderator': '#4ECDC4',
+                'Developer': '#FFD166',
+                'Supporter': '#06D6A0',
+                'Member': '#118AB2',
+                'Guest': '#6C757D'
+            };
+        }
+    }
+
+    function getRoleColorClass(roleName) {
+        if (!roleName) return DEFAULT_ROLE_COLOR;
+        
+        // Return a CSS class or inline style based on role
+        if (roleColors[roleName]) {
+            // Create a dynamic class for this role color
+            const safeRoleName = roleName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+            const className = `role-color-${safeRoleName}`;
+            
+            // If we haven't created this CSS class yet, create it
+            if (!document.querySelector(`style[data-role="${safeRoleName}"]`)) {
+                const style = document.createElement('style');
+                style.setAttribute('data-role', safeRoleName);
+                style.textContent = `.${className} { color: ${roleColors[roleName]} !important; }`;
+                document.head.appendChild(style);
+            }
+            
+            return className;
+        }
+        
+        return DEFAULT_ROLE_COLOR;
     }
 
     function initializeEventListeners() {
@@ -1705,42 +1770,72 @@
     }
 
     async function initializeChat() {
-    try {
-        // Load channels and roles first
-        await Promise.all([
-            loadChannels(),
-            loadAvailableRoles() // Make sure roles are loaded
-        ]);
-        
-        // Load initial messages for current channel
-        await loadInitialMessages();
-        
-        // Show main content
-        document.getElementById('loadingOverlay').classList.add('hidden');
-        document.getElementById('mainContent').classList.remove('hidden');
-        
-        // Start polling for new messages
-        startPolling();
-        
-        // Update online status
-        updateOnlineStatus(true);
-        
-        // Update connection status
-        updateConnectionStatus(true);
-        
-    } catch (error) {
-        console.error('Chat initialization error:', error);
-        showNotification('Failed to load chat. Please refresh.', 'error');
-        updateConnectionStatus(false);
-        
-        // Still show the chat interface
-        document.getElementById('loadingOverlay').classList.add('hidden');
-        document.getElementById('mainContent').classList.remove('hidden');
-        
-        // Show error state
-        showEmptyState('Failed to load messages. Please try refreshing.');
+        try {
+            // Load channels and roles first
+            await Promise.all([
+                loadChannels(),
+                loadAvailableRoles() // Make sure roles are loaded
+            ]);
+            
+            // Initialize channel state for current channel
+            initializeChannelState(currentChannel);
+            
+            // Load initial messages for current channel
+            await loadInitialMessages();
+            
+            // Show main content
+            document.getElementById('loadingOverlay').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+            
+            // Start polling for new messages
+            startPolling();
+            
+            // Update online status
+            updateOnlineStatus(true);
+            
+            // Update connection status
+            updateConnectionStatus(true);
+            
+        } catch (error) {
+            console.error('Chat initialization error:', error);
+            showNotification('Failed to load chat. Please refresh.', 'error');
+            updateConnectionStatus(false);
+            
+            // Still show the chat interface
+            document.getElementById('loadingOverlay').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+            
+            // Show error state
+            showEmptyState('Failed to load messages. Please try refreshing.');
+        }
     }
-}
+
+    function initializeChannelState(channelId) {
+        if (!channelMessages.has(channelId)) {
+            channelMessages.set(channelId, {
+                messages: [],
+                newestId: null,
+                oldestId: null
+            });
+        }
+        
+        if (!channelLoadedIds.has(channelId)) {
+            channelLoadedIds.set(channelId, new Set());
+        }
+        
+        if (!channelDeletedIds.has(channelId)) {
+            channelDeletedIds.set(channelId, new Set());
+        }
+        
+        // Update current channel state
+        const channelState = channelMessages.get(channelId);
+        messages = channelState.messages;
+        newestMessageId = channelState.newestId;
+        oldestMessageId = channelState.oldestId;
+        
+        loadedMessageIds = channelLoadedIds.get(channelId);
+        deletedMessageIds = channelDeletedIds.get(channelId);
+    }
 
     async function loadChannels() {
         try {
@@ -1834,98 +1929,105 @@
     }
 
     async function switchChannel(channelId) {
-    if (channelId === currentChannel || isSwitchingChannel) return;
-    
-    try {
-        isSwitchingChannel = true;
+        if (channelId === currentChannel || isSwitchingChannel) return;
         
-        // Clear any existing timeout
-        if (channelSwitchTimeout) {
-            clearTimeout(channelSwitchTimeout);
-        }
-        
-        // Add loading state to channel item
-        const channelItems = document.querySelectorAll('.channel-item');
-        channelItems.forEach(item => {
-            if (item.dataset.channelId === channelId) {
-                item.classList.add('loading');
+        try {
+            isSwitchingChannel = true;
+            
+            // Clear any existing timeout
+            if (channelSwitchTimeout) {
+                clearTimeout(channelSwitchTimeout);
             }
-        });
-        
-        // Check if user has access to this channel
-        const token = getCookie('AuthToken');
-        const response = await fetch(`${SERVER_URL}/api/channels/${channelId}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
+            
+            // Add loading state to channel item
+            const channelItems = document.querySelectorAll('.channel-item');
+            channelItems.forEach(item => {
+                if (item.dataset.channelId === channelId) {
+                    item.classList.add('loading');
+                }
+            });
+            
+            // Check if user has access to this channel
+            const token = getCookie('AuthToken');
+            const response = await fetch(`${SERVER_URL}/api/channels/${channelId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Cannot access channel');
             }
-        });
-        
-        if (!response.ok) {
-            throw new Error('Cannot access channel');
+            
+            const data = await response.json();
+            if (!data.success) {
+                throw new Error(data.error || 'Cannot access channel');
+            }
+            
+            // Stop polling temporarily
+            stopPolling();
+            
+            // Save current channel state before switching
+            saveCurrentChannelState();
+            
+            // COMPLETELY CLEAR existing messages UI
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.innerHTML = ''; // Clear DOM immediately
+            
+            // Switch to new channel
+            currentChannel = channelId;
+            
+            // Initialize new channel state
+            initializeChannelState(channelId);
+            
+            // Update UI
+            updateCurrentChannelDisplay();
+            renderChannels();
+            
+            // Load messages for new channel
+            await loadInitialMessages();
+            
+            // Close sidebar on mobile
+            closeSidebar();
+            
+            // Restart polling
+            startPolling();
+            
+            // Remove loading state
+            channelItems.forEach(item => {
+                item.classList.remove('loading');
+            });
+            
+            showNotification(`Switched to #${channelId}`, 'info', 2000);
+            
+        } catch (error) {
+            console.error('Error switching channel:', error);
+            showNotification('Cannot access this channel', 'error');
+            
+            // Remove loading state on error
+            const channelItems = document.querySelectorAll('.channel-item');
+            channelItems.forEach(item => item.classList.remove('loading'));
+            
+        } finally {
+            // Reset switching state
+            isSwitchingChannel = false;
         }
-        
-        const data = await response.json();
-        if (!data.success) {
-            throw new Error(data.error || 'Cannot access channel');
-        }
-        
-        // Stop polling temporarily
-        stopPolling();
-        
-        // COMPLETELY CLEAR existing messages UI and state
-        const messagesContainer = document.getElementById('messagesContainer');
-        messagesContainer.innerHTML = ''; // Clear DOM immediately
-        
-        // Reset ALL message state
-        messages = [];
-        loadedMessageIds.clear();
-        deletedMessageIds.clear();
-        pendingMessages.clear();
-        newestMessageId = null;
-        oldestMessageId = null;
-        hasMoreMessages = true;
-        unreadMessages = 0;
-        
-        // Update new messages indicator
-        updateNewMessagesIndicator();
-        
-        // Update current channel
-        currentChannel = channelId;
-        
-        // Update UI
-        updateCurrentChannelDisplay();
-        renderChannels();
-        
-        // Load messages for new channel
-        await loadInitialMessages();
-        
-        // Close sidebar on mobile
-        closeSidebar();
-        
-        // Restart polling
-        startPolling();
-        
-        // Remove loading state
-        channelItems.forEach(item => {
-            item.classList.remove('loading');
-        });
-        
-        showNotification(`Switched to #${channelId}`, 'info', 2000);
-        
-    } catch (error) {
-        console.error('Error switching channel:', error);
-        showNotification('Cannot access this channel', 'error');
-        
-        // Remove loading state on error
-        const channelItems = document.querySelectorAll('.channel-item');
-        channelItems.forEach(item => item.classList.remove('loading'));
-        
-    } finally {
-        // Reset switching state
-        isSwitchingChannel = false;
     }
-}
+
+    function saveCurrentChannelState() {
+        if (!currentChannel) return;
+        
+        const channelState = channelMessages.get(currentChannel);
+        if (channelState) {
+            channelState.messages = messages;
+            channelState.newestId = newestMessageId;
+            channelState.oldestId = oldestMessageId;
+        }
+        
+        channelLoadedIds.set(currentChannel, loadedMessageIds);
+        channelDeletedIds.set(currentChannel, deletedMessageIds);
+    }
 
     function updateCurrentChannelDisplay() {
         const channel = channels.find(c => c.id === currentChannel) || 
@@ -1937,78 +2039,79 @@
     }
 
     async function loadInitialMessages() {
-    try {
-        // COMPLETELY CLEAR the container first
-        const container = document.getElementById('messagesContainer');
-        container.innerHTML = '';
-        
-        const token = getCookie('AuthToken');
-        const params = new URLSearchParams({
-            limit: '50'
-        });
-        
-        const response = await fetch(`${SERVER_URL}/api/chat/channels/${currentChannel}/messages?${params}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Failed to load messages: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            // COMPLETELY RESET message state
-            messages = [];
-            loadedMessageIds.clear();
-            deletedMessageIds.clear();
-            pendingMessages.clear();
-            
-            // Store messages
-            messages = data.messages || [];
-            
-            // Ensure proper chronological order (oldest first)
-            messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-            
-            // Track loaded message IDs
-            messages.forEach(msg => loadedMessageIds.add(msg.id));
-            
-            // Set message IDs for pagination
-            if (messages.length > 0) {
-                newestMessageId = messages[messages.length - 1]?.id;
-                oldestMessageId = messages[0]?.id;
-            }
-            
-            // Clear container again before rendering (just to be sure)
+        try {
+            // COMPLETELY CLEAR the container first
+            const container = document.getElementById('messagesContainer');
             container.innerHTML = '';
             
-            // Render messages
-            renderMessages(messages, true);
+            const token = getCookie('AuthToken');
+            const params = new URLSearchParams({
+                limit: '50'
+            });
             
-            hasMoreMessages = data.hasMore || false;
+            const response = await fetch(`${SERVER_URL}/api/chat/channels/${currentChannel}/messages?${params}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
             
-            // Auto-scroll to bottom
-            setTimeout(() => {
-                scrollToBottom();
-            }, 100);
-            
-            // Show welcome message if no messages
-            if (messages.length === 0) {
-                showEmptyState(`No messages in #${currentChannel}. Be the first to say something!`);
+            if (!response.ok) {
+                throw new Error(`Failed to load messages: ${response.status}`);
             }
             
-        } else {
-            throw new Error('Failed to load messages');
+            const data = await response.json();
+            
+            if (data.success) {
+                // Reset message state for current channel
+                messages = [];
+                loadedMessageIds.clear();
+                deletedMessageIds.clear();
+                pendingMessages.clear();
+                
+                // Store messages
+                messages = data.messages || [];
+                
+                // Ensure proper chronological order (oldest first)
+                messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                
+                // Track loaded message IDs
+                messages.forEach(msg => loadedMessageIds.add(msg.id));
+                
+                // Set message IDs for pagination
+                if (messages.length > 0) {
+                    newestMessageId = messages[messages.length - 1]?.id;
+                    oldestMessageId = messages[0]?.id;
+                }
+                
+                // Clear container again before rendering (just to be sure)
+                container.innerHTML = '';
+                
+                // Render messages
+                renderMessages(messages, true);
+                
+                hasMoreMessages = data.hasMore || false;
+                
+                // Auto-scroll to bottom
+                setTimeout(() => {
+                    scrollToBottom();
+                }, 100);
+                
+                // Show welcome message if no messages
+                if (messages.length === 0) {
+                    showEmptyState(`No messages in #${currentChannel}. Be the first to say something!`);
+                }
+                
+            } else {
+                throw new Error('Failed to load messages');
+            }
+            
+        } catch (error) {
+            console.error('Error loading initial messages:', error);
+            throw error;
         }
-        
-    } catch (error) {
-        console.error('Error loading initial messages:', error);
-        throw error;
     }
-}
+
     function renderMessages(messagesToRender, clearContainer = false, prepend = false) {
         const container = document.getElementById('messagesContainer');
         
@@ -2213,8 +2316,8 @@
             });
         }
         
-        // Get role color class
-        const roleClass = roleColors[message.role] || DEFAULT_ROLE_COLOR;
+        // Get role color class from server-fetched colors
+        const roleClass = getRoleColorClass(message.role);
         
         // Determine badge class based on role name length
         let badgeClass = 'role-badge';
@@ -2302,7 +2405,7 @@
             });
         }
         
-        const roleClass = roleColors[message.role] || DEFAULT_ROLE_COLOR;
+        const roleClass = getRoleColorClass(message.role);
         
         const messageDiv = document.createElement('div');
         messageDiv.className = `message-bubble ${isCurrentUser ? 'sent' : 'received'} deleted-message`;
@@ -3268,14 +3371,14 @@
     }
     
     function populateRoleSelects() {
-    if (allRoles.length === 0) {
-        console.warn('No roles available to populate selects');
-        return;
+        if (allRoles.length === 0) {
+            console.warn('No roles available to populate selects');
+            return;
+        }
+        
+        // This function will be called when role selects are created
+        console.log('Roles available for selection:', allRoles);
     }
-    
-    // This function will be called when role selects are created
-    console.log('Roles available for selection:', allRoles);
-}
     
     function addAllowedRole() {
         const container = document.getElementById('allowedRolesList');
