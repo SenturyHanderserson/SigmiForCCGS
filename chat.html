@@ -1979,12 +1979,14 @@
             // Stop polling temporarily
             stopPolling();
             
+            // Reset state for the new channel
+            resetChannelState();
+            
             // Update current channel
-            const oldChannel = currentChannel;
             currentChannel = channelId;
             
-            // Load the new channel's state
-            await loadChannelState();
+            // Load initial messages for the new channel
+            await loadInitialMessages();
             
             // Update UI
             updateCurrentChannelDisplay();
@@ -2011,15 +2013,41 @@
             const channelItems = document.querySelectorAll('.channel-item');
             channelItems.forEach(item => item.classList.remove('loading'));
             
-            // Restore old channel if switch failed
-            currentChannel = oldChannel;
-            
         } finally {
             // Reset switching state after a short delay
             channelSwitchTimeout = setTimeout(() => {
                 isSwitchingChannel = false;
             }, 300);
         }
+    }
+
+    // NEW FUNCTION: Reset channel state completely
+    function resetChannelState() {
+        // Clear all message-related state
+        messages = [];
+        loadedMessageIds.clear();
+        deletedMessageIds.clear();
+        pendingMessages.clear();
+        newestMessageId = null;
+        oldestMessageId = null;
+        hasMoreMessages = true;
+        
+        // Clear the messages container
+        const container = document.getElementById('messagesContainer');
+        container.innerHTML = '';
+        
+        // Reset typing indicator
+        typingUsers.clear();
+        const typingIndicator = document.getElementById('typingIndicator');
+        typingIndicator.classList.add('hidden');
+        
+        // Reset scroll state
+        isNearBottom = true;
+        unreadMessages = 0;
+        updateNewMessagesIndicator();
+        
+        // Hide scroll to bottom button
+        document.getElementById('scrollToBottomBtn').classList.add('hidden');
     }
 
     function saveCurrentChannelState() {
@@ -2083,14 +2111,8 @@
             const container = document.getElementById('messagesContainer');
             container.innerHTML = '';
             
-            // Reset state for this channel
-            messages = [];
-            loadedMessageIds.clear();
-            deletedMessageIds.clear();
-            pendingMessages.clear();
-            newestMessageId = null;
-            oldestMessageId = null;
-            hasMoreMessages = true;
+            // Reset state for this channel (ensure clean slate)
+            resetChannelState();
             
             const token = getCookie('AuthToken');
             const params = new URLSearchParams({
@@ -2131,12 +2153,10 @@
                 
                 hasMoreMessages = data.hasMore || false;
                 
-                // Auto-scroll to bottom for new channels, otherwise stay at current position
-                if (!channelStates.has(currentChannel)) {
-                    setTimeout(() => {
-                        scrollToBottom();
-                    }, 100);
-                }
+                // Auto-scroll to bottom for new channels
+                setTimeout(() => {
+                    scrollToBottom();
+                }, 100);
                 
                 // Show welcome message if no messages
                 if (messages.length === 0) {
@@ -2988,16 +3008,7 @@
             
             if (response.ok) {
                 // Clear local state for this channel
-                messages = [];
-                loadedMessageIds.clear();
-                deletedMessageIds.clear();
-                newestMessageId = null;
-                oldestMessageId = null;
-                pendingMessages.clear();
-                
-                // Clear the messages container
-                const container = document.getElementById('messagesContainer');
-                container.innerHTML = '';
+                resetChannelState();
                 
                 // Update saved state
                 saveCurrentChannelState();
