@@ -1104,7 +1104,7 @@
         }
     }
     
-    /* Role-based name colors - Will be overridden by server-fetched colors */
+    /* Role-based name colors - These will be overridden by dynamic styles */
     .role-owner { color: #FF0000 !important; }
     .role-admin { color: #FF6B6B !important; }
     .role-moderator { color: #4ECDC4 !important; }
@@ -1112,15 +1112,6 @@
     .role-supporter { color: #06D6A0 !important; }
     .role-member { color: #118AB2 !important; }
     .role-guest { color: #6C757D !important; }
-    
-    /* Dynamic role colors from server */
-    .role-color-owner { color: #FF0000 !important; }
-    .role-color-admin { color: #FF6B6B !important; }
-    .role-color-moderator { color: #4ECDC4 !important; }
-    .role-color-developer { color: #FFD166 !important; }
-    .role-color-supporter { color: #06D6A0 !important; }
-    .role-color-member { color: #118AB2 !important; }
-    .role-color-guest { color: #6C757D !important; }
     
     /* Scrollbar styling */
     .channels-list::-webkit-scrollbar,
@@ -1475,9 +1466,10 @@
     let currentUser = null;
     let currentUserRole = null;
     let currentChannel = 'general';
-    let messages = []; // Messages for current channel only
+    let messages = []; // Store messages for current channel only
     let channels = [];
     let allRoles = [];
+    let roleColors = {}; // Will be populated from server
     let loadingMore = false;
     let hasMoreMessages = true;
     let oldestMessageId = null;
@@ -1490,20 +1482,17 @@
     const MAX_RECONNECT_ATTEMPTS = 3;
     let isNearBottom = true;
     let unreadMessages = 0;
-    let loadedMessageIds = new Set();
+    let loadedMessageIds = new Set(); // Track loaded message IDs for current channel only
     let soundEnabled = true;
     let settingsDropdownVisible = false;
-    let deletedMessageIds = new Set();
+    let deletedMessageIds = new Set(); // Track deleted message IDs for current channel
     let pendingMessages = new Map();
     let isSwitchingChannel = false;
     let channelSwitchTimeout = null;
-    let roleColors = {}; // Will be populated from server
-    let DEFAULT_ROLE_COLOR = 'role-member'; // Fallback color
+    let perChannelMessages = {}; // Store messages per channel
+    let currentChannelMessagesKey = 'general'; // Key for current channel in perChannelMessages
 
-    // Per-channel message state (isolated message storage)
-    let channelMessages = new Map(); // channelId -> {messages: [], newestId: null, oldestId: null}
-    let channelLoadedIds = new Map(); // channelId -> Set of loaded message IDs
-    let channelDeletedIds = new Map(); // channelId -> Set of deleted message IDs
+    const DEFAULT_ROLE_COLOR = 'role-member';
 
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
@@ -1591,7 +1580,7 @@
     async function loadRoleColors() {
         try {
             const token = getCookie('AuthToken');
-            const response = await fetch(`${SERVER_URL}/api/roles`, {
+            const response = await fetch(`${SERVER_URL}/api/roles/colors`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -1600,49 +1589,80 @@
             
             if (response.ok) {
                 const data = await response.json();
-                if (data.roles && typeof data.roles === 'object') {
-                    // Extract role colors from server response
-                    Object.entries(data.roles).forEach(([roleName, roleConfig]) => {
-                        if (roleConfig.color) {
-                            roleColors[roleName] = roleConfig.color;
-                        }
-                    });
+                if (data.success && data.roleColors) {
+                    // Update roleColors object with server data
+                    roleColors = data.roleColors;
+                    
+                    // Create dynamic CSS for role colors
+                    createDynamicRoleStyles();
                 }
+            } else {
+                // Fallback to default colors if server fails
+                setDefaultRoleColors();
             }
         } catch (error) {
             console.error('Error loading role colors:', error);
-            // Use default role colors if server fails
-            roleColors = {
-                'Owner': '#FF0000',
-                'Admin': '#FF6B6B',
-                'Moderator': '#4ECDC4',
-                'Developer': '#FFD166',
-                'Supporter': '#06D6A0',
-                'Member': '#118AB2',
-                'Guest': '#6C757D'
-            };
+            setDefaultRoleColors();
         }
+    }
+
+    function setDefaultRoleColors() {
+        // Default fallback colors
+        roleColors = {
+            'Owner': '#FF0000',
+            'Admin': '#FF6B6B',
+            'Moderator': '#4ECDC4',
+            'Developer': '#FFD166',
+            'Supporter': '#06D6A0',
+            'Member': '#118AB2',
+            'Guest': '#6C757D'
+        };
+        
+        createDynamicRoleStyles();
+    }
+
+    function createDynamicRoleStyles() {
+        // Create a style element for dynamic role colors
+        const styleId = 'dynamic-role-styles';
+        let styleEl = document.getElementById(styleId);
+        
+        if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = styleId;
+            document.head.appendChild(styleEl);
+        }
+        
+        // Generate CSS for each role
+        let css = '';
+        for (const [roleName, color] of Object.entries(roleColors)) {
+            const className = `role-${roleName.toLowerCase().replace(/\s+/g, '-')}`;
+            css += `.${className} { color: ${color} !important; }\n`;
+        }
+        
+        styleEl.textContent = css;
     }
 
     function getRoleColorClass(roleName) {
         if (!roleName) return DEFAULT_ROLE_COLOR;
         
-        // Return a CSS class or inline style based on role
-        if (roleColors[roleName]) {
-            // Create a dynamic class for this role color
-            const safeRoleName = roleName.toLowerCase().replace(/[^a-z0-9]/g, '-');
-            const className = `role-color-${safeRoleName}`;
-            
-            // If we haven't created this CSS class yet, create it
-            if (!document.querySelector(`style[data-role="${safeRoleName}"]`)) {
-                const style = document.createElement('style');
-                style.setAttribute('data-role', safeRoleName);
-                style.textContent = `.${className} { color: ${roleColors[roleName]} !important; }`;
-                document.head.appendChild(style);
-            }
-            
+        // Convert role name to lowercase and replace spaces with hyphens
+        const normalizedRole = roleName.toLowerCase().replace(/\s+/g, '-');
+        const className = `role-${normalizedRole}`;
+        
+        // Check if we have a dynamic style for this role
+        const styleEl = document.getElementById('dynamic-role-styles');
+        if (styleEl && styleEl.textContent.includes(`.${className}`)) {
             return className;
         }
+        
+        // Fallback to default mapping
+        if (roleName === 'Owner') return 'role-owner';
+        if (roleName === 'Admin') return 'role-admin';
+        if (roleName === 'Moderator') return 'role-moderator';
+        if (roleName === 'Developer') return 'role-developer';
+        if (roleName === 'Supporter') return 'role-supporter';
+        if (roleName === 'Member') return 'role-member';
+        if (roleName === 'Guest') return 'role-guest';
         
         return DEFAULT_ROLE_COLOR;
     }
@@ -1777,9 +1797,6 @@
                 loadAvailableRoles() // Make sure roles are loaded
             ]);
             
-            // Initialize channel state for current channel
-            initializeChannelState(currentChannel);
-            
             // Load initial messages for current channel
             await loadInitialMessages();
             
@@ -1808,33 +1825,6 @@
             // Show error state
             showEmptyState('Failed to load messages. Please try refreshing.');
         }
-    }
-
-    function initializeChannelState(channelId) {
-        if (!channelMessages.has(channelId)) {
-            channelMessages.set(channelId, {
-                messages: [],
-                newestId: null,
-                oldestId: null
-            });
-        }
-        
-        if (!channelLoadedIds.has(channelId)) {
-            channelLoadedIds.set(channelId, new Set());
-        }
-        
-        if (!channelDeletedIds.has(channelId)) {
-            channelDeletedIds.set(channelId, new Set());
-        }
-        
-        // Update current channel state
-        const channelState = channelMessages.get(channelId);
-        messages = channelState.messages;
-        newestMessageId = channelState.newestId;
-        oldestMessageId = channelState.oldestId;
-        
-        loadedMessageIds = channelLoadedIds.get(channelId);
-        deletedMessageIds = channelDeletedIds.get(channelId);
     }
 
     async function loadChannels() {
@@ -1968,25 +1958,19 @@
             // Stop polling temporarily
             stopPolling();
             
-            // Save current channel state before switching
+            // Save current channel state BEFORE switching
             saveCurrentChannelState();
             
-            // COMPLETELY CLEAR existing messages UI
-            const messagesContainer = document.getElementById('messagesContainer');
-            messagesContainer.innerHTML = ''; // Clear DOM immediately
-            
-            // Switch to new channel
+            // Update current channel
             currentChannel = channelId;
+            currentChannelMessagesKey = channelId;
             
-            // Initialize new channel state
-            initializeChannelState(channelId);
+            // Load saved state for new channel or initialize fresh
+            await loadChannelState();
             
             // Update UI
             updateCurrentChannelDisplay();
             renderChannels();
-            
-            // Load messages for new channel
-            await loadInitialMessages();
             
             // Close sidebar on mobile
             closeSidebar();
@@ -2016,17 +2000,43 @@
     }
 
     function saveCurrentChannelState() {
-        if (!currentChannel) return;
+        // Save current channel's messages and state
+        perChannelMessages[currentChannelMessagesKey] = {
+            messages: [...messages],
+            loadedMessageIds: new Set([...loadedMessageIds]),
+            deletedMessageIds: new Set([...deletedMessageIds]),
+            newestMessageId,
+            oldestMessageId,
+            hasMoreMessages
+        };
+    }
+
+    async function loadChannelState() {
+        // Check if we have saved state for this channel
+        const savedState = perChannelMessages[currentChannelMessagesKey];
         
-        const channelState = channelMessages.get(currentChannel);
-        if (channelState) {
-            channelState.messages = messages;
-            channelState.newestId = newestMessageId;
-            channelState.oldestId = oldestMessageId;
+        if (savedState) {
+            // Load from saved state
+            messages = [...savedState.messages];
+            loadedMessageIds = new Set([...savedState.loadedMessageIds]);
+            deletedMessageIds = new Set([...savedState.deletedMessageIds]);
+            newestMessageId = savedState.newestMessageId;
+            oldestMessageId = savedState.oldestMessageId;
+            hasMoreMessages = savedState.hasMoreMessages;
+            
+            // Clear and render messages
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = '';
+            renderMessages(messages, false);
+            
+            // If no messages, show empty state
+            if (messages.length === 0) {
+                showEmptyState(`No messages in #${currentChannel}. Be the first to say something!`);
+            }
+        } else {
+            // No saved state, load fresh from server
+            await loadInitialMessages();
         }
-        
-        channelLoadedIds.set(currentChannel, loadedMessageIds);
-        channelDeletedIds.set(currentChannel, deletedMessageIds);
     }
 
     function updateCurrentChannelDisplay() {
@@ -2040,9 +2050,18 @@
 
     async function loadInitialMessages() {
         try {
-            // COMPLETELY CLEAR the container first
+            // Clear the container
             const container = document.getElementById('messagesContainer');
             container.innerHTML = '';
+            
+            // Reset state for this channel
+            messages = [];
+            loadedMessageIds.clear();
+            deletedMessageIds.clear();
+            pendingMessages.clear();
+            newestMessageId = null;
+            oldestMessageId = null;
+            hasMoreMessages = true;
             
             const token = getCookie('AuthToken');
             const params = new URLSearchParams({
@@ -2063,12 +2082,6 @@
             const data = await response.json();
             
             if (data.success) {
-                // Reset message state for current channel
-                messages = [];
-                loadedMessageIds.clear();
-                deletedMessageIds.clear();
-                pendingMessages.clear();
-                
                 // Store messages
                 messages = data.messages || [];
                 
@@ -2083,9 +2096,6 @@
                     newestMessageId = messages[messages.length - 1]?.id;
                     oldestMessageId = messages[0]?.id;
                 }
-                
-                // Clear container again before rendering (just to be sure)
-                container.innerHTML = '';
                 
                 // Render messages
                 renderMessages(messages, true);
@@ -2316,7 +2326,7 @@
             });
         }
         
-        // Get role color class from server-fetched colors
+        // Get role color class using the new function
         const roleClass = getRoleColorClass(message.role);
         
         // Determine badge class based on role name length
