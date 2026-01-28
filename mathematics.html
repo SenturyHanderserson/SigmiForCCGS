@@ -2058,78 +2058,170 @@
             return false;
         }
     }
+function manageAdVisibility() {
+    const sidebarAds = document.querySelectorAll('.sidebar-ad');
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    if (!sidebarAds.length) return;
+    
+    // Rule 1: Always hide on very small screens
+    if (viewportWidth < 1200) {
+        sidebarAds.forEach(ad => ad.style.display = 'none');
+        return;
+    }
+    
+    // Rule 2: Calculate available space for content
+    const mainContent = document.querySelector('.main-content-container');
+    const gameCards = document.querySelectorAll('.game-card');
+    
+    let shouldShowAds = true;
+    
+    // Check if ads would take too much space
+    const adWidth = 160;
+    const totalAdWidth = adWidth * 2;
+    const minContentWidth = 800;
+    
+    if (viewportWidth - totalAdWidth < minContentWidth) {
+        shouldShowAds = false;
+    }
+    
+    // Check if ads overlap with too many game cards
+    if (shouldShowAds && gameCards.length > 0) {
+        let overlappingCards = 0;
+        const visibleCards = Array.from(gameCards).filter(card => {
+            const rect = card.getBoundingClientRect();
+            return rect.top < viewportHeight && rect.bottom > 0;
+        });
+        
+        sidebarAds.forEach(ad => {
+            const adRect = ad.getBoundingClientRect();
+            
+            visibleCards.forEach(card => {
+                const cardRect = card.getBoundingClientRect();
+                
+                // Simple overlap detection
+                if (!(adRect.right < cardRect.left || adRect.left > cardRect.right)) {
+                    overlappingCards++;
+                }
+            });
+        });
+        
+        // If more than 25% of visible cards would be overlapped, hide ads
+        if (visibleCards.length > 0 && overlappingCards / visibleCards.length > 0.25) {
+            shouldShowAds = false;
+        }
+    }
+    
+    // Apply visibility
+    sidebarAds.forEach(ad => {
+        ad.style.display = shouldShowAds ? 'block' : 'none';
+    });
+    
+    // Adjust main content padding based on ad visibility
+    if (mainContent) {
+        mainContent.style.padding = shouldShowAds ? '0 1rem' : '0 2rem';
+    }
+}
+		
 
     // Check authentication status on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        const token = getCookie('AuthToken');
-        const currentUser = localStorage.getItem('currentUser');
+  document.addEventListener('DOMContentLoaded', function() {
+    const token = getCookie('AuthToken');
+    const currentUser = localStorage.getItem('currentUser');
+    
+    if (token && currentUser) {
+        document.getElementById('loadingOverlay').classList.add('active');
         
-        if (token && currentUser) {
-            document.getElementById('loadingOverlay').classList.add('active');
-            
-            verifyToken(token).then(isValid => {
-                document.getElementById('loadingOverlay').classList.remove('active');
-                if (isValid) {
-                    // Initialize all systems after successful authentication
-                    initMessageSystem();
-                    checkForBroadcasts();
-                    checkForWarnings();
-                    
-                    // Set up periodic checking
-                    broadcastCheckInterval = setInterval(checkForBroadcasts, 2 * 60 * 1000);
-                    warningCheckInterval = setInterval(checkForWarnings, 5 * 60 * 1000);
-                } else {
-                    showLoginModal();
-                }
-            }).catch(error => {
-                console.error('Token verification failed:', error);
-                document.getElementById('loadingOverlay').classList.remove('active');
+        verifyToken(token).then(isValid => {
+            document.getElementById('loadingOverlay').classList.remove('active');
+            if (isValid) {
+                // Initialize all systems after successful authentication
+                initMessageSystem();
+                checkForBroadcasts();
+                checkForWarnings();
+                
+                // Set up periodic checking
+                broadcastCheckInterval = setInterval(checkForBroadcasts, 2 * 60 * 1000);
+                warningCheckInterval = setInterval(checkForWarnings, 5 * 60 * 1000);
+            } else {
                 showLoginModal();
-            });
-        } else {
-            setTimeout(showLoginModal, 1000);
-        }
-        
-        // Initialize the rest of the page
-        createParticles();
-        checkUrlHash();
-        setupFilterChips();
-        setupSearch();
-        setupSorting();
-        renderGames();
-        setupPagination();
-        
-        // Add event listeners for warning system
-        document.addEventListener('click', function(e) {
-            if (e.target.id === 'viewHistoryBtn' || e.target.closest('#viewHistoryBtn')) {
-                viewWarningHistory();
             }
-            
-            if (e.target.id === 'dismissAllBtn' || e.target.closest('#dismissAllBtn')) {
-                dismissAllWarnings();
-            }
-            
-            if (e.target.id === 'closeWarningBtn' || e.target.closest('#closeWarningBtn')) {
-                closeWarningModal();
-            }
+        }).catch(error => {
+            console.error('Token verification failed:', error);
+            document.getElementById('loadingOverlay').classList.remove('active');
+            showLoginModal();
         });
-        
-        // Add event listener for support button
-        document.getElementById('supportBtn').addEventListener('click', function() {
-            window.open('https://www.effectivegatecpm.com/rcr2k1vfs?key=0ccd58bd1245548c332c7423458b9bdc', '_blank');
+    } else {
+        setTimeout(showLoginModal, 1000);
+    }
+    
+    // Initialize the rest of the page
+    createParticles();
+    checkUrlHash();
+    setupFilterChips();
+    setupSearch();
+    setupSorting();
+    renderGames();
+    setupPagination();
+    
+    // Initialize ad visibility management
+    manageAdVisibility();
+    
+    // Update ad visibility on resize and scroll
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(manageAdVisibility, 250);
+    });
+    
+    window.addEventListener('scroll', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(manageAdVisibility, 100);
+    });
+    
+    // Update ad visibility after games load
+    setTimeout(manageAdVisibility, 1500);
+    
+    // Also update when games container updates (filtering, pagination)
+    const gamesContainer = document.getElementById('games-container');
+    if (gamesContainer) {
+        const gamesObserver = new MutationObserver(() => {
+            setTimeout(manageAdVisibility, 100);
         });
-    });
-
-    // Clear intervals when page is unloaded
-    window.addEventListener('beforeunload', () => {
-        if (broadcastCheckInterval) {
-            clearInterval(broadcastCheckInterval);
+        gamesObserver.observe(gamesContainer, { childList: true, subtree: true });
+    }
+    
+    // Add event listeners for warning system
+    document.addEventListener('click', function(e) {
+        if (e.target.id === 'viewHistoryBtn' || e.target.closest('#viewHistoryBtn')) {
+            viewWarningHistory();
         }
-        if (warningCheckInterval) {
-            clearInterval(warningCheckInterval);
+        
+        if (e.target.id === 'dismissAllBtn' || e.target.closest('#dismissAllBtn')) {
+            dismissAllWarnings();
+        }
+        
+        if (e.target.id === 'closeWarningBtn' || e.target.closest('#closeWarningBtn')) {
+            closeWarningModal();
         }
     });
+    
+    // Add event listener for support button
+    document.getElementById('supportBtn').addEventListener('click', function() {
+        window.open('https://www.effectivegatecpm.com/rcr2k1vfs?key=0ccd58bd1245548c332c7423458b9bdc', '_blank');
+    });
+});
 
+// Clear intervals when page is unloaded
+window.addEventListener('beforeunload', () => {
+    if (broadcastCheckInterval) {
+        clearInterval(broadcastCheckInterval);
+    }
+    if (warningCheckInterval) {
+        clearInterval(warningCheckInterval);
+    }
+});
     // Function to check URL hash and filter games
     function checkUrlHash() {
         const hash = window.location.hash.substring(1); // Remove the # character
@@ -3103,3 +3195,4 @@
 </script>
 </body>
 </html>
+
