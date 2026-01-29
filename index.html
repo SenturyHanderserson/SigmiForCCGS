@@ -298,6 +298,25 @@
             left: 56px;
             animation: balls-loader3 0.6s infinite;
         }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        /* Style for auth error notifications */
+        .notification.auth-error {
+            border-left: 4px solid #ef4444 !important;
+            background: rgba(239, 68, 68, 0.1) !important;
+        }
+        
+        .notification.auth-error .notification-icon i {
+            color: #ef4444;
+        }
         
         @keyframes balls-loader1 {
             0% { transform: scale(0); }
@@ -1284,6 +1303,84 @@ document.addEventListener('click', function(e) {
     }
 });
 
+        function showFieldError(fieldId, message) {
+    const field = document.getElementById(fieldId);
+    const parent = field.parentElement;
+    
+    // Remove any existing error
+    hideFieldError(fieldId);
+    
+    // Add error class to field
+    field.classList.add('border-red-500', 'border-2');
+    
+    // Create error message element
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'mt-1 text-sm text-red-400 flex items-center';
+    errorDiv.innerHTML = `<i data-feather="alert-circle" class="w-4 h-4 mr-1"></i> ${message}`;
+    errorDiv.id = `${fieldId}-error`;
+    
+    parent.appendChild(errorDiv);
+    feather.replace();
+}
+
+function hideFieldError(fieldId) {
+    const field = document.getElementById(fieldId);
+    const errorDiv = document.getElementById(`${fieldId}-error`);
+    
+    field.classList.remove('border-red-500', 'border-2');
+    if (errorDiv) {
+        errorDiv.remove();
+    }
+}
+
+function clearAllFieldErrors() {
+    const fields = ['loginUsername', 'loginPassword', 'signupUsername', 'signupPassword', 'confirmPassword', 'signupEmail'];
+    fields.forEach(fieldId => hideFieldError(fieldId));
+}
+        
+function showAuthError(message, type = 'error', duration = 5000) {
+    // Create a more prominent error notification for auth issues
+    const container = document.getElementById('notificationContainer');
+    const notification = document.createElement('div');
+    notification.className = `notification ${type} auth-error`;
+    
+    // Add specific styling for auth errors
+    notification.style.borderLeft = '4px solid #ef4444';
+    notification.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+    
+    let icon = 'alert-triangle';
+    if (type === 'success') icon = 'check-circle';
+    if (type === 'warning') icon = 'alert-circle';
+    
+    notification.innerHTML = `
+        <div class="notification-icon">
+            <i data-feather="${icon}" class="w-6 h-6"></i>
+        </div>
+        <div class="notification-content">
+            <strong>Authentication Error:</strong><br>
+            ${message}
+        </div>
+        <div class="notification-close" onclick="this.parentElement.classList.add('hidden')">
+            <i data-feather="x" class="w-5 h-5"></i>
+        </div>
+    `;
+    
+    container.appendChild(notification);
+    feather.replace();
+    
+    // Auto remove after duration
+    setTimeout(() => {
+        notification.classList.add('hidden');
+        setTimeout(() => notification.remove(), 300);
+    }, duration);
+    
+    // Also shake the auth modal for emphasis
+    const authModal = document.getElementById('authModal');
+    authModal.classList.add('shake');
+    setTimeout(() => authModal.classList.remove('shake'), 500);
+}
+        
+
         // Broadcast Modal Functions
         function hideBroadcastModal() {
             const modal = document.getElementById('broadcastModal');
@@ -2210,6 +2307,7 @@ function checkAfterPollsReturn() {
             
             // Navigation
             initializeNavigation();
+ setupAuthValidation();
             
             // FAB System
             initializeFABSystem();
@@ -2244,6 +2342,50 @@ function checkAfterPollsReturn() {
                 });
             }
         }
+
+        function setupAuthValidation() {
+    // Real-time username validation for signup
+    const signupUsername = document.getElementById('signupUsername');
+    if (signupUsername) {
+        signupUsername.addEventListener('input', function() {
+            const username = this.value;
+            hideFieldError('signupUsername');
+            
+            if (username.length > 0 && username.length < 3) {
+                showFieldError('signupUsername', 'Username must be at least 3 characters');
+            } else if (username.length > 20) {
+                showFieldError('signupUsername', 'Username cannot exceed 20 characters');
+            } else if (!/^[a-zA-Z0-9_]+$/.test(username) && username.length > 0) {
+                showFieldError('signupUsername', 'Only letters, numbers, and underscores allowed');
+            }
+        });
+    }
+    
+    // Password match validation
+    const signupPassword = document.getElementById('signupPassword');
+    const confirmPassword = document.getElementById('confirmPassword');
+    
+    if (signupPassword && confirmPassword) {
+        const validatePasswordMatch = () => {
+            const password = signupPassword.value;
+            const confirm = confirmPassword.value;
+            
+            hideFieldError('signupPassword');
+            hideFieldError('confirmPassword');
+            
+            if (password.length > 0 && password.length < 6) {
+                showFieldError('signupPassword', 'Password must be at least 6 characters');
+            }
+            
+            if (confirm.length > 0 && password !== confirm) {
+                showFieldError('confirmPassword', 'Passwords do not match');
+            }
+        };
+        
+        signupPassword.addEventListener('input', validatePasswordMatch);
+        confirmPassword.addEventListener('input', validatePasswordMatch);
+    }
+}
         
         function initializeCustomizationModal() {
             document.querySelectorAll('.section-selector').forEach(section => {
@@ -2302,6 +2444,23 @@ function checkAfterPollsReturn() {
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
     const rememberMe = document.getElementById('rememberMe').checked;
+    
+    // Clear previous errors
+    clearAllFieldErrors();
+    
+    let hasError = false;
+    
+    if (!username) {
+        showFieldError('loginUsername', 'Username is required');
+        hasError = true;
+    }
+    
+    if (!password) {
+        showFieldError('loginPassword', 'Password is required');
+        hasError = true;
+    }
+    
+    if (hasError) return;
     
     if (username && password) {
         showLoadingModal("Logging you in...");
