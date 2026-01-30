@@ -452,8 +452,6 @@
                     </div>
                 </div>
             </div>
-        
-            
 
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
                 <!-- Upload Form -->
@@ -480,8 +478,8 @@
                                 </div>
                                 
                                 <div data-aos="fade-up" data-aos-delay="150">
-                                    <label class="block text-sm font-semibold mb-3 text-gray-300">Game URL *</label>
-                                    <input type="url" id="gameUrl" required 
+                                    <label class="block text-sm font-semibold mb-3 text-gray-300">Game URL (Optional)</label>
+                                    <input type="url" id="gameUrl" 
                                            class="w-full px-4 py-3 form-input rounded-xl focus:outline-none"
                                            placeholder="https://example.com/game">
                                 </div>
@@ -550,19 +548,42 @@
                                 </div>
                             </div>
 
+                            <!-- ZIP Upload (New Section) -->
+                            <div data-aos="fade-up" data-aos-delay="500">
+                                <label class="block text-sm font-semibold mb-3 text-gray-300">ZIP Upload (Alternative)</label>
+                                <div class="file-upload p-6 text-center">
+                                    <input type="file" id="zipUpload" accept=".zip" class="hidden">
+                                    <div class="flex flex-col items-center gap-4">
+                                        <div>
+                                            <button type="button" onclick="document.getElementById('zipUpload').click()" 
+                                                    class="btn-primary px-6 py-3 rounded-xl font-medium flex items-center space-x-2 mx-auto">
+                                                <i data-feather="package"></i>
+                                                <span>Upload ZIP File</span>
+                                            </button>
+                                            <p class="text-xs text-gray-400 mt-2">Upload a ZIP containing all game files (HTML, JS, CSS, assets)</p>
+                                        </div>
+                                        <div id="zipInfo" class="hidden text-sm">
+                                            <i data-feather="check-circle" class="w-4 h-4 text-green-400 inline mr-1"></i>
+                                            <span id="zipFileName"></span>
+                                            <span id="zipFileSize" class="text-gray-400 ml-2"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Authentication Toggle -->
-                            <div class="flex items-center space-x-3 p-4 glass-light rounded-xl" data-aos="fade-up" data-aos-delay="450">
+                            <div class="flex items-center space-x-3 p-4 glass-light rounded-xl" data-aos="fade-up" data-aos-delay="550">
                                 <input type="checkbox" id="requiresAuth" class="checkbox-custom">
                                 <label for="requiresAuth" class="text-sm font-medium text-gray-300">
                                     This game requires server authentication
                                 </label>
                             </div>
-                            <p class="text-xs text-gray-400 -mt-4" data-aos="fade-up" data-aos-delay="500">
+                            <p class="text-xs text-gray-400 -mt-4" data-aos="fade-up" data-aos-delay="600">
                                 If checked, the game will use the provided URL directly. If unchecked, a custom game page will be created in the /english folder.
                             </p>
 
                             <!-- Submit Button -->
-                            <div class="flex justify-end pt-4" data-aos="fade-up" data-aos-delay="550">
+                            <div class="flex justify-end pt-4" data-aos="fade-up" data-aos-delay="650">
                                 <button type="submit" 
                                         class="btn-primary px-8 py-4 rounded-xl font-semibold flex items-center space-x-3 text-lg">
                                     <i data-feather="upload-cloud"></i>
@@ -586,46 +607,44 @@
                             </div>
                         </div>
                         <div id="gamesList" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-                                <div class="text-center py-12 text-gray-400">
-                                    <i data-feather="package" class="w-12 h-12 mx-auto mb-4 opacity-50"></i>
-                                    <p class="text-lg">Loading games...</p>
-                                    <p class="text-sm mt-2">Please wait while we fetch your games</p>
-                                </div>
+                            <div class="text-center py-12 text-gray-400">
+                                <i data-feather="package" class="w-12 h-12 mx-auto mb-4 opacity-50"></i>
+                                <p class="text-lg">Loading games...</p>
+                                <p class="text-sm mt-2">Please wait while we fetch your games</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        
-        <div id="moderatorActivityPanel" class="glass rounded-2xl p-6 mt-6 hidden" data-aos="fade-up">
-            <div class="flex items-center justify-between mb-6">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
-                        <i data-feather="activity" class="w-5 h-5 text-white"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-xl font-bold gradient-text">Moderator+ Activity</h2>
-                        <p class="text-gray-400 text-sm">Recent uploads by staff</p>
-                    </div>
-                </div>
-                <div class="stats-badge text-sm">
-                    <span id="moderatorsCount" class="font-bold">0</span> staff
-                </div>
-            </div>
-            
-            <div class="max-h-80 overflow-y-auto pr-2">
-                <div id="moderatorActivityList" class="space-y-3">
-                    <!-- Activity items will be populated here -->
-                    <div class="text-center py-6 text-gray-400">
-                        <i data-feather="loader" class="w-8 h-8 mx-auto mb-3 animate-spin"></i>
-                        <p class="text-sm">Loading staff activity...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        
-            <!-- Tutorial Section - Moved to bottom -->
+            <div id="moderatorActivityPanel" class="glass rounded-2xl p-6 mt-6 hidden" data-aos="fade-up">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
+                            <i data-feather="activity" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold gradient-text">Moderator+ Activity</h2>
+                            <p class="text-gray-400 text-sm">Recent uploads by staff</p>
+                        </div>
+                    </div>
+                    <div class="stats-badge text-sm">
+                        <span id="moderatorsCount" class="font-bold">0</span> staff
+                    </div>
+                </div>
+                
+                <div class="max-h-80 overflow-y-auto pr-2">
+                    <div id="moderatorActivityList" class="space-y-3">
+                        <!-- Activity items will be populated here -->
+                        <div class="text-center py-6 text-gray-400">
+                            <i data-feather="loader" class="w-8 h-8 mx-auto mb-3 animate-spin"></i>
+                            <p class="text-sm">Loading staff activity...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tutorial Section -->
             <div class="glass rounded-2xl p-8 mt-8" data-aos="fade-up">
                 <div class="flex items-center mb-8">
                     <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center mr-4">
@@ -636,20 +655,18 @@
                         <p class="text-gray-400">Learn how to upload games with this step-by-step guide</p>
                     </div>
                 </div>
-                
 
-                    <!-- YouTube Video Player - Moved to bottom -->
-                    <div class="video-container" data-aos="fade-right">
-                        <div id="videoPlaceholder" class="video-placeholder">
-                            <div class="play-icon">
-                                <i data-feather="play" class="w-12 h-12 text-white"></i>
-                            </div>
-                            <h3 class="text-xl font-bold mb-2">Watch Tutorial</h3>
-                            <p class="text-gray-300 text-center">Click to load the YouTube tutorial video</p>
+                <!-- YouTube Video Player -->
+                <div class="video-container" data-aos="fade-right">
+                    <div id="videoPlaceholder" class="video-placeholder">
+                        <div class="play-icon">
+                            <i data-feather="play" class="w-12 h-12 text-white"></i>
                         </div>
-                        <div id="youtubePlayer" class="hidden">
-                            <!-- YouTube iframe will be inserted here -->
-                        </div>
+                        <h3 class="text-xl font-bold mb-2">Watch Tutorial</h3>
+                        <p class="text-gray-300 text-center">Click to load the YouTube tutorial video</p>
+                    </div>
+                    <div id="youtubePlayer" class="hidden">
+                        <!-- YouTube iframe will be inserted here -->
                     </div>
                 </div>
             </div>
@@ -690,10 +707,8 @@
             const youtubePlayer = document.getElementById('youtubePlayer');
             
             videoPlaceholder.addEventListener('click', function() {
-                // Replace this with your actual YouTube video ID
-                const videoId = 'MkOdR8jMYtM'; // Example video ID - replace with your tutorial video ID
+                const videoId = 'MkOdR8jMYtM';
                 
-                // Create YouTube iframe
                 const iframe = document.createElement('iframe');
                 iframe.className = 'youtube-video';
                 iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
@@ -701,12 +716,9 @@
                 iframe.allowFullscreen = true;
                 iframe.title = 'Game Upload Tutorial';
                 
-                // Replace placeholder with YouTube iframe
                 youtubePlayer.appendChild(iframe);
                 youtubePlayer.classList.remove('hidden');
                 videoPlaceholder.classList.add('hidden');
-                
-                // Update placeholder text for accessibility
                 videoPlaceholder.setAttribute('aria-hidden', 'true');
             });
         }
@@ -734,7 +746,6 @@
             const roleConfig = allRoles[role];
             if (!roleConfig) return false;
             
-            // Check for moderator tag OR check weight as fallback
             return roleConfig.moderator || roleConfig.admin || roleConfig.fullaccess || 
                    (roleConfig.weight >= 40 && roleConfig.weight <= 60);
         }
@@ -743,7 +754,6 @@
             const roleConfig = allRoles[role];
             if (!roleConfig) return false;
             
-            // Check for admin tag OR fullaccess tag OR Owner role OR check weight as fallback
             return roleConfig.admin || roleConfig.fullaccess || role === "Owner" ||
                    (roleConfig.weight >= 61 && roleConfig.weight <= 99);
         }
@@ -752,11 +762,9 @@
             const roleConfig = allRoles[role];
             if (!roleConfig) return false;
             
-            // Check for fullaccess tag OR Owner role OR check weight as fallback
             return roleConfig.fullaccess || role === "Owner" || roleConfig.weight >= 100;
         }
 
-        // Get role weight
         function getRoleWeight(roleName) {
             const roleConfig = allRoles[roleName];
             return roleConfig ? (roleConfig.weight || 0) : 0;
@@ -795,62 +803,59 @@
         });
 
         // Check authentication
-async function checkAuth() {
-    showLoading(true);
-    
-    authToken = getCookie('AuthToken');
-    currentUser = localStorage.getItem('currentUser');
-    userRole = localStorage.getItem('userRole');
+        async function checkAuth() {
+            showLoading(true);
+            
+            authToken = getCookie('AuthToken');
+            currentUser = localStorage.getItem('currentUser');
+            userRole = localStorage.getItem('userRole');
 
-    if (!authToken || !currentUser) {
-        showLoading(false);
-        showAuthModal();
-        return;
-    }
-
-    try {
-        const isValid = await verifyToken(authToken);
-        if (isValid) {
-            const userInfo = await getUserInfo();
-            if (userInfo) {
-                currentUser = userInfo.username;
-                userRole = userInfo.role;
-
-                // Load all roles to check permissions properly
-                await loadAllRoles();
-
-                // Check if user has moderator permissions using role properties
-                if (!isModeratorClass(userRole) && !isAdminClass(userRole) && !isFullAccess(userRole)) {
-                    showLoading(false);
-                    showNotification('Insufficient permissions. Moderator access required.', 'error');
-                    setTimeout(() => {
-                        redirectToLogin();
-                    }, 2000);
-                    return;
-                }
-
-                showMainContent();
-                loadExistingGames();
-                setupEventListeners();
-                
-                // Load moderator activity if user is admin+
-                if (isAdminClass(userRole) || isFullAccess(userRole)) {
-                    loadModeratorActivity();
-                }
-            } else {
-                throw new Error('Failed to get user info');
+            if (!authToken || !currentUser) {
+                showLoading(false);
+                showAuthModal();
+                return;
             }
-        } else {
-            throw new Error('Invalid token');
+
+            try {
+                const isValid = await verifyToken(authToken);
+                if (isValid) {
+                    const userInfo = await getUserInfo();
+                    if (userInfo) {
+                        currentUser = userInfo.username;
+                        userRole = userInfo.role;
+
+                        await loadAllRoles();
+
+                        if (!isModeratorClass(userRole) && !isAdminClass(userRole) && !isFullAccess(userRole)) {
+                            showLoading(false);
+                            showNotification('Insufficient permissions. Moderator access required.', 'error');
+                            setTimeout(() => {
+                                redirectToLogin();
+                            }, 2000);
+                            return;
+                        }
+
+                        showMainContent();
+                        loadExistingGames();
+                        setupEventListeners();
+                        
+                        if (isAdminClass(userRole) || isFullAccess(userRole)) {
+                            loadModeratorActivity();
+                        }
+                    } else {
+                        throw new Error('Failed to get user info');
+                    }
+                } else {
+                    throw new Error('Invalid token');
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
+                showLoading(false);
+                showAuthModal();
+            } finally {
+                showLoading(false);
+            }
         }
-    } catch (error) {
-        console.error('Auth error:', error);
-        showLoading(false);
-        showAuthModal();
-    } finally {
-        showLoading(false);
-    }
-}
 
         // Verify token with server
         async function verifyToken(token) {
@@ -929,7 +934,6 @@ async function checkAuth() {
             document.getElementById('imageUpload').addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (file) {
-                    // Validate file size (2MB max)
                     if (file.size > 2 * 1024 * 1024) {
                         showNotification('Image size must be less than 2MB', 'error');
                         this.value = '';
@@ -947,6 +951,9 @@ async function checkAuth() {
                 }
             });
 
+            // ZIP upload
+            document.getElementById('zipUpload').addEventListener('change', handleZipUpload);
+
             // Form submission
             document.getElementById('uploadForm').addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -954,11 +961,47 @@ async function checkAuth() {
             });
         }
 
+        // New function to handle ZIP upload
+        async function handleZipUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (!file.name.endsWith('.zip')) {
+                showNotification('Please select a ZIP file', 'error');
+                return;
+            }
+
+            if (file.size > 50 * 1024 * 1024) {
+                showNotification('ZIP file must be less than 50MB', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64 = e.target.result.split(',')[1];
+                const zipInfo = document.getElementById('zipInfo');
+                const zipFileName = document.getElementById('zipFileName');
+                const zipFileSize = document.getElementById('zipFileSize');
+                
+                zipFileName.textContent = file.name;
+                zipFileSize.textContent = `(${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                zipInfo.classList.remove('hidden');
+                
+                window.currentZipFile = {
+                    data: base64,
+                    name: file.name
+                };
+                
+                showNotification('ZIP file loaded successfully', 'success');
+            };
+            reader.readAsDataURL(file);
+        }
+
         // Upload game
         async function uploadGame() {
             const imageFile = document.getElementById('imageUpload').files[0];
+            const zipFile = window.currentZipFile;
 
-            // Get category values
             const categorySelect = document.getElementById('category');
             const categories = Array.from(categorySelect.selectedOptions).map(option => option.value);
 
@@ -972,29 +1015,41 @@ async function checkAuth() {
                 category: categories.length > 0 ? categories : ['new']
             };
 
-            // Validate required fields
-            if (!gameData.title || !gameData.description || !gameData.gameUrl) {
+            if (!gameData.title || !gameData.description) {
                 showNotification('Please fill in all required fields', 'error');
                 return;
             }
 
-            // Handle image
-            if (imageFile) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    gameData.image = e.target.result;
-                    submitGame(gameData);
-                };
-                reader.readAsDataURL(imageFile);
-            } else {
-                submitGame(gameData);
+            showUploadLoading(true);
+
+            try {
+                if (zipFile) {
+                    gameData.zipFile = zipFile.data;
+                    gameData.zipFileName = zipFile.name;
+                    await submitGameZip(gameData);
+                } else if (gameData.gameUrl) {
+                    if (imageFile) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            gameData.image = e.target.result;
+                            submitGame(gameData);
+                        };
+                        reader.readAsDataURL(imageFile);
+                    } else {
+                        submitGame(gameData);
+                    }
+                } else {
+                    throw new Error('Please either upload a ZIP file or provide a game URL');
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                showNotification(error.message, 'error');
+                showUploadLoading(false);
             }
         }
 
-        // Submit game to server
+        // Submit game to server (original method)
         async function submitGame(gameData) {
-            showUploadLoading(true);
-            
             try {
                 const response = await fetch(`${SERVER_URL}/api/games/upload`, {
                     method: 'POST',
@@ -1017,6 +1072,39 @@ async function checkAuth() {
             } catch (error) {
                 console.error('Upload error:', error);
                 showNotification(error.message, 'error');
+            } finally {
+                showUploadLoading(false);
+            }
+        }
+
+        // New function to submit game via ZIP
+        async function submitGameZip(gameData) {
+            try {
+                const response = await fetch(`${SERVER_URL}/api/games/upload-zip`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(gameData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showNotification(`Game uploaded successfully from ZIP! Files: ${data.filesUploaded}`, 'success');
+                    resetForm();
+                    loadExistingGames();
+                    
+                    delete window.currentZipFile;
+                    document.getElementById('zipInfo').classList.add('hidden');
+                    document.getElementById('zipUpload').value = '';
+                    
+                } else {
+                    throw new Error(data.error || 'ZIP upload failed');
+                }
+            } catch (error) {
+                throw error;
             } finally {
                 showUploadLoading(false);
             }
@@ -1054,195 +1142,188 @@ async function checkAuth() {
             }
         }
 
-// Display games in list
-function displayGames(games) {
-    const container = document.getElementById('gamesList');
-    
-    if (games.length === 0) {
-        container.innerHTML = `
-            <div class="text-center py-12 text-gray-400">
-                <i data-feather="package" class="w-16 h-16 mx-auto mb-4 opacity-50"></i>
-                <p class="text-lg">No games uploaded yet</p>
-                <p class="text-sm mt-2">Upload your first game to get started</p>
-            </div>
-        `;
-        feather.replace();
-        return;
-    }
+        // Display games in list
+        function displayGames(games) {
+            const container = document.getElementById('gamesList');
+            
+            if (games.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-gray-400">
+                        <i data-feather="package" class="w-16 h-16 mx-auto mb-4 opacity-50"></i>
+                        <p class="text-lg">No games uploaded yet</p>
+                        <p class="text-sm mt-2">Upload your first game to get started</p>
+                    </div>
+                `;
+                feather.replace();
+                return;
+            }
 
-    container.innerHTML = games.map(game => `
-        <div class="game-card glass rounded-xl p-4">
-            <!-- REMOVED: data-aos="fade-up" -->
-            <div class="flex flex-col sm:flex-row gap-4">
-                <div class="flex-shrink-0">
-                    <img src="${game.image}" alt="${game.title}" 
-                         class="w-16 h-16 object-cover rounded-lg border-2 border-gray-600">
+            container.innerHTML = games.map(game => `
+                <div class="game-card glass rounded-xl p-4">
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <div class="flex-shrink-0">
+                            <img src="${game.image}" alt="${game.title}" 
+                                 class="w-16 h-16 object-cover rounded-lg border-2 border-gray-600">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+                                <div>
+                                    <h3 class="font-semibold text-lg truncate">${game.title}</h3>
+                                    <p class="text-gray-400 text-sm mt-1 line-clamp-2">${game.description}</p>
+                                </div>
+                                <div class="text-right text-sm text-gray-400">
+                                    <div class="font-mono">ID: ${game.id}</div>
+                                    <div>${new Date(game.createdAt).toLocaleDateString()}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-wrap items-center gap-3 mb-3">
+                                <div class="flex items-center space-x-1 text-sm">
+                                    <i data-feather="star" class="w-4 h-4 text-yellow-400"></i>
+                                    <span>${game.rating}/5</span>
+                                </div>
+                                <div class="flex items-center space-x-1 text-sm">
+                                    <i data-feather="play" class="w-4 h-4 text-green-400"></i>
+                                    <span>${game.playCount.toLocaleString()} plays</span>
+                                </div>
+                                <div class="flex items-center space-x-1 text-sm">
+                                    <i data-feather="user" class="w-4 h-4 text-blue-400"></i>
+                                    <span>${game.createdBy}</span>
+                                </div>
+                                <div class="flex items-center space-x-1 text-sm">
+                                    <i data-feather="${game.requiresAuth ? 'lock' : 'globe'}" class="w-4 h-4 ${game.requiresAuth ? 'text-red-400' : 'text-green-400'}"></i>
+                                    <span>${game.requiresAuth ? 'Auth Required' : 'Public'}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-wrap gap-1 mb-4">
+                                ${game.category.map(cat => `
+                                    <span class="category-tag text-xs">${cat}</span>
+                                `).join('')}
+                            </div>
+                            
+                            <div class="flex items-center space-x-2">
+                                ${game.gamePageUrl ? `
+                                    <a href="${game.gamePageUrl}" target="_blank" 
+                                       class="btn-primary px-3 py-2 rounded-lg text-sm flex items-center space-x-1 flex-1 justify-center">
+                                        <i data-feather="external-link" class="w-4 h-4"></i>
+                                        <span>View Game</span>
+                                    </a>
+                                ` : `
+                                    <a href="${game.url}" target="_blank" 
+                                       class="btn-primary px-3 py-2 rounded-lg text-sm flex items-center space-x-1 flex-1 justify-center">
+                                        <i data-feather="external-link" class="w-4 h-4"></i>
+                                        <span>View Game</span>
+                                    </a>
+                                `}
+                                <button onclick="deleteGame(${game.id}, '${game.title.replace(/'/g, "\\'")}')" 
+                                        class="btn-danger px-3 py-2 rounded-lg text-sm flex items-center space-x-1">
+                                    <i data-feather="trash-2" class="w-4 h-4"></i>
+                                    <span>Delete</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex-1 min-w-0">
-                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
-                        <div>
-                            <h3 class="font-semibold text-lg truncate">${game.title}</h3>
-                            <p class="text-gray-400 text-sm mt-1 line-clamp-2">${game.description}</p>
-                        </div>
-                        <div class="text-right text-sm text-gray-400">
-                            <div class="font-mono">ID: ${game.id}</div>
-                            <div>${new Date(game.createdAt).toLocaleDateString()}</div>
-                        </div>
-                    </div>
+            `).join('');
+            
+            feather.replace();
+        }
+
+        // Load moderator upload activity
+        async function loadModeratorActivity() {
+            try {
+                const response = await fetch(`${SERVER_URL}/api/moderator-upload-activity`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displayModeratorActivity(data.moderatorActivity);
+                    document.getElementById('moderatorsCount').textContent = data.totalModerators;
                     
-                    <div class="flex flex-wrap items-center gap-3 mb-3">
-                        <div class="flex items-center space-x-1 text-sm">
-                            <i data-feather="star" class="w-4 h-4 text-yellow-400"></i>
-                            <span>${game.rating}/5</span>
-                        </div>
-                        <div class="flex items-center space-x-1 text-sm">
-                            <i data-feather="play" class="w-4 h-4 text-green-400"></i>
-                            <span>${game.playCount.toLocaleString()} plays</span>
-                        </div>
-                        <div class="flex items-center space-x-1 text-sm">
-                            <i data-feather="user" class="w-4 h-4 text-blue-400"></i>
-                            <span>${game.createdBy}</span>
-                        </div>
-                        <div class="flex items-center space-x-1 text-sm">
-                            <i data-feather="${game.requiresAuth ? 'lock' : 'globe'}" class="w-4 h-4 ${game.requiresAuth ? 'text-red-400' : 'text-green-400'}"></i>
-                            <span>${game.requiresAuth ? 'Auth Required' : 'Public'}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="flex flex-wrap gap-1 mb-4">
-                        ${game.category.map(cat => `
-                            <span class="category-tag text-xs">${cat}</span>
-                        `).join('')}
-                    </div>
-                    
-                    <div class="flex items-center space-x-2">
-                        ${game.gamePageUrl ? `
-                            <a href="${game.gamePageUrl}" target="_blank" 
-                               class="btn-primary px-3 py-2 rounded-lg text-sm flex items-center space-x-1 flex-1 justify-center">
-                                <i data-feather="external-link" class="w-4 h-4"></i>
-                                <span>View Game</span>
-                            </a>
-                        ` : `
-                            <a href="${game.url}" target="_blank" 
-                               class="btn-primary px-3 py-2 rounded-lg text-sm flex items-center space-x-1 flex-1 justify-center">
-                                <i data-feather="external-link" class="w-4 h-4"></i>
-                                <span>View Game</span>
-                            </a>
-                        `}
-                        <button onclick="deleteGame(${game.id}, '${game.title.replace(/'/g, "\\'")}')" 
-                                class="btn-danger px-3 py-2 rounded-lg text-sm flex items-center space-x-1">
-                            <i data-feather="trash-2" class="w-4 h-4"></i>
-                            <span>Delete</span>
+                    document.getElementById('moderatorActivityPanel').classList.remove('hidden');
+                } else {
+                    throw new Error('Failed to load moderator activity');
+                }
+            } catch (error) {
+                console.error('Error loading moderator activity:', error);
+                document.getElementById('moderatorActivityList').innerHTML = `
+                    <div class="text-center py-8 text-red-400">
+                        <i data-feather="alert-triangle" class="w-12 h-12 mx-auto mb-4"></i>
+                        <p>Failed to load moderator activity</p>
+                        <button onclick="loadModeratorActivity()" class="btn-primary px-4 py-2 rounded-xl mt-4">
+                            Try Again
                         </button>
                     </div>
-                </div>
-            </div>
-        </div>
-    `).join('');
-    
-    feather.replace();
-    // No need for AOS.refresh() since we removed AOS from these elements
-}  
-// Load moderator upload activity
-async function loadModeratorActivity() {
-    try {
-        const response = await fetch(`${SERVER_URL}/api/moderator-upload-activity`, {
-            headers: {
-                'Authorization': `Bearer ${authToken}`
+                `;
+                feather.replace();
             }
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            displayModeratorActivity(data.moderatorActivity);
-            document.getElementById('moderatorsCount').textContent = data.totalModerators;
-            
-            // Show the panel
-            document.getElementById('moderatorActivityPanel').classList.remove('hidden');
-        } else {
-            throw new Error('Failed to load moderator activity');
         }
-    } catch (error) {
-        console.error('Error loading moderator activity:', error);
-        document.getElementById('moderatorActivityList').innerHTML = `
-            <div class="text-center py-8 text-red-400">
-                <i data-feather="alert-triangle" class="w-12 h-12 mx-auto mb-4"></i>
-                <p>Failed to load moderator activity</p>
-                <button onclick="loadModeratorActivity()" class="btn-primary px-4 py-2 rounded-xl mt-4">
-                    Try Again
-                </button>
-            </div>
-        `;
-        feather.replace();
-    }
-}
 
-function displayModeratorActivity(activity) {
-    const container = document.getElementById('moderatorActivityList');
-    
-    if (activity.length === 0) {
-        container.innerHTML = `
-            <div class="text-center py-6 text-gray-400">
-                <i data-feather="users" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
-                <p class="text-sm">No staff members found</p>
-            </div>
-        `;
-        feather.replace();
-        return;
-    }
+        function displayModeratorActivity(activity) {
+            const container = document.getElementById('moderatorActivityList');
+            
+            if (activity.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-6 text-gray-400">
+                        <i data-feather="users" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                        <p class="text-sm">No staff members found</p>
+                    </div>
+                `;
+                feather.replace();
+                return;
+            }
 
-    container.innerHTML = activity.map(moderator => `
-        <div class="glass rounded-lg p-4 transition-all duration-300 hover:bg-opacity-50 border border-gray-700">
-            <div class="flex items-center justify-between">
-                <!-- User Info -->
-                <div class="flex items-center space-x-3 min-w-0 flex-1">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs">
-                            ${moderator.username.charAt(0).toUpperCase()}
-                        </div>
-                    </div>
-                    <div class="min-w-0 flex-1">
-                        <div class="flex items-center space-x-2">
-                            <h3 class="font-semibold text-sm truncate">${moderator.username}</h3>
-                            ${moderator.warningLevel >= 1 ? `
-                                <span class="flex items-center space-x-0">
-                                    ${moderator.warningLevel >= 1 ? `<span class="text-yellow-500 text-sm">!</span>` : ''}
-                                    ${moderator.warningLevel >= 2 ? `
-                                        <span class="text-red-500 text-sm animate-bounce" style="animation-duration: 0.5s">!</span>
-                                    ` : ''}
-                                </span>
-                            ` : ''}
-                        </div>
-                        <div class="flex items-center space-x-2 text-xs text-gray-400 mt-0.5">
-                            <span class="bg-gray-700 px-1.5 py-0.5 rounded text-xs">${moderator.role}</span>
-                            <span>${moderator.totalGames}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Status -->
-                <div class="flex items-center space-x-2 text-right">
-                    <div class="w-2 h-2 rounded-full flex-shrink-0" style="background-color: ${moderator.statusColor}"></div>
-                    <div>
-                        <div class="font-medium text-xs" style="color: ${moderator.statusColor}">
-                            ${moderator.statusText}
-                        </div>
-                        ${moderator.mostRecentUpload ? `
-                            <div class="text-xs text-gray-500 mt-0.5 truncate max-w-[120px]" title="${moderator.mostRecentUpload.title}">
-                                ${moderator.mostRecentUpload.title}
+            container.innerHTML = activity.map(moderator => `
+                <div class="glass rounded-lg p-4 transition-all duration-300 hover:bg-opacity-50 border border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3 min-w-0 flex-1">
+                            <div class="flex-shrink-0">
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center font-bold text-white text-xs">
+                                    ${moderator.username.charAt(0).toUpperCase()}
+                                </div>
                             </div>
-                        ` : ''}
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center space-x-2">
+                                    <h3 class="font-semibold text-sm truncate">${moderator.username}</h3>
+                                    ${moderator.warningLevel >= 1 ? `
+                                        <span class="flex items-center space-x-0">
+                                            ${moderator.warningLevel >= 1 ? `<span class="text-yellow-500 text-sm">!</span>` : ''}
+                                            ${moderator.warningLevel >= 2 ? `
+                                                <span class="text-red-500 text-sm animate-bounce" style="animation-duration: 0.5s">!</span>
+                                            ` : ''}
+                                        </span>
+                                    ` : ''}
+                                </div>
+                                <div class="flex items-center space-x-2 text-xs text-gray-400 mt-0.5">
+                                    <span class="bg-gray-700 px-1.5 py-0.5 rounded text-xs">${moderator.role}</span>
+                                    <span>${moderator.totalGames}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-2 text-right">
+                            <div class="w-2 h-2 rounded-full flex-shrink-0" style="background-color: ${moderator.statusColor}"></div>
+                            <div>
+                                <div class="font-medium text-xs" style="color: ${moderator.statusColor}">
+                                    ${moderator.statusText}
+                                </div>
+                                ${moderator.mostRecentUpload ? `
+                                    <div class="text-xs text-gray-500 mt-0.5 truncate max-w-[120px]" title="${moderator.mostRecentUpload.title}">
+                                        ${moderator.mostRecentUpload.title}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    `).join('');
-    
-    feather.replace();
-}
-
-  
-        
+            `).join('');
+            
+            feather.replace();
+        }
         
         // Delete game
         async function deleteGame(gameId, gameTitle) {
@@ -1296,6 +1377,11 @@ function displayModeratorActivity(activity) {
             document.getElementById('uploadForm').reset();
             document.getElementById('imagePreview').classList.add('hidden');
             document.getElementById('previewImage').src = '';
+            
+            delete window.currentZipFile;
+            document.getElementById('zipInfo').classList.add('hidden');
+            document.getElementById('zipUpload').value = '';
+            
             feather.replace();
         }
 
@@ -1320,12 +1406,10 @@ function displayModeratorActivity(activity) {
             container.appendChild(notification);
             feather.replace();
             
-            // Animate in
             setTimeout(() => {
                 notification.classList.add('show');
             }, 100);
             
-            // Auto remove
             setTimeout(() => {
                 notification.classList.add('hide');
                 setTimeout(() => {
