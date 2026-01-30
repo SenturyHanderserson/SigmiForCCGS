@@ -200,6 +200,7 @@
             opacity: 1;
             visibility: visible;
         }
+    
     .moderator-activity-item {
         transition: all 0.3s ease;
         border-left: 4px solid transparent;
@@ -394,6 +395,11 @@
                 grid-template-columns: 1fr;
             }
         }
+        
+        /* HTML File Input Container */
+        #mainHtmlFileContainer {
+            display: none;
+        }
     </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white font-sans overflow-x-hidden">
@@ -571,8 +577,8 @@
                                 </div>
                             </div>
 
-                            <!-- Main HTML File Input (NEW SECTION) -->
-                            <div data-aos="fade-up" data-aos-delay="600">
+                            <!-- Main HTML File Input (Appears when ZIP is selected) -->
+                            <div id="mainHtmlFileContainer" data-aos="fade-up" data-aos-delay="600">
                                 <label class="block text-sm font-semibold mb-3 text-gray-300">Main HTML File (Optional)</label>
                                 <input type="text" id="mainHtmlFile" 
                                        class="w-full px-4 py-3 form-input rounded-xl focus:outline-none"
@@ -583,18 +589,18 @@
                             </div>
 
                             <!-- Authentication Toggle -->
-                            <div class="flex items-center space-x-3 p-4 glass-light rounded-xl" data-aos="fade-up" data-aos-delay="650">
+                            <div class="flex items-center space-x-3 p-4 glass-light rounded-xl" data-aos="fade-up" data-aos-delay="550">
                                 <input type="checkbox" id="requiresAuth" class="checkbox-custom">
                                 <label for="requiresAuth" class="text-sm font-medium text-gray-300">
                                     This game requires server authentication
                                 </label>
                             </div>
-                            <p class="text-xs text-gray-400 -mt-4" data-aos="fade-up" data-aos-delay="700">
+                            <p class="text-xs text-gray-400 -mt-4" data-aos="fade-up" data-aos-delay="600">
                                 If checked, the game will use the provided URL directly. If unchecked, a custom game page will be created in the /english folder.
                             </p>
 
                             <!-- Submit Button -->
-                            <div class="flex justify-end pt-4" data-aos="fade-up" data-aos-delay="750">
+                            <div class="flex justify-end pt-4" data-aos="fade-up" data-aos-delay="650">
                                 <button type="submit" 
                                         class="btn-primary px-8 py-4 rounded-xl font-semibold flex items-center space-x-3 text-lg">
                                     <i data-feather="upload-cloud"></i>
@@ -1003,12 +1009,15 @@
                     name: file.name
                 };
                 
+                // Show the main HTML file input when ZIP is selected
+                document.getElementById('mainHtmlFileContainer').style.display = 'block';
+                
                 showNotification('ZIP file loaded successfully', 'success');
             };
             reader.readAsDataURL(file);
         }
 
-        // UPDATED: Upload game function with mainHtmlFile support
+        // Upload game
         async function uploadGame() {
             const imageFile = document.getElementById('imageUpload').files[0];
             const zipFile = window.currentZipFile;
@@ -1036,7 +1045,6 @@
 
             try {
                 if (zipFile) {
-                    // Use ZIP upload method
                     gameData.zipFile = zipFile.data;
                     gameData.zipFileName = zipFile.name;
                     if (mainHtmlFile) {
@@ -1044,7 +1052,9 @@
                     }
                     await submitGameZip(gameData);
                 } else if (gameData.gameUrl) {
-                    // Use original URL method
+                    // Hide HTML file input when using URL method
+                    document.getElementById('mainHtmlFileContainer').style.display = 'none';
+                    
                     if (imageFile) {
                         const reader = new FileReader();
                         reader.onload = function(e) {
@@ -1399,7 +1409,8 @@
             document.getElementById('zipInfo').classList.add('hidden');
             document.getElementById('zipUpload').value = '';
             
-            // Clear the main HTML file input
+            // Hide the HTML file input and clear it
+            document.getElementById('mainHtmlFileContainer').style.display = 'none';
             document.getElementById('mainHtmlFile').value = '';
             
             feather.replace();
