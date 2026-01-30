@@ -404,9 +404,33 @@
         }
         
         .html-file-section.active {
-            max-height: 300px;
+            max-height: 500px;
             opacity: 1;
             margin-top: 1rem;
+        }
+        
+        /* File Upload Status */
+        .file-status {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .file-status.success {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        .file-status.warning {
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+        }
+        
+        .file-status.error {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
         }
     </style>
 </head>
@@ -564,7 +588,10 @@
 
                             <!-- ZIP Upload Section -->
                             <div data-aos="fade-up" data-aos-delay="500">
-                                <label class="block text-sm font-semibold mb-3 text-gray-300">ZIP Upload (Alternative)</label>
+                                <div class="flex items-center justify-between mb-4">
+                                    <label class="block text-sm font-semibold text-gray-300">ZIP Upload (Alternative)</label>
+                                    <span class="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">Required with HTML file</span>
+                                </div>
                                 <div class="file-upload p-6 text-center">
                                     <input type="file" id="zipUpload" accept=".zip" class="hidden">
                                     <div class="flex flex-col items-center gap-4">
@@ -574,20 +601,19 @@
                                                 <i data-feather="package"></i>
                                                 <span>Upload ZIP File</span>
                                             </button>
-                                            <p class="text-xs text-gray-400 mt-2">Upload a ZIP containing all game files (HTML, JS, CSS, assets)</p>
+                                            <p class="text-xs text-gray-400 mt-2">Upload a ZIP containing all game files (JS, CSS, assets, etc.)</p>
                                         </div>
-                                        <div id="zipInfo" class="hidden text-sm">
-                                            <i data-feather="check-circle" class="w-4 h-4 text-green-400 inline mr-1"></i>
-                                            <span id="zipFileName"></span>
-                                            <span id="zipFileSize" class="text-gray-400 ml-2"></span>
-                                        </div>
+                                        <div id="zipStatus" class="w-full max-w-md"></div>
                                     </div>
                                 </div>
 
-                                <!-- HTML File Upload Section (Appears when ZIP is uploaded) -->
+                                <!-- HTML File Upload Section -->
                                 <div id="htmlFileSection" class="html-file-section">
                                     <div data-aos="fade-up" data-aos-delay="600">
-                                        <label class="block text-sm font-semibold mb-3 text-gray-300">Main HTML File *</label>
+                                        <div class="flex items-center justify-between mb-4">
+                                            <label class="block text-sm font-semibold text-gray-300">Main HTML File *</label>
+                                            <span class="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">Separate from ZIP</span>
+                                        </div>
                                         <div class="file-upload p-6 text-center">
                                             <input type="file" id="htmlFileUpload" accept=".html" class="hidden">
                                             <div class="flex flex-col items-center gap-4">
@@ -595,20 +621,23 @@
                                                     <button type="button" onclick="document.getElementById('htmlFileUpload').click()" 
                                                             class="btn-primary px-6 py-3 rounded-xl font-medium flex items-center space-x-2 mx-auto">
                                                         <i data-feather="file-text"></i>
-                                                        <span>Choose HTML File</span>
+                                                        <span>Choose Main HTML File</span>
                                                     </button>
                                                     <p class="text-xs text-gray-400 mt-2">Upload the main HTML file for your game (NOT in the ZIP)</p>
                                                 </div>
-                                                <div id="htmlFileInfo" class="hidden text-sm">
-                                                    <i data-feather="check-circle" class="w-4 h-4 text-green-400 inline mr-1"></i>
-                                                    <span id="htmlFileName"></span>
-                                                    <span id="htmlFileSize" class="text-gray-400 ml-2"></span>
+                                                <div id="htmlFileStatus" class="w-full max-w-md"></div>
+                                            </div>
+                                            <div class="mt-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                                                <div class="flex items-start">
+                                                    <i data-feather="info" class="w-4 h-4 text-blue-400 mr-2 mt-0.5"></i>
+                                                    <div class="text-xs text-blue-300">
+                                                        <p class="font-medium mb-1">Important:</p>
+                                                        <p>• The main HTML file should be separate from the ZIP</p>
+                                                        <p>• ZIP should contain all other files (JS, CSS, images, etc.)</p>
+                                                        <p>• HTML file will be combined with ZIP contents on the server</p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <p class="text-xs text-gray-400 mt-3">
-                                                <i data-feather="info" class="w-3 h-3 inline mr-1"></i>
-                                                This is a separate HTML file that will be used as the main entry point. It should not be included in the ZIP.
-                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -625,10 +654,21 @@
                                 If checked, the game will use the provided URL directly. If unchecked, a custom game page will be created in the /english folder.
                             </p>
 
+                            <!-- Upload Progress -->
+                            <div id="uploadProgress" class="hidden">
+                                <div class="mb-2 flex justify-between text-sm">
+                                    <span class="text-gray-300">Upload Progress</span>
+                                    <span id="progressPercent" class="font-medium">0%</span>
+                                </div>
+                                <div class="w-full bg-gray-700 rounded-full h-2">
+                                    <div id="progressBar" class="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                </div>
+                            </div>
+
                             <!-- Submit Button -->
                             <div class="flex justify-end pt-4" data-aos="fade-up" data-aos-delay="750">
-                                <button type="submit" 
-                                        class="btn-primary px-8 py-4 rounded-xl font-semibold flex items-center space-x-3 text-lg">
+                                <button type="submit" id="submitButton"
+                                        class="btn-primary px-8 py-4 rounded-xl font-semibold flex items-center space-x-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed">
                                     <i data-feather="upload-cloud"></i>
                                     <span>Upload Game</span>
                                 </button>
@@ -721,7 +761,7 @@
                 <div class="loading-spinner mx-auto mb-6"></div>
                 <h3 class="text-2xl font-bold mb-3 gradient-text">Processing...</h3>
                 <p class="text-gray-300 text-lg">Please wait while we upload your game</p>
-                <p class="text-gray-400 text-sm mt-2">This may take a few moments</p>
+                <p class="text-gray-400 text-sm mt-2" id="processingMessage">Preparing files for upload...</p>
             </div>
         </div>
 
@@ -743,6 +783,11 @@
         let currentUser = null;
         let userRole = null;
         let allRoles = {};
+
+        // File storage objects
+        let currentZipFile = null;
+        let currentHtmlFile = null;
+        let currentImageFile = null;
 
         // YouTube video functionality
         function initYouTubeVideo() {
@@ -974,25 +1019,7 @@
         // Setup event listeners
         function setupEventListeners() {
             // Image preview
-            document.getElementById('imageUpload').addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    if (file.size > 2 * 1024 * 1024) {
-                        showNotification('Image size must be less than 2MB', 'error');
-                        this.value = '';
-                        return;
-                    }
-
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const previewContainer = document.getElementById('imagePreview');
-                        const previewImage = document.getElementById('previewImage');
-                        previewImage.src = e.target.result;
-                        previewContainer.classList.remove('hidden');
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
+            document.getElementById('imageUpload').addEventListener('change', handleImageUpload);
 
             // ZIP upload
             document.getElementById('zipUpload').addEventListener('change', handleZipUpload);
@@ -1007,7 +1034,29 @@
             });
         }
 
-        // New function to handle ZIP upload
+        // Handle image upload
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 2 * 1024 * 1024) {
+                    showNotification('Image size must be less than 2MB', 'error');
+                    this.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewContainer = document.getElementById('imagePreview');
+                    const previewImage = document.getElementById('previewImage');
+                    previewImage.src = e.target.result;
+                    previewContainer.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+                currentImageFile = file;
+            }
+        }
+
+        // Handle ZIP upload
         async function handleZipUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -1022,28 +1071,82 @@
                 return;
             }
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64 = e.target.result.split(',')[1];
-                const zipInfo = document.getElementById('zipInfo');
-                const zipFileName = document.getElementById('zipFileName');
-                const zipFileSize = document.getElementById('zipFileSize');
-                
-                zipFileName.textContent = file.name;
-                zipFileSize.textContent = `(${(file.size / 1024 / 1024).toFixed(2)} MB)`;
-                zipInfo.classList.remove('hidden');
-                
-                window.currentZipFile = {
-                    data: base64,
-                    name: file.name
+            const zipStatus = document.getElementById('zipStatus');
+            zipStatus.innerHTML = `
+                <div class="file-status">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-medium">Processing ZIP file...</span>
+                        <div class="loading-spinner w-4 h-4 border-2"></div>
+                    </div>
+                    <div class="text-xs text-gray-400">
+                        ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)
+                    </div>
+                </div>
+            `;
+
+            try {
+                const base64Data = await readFileAsBase64(file);
+                currentZipFile = {
+                    data: base64Data,
+                    name: file.name,
+                    size: file.size
                 };
-                
+
+                zipStatus.innerHTML = `
+                    <div class="file-status success">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center">
+                                <i data-feather="check-circle" class="w-4 h-4 text-green-400 mr-2"></i>
+                                <span class="font-medium">ZIP file ready</span>
+                            </div>
+                            <button onclick="removeZipFile()" class="text-red-400 hover:text-red-300">
+                                <i data-feather="x" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div class="text-xs text-gray-300">
+                            ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)
+                        </div>
+                        <div class="mt-1 text-xs text-green-400">
+                            Ready for upload. Now select the main HTML file.
+                        </div>
+                    </div>
+                `;
+                feather.replace();
+
                 // Show HTML file upload section
                 document.getElementById('htmlFileSection').classList.add('active');
                 
-                showNotification('ZIP file loaded successfully. Now please select the main HTML file.', 'success');
-            };
-            reader.readAsDataURL(file);
+            } catch (error) {
+                console.error('Error reading ZIP file:', error);
+                zipStatus.innerHTML = `
+                    <div class="file-status error">
+                        <div class="flex items-center">
+                            <i data-feather="alert-triangle" class="w-4 h-4 text-red-400 mr-2"></i>
+                            <span class="font-medium">Error processing ZIP file</span>
+                        </div>
+                        <div class="text-xs text-red-300 mt-1">
+                            ${error.message}
+                        </div>
+                    </div>
+                `;
+                feather.replace();
+            }
+        }
+
+        // Remove ZIP file
+        function removeZipFile() {
+            currentZipFile = null;
+            document.getElementById('zipUpload').value = '';
+            const zipStatus = document.getElementById('zipStatus');
+            zipStatus.innerHTML = '';
+            document.getElementById('htmlFileSection').classList.remove('active');
+            
+            // Also remove HTML file if present
+            if (currentHtmlFile) {
+                removeHtmlFile();
+            }
+            
+            showNotification('ZIP file removed', 'info');
         }
 
         // Handle HTML file upload
@@ -1061,33 +1164,94 @@
                 return;
             }
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64 = e.target.result.split(',')[1];
-                const htmlFileInfo = document.getElementById('htmlFileInfo');
-                const htmlFileName = document.getElementById('htmlFileName');
-                const htmlFileSize = document.getElementById('htmlFileSize');
-                
-                htmlFileName.textContent = file.name;
-                htmlFileSize.textContent = `(${(file.size / 1024).toFixed(2)} KB)`;
-                htmlFileInfo.classList.remove('hidden');
-                
-                window.currentHtmlFile = {
-                    data: base64,
-                    name: file.name
+            const htmlFileStatus = document.getElementById('htmlFileStatus');
+            htmlFileStatus.innerHTML = `
+                <div class="file-status">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-medium">Processing HTML file...</span>
+                        <div class="loading-spinner w-4 h-4 border-2"></div>
+                    </div>
+                    <div class="text-xs text-gray-400">
+                        ${file.name} (${(file.size / 1024).toFixed(2)} KB)
+                    </div>
+                </div>
+            `;
+
+            try {
+                const base64Data = await readFileAsBase64(file);
+                currentHtmlFile = {
+                    data: base64Data,
+                    name: file.name,
+                    size: file.size
                 };
-                
-                showNotification('HTML file loaded successfully', 'success');
-            };
-            reader.readAsDataURL(file);
+
+                htmlFileStatus.innerHTML = `
+                    <div class="file-status success">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center">
+                                <i data-feather="check-circle" class="w-4 h-4 text-green-400 mr-2"></i>
+                                <span class="font-medium">HTML file ready</span>
+                            </div>
+                            <button onclick="removeHtmlFile()" class="text-red-400 hover:text-red-300">
+                                <i data-feather="x" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div class="text-xs text-gray-300">
+                            ${file.name} (${(file.size / 1024).toFixed(2)} KB)
+                        </div>
+                        <div class="mt-1 text-xs text-green-400">
+                            Ready for upload with ZIP file.
+                        </div>
+                    </div>
+                `;
+                feather.replace();
+
+                showNotification('Both files are ready for upload!', 'success');
+            } catch (error) {
+                console.error('Error reading HTML file:', error);
+                htmlFileStatus.innerHTML = `
+                    <div class="file-status error">
+                        <div class="flex items-center">
+                            <i data-feather="alert-triangle" class="w-4 h-4 text-red-400 mr-2"></i>
+                            <span class="font-medium">Error processing HTML file</span>
+                        </div>
+                        <div class="text-xs text-red-300 mt-1">
+                            ${error.message}
+                        </div>
+                    </div>
+                `;
+                feather.replace();
+            }
+        }
+
+        // Remove HTML file
+        function removeHtmlFile() {
+            currentHtmlFile = null;
+            document.getElementById('htmlFileUpload').value = '';
+            const htmlFileStatus = document.getElementById('htmlFileStatus');
+            htmlFileStatus.innerHTML = '';
+            showNotification('HTML file removed', 'info');
+        }
+
+        // Read file as base64
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64 = e.target.result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.onerror = function(error) {
+                    reject(new Error('Failed to read file'));
+                };
+                reader.readAsDataURL(file);
+            });
         }
 
         // Upload game
         async function uploadGame() {
             const imageFile = document.getElementById('imageUpload').files[0];
-            const zipFile = window.currentZipFile;
-            const htmlFile = window.currentHtmlFile;
-
+            
             const categorySelect = document.getElementById('category');
             const categories = Array.from(categorySelect.selectedOptions).map(option => option.value);
 
@@ -1101,44 +1265,76 @@
                 category: categories.length > 0 ? categories : ['new']
             };
 
+            // Validate required fields
             if (!gameData.title || !gameData.description) {
                 showNotification('Please fill in all required fields', 'error');
                 return;
             }
 
+            // Validate file upload requirements
+            if (currentZipFile && !currentHtmlFile) {
+                showNotification('Please upload the main HTML file when using ZIP upload', 'error');
+                return;
+            }
+
+            if (!currentZipFile && !gameData.gameUrl) {
+                showNotification('Please either upload a ZIP file (with HTML) or provide a game URL', 'error');
+                return;
+            }
+
+            // Disable submit button and show progress
+            const submitButton = document.getElementById('submitButton');
+            submitButton.disabled = true;
+            document.getElementById('uploadProgress').classList.remove('hidden');
+            updateUploadProgress(10);
+
             showUploadLoading(true);
+            document.getElementById('processingMessage').textContent = 'Preparing files for upload...';
 
             try {
-                if (zipFile) {
-                    // Check if HTML file is also provided for ZIP upload
-                    if (!htmlFile) {
-                        throw new Error('Please upload the main HTML file (separate from the ZIP)');
-                    }
+                // Process image if present
+                if (imageFile) {
+                    updateUploadProgress(30);
+                    document.getElementById('processingMessage').textContent = 'Processing image...';
+                    const imageBase64 = await readFileAsBase64(imageFile);
+                    gameData.image = imageBase64;
+                }
+
+                // Process ZIP and HTML files if present
+                if (currentZipFile && currentHtmlFile) {
+                    updateUploadProgress(50);
+                    document.getElementById('processingMessage').textContent = 'Preparing ZIP and HTML files...';
                     
-                    gameData.zipFile = zipFile.data;
-                    gameData.zipFileName = zipFile.name;
-                    gameData.mainHtmlFile = htmlFile.data; // Add HTML file data to gameData
-                    gameData.mainHtmlFileName = htmlFile.name; // Add HTML file name
+                    gameData.zipFile = currentZipFile.data;
+                    gameData.zipFileName = currentZipFile.name;
+                    gameData.mainHtmlFile = currentHtmlFile.data;
+                    gameData.mainHtmlFileName = currentHtmlFile.name;
+
+                    updateUploadProgress(70);
                     await submitGameZip(gameData);
                 } else if (gameData.gameUrl) {
-                    if (imageFile) {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            gameData.image = e.target.result;
-                            submitGame(gameData);
-                        };
-                        reader.readAsDataURL(imageFile);
-                    } else {
-                        submitGame(gameData);
-                    }
-                } else {
-                    throw new Error('Please either upload a ZIP file or provide a game URL');
+                    updateUploadProgress(70);
+                    await submitGame(gameData);
                 }
+
+                updateUploadProgress(100);
+                
             } catch (error) {
                 console.error('Upload error:', error);
                 showNotification(error.message, 'error');
                 showUploadLoading(false);
+                submitButton.disabled = false;
+                updateUploadProgress(0);
             }
+        }
+
+        // Update upload progress
+        function updateUploadProgress(percent) {
+            const progressBar = document.getElementById('progressBar');
+            const progressPercent = document.getElementById('progressPercent');
+            
+            progressBar.style.width = `${percent}%`;
+            progressPercent.textContent = `${percent}%`;
         }
 
         // Submit game to server (original method)
@@ -1163,16 +1359,19 @@
                     throw new Error(data.error || 'Upload failed');
                 }
             } catch (error) {
-                console.error('Upload error:', error);
-                showNotification(error.message, 'error');
+                throw error;
             } finally {
                 showUploadLoading(false);
+                document.getElementById('submitButton').disabled = false;
+                document.getElementById('uploadProgress').classList.add('hidden');
             }
         }
 
-        // New function to submit game via ZIP with HTML file
+        // Submit game via ZIP with HTML file
         async function submitGameZip(gameData) {
             try {
+                document.getElementById('processingMessage').textContent = 'Uploading files to server...';
+                
                 const response = await fetch(`${SERVER_URL}/api/games/upload-zip`, {
                     method: 'POST',
                     headers: {
@@ -1185,19 +1384,9 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    showNotification(`Game uploaded successfully! Files: ${data.filesUploaded}`, 'success');
+                    showNotification(`Game uploaded successfully! Files: ${data.filesUploaded || 'processed'}`, 'success');
                     resetForm();
                     loadExistingGames();
-                    
-                    // Clean up uploaded files
-                    delete window.currentZipFile;
-                    delete window.currentHtmlFile;
-                    document.getElementById('zipInfo').classList.add('hidden');
-                    document.getElementById('htmlFileInfo').classList.add('hidden');
-                    document.getElementById('zipUpload').value = '';
-                    document.getElementById('htmlFileUpload').value = '';
-                    document.getElementById('htmlFileSection').classList.remove('active');
-                    
                 } else {
                     throw new Error(data.error || 'ZIP upload failed');
                 }
@@ -1205,6 +1394,8 @@
                 throw error;
             } finally {
                 showUploadLoading(false);
+                document.getElementById('submitButton').disabled = false;
+                document.getElementById('uploadProgress').classList.add('hidden');
             }
         }
 
@@ -1475,15 +1666,21 @@
             document.getElementById('uploadForm').reset();
             document.getElementById('imagePreview').classList.add('hidden');
             document.getElementById('previewImage').src = '';
+            document.getElementById('uploadProgress').classList.add('hidden');
             
             // Clean up file uploads
-            delete window.currentZipFile;
-            delete window.currentHtmlFile;
-            document.getElementById('zipInfo').classList.add('hidden');
-            document.getElementById('htmlFileInfo').classList.add('hidden');
+            currentZipFile = null;
+            currentHtmlFile = null;
+            currentImageFile = null;
+            
+            const zipStatus = document.getElementById('zipStatus');
+            const htmlFileStatus = document.getElementById('htmlFileStatus');
+            zipStatus.innerHTML = '';
+            htmlFileStatus.innerHTML = '';
             document.getElementById('htmlFileSection').classList.remove('active');
             document.getElementById('zipUpload').value = '';
             document.getElementById('htmlFileUpload').value = '';
+            document.getElementById('imageUpload').value = '';
             
             feather.replace();
         }
