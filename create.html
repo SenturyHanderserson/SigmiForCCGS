@@ -200,7 +200,6 @@
             opacity: 1;
             visibility: visible;
         }
-    
     .moderator-activity-item {
         transition: all 0.3s ease;
         border-left: 4px solid transparent;
@@ -395,10 +394,19 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* HTML File Upload Section */
+        .html-file-section {
+            transition: all 0.3s ease;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
         
-        /* HTML File Input Container */
-        #mainHtmlFileContainer {
-            display: none;
+        .html-file-section.active {
+            max-height: 300px;
+            opacity: 1;
+            margin-top: 1rem;
         }
     </style>
 </head>
@@ -554,7 +562,7 @@
                                 </div>
                             </div>
 
-                            <!-- ZIP Upload (New Section) -->
+                            <!-- ZIP Upload Section -->
                             <div data-aos="fade-up" data-aos-delay="500">
                                 <label class="block text-sm font-semibold mb-3 text-gray-300">ZIP Upload (Alternative)</label>
                                 <div class="file-upload p-6 text-center">
@@ -575,32 +583,50 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <!-- Main HTML File Input (Appears when ZIP is selected) -->
-                            <div id="mainHtmlFileContainer" data-aos="fade-up" data-aos-delay="600">
-                                <label class="block text-sm font-semibold mb-3 text-gray-300">Main HTML File (Optional)</label>
-                                <input type="text" id="mainHtmlFile" 
-                                       class="w-full px-4 py-3 form-input rounded-xl focus:outline-none"
-                                       placeholder="e.g., index.html, game.html, or main.html">
-                                <p class="text-xs text-gray-400 mt-2">
-                                    Specify which HTML file to use as the main entry point. If left empty, we'll use index.html, game.html, or the first HTML file found.
-                                </p>
+                                <!-- HTML File Upload Section (Appears when ZIP is uploaded) -->
+                                <div id="htmlFileSection" class="html-file-section">
+                                    <div data-aos="fade-up" data-aos-delay="600">
+                                        <label class="block text-sm font-semibold mb-3 text-gray-300">Main HTML File *</label>
+                                        <div class="file-upload p-6 text-center">
+                                            <input type="file" id="htmlFileUpload" accept=".html" class="hidden">
+                                            <div class="flex flex-col items-center gap-4">
+                                                <div>
+                                                    <button type="button" onclick="document.getElementById('htmlFileUpload').click()" 
+                                                            class="btn-primary px-6 py-3 rounded-xl font-medium flex items-center space-x-2 mx-auto">
+                                                        <i data-feather="file-text"></i>
+                                                        <span>Choose HTML File</span>
+                                                    </button>
+                                                    <p class="text-xs text-gray-400 mt-2">Upload the main HTML file for your game (NOT in the ZIP)</p>
+                                                </div>
+                                                <div id="htmlFileInfo" class="hidden text-sm">
+                                                    <i data-feather="check-circle" class="w-4 h-4 text-green-400 inline mr-1"></i>
+                                                    <span id="htmlFileName"></span>
+                                                    <span id="htmlFileSize" class="text-gray-400 ml-2"></span>
+                                                </div>
+                                            </div>
+                                            <p class="text-xs text-gray-400 mt-3">
+                                                <i data-feather="info" class="w-3 h-3 inline mr-1"></i>
+                                                This is a separate HTML file that will be used as the main entry point. It should not be included in the ZIP.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Authentication Toggle -->
-                            <div class="flex items-center space-x-3 p-4 glass-light rounded-xl" data-aos="fade-up" data-aos-delay="550">
+                            <div class="flex items-center space-x-3 p-4 glass-light rounded-xl" data-aos="fade-up" data-aos-delay="650">
                                 <input type="checkbox" id="requiresAuth" class="checkbox-custom">
                                 <label for="requiresAuth" class="text-sm font-medium text-gray-300">
                                     This game requires server authentication
                                 </label>
                             </div>
-                            <p class="text-xs text-gray-400 -mt-4" data-aos="fade-up" data-aos-delay="600">
+                            <p class="text-xs text-gray-400 -mt-4" data-aos="fade-up" data-aos-delay="700">
                                 If checked, the game will use the provided URL directly. If unchecked, a custom game page will be created in the /english folder.
                             </p>
 
                             <!-- Submit Button -->
-                            <div class="flex justify-end pt-4" data-aos="fade-up" data-aos-delay="650">
+                            <div class="flex justify-end pt-4" data-aos="fade-up" data-aos-delay="750">
                                 <button type="submit" 
                                         class="btn-primary px-8 py-4 rounded-xl font-semibold flex items-center space-x-3 text-lg">
                                     <i data-feather="upload-cloud"></i>
@@ -971,6 +997,9 @@
             // ZIP upload
             document.getElementById('zipUpload').addEventListener('change', handleZipUpload);
 
+            // HTML file upload
+            document.getElementById('htmlFileUpload').addEventListener('change', handleHtmlFileUpload);
+
             // Form submission
             document.getElementById('uploadForm').addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -1009,10 +1038,46 @@
                     name: file.name
                 };
                 
-                // Show the main HTML file input when ZIP is selected
-                document.getElementById('mainHtmlFileContainer').style.display = 'block';
+                // Show HTML file upload section
+                document.getElementById('htmlFileSection').classList.add('active');
                 
-                showNotification('ZIP file loaded successfully', 'success');
+                showNotification('ZIP file loaded successfully. Now please select the main HTML file.', 'success');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Handle HTML file upload
+        async function handleHtmlFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (!file.name.toLowerCase().endsWith('.html')) {
+                showNotification('Please select an HTML file', 'error');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('HTML file must be less than 5MB', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64 = e.target.result.split(',')[1];
+                const htmlFileInfo = document.getElementById('htmlFileInfo');
+                const htmlFileName = document.getElementById('htmlFileName');
+                const htmlFileSize = document.getElementById('htmlFileSize');
+                
+                htmlFileName.textContent = file.name;
+                htmlFileSize.textContent = `(${(file.size / 1024).toFixed(2)} KB)`;
+                htmlFileInfo.classList.remove('hidden');
+                
+                window.currentHtmlFile = {
+                    data: base64,
+                    name: file.name
+                };
+                
+                showNotification('HTML file loaded successfully', 'success');
             };
             reader.readAsDataURL(file);
         }
@@ -1021,7 +1086,7 @@
         async function uploadGame() {
             const imageFile = document.getElementById('imageUpload').files[0];
             const zipFile = window.currentZipFile;
-            const mainHtmlFile = document.getElementById('mainHtmlFile').value;
+            const htmlFile = window.currentHtmlFile;
 
             const categorySelect = document.getElementById('category');
             const categories = Array.from(categorySelect.selectedOptions).map(option => option.value);
@@ -1045,16 +1110,17 @@
 
             try {
                 if (zipFile) {
+                    // Check if HTML file is also provided for ZIP upload
+                    if (!htmlFile) {
+                        throw new Error('Please upload the main HTML file (separate from the ZIP)');
+                    }
+                    
                     gameData.zipFile = zipFile.data;
                     gameData.zipFileName = zipFile.name;
-                    if (mainHtmlFile) {
-                        gameData.mainHtmlFile = mainHtmlFile;
-                    }
+                    gameData.mainHtmlFile = htmlFile.data; // Add HTML file data to gameData
+                    gameData.mainHtmlFileName = htmlFile.name; // Add HTML file name
                     await submitGameZip(gameData);
                 } else if (gameData.gameUrl) {
-                    // Hide HTML file input when using URL method
-                    document.getElementById('mainHtmlFileContainer').style.display = 'none';
-                    
                     if (imageFile) {
                         const reader = new FileReader();
                         reader.onload = function(e) {
@@ -1104,7 +1170,7 @@
             }
         }
 
-        // New function to submit game via ZIP
+        // New function to submit game via ZIP with HTML file
         async function submitGameZip(gameData) {
             try {
                 const response = await fetch(`${SERVER_URL}/api/games/upload-zip`, {
@@ -1119,13 +1185,18 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    showNotification(`Game uploaded successfully from ZIP! Files: ${data.filesUploaded}`, 'success');
+                    showNotification(`Game uploaded successfully! Files: ${data.filesUploaded}`, 'success');
                     resetForm();
                     loadExistingGames();
                     
+                    // Clean up uploaded files
                     delete window.currentZipFile;
+                    delete window.currentHtmlFile;
                     document.getElementById('zipInfo').classList.add('hidden');
+                    document.getElementById('htmlFileInfo').classList.add('hidden');
                     document.getElementById('zipUpload').value = '';
+                    document.getElementById('htmlFileUpload').value = '';
+                    document.getElementById('htmlFileSection').classList.remove('active');
                     
                 } else {
                     throw new Error(data.error || 'ZIP upload failed');
@@ -1405,13 +1476,14 @@
             document.getElementById('imagePreview').classList.add('hidden');
             document.getElementById('previewImage').src = '';
             
+            // Clean up file uploads
             delete window.currentZipFile;
+            delete window.currentHtmlFile;
             document.getElementById('zipInfo').classList.add('hidden');
+            document.getElementById('htmlFileInfo').classList.add('hidden');
+            document.getElementById('htmlFileSection').classList.remove('active');
             document.getElementById('zipUpload').value = '';
-            
-            // Hide the HTML file input and clear it
-            document.getElementById('mainHtmlFileContainer').style.display = 'none';
-            document.getElementById('mainHtmlFile').value = '';
+            document.getElementById('htmlFileUpload').value = '';
             
             feather.replace();
         }
