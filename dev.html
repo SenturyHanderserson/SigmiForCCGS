@@ -9,6 +9,7 @@
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <style>
+        /* All your existing CSS remains the same */
         .glassmorphism {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -299,6 +300,25 @@
         .cooldown-timer {
             font-weight: bold;
             font-size: 0.9rem;
+        }
+        
+        /* MO Hacks specific styles */
+        #moHacksButton {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+        
+        .mo-hacks-btn {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+        }
+        
+        .mo-hacks-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
         }
     </style>
 </head>
@@ -702,10 +722,117 @@
         </div>
     </div>
     
+    <!-- MO Hacks Button -->
     <div id="moHacksButton" class="fixed bottom-4 left-4 z-50 hidden">
-        <button onclick="openMOHacksModal()" class="p-3 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300">
+        <button onclick="openMOHacksModal()" class="mo-hacks-btn p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
             <i data-feather="shield" class="w-6 h-6 text-white"></i>
         </button>
+    </div>
+    
+    <!-- MO Hacks Modal -->
+    <div id="moHacksModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">MO Hacks Management</h2>
+                <button onclick="closeModal('moHacksModal')" class="p-1 rounded-full hover:bg-purple-700">
+                    <i data-feather="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <!-- Info Alert -->
+            <div class="mb-4 p-3 bg-blue-900 bg-opacity-30 border border-blue-700 rounded-lg">
+                <div class="flex items-center">
+                    <i data-feather="info" class="w-5 h-5 text-blue-400 mr-2"></i>
+                    <div>
+                        <p class="font-medium">MO Hacks System</p>
+                        <p class="text-sm text-gray-300 mt-1">
+                            Only admin+ users can be added to MO permissions. Currently limited to 2 accounts.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Current Permissions -->
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-lg font-semibold">Current MO Permissions</h3>
+                    <button onclick="refreshMOPermissions()" class="p-1 rounded-full hover:bg-purple-700">
+                        <i data-feather="refresh-cw" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <div id="moPermissionsList" class="space-y-3 max-h-64 overflow-y-auto">
+                    <!-- Permissions will be loaded here -->
+                    <div class="text-center py-4">
+                        <div class="loading-spinner mb-2"></div>
+                        <p class="text-gray-300">Loading permissions...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Add User Section -->
+            <div class="mb-6 glassmorphism rounded-lg p-4">
+                <h3 class="text-lg font-semibold mb-3">Add User to MO Permissions</h3>
+                
+                <!-- Available Users -->
+                <div class="mb-3">
+                    <label class="block text-gray-300 mb-2">Available Admin+ Users</label>
+                    <div id="availableUsersList" class="max-h-32 overflow-y-auto bg-gray-800 bg-opacity-50 rounded-lg p-2">
+                        <!-- Available users will be loaded here -->
+                        <p class="text-gray-400 text-center py-2">Loading users...</p>
+                    </div>
+                </div>
+                
+                <!-- Manual Add -->
+                <div class="mb-3">
+                    <label for="addUsername" class="block text-gray-300 mb-2">Or Enter Username</label>
+                    <input type="text" id="addUsername" 
+                           class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                           placeholder="Enter username to add">
+                </div>
+                
+                <button onclick="addToMOPermissions()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium w-full">
+                    Add User
+                </button>
+            </div>
+            
+            <!-- Key Management Section -->
+            <div class="glassmorphism rounded-lg p-4">
+                <h3 class="text-lg font-semibold mb-3">Key Management</h3>
+                <div class="mb-3">
+                    <label class="block text-gray-300 mb-2">Select User for Key</label>
+                    <select id="keyUserSelect" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="">Select a user...</option>
+                        <!-- Users with MO permissions will be populated here -->
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="keyDuration" class="block text-gray-300 mb-2">Key Duration (Hours)</label>
+                    <select id="keyDuration" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="1">1 hour</option>
+                        <option value="6">6 hours</option>
+                        <option value="24" selected>24 hours</option>
+                        <option value="72">72 hours</option>
+                        <option value="168">1 week</option>
+                        <option value="720">30 days</option>
+                    </select>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="generateMOKey()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium">
+                        Generate Key
+                    </button>
+                    <button onclick="revokeMOKey()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg font-medium">
+                        Revoke Key
+                    </button>
+                </div>
+                
+                <!-- Current Key Info -->
+                <div id="currentKeyInfo" class="mt-3 hidden">
+                    <!-- Key info will be shown here -->
+                </div>
+            </div>
+        </div>
     </div>
     
     <!-- Main Container -->
@@ -836,110 +963,6 @@
             </div>
         </main>
     </div>
-<div id="moHacksModal" class="modal-overlay">
-    <div class="modal-content" style="max-width: 800px;">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold">MO Hacks Management</h2>
-            <button onclick="closeModal('moHacksModal')" class="p-1 rounded-full hover:bg-purple-700">
-                <i data-feather="x" class="w-5 h-5"></i>
-            </button>
-        </div>
-        
-        <!-- Info Alert -->
-        <div class="mb-4 p-3 bg-blue-900 bg-opacity-30 border border-blue-700 rounded-lg">
-            <div class="flex items-center">
-                <i data-feather="info" class="w-5 h-5 text-blue-400 mr-2"></i>
-                <div>
-                    <p class="font-medium">MO Hacks System</p>
-                    <p class="text-sm text-gray-300 mt-1">
-                        Only admin+ users can be added to MO permissions. Currently limited to 2 accounts.
-                    </p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Current Permissions -->
-        <div class="mb-6">
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="text-lg font-semibold">Current MO Permissions</h3>
-                <button onclick="refreshMOPermissions()" class="p-1 rounded-full hover:bg-purple-700">
-                    <i data-feather="refresh-cw" class="w-4 h-4"></i>
-                </button>
-            </div>
-            <div id="moPermissionsList" class="space-y-3 max-h-64 overflow-y-auto">
-                <!-- Permissions will be loaded here -->
-                <div class="text-center py-4">
-                    <div class="loading-spinner mb-2"></div>
-                    <p class="text-gray-300">Loading permissions...</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Add User Section -->
-        <div class="mb-6 glassmorphism rounded-lg p-4">
-            <h3 class="text-lg font-semibold mb-3">Add User to MO Permissions</h3>
-            
-            <!-- Available Users -->
-            <div class="mb-3">
-                <label class="block text-gray-300 mb-2">Available Admin+ Users</label>
-                <div id="availableUsersList" class="max-h-32 overflow-y-auto bg-gray-800 bg-opacity-50 rounded-lg p-2">
-                    <!-- Available users will be loaded here -->
-                    <p class="text-gray-400 text-center py-2">Loading users...</p>
-                </div>
-            </div>
-            
-            <!-- Manual Add -->
-            <div class="mb-3">
-                <label for="addUsername" class="block text-gray-300 mb-2">Or Enter Username</label>
-                <input type="text" id="addUsername" 
-                       class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                       placeholder="Enter username to add">
-            </div>
-            
-            <button onclick="addToMOPermissions()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium w-full">
-                Add User
-            </button>
-        </div>
-        
-        <!-- Key Management Section -->
-        <div class="glassmorphism rounded-lg p-4">
-            <h3 class="text-lg font-semibold mb-3">Key Management</h3>
-            <div class="mb-3">
-                <label class="block text-gray-300 mb-2">Select User for Key</label>
-                <select id="keyUserSelect" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                    <option value="">Select a user...</option>
-                    <!-- Users with MO permissions will be populated here -->
-                </select>
-            </div>
-            
-            <div class="mb-3">
-                <label for="keyDuration" class="block text-gray-300 mb-2">Key Duration (Hours)</label>
-                <select id="keyDuration" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                    <option value="1">1 hour</option>
-                    <option value="6">6 hours</option>
-                    <option value="24" selected>24 hours</option>
-                    <option value="72">72 hours</option>
-                    <option value="168">1 week</option>
-                    <option value="720">30 days</option>
-                </select>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="generateMOKey()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium">
-                    Generate Key
-                </button>
-                <button onclick="revokeMOKey()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg font-medium">
-                    Revoke Key
-                </button>
-            </div>
-            
-            <!-- Current Key Info -->
-            <div id="currentKeyInfo" class="mt-3 hidden">
-                <!-- Key info will be shown here -->
-            </div>
-        </div>
-    </div>
-</div>
     
 <script>
     // Initialize animations and icons
@@ -1158,8 +1181,10 @@ async function checkMOHacksAccess() {
             
             if (data.canManageMO) {
                 moHacksButton.classList.remove('hidden');
+                console.log('MO Hacks button shown - user has access');
             } else {
                 moHacksButton.classList.add('hidden');
+                console.log('MO Hacks button hidden - user does not have access');
             }
         }
     } catch (error) {
@@ -1537,48 +1562,12 @@ async function openMOHacksModal() {
     }
 }
 
-// Call checkMOHacksAccess on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Add this to your existing DOMContentLoaded event handler
-    setTimeout(checkMOHacksAccess, 2000); // Check after 2 seconds
-    
-    // Update the key user select when selection changes
-    document.getElementById('keyUserSelect').addEventListener('change', async function() {
-        const username = this.value;
-        if (username) {
-            const permissions = await loadMOPermissions();
-            const userPermission = permissions.find(p => p.username === username);
-            const keyInfo = document.getElementById('currentKeyInfo');
-            
-            if (userPermission && userPermission.key) {
-                const isExpired = new Date(userPermission.keyExpiresAt) < new Date();
-                keyInfo.innerHTML = `
-                    <div class="p-3 ${isExpired ? 'bg-red-900' : 'bg-green-900'} bg-opacity-30 border ${isExpired ? 'border-red-700' : 'border-green-700'} rounded-lg">
-                        <div class="flex items-center mb-2">
-                            <i data-feather="key" class="w-5 h-5 ${isExpired ? 'text-red-400' : 'text-green-400'} mr-2"></i>
-                            <span class="font-medium">${isExpired ? 'Expired Key' : 'Active Key'}</span>
-                        </div>
-                        <p class="text-sm mb-1">Key: <span class="font-mono bg-gray-900 px-2 py-1 rounded">${userPermission.key}</span></p>
-                        <p class="text-sm text-gray-300">Expires: ${new Date(userPermission.keyExpiresAt).toLocaleString()}</p>
-                        <p class="text-sm text-gray-300">Generated by: ${userPermission.keyGeneratedBy} on ${new Date(userPermission.keyGeneratedAt).toLocaleDateString()}</p>
-                    </div>
-                `;
-                keyInfo.classList.remove('hidden');
-            } else {
-                keyInfo.classList.add('hidden');
-            }
-        } else {
-            keyInfo.classList.add('hidden');
-        }
-    });
-});
-
-    
-    // Function to get role badge class
-    function getRoleBadgeClass(roleName) {
-        const normalizedRole = roleName.toLowerCase().replace(/\s+/g, '-');
-        return `role-${normalizedRole}`;
-    }
+function getRoleClass(weight) {
+    if (weight >= 100) return 'full';
+    if (weight >= 61 && weight <= 99) return 'admin';
+    if (weight >= 40 && weight <= 60) return 'moderator';
+    return 'basic';
+}
 
 function isModeratorClass(role) {
     const roleConfig = allRoles[role];
@@ -2674,6 +2663,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             // Load users list
             loadUsersList();
+            
+            // Check MO Hacks access AFTER user is fully authenticated
+            setTimeout(checkMOHacksAccess, 1500);
         }, 1000);
         
     } catch (error) {
@@ -3622,7 +3614,41 @@ async function refreshRoleList() {
 document.addEventListener('DOMContentLoaded', function() {
     updatePermissionsBasedOnWeight();
     setupColorPicker();
+    
+    // Initialize the key user select event listener
+    const keyUserSelect = document.getElementById('keyUserSelect');
+    if (keyUserSelect) {
+        keyUserSelect.addEventListener('change', async function() {
+            const username = this.value;
+            if (username) {
+                const permissions = await loadMOPermissions();
+                const userPermission = permissions.find(p => p.username === username);
+                const keyInfo = document.getElementById('currentKeyInfo');
+                
+                if (userPermission && userPermission.key) {
+                    const isExpired = new Date(userPermission.keyExpiresAt) < new Date();
+                    keyInfo.innerHTML = `
+                        <div class="p-3 ${isExpired ? 'bg-red-900' : 'bg-green-900'} bg-opacity-30 border ${isExpired ? 'border-red-700' : 'border-green-700'} rounded-lg">
+                            <div class="flex items-center mb-2">
+                                <i data-feather="key" class="w-5 h-5 ${isExpired ? 'text-red-400' : 'text-green-400'} mr-2"></i>
+                                <span class="font-medium">${isExpired ? 'Expired Key' : 'Active Key'}</span>
+                            </div>
+                            <p class="text-sm mb-1">Key: <span class="font-mono bg-gray-900 px-2 py-1 rounded">${userPermission.key}</span></p>
+                            <p class="text-sm text-gray-300">Expires: ${new Date(userPermission.keyExpiresAt).toLocaleString()}</p>
+                            <p class="text-sm text-gray-300">Generated by: ${userPermission.keyGeneratedBy} on ${new Date(userPermission.keyGeneratedAt).toLocaleDateString()}</p>
+                        </div>
+                    `;
+                    keyInfo.classList.remove('hidden');
+                } else {
+                    keyInfo.classList.add('hidden');
+                }
+            } else {
+                keyInfo.classList.add('hidden');
+            }
+        });
+    }
 });
+
 </script>
 </body>
 </html>
