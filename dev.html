@@ -330,118 +330,177 @@
             border-radius: 0.25rem;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
+        
+        /* FIX: MO Hacks button visibility */
+        #moHacksButton {
+            transition: opacity 0.3s ease;
+        }
+        
+        /* Force MO Hacks button to be visible during debug */
+        .debug-visible {
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
     </style>
 </head>
 <body class="min-h-screen gradient-bg text-white font-sans">
-    <!-- MO Hacks Floating Button - FIXED VISIBILITY -->
-    <div id="moHacksButton" class="fixed bottom-4 left-4 z-50 hidden">
-        <button onclick="openMOHacksModal()" class="p-3 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 flex items-center justify-center">
-            <i data-feather="shield" class="w-6 h-6 text-white"></i>
+    <!-- MO Hacks Floating Button - FIXED: Initially visible for debugging -->
+    <div id="moHacksButton" class="fixed bottom-6 left-6 z-50">
+        <button onclick="openMOHacksModal()" class="p-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full shadow-xl hover:shadow-2xl hover:scale-110 transition-all duration-300 flex items-center justify-center w-16 h-16">
+            <i data-feather="shield" class="w-8 h-8 text-white"></i>
         </button>
+        <div class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center animate-pulse" id="moHacksIndicator">
+            MO
+        </div>
     </div>
 
-    <!-- MO Hacks Management Modal - FIXED Z-INDEX -->
-    <div id="moHacksModal" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 800px; z-index: 2200;">
+    <!-- MO Hacks Management Modal - FIXED: Position and visibility -->
+    <div id="moHacksModal" class="modal-overlay hidden" style="z-index: 9999;">
+        <div class="modal-content" style="max-width: 850px; max-height: 85vh; overflow-y: auto;">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold">MO Hacks Management</h2>
-                <button onclick="closeModal('moHacksModal')" class="p-1 rounded-full hover:bg-purple-700">
-                    <i data-feather="x" class="w-5 h-5"></i>
+                <h2 class="text-xl font-bold flex items-center">
+                    <i data-feather="shield" class="w-6 h-6 mr-2 text-purple-300"></i>
+                    MO Hacks Management
+                </h2>
+                <button onclick="closeModal('moHacksModal')" class="p-2 rounded-full hover:bg-purple-700 hover:scale-110 transition-transform">
+                    <i data-feather="x" class="w-6 h-6"></i>
                 </button>
             </div>
             
             <!-- Info Alert -->
-            <div class="mb-4 p-3 bg-blue-900 bg-opacity-30 border border-blue-700 rounded-lg">
+            <div class="mb-4 p-4 bg-blue-900 bg-opacity-40 border border-blue-700 rounded-lg">
                 <div class="flex items-center">
-                    <i data-feather="info" class="w-5 h-5 text-blue-400 mr-2"></i>
-                    <div>
-                        <p class="font-medium">MO Hacks System</p>
+                    <i data-feather="info" class="w-6 h-6 text-blue-400 mr-3"></i>
+                    <div class="flex-1">
+                        <p class="font-medium text-lg">MO Hacks System</p>
                         <p class="text-sm text-gray-300 mt-1">
                             Only admin+ users can be added to MO permissions. Currently limited to 2 accounts.
+                            <span class="block mt-1 text-blue-200">Refresh data periodically to see updates.</span>
                         </p>
                     </div>
                 </div>
             </div>
             
-            <!-- Current Permissions -->
-            <div class="mb-6">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-lg font-semibold">Current MO Permissions</h3>
-                    <button onclick="refreshMOPermissions()" class="p-1 rounded-full hover:bg-purple-700">
-                        <i data-feather="refresh-cw" class="w-4 h-4"></i>
-                    </button>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Left Column: Current Permissions -->
+                <div class="lg:col-span-1">
+                    <div class="glassmorphism rounded-xl p-4 h-full">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold flex items-center">
+                                <i data-feather="users" class="w-5 h-5 mr-2"></i>
+                                Current MO Permissions
+                            </h3>
+                            <button onclick="refreshMOPermissions()" class="p-2 bg-purple-700 hover:bg-purple-800 rounded-lg transition-all hover:scale-110" title="Refresh">
+                                <i data-feather="refresh-cw" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div id="moPermissionsList" class="space-y-3 max-h-80 overflow-y-auto p-1">
+                            <!-- Permissions will be loaded here -->
+                            <div class="text-center py-8">
+                                <div class="loading-spinner mb-4"></div>
+                                <p class="text-gray-300">Loading permissions...</p>
+                                <p class="text-xs text-gray-400 mt-2">If this takes too long, click refresh</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 text-xs text-gray-400 text-center">
+                            <i data-feather="alert-circle" class="w-3 h-3 inline mr-1"></i>
+                            Click on a user's trash icon to remove permissions
+                        </div>
+                    </div>
                 </div>
-                <div id="moPermissionsList" class="space-y-3 max-h-64 overflow-y-auto">
-                    <!-- Permissions will be loaded here -->
-                    <div class="text-center py-4">
-                        <div class="loading-spinner mb-2"></div>
-                        <p class="text-gray-300">Loading permissions...</p>
+                
+                <!-- Right Column: Add User and Key Management -->
+                <div class="lg:col-span-1 space-y-6">
+                    <!-- Add User Section -->
+                    <div class="glassmorphism rounded-xl p-4">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center">
+                            <i data-feather="user-plus" class="w-5 h-5 mr-2"></i>
+                            Add User to MO Permissions
+                        </h3>
+                        
+                        <!-- Available Users -->
+                        <div class="mb-4">
+                            <label class="block text-gray-300 mb-2 font-medium">Available Admin+ Users</label>
+                            <div id="availableUsersList" class="max-h-40 overflow-y-auto bg-gray-900 bg-opacity-50 rounded-lg p-3 border border-gray-700">
+                                <!-- Available users will be loaded here -->
+                                <p class="text-gray-400 text-center py-4">Loading available users...</p>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-2">Select a user from the list above</p>
+                        </div>
+                        
+                        <!-- Manual Add -->
+                        <div class="mb-4">
+                            <label for="addUsername" class="block text-gray-300 mb-2 font-medium">Or Enter Username Manually</label>
+                            <div class="flex">
+                                <input type="text" id="addUsername" 
+                                       class="flex-1 bg-gray-800 bg-opacity-70 border border-gray-600 rounded-l-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                       placeholder="Enter exact username">
+                                <button onclick="addToMOPermissions()" class="bg-green-600 hover:bg-green-700 text-white px-4 rounded-r-lg font-medium transition-colors">
+                                    Add
+                                </button>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-2">Username must be exact and belong to an admin+ user</p>
+                        </div>
+                        
+                        <div class="p-3 bg-yellow-900 bg-opacity-30 border border-yellow-700 rounded-lg">
+                            <div class="flex items-center">
+                                <i data-feather="alert-triangle" class="w-4 h-4 text-yellow-400 mr-2"></i>
+                                <p class="text-sm text-yellow-200">Only 2 users maximum can have MO permissions at once</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Key Management Section -->
+                    <div class="glassmorphism rounded-xl p-4">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center">
+                            <i data-feather="key" class="w-5 h-5 mr-2"></i>
+                            Key Management
+                        </h3>
+                        
+                        <div class="mb-4">
+                            <label for="keyUserSelect" class="block text-gray-300 mb-2 font-medium">Select User for Key</label>
+                            <select id="keyUserSelect" class="w-full bg-gray-800 bg-opacity-70 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <option value="">Select a user with MO permissions...</option>
+                                <!-- Users with MO permissions will be populated here -->
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="keyDuration" class="block text-gray-300 mb-2 font-medium">Key Duration</label>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                <button onclick="setKeyDuration(1)" class="key-duration-btn bg-gray-700 hover:bg-gray-600 py-2 rounded-lg" data-hours="1">1 hour</button>
+                                <button onclick="setKeyDuration(6)" class="key-duration-btn bg-gray-700 hover:bg-gray-600 py-2 rounded-lg" data-hours="6">6 hours</button>
+                                <button onclick="setKeyDuration(24)" class="key-duration-btn bg-purple-700 hover:bg-purple-600 py-2 rounded-lg" data-hours="24">24 hours</button>
+                                <button onclick="setKeyDuration(72)" class="key-duration-btn bg-gray-700 hover:bg-gray-600 py-2 rounded-lg" data-hours="72">3 days</button>
+                                <button onclick="setKeyDuration(168)" class="key-duration-btn bg-gray-700 hover:bg-gray-600 py-2 rounded-lg" data-hours="168">1 week</button>
+                                <button onclick="setKeyDuration(720)" class="key-duration-btn bg-gray-700 hover:bg-gray-600 py-2 rounded-lg" data-hours="720">30 days</button>
+                            </div>
+                            <input type="hidden" id="keyDuration" value="24">
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="generateMOKey()" class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center">
+                                <i data-feather="key" class="w-4 h-4 mr-2"></i>
+                                Generate Key
+                            </button>
+                            <button onclick="revokeMOKey()" class="bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center">
+                                <i data-feather="trash-2" class="w-4 h-4 mr-2"></i>
+                                Revoke Key
+                            </button>
+                        </div>
+                        
+                        <!-- Current Key Info -->
+                        <div id="currentKeyInfo" class="mt-4 hidden">
+                            <!-- Key info will be shown here -->
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Add User Section -->
-            <div class="mb-6 glassmorphism rounded-lg p-4">
-                <h3 class="text-lg font-semibold mb-3">Add User to MO Permissions</h3>
-                
-                <!-- Available Users -->
-                <div class="mb-3">
-                    <label class="block text-gray-300 mb-2">Available Admin+ Users</label>
-                    <div id="availableUsersList" class="max-h-32 overflow-y-auto bg-gray-800 bg-opacity-50 rounded-lg p-2">
-                        <!-- Available users will be loaded here -->
-                        <p class="text-gray-400 text-center py-2">Loading users...</p>
-                    </div>
-                </div>
-                
-                <!-- Manual Add -->
-                <div class="mb-3">
-                    <label for="addUsername" class="block text-gray-300 mb-2">Or Enter Username</label>
-                    <input type="text" id="addUsername" 
-                           class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                           placeholder="Enter username to add">
-                </div>
-                
-                <button onclick="addToMOPermissions()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium w-full">
-                    Add User
-                </button>
-            </div>
-            
-            <!-- Key Management Section -->
-            <div class="glassmorphism rounded-lg p-4">
-                <h3 class="text-lg font-semibold mb-3">Key Management</h3>
-                <div class="mb-3">
-                    <label class="block text-gray-300 mb-2">Select User for Key</label>
-                    <select id="keyUserSelect" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        <option value="">Select a user...</option>
-                        <!-- Users with MO permissions will be populated here -->
-                    </select>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="keyDuration" class="block text-gray-300 mb-2">Key Duration (Hours)</label>
-                    <select id="keyDuration" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        <option value="1">1 hour</option>
-                        <option value="6">6 hours</option>
-                        <option value="24" selected>24 hours</option>
-                        <option value="72">72 hours</option>
-                        <option value="168">1 week</option>
-                        <option value="720">30 days</option>
-                    </select>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="generateMOKey()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium">
-                        Generate Key
-                    </button>
-                    <button onclick="revokeMOKey()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg font-medium">
-                        Revoke Key
-                    </button>
-                </div>
-                
-                <!-- Current Key Info -->
-                <div id="currentKeyInfo" class="mt-3 hidden">
-                    <!-- Key info will be shown here -->
-                </div>
+            <!-- Debug Info -->
+            <div id="moDebugInfo" class="mt-6 text-xs text-gray-500 hidden">
+                <p>Debug: MO System Status - <span id="moStatusText">Checking...</span></p>
             </div>
         </div>
     </div>
@@ -2292,8 +2351,9 @@
                 // Load users list
                 loadUsersList();
                 
-                // Check MO Hacks access after 2 seconds - FIXED TIMING
-                setTimeout(checkMOHacksAccess, 2000);
+                // Check MO Hacks access IMMEDIATELY and then periodically
+                setTimeout(checkMOHacksAccess, 500);
+                setInterval(checkMOHacksAccess, 30000); // Check every 30 seconds
             }, 1000);
             
         } catch (error) {
@@ -3246,12 +3306,48 @@
         setupColorPicker();
     });
 
-    // MO Hacks System Functions - FIXED VERSION
+    // MO Hacks System Functions - COMPLETELY REWRITTEN FOR VISIBILITY
 
-    // Check and show MO Hacks button - FIXED
+    // Set key duration from button click
+    function setKeyDuration(hours) {
+        document.getElementById('keyDuration').value = hours;
+        
+        // Update button styles
+        document.querySelectorAll('.key-duration-btn').forEach(btn => {
+            btn.classList.remove('bg-purple-700', 'hover:bg-purple-600');
+            btn.classList.add('bg-gray-700', 'hover:bg-gray-600');
+        });
+        
+        // Highlight selected button
+        const selectedBtn = document.querySelector(`.key-duration-btn[data-hours="${hours}"]`);
+        if (selectedBtn) {
+            selectedBtn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+            selectedBtn.classList.add('bg-purple-700', 'hover:bg-purple-600');
+        }
+    }
+
+    // Check and show MO Hacks button - FIXED: Always visible for debugging
     async function checkMOHacksAccess() {
+        console.log('Checking MO Hacks access...');
+        
+        const moHacksButton = document.getElementById('moHacksButton');
+        const moStatusText = document.getElementById('moStatusText');
+        const moDebugInfo = document.getElementById('moDebugInfo');
+        
+        // Always show debug info initially
+        if (moDebugInfo) {
+            moDebugInfo.classList.remove('hidden');
+        }
+        
         try {
             const token = getCookie('AuthToken');
+            if (!token) {
+                console.log('No token found');
+                if (moStatusText) moStatusText.textContent = 'No authentication token';
+                moHacksButton.classList.add('hidden');
+                return;
+            }
+            
             const response = await fetch(`${SERVER_URL}/api/mo/check-access`, {
                 method: 'GET',
                 headers: {
@@ -3260,26 +3356,35 @@
                 }
             });
             
+            console.log('MO access response status:', response.status);
+            
             if (response.ok) {
                 const data = await response.json();
-                const moHacksButton = document.getElementById('moHacksButton');
+                console.log('MO access data:', data);
                 
                 if (data.canManageMO) {
                     moHacksButton.classList.remove('hidden');
-                    console.log('MO Hacks access granted, button shown');
+                    console.log('MO Hacks access GRANTED - button shown');
+                    if (moStatusText) moStatusText.textContent = 'Access GRANTED';
+                    moHacksButton.classList.add('debug-visible');
                 } else {
                     moHacksButton.classList.add('hidden');
-                    console.log('No MO Hacks access, button hidden');
+                    console.log('MO Hacks access DENIED - button hidden');
+                    if (moStatusText) moStatusText.textContent = 'Access DENIED: ' + (data.reason || 'No permission');
                 }
             } else {
-                console.log('MO Hacks access check failed');
+                console.log('MO Hacks access check failed with status:', response.status);
+                moHacksButton.classList.add('hidden');
+                if (moStatusText) moStatusText.textContent = 'Server error: ' + response.status;
             }
         } catch (error) {
             console.error('Error checking MO access:', error);
+            moHacksButton.classList.add('hidden');
+            if (moStatusText) moStatusText.textContent = 'Connection error: ' + error.message;
         }
     }
 
-    // Load MO permissions
+    // Load MO permissions - FIXED with better error handling
     async function loadMOPermissions() {
         try {
             const token = getCookie('AuthToken');
@@ -3292,7 +3397,8 @@
             });
             
             if (!response.ok) {
-                throw new Error('Failed to load MO permissions');
+                const error = await response.json();
+                throw new Error(error.error || `Failed to load MO permissions (${response.status})`);
             }
             
             const data = await response.json();
@@ -3302,17 +3408,30 @@
         } catch (error) {
             console.error('Load MO permissions error:', error);
             document.getElementById('moPermissionsList').innerHTML = 
-                '<div class="text-red-300 text-center py-4">Error loading permissions: ' + error.message + '</div>';
+                `<div class="text-red-300 text-center py-4">
+                    <i data-feather="alert-triangle" class="w-8 h-8 mx-auto mb-2"></i>
+                    <p>Error loading permissions: ${error.message}</p>
+                    <button onclick="loadMOPermissions()" class="mt-2 bg-red-600 hover:bg-red-700 text-white py-1 px-3 rounded text-sm">
+                        Retry
+                    </button>
+                </div>`;
+            feather.replace();
             return [];
         }
     }
 
-    // Display MO permissions - FIXED
+    // Display MO permissions - FIXED with better visual feedback
     function displayMOPermissions(permissions) {
         const container = document.getElementById('moPermissionsList');
         
         if (!permissions || permissions.length === 0) {
-            container.innerHTML = '<p class="text-gray-400 text-center py-4">No MO permissions found</p>';
+            container.innerHTML = `
+                <div class="text-center py-8">
+                    <i data-feather="users" class="w-12 h-12 text-gray-500 mx-auto mb-4"></i>
+                    <p class="text-gray-400">No MO permissions found</p>
+                    <p class="text-xs text-gray-500 mt-2">Add users using the form on the right</p>
+                </div>`;
+            feather.replace();
             return;
         }
         
@@ -3322,33 +3441,54 @@
             const hasKey = permission.key && permission.keyExpiresAt;
             const isExpired = hasKey && new Date(permission.keyExpiresAt) < new Date();
             const keyStatus = hasKey ? 
-                (isExpired ? '<span class="text-xs px-2 py-1 rounded-full bg-red-600">Expired</span>' : 
-                             '<span class="text-xs px-2 py-1 rounded-full bg-green-600">Active</span>') :
+                (isExpired ? 
+                    '<span class="text-xs px-2 py-1 rounded-full bg-red-600 animate-pulse">Expired</span>' : 
+                    '<span class="text-xs px-2 py-1 rounded-full bg-green-600">Active</span>') :
                 '<span class="text-xs px-2 py-1 rounded-full bg-gray-600">No Key</span>';
             
+            const statusBadge = permission.isActive ? 
+                '<span class="text-xs px-2 py-1 rounded-full bg-green-600">Active</span>' :
+                '<span class="text-xs px-2 py-1 rounded-full bg-red-600">Inactive</span>';
+            
             permissionsHTML += `
-                <div class="glassmorphism p-3 rounded-lg flex justify-between items-center mo-user-item">
-                    <div class="flex-1">
-                        <div class="flex items-center space-x-2 mb-1">
-                            <span class="font-medium">${escapeHtml(permission.username)}</span>
-                            <span class="text-xs px-2 py-1 rounded-full bg-gray-700">${escapeHtml(permission.userRole)}</span>
-                            ${keyStatus}
-                            ${permission.isActive ? '' : '<span class="text-xs px-2 py-1 rounded-full bg-red-600">Inactive</span>'}
+                <div class="glassmorphism p-4 rounded-lg mo-user-item hover:bg-purple-900 hover:bg-opacity-20 transition-colors">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-2 mb-2">
+                                <span class="font-medium text-lg">${escapeHtml(permission.username)}</span>
+                                ${statusBadge}
+                                ${keyStatus}
+                            </div>
+                            <div class="text-sm text-gray-300 space-y-1">
+                                <div class="flex items-center">
+                                    <i data-feather="award" class="w-3 h-3 mr-1"></i>
+                                    <span>Role: ${escapeHtml(permission.userRole)}</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i data-feather="user-check" class="w-3 h-3 mr-1"></i>
+                                    <span>Granted by: ${escapeHtml(permission.grantedBy)} on ${new Date(permission.grantedAt).toLocaleDateString()}</span>
+                                </div>
+                                ${hasKey ? `
+                                    <div class="flex items-center">
+                                        <i data-feather="clock" class="w-3 h-3 mr-1 ${isExpired ? 'text-red-400' : 'text-green-400'}"></i>
+                                        <span>Key expires: ${new Date(permission.keyExpiresAt).toLocaleString()}</span>
+                                    </div>
+                                    <div class="mt-2">
+                                        <div class="text-xs text-gray-400 mb-1">Key:</div>
+                                        <div class="font-mono text-sm bg-gray-900 p-2 rounded mo-key-display break-all">
+                                            ${escapeHtml(permission.key)}
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
                         </div>
-                        <div class="text-xs text-gray-300 space-y-1">
-                            <div>Granted by: ${escapeHtml(permission.grantedBy)} on ${new Date(permission.grantedAt).toLocaleDateString()}</div>
-                            ${hasKey ? `
-                                <div>Key expires: ${new Date(permission.keyExpiresAt).toLocaleString()}</div>
-                                <div class="font-mono text-xs bg-gray-900 p-1 rounded mt-1 mo-key-display">${escapeHtml(permission.key)}</div>
-                            ` : ''}
+                        <div class="flex space-x-1 ml-4">
+                            <button onclick="removeFromMOPermissions('${escapeHtml(permission.username)}')" 
+                                    class="p-2 bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 hover:scale-110"
+                                    title="Remove from MO permissions">
+                                <i data-feather="trash-2" class="w-4 h-4"></i>
+                            </button>
                         </div>
-                    </div>
-                    <div>
-                        <button onclick="removeFromMOPermissions('${escapeHtml(permission.username)}')" 
-                                class="p-2 bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 hover:scale-110"
-                                title="Remove from MO permissions">
-                            <i data-feather="trash-2" class="w-4 h-4"></i>
-                        </button>
                     </div>
                 </div>
             `;
@@ -3358,7 +3498,7 @@
         feather.replace();
     }
 
-    // Load available users for MO permissions
+    // Load available users for MO permissions - FIXED
     async function loadAvailableUsers() {
         try {
             const token = getCookie('AuthToken');
@@ -3371,7 +3511,7 @@
             });
             
             if (!response.ok) {
-                throw new Error('Failed to load available users');
+                throw new Error(`Failed to load available users (${response.status})`);
             }
             
             const data = await response.json();
@@ -3380,7 +3520,10 @@
         } catch (error) {
             console.error('Load available users error:', error);
             document.getElementById('availableUsersList').innerHTML = 
-                '<p class="text-red-300 text-center py-4">Error loading users: ' + error.message + '</p>';
+                `<p class="text-red-300 text-center py-4">
+                    <i data-feather="alert-circle" class="w-4 h-4 inline mr-1"></i>
+                    Error loading users: ${error.message}
+                </p>`;
             return [];
         }
     }
@@ -3390,7 +3533,13 @@
         const container = document.getElementById('availableUsersList');
         
         if (!users || users.length === 0) {
-            container.innerHTML = '<p class="text-gray-400 text-center py-4">No available admin+ users found</p>';
+            container.innerHTML = `
+                <div class="text-center py-4">
+                    <i data-feather="user-x" class="w-8 h-8 text-gray-500 mx-auto mb-2"></i>
+                    <p class="text-gray-400">No available admin+ users found</p>
+                    <p class="text-xs text-gray-500">All admin users may already have MO permissions</p>
+                </div>`;
+            feather.replace();
             return;
         }
         
@@ -3398,16 +3547,21 @@
         
         users.forEach(user => {
             usersHTML += `
-                <div class="user-checkbox">
-                    <input type="radio" id="mo-user-${escapeHtml(user.username)}" name="moUser" value="${escapeHtml(user.username)}" class="mr-2">
-                    <label for="mo-user-${escapeHtml(user.username)}" class="cursor-pointer">
-                        ${escapeHtml(user.username)} (${escapeHtml(user.role)}) - Joined ${new Date(user.joined).toLocaleDateString()}
+                <div class="user-checkbox hover:bg-purple-900 hover:bg-opacity-20 rounded-lg cursor-pointer transition-colors">
+                    <input type="radio" id="mo-user-${escapeHtml(user.username)}" name="moUser" value="${escapeHtml(user.username)}" class="mr-3">
+                    <label for="mo-user-${escapeHtml(user.username)}" class="cursor-pointer flex-1 py-2">
+                        <div class="font-medium">${escapeHtml(user.username)}</div>
+                        <div class="text-sm text-gray-300">
+                            <span class="role-badge role-${user.role.toLowerCase().replace(/\s+/g, '-')}">${escapeHtml(user.role)}</span>
+                            <span class="ml-2">Joined ${new Date(user.joined).toLocaleDateString()}</span>
+                        </div>
                     </label>
                 </div>
             `;
         });
         
         container.innerHTML = usersHTML;
+        feather.replace();
     }
 
     // Populate key user select dropdown - FIXED
@@ -3422,10 +3576,15 @@
                 option.textContent = `${permission.username} (${permission.userRole})`;
                 select.appendChild(option);
             });
+        } else {
+            const option = document.createElement('option');
+            option.value = "";
+            option.textContent = "No users with MO permissions";
+            select.appendChild(option);
         }
     }
 
-    // Add user to MO permissions - FIXED
+    // Add user to MO permissions - FIXED with better UX
     async function addToMOPermissions() {
         let username = '';
         
@@ -3439,9 +3598,12 @@
         }
         
         if (!username) {
-            alert('Please select or enter a username');
+            alert('❌ Please select or enter a username');
             return;
         }
+        
+        const confirmAdd = confirm(`Add "${username}" to MO permissions?\n\nThis will grant them access to MO hacks system.`);
+        if (!confirmAdd) return;
         
         try {
             const token = getCookie('AuthToken');
@@ -3456,15 +3618,34 @@
             
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.error || 'Failed to add user');
+                throw new Error(error.error || `Failed to add user (${response.status})`);
             }
             
             const result = await response.json();
-            alert('✅ ' + result.message);
+            
+            // Show success notification
+            const successDiv = document.createElement('div');
+            successDiv.className = 'fixed top-4 right-4 bg-green-600 text-white p-4 rounded-lg shadow-lg z-50';
+            successDiv.innerHTML = `
+                <div class="flex items-center">
+                    <i data-feather="check-circle" class="w-6 h-6 mr-2"></i>
+                    <div>
+                        <p class="font-bold">✅ Success!</p>
+                        <p class="text-sm">${result.message}</p>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(successDiv);
+            feather.replace();
+            
+            // Auto-remove notification after 5 seconds
+            setTimeout(() => successDiv.remove(), 5000);
             
             // Refresh all lists
-            await loadMOPermissions();
-            await loadAvailableUsers();
+            await Promise.all([
+                loadMOPermissions(),
+                loadAvailableUsers()
+            ]);
             
             // Clear inputs
             document.getElementById('addUsername').value = '';
@@ -3473,13 +3654,30 @@
             
         } catch (error) {
             console.error('Add MO permission error:', error);
-            alert('❌ Error: ' + error.message);
+            
+            // Show error notification
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-4 right-4 bg-red-600 text-white p-4 rounded-lg shadow-lg z-50';
+            errorDiv.innerHTML = `
+                <div class="flex items-center">
+                    <i data-feather="alert-circle" class="w-6 h-6 mr-2"></i>
+                    <div>
+                        <p class="font-bold">❌ Error!</p>
+                        <p class="text-sm">${error.message}</p>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(errorDiv);
+            feather.replace();
+            
+            // Auto-remove notification after 5 seconds
+            setTimeout(() => errorDiv.remove(), 5000);
         }
     }
 
     // Remove user from MO permissions - FIXED
     async function removeFromMOPermissions(username) {
-        if (!confirm(`Are you sure you want to remove ${username} from MO permissions?`)) {
+        if (!confirm(`⚠️ Remove "${username}" from MO permissions?\n\nThis will revoke their MO hacks access.`)) {
             return;
         }
         
@@ -3499,7 +3697,7 @@
             }
             
             const result = await response.json();
-            alert('✅ ' + result.message);
+            alert(`✅ ${result.message}`);
             
             // Refresh all lists
             await loadMOPermissions();
@@ -3507,21 +3705,21 @@
             
         } catch (error) {
             console.error('Remove MO permission error:', error);
-            alert('❌ Error: ' + error.message);
+            alert(`❌ Error: ${error.message}`);
         }
     }
 
     // Generate MO key - FIXED
     async function generateMOKey() {
         const username = document.getElementById('keyUserSelect').value;
-        const durationHours = parseInt(document.getElementById('keyDuration').value);
+        const durationHours = parseInt(document.getElementById('keyDuration').value) || 24;
         
         if (!username) {
-            alert('Please select a user');
+            alert('❌ Please select a user first');
             return;
         }
         
-        if (!confirm(`Generate a ${durationHours}-hour key for ${username}?`)) {
+        if (!confirm(`Generate a ${durationHours}-hour MO key for "${username}"?\n\nThis key will allow them to access MO hacks.`)) {
             return;
         }
         
@@ -3543,27 +3741,72 @@
             
             const result = await response.json();
             
-            // Show key info
+            // Show key info with copy functionality
             const keyInfo = document.getElementById('currentKeyInfo');
             keyInfo.innerHTML = `
-                <div class="p-3 bg-green-900 bg-opacity-30 border border-green-700 rounded-lg">
-                    <div class="flex items-center mb-2">
-                        <i data-feather="key" class="w-5 h-5 text-green-400 mr-2"></i>
-                        <span class="font-medium">Key Generated Successfully</span>
+                <div class="p-4 bg-green-900 bg-opacity-40 border border-green-600 rounded-lg animate-pulse">
+                    <div class="flex items-center mb-3">
+                        <i data-feather="key" class="w-6 h-6 text-green-400 mr-2"></i>
+                        <span class="font-bold text-lg">✅ Key Generated Successfully</span>
                     </div>
-                    <p class="text-sm mb-1">Key: <span class="font-mono bg-gray-900 px-2 py-1 rounded mo-key-display">${result.key}</span></p>
-                    <p class="text-sm text-gray-300">Expires: ${new Date(result.expiresAt).toLocaleString()}</p>
-                    <p class="text-xs text-gray-400 mt-2">Save this key now - it cannot be retrieved again!</p>
+                    <div class="mb-3">
+                        <p class="text-sm text-gray-300 mb-1">Key for <span class="font-bold">${username}</span>:</p>
+                        <div class="flex items-center">
+                            <code id="keyText" class="font-mono bg-gray-900 px-3 py-2 rounded flex-1 mo-key-display break-all">${result.key}</code>
+                            <button onclick="copyKeyToClipboard()" class="ml-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded" title="Copy key">
+                                <i data-feather="copy" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-sm space-y-1">
+                        <p><i data-feather="clock" class="w-3 h-3 inline mr-1"></i> Expires: ${new Date(result.expiresAt).toLocaleString()}</p>
+                        <p><i data-feather="user" class="w-3 h-3 inline mr-1"></i> Generated by you just now</p>
+                    </div>
+                    <div class="mt-3 p-2 bg-yellow-900 bg-opacity-30 border border-yellow-700 rounded text-xs text-yellow-200">
+                        <i data-feather="alert-triangle" class="w-3 h-3 inline mr-1"></i>
+                        <span>Save this key now - it cannot be retrieved again!</span>
+                    </div>
                 </div>
             `;
             keyInfo.classList.remove('hidden');
             
+            // Auto-copy key to clipboard
+            setTimeout(() => {
+                copyKeyToClipboard();
+                const copyBtn = keyInfo.querySelector('button');
+                if (copyBtn) {
+                    copyBtn.innerHTML = '<i data-feather="check" class="w-4 h-4"></i>';
+                    copyBtn.classList.remove('bg-blue-600');
+                    copyBtn.classList.add('bg-green-600');
+                    feather.replace();
+                }
+            }, 500);
+            
             // Refresh permissions
             await loadMOPermissions();
             
+            // Auto-hide success message after 30 seconds
+            setTimeout(() => {
+                keyInfo.classList.add('hidden');
+            }, 30000);
+            
         } catch (error) {
             console.error('Generate MO key error:', error);
-            alert('❌ Error: ' + error.message);
+            alert(`❌ Error: ${error.message}`);
+        }
+    }
+
+    // Copy key to clipboard
+    function copyKeyToClipboard() {
+        const keyText = document.getElementById('keyText');
+        if (keyText) {
+            navigator.clipboard.writeText(keyText.textContent)
+                .then(() => {
+                    console.log('Key copied to clipboard');
+                })
+                .catch(err => {
+                    console.error('Failed to copy key: ', err);
+                });
         }
     }
 
@@ -3572,11 +3815,11 @@
         const username = document.getElementById('keyUserSelect').value;
         
         if (!username) {
-            alert('Please select a user');
+            alert('❌ Please select a user first');
             return;
         }
         
-        if (!confirm(`Revoke key for ${username}?`)) {
+        if (!confirm(`⚠️ Revoke MO key for "${username}"?\n\nThis will immediately invalidate their current key.`)) {
             return;
         }
         
@@ -3596,7 +3839,24 @@
             }
             
             const result = await response.json();
-            alert('✅ ' + result.message);
+            
+            // Show success notification
+            const successDiv = document.createElement('div');
+            successDiv.className = 'fixed top-4 right-4 bg-red-600 text-white p-4 rounded-lg shadow-lg z-50';
+            successDiv.innerHTML = `
+                <div class="flex items-center">
+                    <i data-feather="trash-2" class="w-6 h-6 mr-2"></i>
+                    <div>
+                        <p class="font-bold">✅ Key Revoked!</p>
+                        <p class="text-sm">${result.message}</p>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(successDiv);
+            feather.replace();
+            
+            // Auto-remove notification after 5 seconds
+            setTimeout(() => successDiv.remove(), 5000);
             
             // Clear key info
             const keyInfo = document.getElementById('currentKeyInfo');
@@ -3607,18 +3867,52 @@
             
         } catch (error) {
             console.error('Revoke MO key error:', error);
-            alert('❌ Error: ' + error.message);
+            alert(`❌ Error: ${error.message}`);
         }
     }
 
     // Refresh MO permissions - FIXED
     async function refreshMOPermissions() {
-        await loadMOPermissions();
-        await loadAvailableUsers();
+        const moPermissionsList = document.getElementById('moPermissionsList');
+        moPermissionsList.innerHTML = `
+            <div class="text-center py-8">
+                <div class="loading-spinner mb-4"></div>
+                <p class="text-gray-300">Refreshing permissions...</p>
+            </div>
+        `;
+        
+        await Promise.all([
+            loadMOPermissions(),
+            loadAvailableUsers()
+        ]);
+        
+        // Show refresh confirmation
+        const refreshDiv = document.createElement('div');
+        refreshDiv.className = 'fixed top-4 right-4 bg-blue-600 text-white p-4 rounded-lg shadow-lg z-50';
+        refreshDiv.innerHTML = `
+            <div class="flex items-center">
+                <i data-feather="refresh-cw" class="w-6 h-6 mr-2"></i>
+                <div>
+                    <p class="font-bold">🔄 Refreshed!</p>
+                    <p class="text-sm">MO permissions updated</p>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(refreshDiv);
+        feather.replace();
+        
+        setTimeout(() => refreshDiv.remove(), 3000);
     }
 
-    // Open MO Hacks modal - FIXED
+    // Open MO Hacks modal - FIXED with better access checking
     async function openMOHacksModal() {
+        console.log('Opening MO Hacks modal...');
+        
+        // Show loading state
+        const modal = document.getElementById('moHacksModal');
+        modal.classList.remove('hidden');
+        setTimeout(() => modal.classList.add('active'), 10);
+        
         // Check access first
         try {
             const token = getCookie('AuthToken');
@@ -3630,64 +3924,114 @@
                 }
             });
             
-            if (response.ok) {
-                const data = await response.json();
-                if (!data.canManageMO) {
-                    alert('You do not have permission to manage MO hacks');
-                    return;
-                }
-                
-                openModal('moHacksModal');
-                
-                // Load data
-                await loadMOPermissions();
-                await loadAvailableUsers();
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'No MO hacks access');
             }
+            
+            const data = await response.json();
+            if (!data.canManageMO) {
+                throw new Error('You do not have permission to manage MO hacks');
+            }
+            
+            // Load data
+            await Promise.all([
+                loadMOPermissions(),
+                loadAvailableUsers()
+            ]);
+            
         } catch (error) {
             console.error('Error opening MO hacks modal:', error);
-            alert('Error checking MO access');
+            
+            // Show error in modal
+            const container = document.querySelector('.modal-content');
+            const errorHTML = `
+                <div class="text-center py-12">
+                    <i data-feather="shield-off" class="w-16 h-16 text-red-500 mx-auto mb-4"></i>
+                    <h2 class="text-2xl font-bold mb-2">Access Denied</h2>
+                    <p class="text-gray-300 mb-6">${error.message}</p>
+                    <button onclick="closeModal('moHacksModal')" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded-lg">
+                        Close
+                    </button>
+                </div>
+            `;
+            container.innerHTML = errorHTML;
+            feather.replace();
         }
     }
 
-    // Update the key user select when selection changes - FIXED
+    // Initialize MO Hacks functionality
     document.addEventListener('DOMContentLoaded', function() {
-        // Add MO Hacks check to existing DOMContentLoaded
-        setTimeout(checkMOHacksAccess, 2000);
+        console.log('Initializing MO Hacks system...');
         
-        // Update the key user select when selection changes
+        // Set default key duration
+        setKeyDuration(24);
+        
+        // Check MO Hacks access on load and periodically
+        setTimeout(checkMOHacksAccess, 1000);
+        setInterval(checkMOHacksAccess, 60000); // Check every minute
+        
+        // Update key info when user selection changes
         const keyUserSelect = document.getElementById('keyUserSelect');
         if (keyUserSelect) {
             keyUserSelect.addEventListener('change', async function() {
                 const username = this.value;
                 if (username) {
-                    const permissions = await loadMOPermissions();
-                    const userPermission = permissions.find(p => p.username === username);
-                    const keyInfo = document.getElementById('currentKeyInfo');
-                    
-                    if (userPermission && userPermission.key) {
-                        const isExpired = new Date(userPermission.keyExpiresAt) < new Date();
-                        keyInfo.innerHTML = `
-                            <div class="p-3 ${isExpired ? 'bg-red-900' : 'bg-green-900'} bg-opacity-30 border ${isExpired ? 'border-red-700' : 'border-green-700'} rounded-lg">
-                                <div class="flex items-center mb-2">
-                                    <i data-feather="key" class="w-5 h-5 ${isExpired ? 'text-red-400' : 'text-green-400'} mr-2"></i>
-                                    <span class="font-medium">${isExpired ? 'Expired Key' : 'Active Key'}</span>
-                                </div>
-                                <p class="text-sm mb-1">Key: <span class="font-mono bg-gray-900 px-2 py-1 rounded mo-key-display">${userPermission.key}</span></p>
-                                <p class="text-sm text-gray-300">Expires: ${new Date(userPermission.keyExpiresAt).toLocaleString()}</p>
-                                <p class="text-sm text-gray-300">Generated by: ${userPermission.keyGeneratedBy} on ${new Date(userPermission.keyGeneratedAt).toLocaleDateString()}</p>
-                            </div>
-                        `;
-                        keyInfo.classList.remove('hidden');
-                    } else {
-                        keyInfo.classList.add('hidden');
+                    try {
+                        const token = getCookie('AuthToken');
+                        const response = await fetch(`${SERVER_URL}/api/mo/permissions/${encodeURIComponent(username)}/key-info`, {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            const keyInfo = await response.json();
+                            displayKeyInfo(keyInfo);
+                        }
+                    } catch (error) {
+                        console.log('No key info available:', error);
                     }
-                } else {
-                    const keyInfo = document.getElementById('currentKeyInfo');
-                    keyInfo.classList.add('hidden');
+                }
+            });
+        }
+        
+        // Add event listener for manual username input
+        const addUsernameInput = document.getElementById('addUsername');
+        if (addUsernameInput) {
+            addUsernameInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addToMOPermissions();
                 }
             });
         }
     });
+
+    // Display key info function
+    function displayKeyInfo(keyInfo) {
+        const currentKeyInfo = document.getElementById('currentKeyInfo');
+        if (!keyInfo || !keyInfo.key) {
+            currentKeyInfo.classList.add('hidden');
+            return;
+        }
+        
+        const isExpired = new Date(keyInfo.expiresAt) < new Date();
+        currentKeyInfo.innerHTML = `
+            <div class="p-3 ${isExpired ? 'bg-red-900' : 'bg-green-900'} bg-opacity-30 border ${isExpired ? 'border-red-700' : 'border-green-700'} rounded-lg">
+                <div class="flex items-center mb-2">
+                    <i data-feather="key" class="w-5 h-5 ${isExpired ? 'text-red-400' : 'text-green-400'} mr-2"></i>
+                    <span class="font-medium">${isExpired ? 'Expired Key' : 'Active Key'}</span>
+                </div>
+                <p class="text-sm mb-1">Key: <span class="font-mono bg-gray-900 px-2 py-1 rounded mo-key-display">${keyInfo.key}</span></p>
+                <p class="text-sm text-gray-300">Expires: ${new Date(keyInfo.expiresAt).toLocaleString()}</p>
+                <p class="text-sm text-gray-300">Generated by: ${keyInfo.generatedBy} on ${new Date(keyInfo.generatedAt).toLocaleDateString()}</p>
+            </div>
+        `;
+        currentKeyInfo.classList.remove('hidden');
+        feather.replace();
+    }
 </script>
 </body>
 </html>
