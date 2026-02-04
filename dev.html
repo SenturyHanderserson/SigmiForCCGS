@@ -710,110 +710,120 @@
     </div>
     
     <!-- MO Hacks Modal -->
-    <div id="moHacksModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 800px;">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold">MO Hacks Management</h2>
-                <button onclick="closeModal('moHacksModal')" class="p-1 rounded-full hover:bg-purple-700">
-                    <i data-feather="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            
-            <!-- Info Alert -->
-            <div class="mb-4 p-3 bg-blue-900 bg-opacity-30 border border-blue-700 rounded-lg">
-                <div class="flex items-center">
-                    <i data-feather="info" class="w-5 h-5 text-blue-400 mr-2"></i>
-                    <div>
-                        <p class="font-medium">MO Hacks System</p>
-                        <p class="text-sm text-gray-300 mt-1">
-                            Only admin+ users can be added to MO permissions. Currently limited to 2 accounts.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Current Permissions -->
-            <div class="mb-6">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-lg font-semibold">Current MO Permissions</h3>
-                    <button onclick="refreshMOPermissions()" class="p-1 rounded-full hover:bg-purple-700">
-                        <i data-feather="refresh-cw" class="w-4 h-4"></i>
-                    </button>
-                </div>
-                <div id="moPermissionsList" class="space-y-3 max-h-64 overflow-y-auto">
-                    <!-- Permissions will be loaded here -->
-                    <div class="text-center py-4">
-                        <div class="loading-spinner mb-2"></div>
-                        <p class="text-gray-300">Loading permissions...</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Add User Section -->
-            <div class="mb-6 glassmorphism rounded-lg p-4">
-                <h3 class="text-lg font-semibold mb-3">Add User to MO Permissions</h3>
-                
-                <!-- Available Users -->
-                <div class="mb-3">
-                    <label class="block text-gray-300 mb-2">Available Admin+ Users</label>
-                    <div id="availableUsersList" class="max-h-32 overflow-y-auto bg-gray-800 bg-opacity-50 rounded-lg p-2">
-                        <!-- Available users will be loaded here -->
-                        <p class="text-gray-400 text-center py-2">Loading users...</p>
-                    </div>
-                </div>
-                
-                <!-- Manual Add -->
-                <div class="mb-3">
-                    <label for="addUsername" class="block text-gray-300 mb-2">Or Enter Username</label>
-                    <input type="text" id="addUsername" 
-                           class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                           placeholder="Enter username to add">
-                </div>
-                
-                <button onclick="addToMOPermissions()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium w-full">
-                    Add User
-                </button>
-            </div>
-            
-            <!-- Key Management Section -->
-            <div class="glassmorphism rounded-lg p-4">
-                <h3 class="text-lg font-semibold mb-3">Key Management</h3>
-                <div class="mb-3">
-                    <label class="block text-gray-300 mb-2">Select User for Key</label>
-                    <select id="keyUserSelect" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        <option value="">Select a user...</option>
-                        <!-- Users with MO permissions will be populated here -->
-                    </select>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="keyDuration" class="block text-gray-300 mb-2">Key Duration (Hours)</label>
-                    <select id="keyDuration" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        <option value="1">1 hour</option>
-                        <option value="6">6 hours</option>
-                        <option value="24" selected>24 hours</option>
-                        <option value="72">72 hours</option>
-                        <option value="168">1 week</option>
-                        <option value="720">30 days</option>
-                    </select>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="generateMOKey()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium">
-                        Generate Key
-                    </button>
-                    <button onclick="revokeMOKey()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg font-medium">
-                        Revoke Key
-                    </button>
-                </div>
-                
-                <!-- Current Key Info -->
-                <div id="currentKeyInfo" class="mt-3 hidden">
-                    <!-- Key info will be shown here -->
+<div id="moHacksModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 800px;">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">MO Hacks Management</h2>
+            <button onclick="closeModal('moHacksModal')" class="p-1 rounded-full hover:bg-purple-700">
+                <i data-feather="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        
+        <!-- Info Alert - UPDATED -->
+        <div class="mb-4 p-3 bg-blue-900 bg-opacity-30 border border-blue-700 rounded-lg">
+            <div class="flex items-center">
+                <i data-feather="info" class="w-5 h-5 text-blue-400 mr-2"></i>
+                <div>
+                    <p class="font-medium">MO Hacks System</p>
+                    <p class="text-sm text-gray-300 mt-1">
+                        Uses existing key system. Unlimited admin+ users can be added. Keys work with all existing endpoints.
+                    </p>
                 </div>
             </div>
         </div>
+        
+        <!-- Current Permissions -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-lg font-semibold">Current MO Permissions</h3>
+                <div class="flex space-x-2">
+                    <button onclick="refreshMOPermissions()" class="p-1 rounded-full hover:bg-purple-700">
+                        <i data-feather="refresh-cw" class="w-4 h-4"></i>
+                    </button>
+                    <button onclick="checkAllMOKeyStatus()" class="p-1 rounded-full hover:bg-green-700" title="Check Key Status">
+                        <i data-feather="key" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="moPermissionsList" class="space-y-3 max-h-64 overflow-y-auto">
+                <!-- Permissions will be loaded here -->
+                <div class="text-center py-4">
+                    <div class="loading-spinner mb-2"></div>
+                    <p class="text-gray-300">Loading permissions...</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Add User Section -->
+        <div class="mb-6 glassmorphism rounded-lg p-4">
+            <h3 class="text-lg font-semibold mb-3">Add Admin+ User</h3>
+            
+            <!-- Available Users -->
+            <div class="mb-3">
+                <label class="block text-gray-300 mb-2">Available Admin+ Users</label>
+                <div id="availableUsersList" class="max-h-32 overflow-y-auto bg-gray-800 bg-opacity-50 rounded-lg p-2">
+                    <!-- Available users will be loaded here -->
+                    <p class="text-gray-400 text-center py-2">Loading users...</p>
+                </div>
+            </div>
+            
+            <!-- Manual Add -->
+            <div class="mb-3">
+                <label for="addUsername" class="block text-gray-300 mb-2">Or Enter Username</label>
+                <input type="text" id="addUsername" 
+                       class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                       placeholder="Enter username to add">
+            </div>
+            
+            <button onclick="addToMOPermissions()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium w-full">
+                Add User to MO Permissions
+            </button>
+        </div>
+        
+        <!-- Key Management Section - INTEGRATED WITH EXISTING SYSTEM -->
+        <div class="glassmorphism rounded-lg p-4">
+            <h3 class="text-lg font-semibold mb-3">Key Management (Existing System)</h3>
+            
+            <div class="mb-3">
+                <label for="keyUserSelect" class="block text-gray-300 mb-2">Select User</label>
+                <select id="keyUserSelect" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <option value="">Select a user...</option>
+                </select>
+            </div>
+            
+            <!-- Key Status Display -->
+            <div id="existingKeyStatus" class="mb-3 hidden">
+                <!-- Will show existing key status from /api/keys/status -->
+            </div>
+            
+            <div class="mb-3">
+                <label for="keyDuration" class="block text-gray-300 mb-2">Duration</label>
+                <select id="keyDuration" class="w-full bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <option value="1">1 hour</option>
+                    <option value="6">6 hours</option>
+                    <option value="24" selected>24 hours</option>
+                    <option value="168">1 week</option>
+                    <option value="720">30 days</option>
+                    <option value="8760">1 year</option>
+                </select>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="generateMOKeyUsingExistingSystem()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium">
+                    Generate MO Key
+                </button>
+                <button onclick="revokeMOKeyUsingExistingSystem()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg font-medium">
+                    Revoke MO Key
+                </button>
+            </div>
+            
+            <!-- Generated Key Info -->
+            <div id="generatedKeyInfo" class="mt-3 hidden">
+                <!-- Key info will be shown here -->
+            </div>
+        </div>
     </div>
+</div>
     
     <!-- Main Container -->
     <div class="relative z-10 min-h-screen flex flex-col hidden non-interactive" id="mainApp">
@@ -1172,70 +1182,85 @@
     }
 
     // Load MO permissions
-    async function loadMOPermissions() {
-        try {
-            const token = getCookie('AuthToken');
-            const response = await fetch(`${SERVER_URL}/api/mo/permissions`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error('Failed to load MO permissions');
+   async function loadMOPermissions() {
+    try {
+        const token = getCookie('AuthToken');
+        const response = await fetch(`${SERVER_URL}/api/mo/users-with-keys`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
-            
-            const data = await response.json();
-            displayMOPermissions(data.permissions);
-            populateKeyUserSelect(data.permissions);
-            return data.permissions;
-        } catch (error) {
-            console.error('Load MO permissions error:', error);
-            document.getElementById('moPermissionsList').innerHTML = 
-                '<div class="text-red-300 text-center py-4">Error loading permissions: ' + error.message + '</div>';
-            return [];
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load MO permissions');
         }
+        
+        const data = await response.json();
+        displayMOPermissions(data.permissions);
+        populateKeyUserSelect(data.permissions);
+        return data.permissions;
+    } catch (error) {
+        console.error('Load MO permissions error:', error);
+        document.getElementById('moPermissionsList').innerHTML = 
+            '<div class="text-red-300 text-center py-4">Error loading permissions: ' + error.message + '</div>';
+        return [];
     }
-
+}
     // Display MO permissions
     function displayMOPermissions(permissions) {
-        const container = document.getElementById('moPermissionsList');
+    const container = document.getElementById('moPermissionsList');
+    
+    if (!permissions || permissions.length === 0) {
+        container.innerHTML = '<p class="text-gray-400 text-center py-4">No MO permissions found</p>';
+        return;
+    }
+    
+    let permissionsHTML = '';
+    
+    permissions.forEach(permission => {
+        const hasActiveKey = permission.hasActiveKey;
+        const isActive = permission.isActive;
         
-        if (!permissions || permissions.length === 0) {
-            container.innerHTML = '<p class="text-gray-400 text-center py-4">No MO permissions found</p>';
-            return;
-        }
-        
-        let permissionsHTML = '';
-        
-        permissions.forEach(permission => {
-            const hasKey = permission.key && permission.keyExpiresAt;
-            const isExpired = hasKey && new Date(permission.keyExpiresAt) < new Date();
-            const keyStatus = hasKey ? 
-                (isExpired ? '<span class="text-xs px-2 py-1 rounded-full bg-red-600">Expired</span>' : 
-                             '<span class="text-xs px-2 py-1 rounded-full bg-green-600">Active</span>') :
-                '<span class="text-xs px-2 py-1 rounded-full bg-gray-600">No Key</span>';
-            
-            permissionsHTML += `
-                <div class="glassmorphism p-3 rounded-lg flex justify-between items-center">
+        permissionsHTML += `
+            <div class="glassmorphism p-3 rounded-lg">
+                <div class="flex justify-between items-start">
                     <div class="flex-1">
                         <div class="flex items-center space-x-2 mb-1">
                             <span class="font-medium">${escapeHtml(permission.username)}</span>
                             <span class="text-xs px-2 py-1 rounded-full bg-gray-700">${escapeHtml(permission.userRole)}</span>
-                            ${keyStatus}
-                            ${permission.isActive ? '' : '<span class="text-xs px-2 py-1 rounded-full bg-red-600">Inactive</span>'}
+                            ${hasActiveKey ? 
+                                '<span class="text-xs px-2 py-1 rounded-full bg-green-600">Active Key</span>' : 
+                                '<span class="text-xs px-2 py-1 rounded-full bg-gray-600">No Key</span>'}
+                            ${isActive ? 
+                                '<span class="text-xs px-2 py-1 rounded-full bg-blue-600">Active</span>' : 
+                                '<span class="text-xs px-2 py-1 rounded-full bg-red-600">Inactive</span>'}
                         </div>
                         <div class="text-xs text-gray-300 space-y-1">
                             <div>Granted by: ${escapeHtml(permission.grantedBy)} on ${new Date(permission.grantedAt).toLocaleDateString()}</div>
-                            ${hasKey ? `
-                                <div>Key expires: ${new Date(permission.keyExpiresAt).toLocaleString()}</div>
-                                <div class="font-mono text-xs bg-gray-900 p-1 rounded mt-1">${escapeHtml(permission.key)}</div>
+                            ${hasActiveKey ? `
+                                <div class="flex items-center">
+                                    <i data-feather="key" class="w-3 h-3 mr-1"></i>
+                                    <span>Key expires: ${new Date(permission.activeKey.expiresAt).toLocaleString()}</span>
+                                </div>
+                                <div class="font-mono text-xs bg-gray-900 p-1 rounded mt-1 break-all">
+                                    ${escapeHtml(permission.activeKey.key)}
+                                </div>
+                                <div class="text-green-300 text-xs">
+                                    ✓ Compatible with existing key system
+                                </div>
                             ` : ''}
                         </div>
                     </div>
-                    <div>
+                    <div class="flex space-x-1">
+                        ${hasActiveKey ? `
+                            <button onclick="checkUserKeyStatus('${escapeHtml(permission.username)}')" 
+                                    class="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 hover:scale-110"
+                                    title="Check Key Status">
+                                <i data-feather="eye" class="w-4 h-4"></i>
+                            </button>
+                        ` : ''}
                         <button onclick="removeFromMOPermissions('${escapeHtml(permission.username)}')" 
                                 class="p-2 bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 hover:scale-110"
                                 title="Remove from MO permissions">
@@ -1243,13 +1268,192 @@
                         </button>
                     </div>
                 </div>
-            `;
+            </div>
+        `;
+    });
+    
+    container.innerHTML = permissionsHTML;
+    feather.replace();
+}
+
+async function generateMOKeyUsingExistingSystem() {
+    const username = document.getElementById('keyUserSelect').value;
+    const durationHours = parseInt(document.getElementById('keyDuration').value);
+    
+    if (!username) {
+        alert('Please select a user');
+        return;
+    }
+    
+    try {
+        const token = getCookie('AuthToken');
+        const response = await fetch(`${SERVER_URL}/api/mo/permissions/${encodeURIComponent(username)}/key`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ durationHours })
         });
         
-        container.innerHTML = permissionsHTML;
-        feather.replace();
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to generate key');
+        }
+        
+        const result = await response.json();
+        
+        // Show generated key
+        const keyInfo = document.getElementById('generatedKeyInfo');
+        keyInfo.innerHTML = `
+            <div class="p-3 bg-green-900 bg-opacity-30 border border-green-700 rounded-lg">
+                <div class="flex items-center mb-2">
+                    <i data-feather="key" class="w-5 h-5 text-green-400 mr-2"></i>
+                    <span class="font-medium">MO Key Generated</span>
+                </div>
+                <p class="text-sm mb-1">Key: <span class="font-mono bg-gray-900 px-2 py-1 rounded break-all">${result.key}</span></p>
+                <p class="text-sm text-gray-300">Expires: ${new Date(result.expiresAt).toLocaleString()} (${result.durationHours} hours)</p>
+                <p class="text-xs text-gray-400 mt-2">
+                    ✓ This key works with all existing endpoints<br>
+                    ✓ User can check status at: <code>/api/keys/status</code><br>
+                    ✓ User can validate at: <code>/api/keys/validate</code>
+                </p>
+            </div>
+        `;
+        keyInfo.classList.remove('hidden');
+        
+        // Refresh permissions
+        await loadMOPermissions();
+        
+    } catch (error) {
+        console.error('Generate MO key error:', error);
+        alert('❌ Error: ' + error.message);
     }
+}
 
+    async function revokeMOKeyUsingExistingSystem() {
+    const username = document.getElementById('keyUserSelect').value;
+    
+    if (!username) {
+        alert('Please select a user');
+        return;
+    }
+    
+    if (!confirm(`Revoke MO key for ${username}? This will also remove it from the existing key system.`)) {
+        return;
+    }
+    
+    try {
+        const token = getCookie('AuthToken');
+        const response = await fetch(`${SERVER_URL}/api/mo/permissions/${encodeURIComponent(username)}/key`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to revoke key');
+        }
+        
+        const result = await response.json();
+        alert('✅ ' + result.message);
+        
+        // Clear key info
+        document.getElementById('generatedKeyInfo').classList.add('hidden');
+        
+        // Refresh permissions
+        await loadMOPermissions();
+        
+    } catch (error) {
+        console.error('Revoke MO key error:', error);
+        alert('❌ Error: ' + error.message);
+    }
+}
+
+async function checkUserKeyStatus(username) {
+    try {
+        const token = getCookie('AuthToken');
+        
+        // Check via existing system endpoint
+        const response = await fetch(`${SERVER_URL}/api/keys/check`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const keyData = await response.json();
+            if (keyData.hasActiveKey) {
+                alert(`User ${username} has active key:\n\nKey: ${keyData.key}\nExpires: ${new Date(keyData.expiresAt).toLocaleString()}\nDevice: ${keyData.device || 'Unknown'}`);
+            } else {
+                alert(`User ${username} has no active key in the existing system.`);
+            }
+        } else {
+            // Fallback to MO endpoint
+            const moResponse = await fetch(`${SERVER_URL}/api/mo/permissions/${encodeURIComponent(username)}/key-status`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (moResponse.ok) {
+                const moData = await moResponse.json();
+                if (moData.hasActiveMOKey) {
+                    alert(`User ${username} has active MO key:\n\nKey: ${moData.key.key}\nExpires: ${new Date(moData.key.expiresAt).toLocaleString()}\nGenerated by: ${moData.key.generatedBy}`);
+                } else {
+                    alert(`User ${username} has no active MO key.`);
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Check key status error:', error);
+        alert('Error checking key status: ' + error.message);
+    }
+}
+
+    async function checkAllMOKeyStatus() {
+    try {
+        const token = getCookie('AuthToken');
+        const response = await fetch(`${SERVER_URL}/api/mo/users-with-keys`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to check key statuses');
+        }
+        
+        const data = await response.json();
+        const activeKeys = data.permissions.filter(p => p.hasActiveKey);
+        const totalUsers = data.permissions.length;
+        
+        if (activeKeys.length > 0) {
+            let message = `MO Key Status Report:\n\nTotal MO Users: ${totalUsers}\nActive Keys: ${activeKeys.length}\n\nActive Key Users:\n`;
+            activeKeys.forEach((user, index) => {
+                message += `${index + 1}. ${user.username} (${user.userRole})\n`;
+                message += `   Key expires: ${new Date(user.activeKey.expiresAt).toLocaleString()}\n`;
+                message += `   Generated by: ${user.activeKey.generatedBy}\n\n`;
+            });
+            alert(message);
+        } else {
+            alert(`MO Key Status: No active keys found among ${totalUsers} MO users.`);
+        }
+    } catch (error) {
+        console.error('Check all key status error:', error);
+        alert('Error checking key statuses: ' + error.message);
+    }
+}
+    
     // Load available users for MO permissions
     async function loadAvailableUsers() {
         try {
@@ -1304,18 +1508,19 @@
 
     // Populate key user select dropdown
     function populateKeyUserSelect(permissions) {
-        const select = document.getElementById('keyUserSelect');
-        select.innerHTML = '<option value="">Select a user...</option>';
-        
-        if (permissions && permissions.length > 0) {
-            permissions.forEach(permission => {
-                const option = document.createElement('option');
-                option.value = permission.username;
-                option.textContent = `${permission.username} (${permission.userRole})`;
-                select.appendChild(option);
-            });
-        }
+    const select = document.getElementById('keyUserSelect');
+    select.innerHTML = '<option value="">Select a user...</option>';
+    
+    if (permissions && permissions.length > 0) {
+        permissions.forEach(permission => {
+            const option = document.createElement('option');
+            option.value = permission.username;
+            option.textContent = `${permission.username} (${permission.userRole})`;
+            select.appendChild(option);
+        });
     }
+}
+
 
     // Add user to MO permissions
     async function addToMOPermissions() {
@@ -3598,34 +3803,62 @@
         
         // Add event listener for key user select change
         document.getElementById('keyUserSelect').addEventListener('change', async function() {
-            const username = this.value;
-            if (username) {
-                const permissions = await loadMOPermissions();
-                const userPermission = permissions.find(p => p.username === username);
-                const keyInfo = document.getElementById('currentKeyInfo');
-                
-                if (userPermission && userPermission.key) {
-                    const isExpired = new Date(userPermission.keyExpiresAt) < new Date();
-                    keyInfo.innerHTML = `
-                        <div class="p-3 ${isExpired ? 'bg-red-900' : 'bg-green-900'} bg-opacity-30 border ${isExpired ? 'border-red-700' : 'border-green-700'} rounded-lg">
+    const username = this.value;
+    const keyStatusDiv = document.getElementById('existingKeyStatus');
+    
+    if (username) {
+        try {
+            const token = getCookie('AuthToken');
+            
+            // Check existing key system first
+            const response = await fetch(`${SERVER_URL}/api/keys/check`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const keyData = await response.json();
+                if (keyData.hasActiveKey) {
+                    const timeRemaining = new Date(keyData.expiresAt) - new Date();
+                    const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+                    
+                    keyStatusDiv.innerHTML = `
+                        <div class="p-3 bg-green-900 bg-opacity-30 border border-green-700 rounded-lg">
                             <div class="flex items-center mb-2">
-                                <i data-feather="key" class="w-5 h-5 ${isExpired ? 'text-red-400' : 'text-green-400'} mr-2"></i>
-                                <span class="font-medium">${isExpired ? 'Expired Key' : 'Active Key'}</span>
+                                <i data-feather="check-circle" class="w-5 h-5 text-green-400 mr-2"></i>
+                                <span class="font-medium">Active Key Found</span>
                             </div>
-                            <p class="text-sm mb-1">Key: <span class="font-mono bg-gray-900 px-2 py-1 rounded">${userPermission.key}</span></p>
-                            <p class="text-sm text-gray-300">Expires: ${new Date(userPermission.keyExpiresAt).toLocaleString()}</p>
-                            <p class="text-sm text-gray-300">Generated by: ${userPermission.keyGeneratedBy} on ${new Date(userPermission.keyGeneratedAt).toLocaleDateString()}</p>
+                            <p class="text-sm mb-1">Existing system key detected</p>
+                            <p class="text-sm text-gray-300">Expires in: ${hours}h ${minutes}m</p>
+                            <p class="text-xs text-gray-400 mt-1">
+                                ✓ Already integrated with existing key system
+                            </p>
                         </div>
                     `;
-                    keyInfo.classList.remove('hidden');
                 } else {
-                    keyInfo.classList.add('hidden');
+                    keyStatusDiv.innerHTML = `
+                        <div class="p-3 bg-yellow-900 bg-opacity-30 border border-yellow-700 rounded-lg">
+                            <div class="flex items-center mb-2">
+                                <i data-feather="alert-circle" class="w-5 h-5 text-yellow-400 mr-2"></i>
+                                <span class="font-medium">No Active Key</span>
+                            </div>
+                            <p class="text-sm">User has no active key in existing system</p>
+                        </div>
+                    `;
                 }
-            } else {
-                keyInfo.classList.add('hidden');
+                keyStatusDiv.classList.remove('hidden');
             }
-        });
-    });
+        } catch (error) {
+            console.error('Error checking existing key:', error);
+        }
+    } else {
+        keyStatusDiv.classList.add('hidden');
+    }
+});
 </script>
 </body>
 </html>
