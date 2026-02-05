@@ -1311,7 +1311,7 @@
     }
 
     // Load MO permissions
-   async function loadMOPermissions() {
+  async function loadMOPermissions() {
     try {
         const token = getCookie('AuthToken');
         const response = await fetch(`${SERVER_URL}/api/mo/users-with-keys`, {
@@ -1332,8 +1332,14 @@
         return data.permissions;
     } catch (error) {
         console.error('Load MO permissions error:', error);
-        document.getElementById('moPermissionsList').innerHTML = 
-            '<div class="text-red-300 text-center py-4">Error loading permissions: ' + error.message + '</div>';
+        // Fix: Check if moPermissionsList exists first
+        const container = document.getElementById('moPermissionsList');
+        if (container) {
+            container.innerHTML = 
+                '<div class="text-red-300 text-center py-4">Error loading permissions: ' + error.message + '</div>';
+        } else {
+            console.error('MO permissions container not found:', error);
+        }
         return [];
     }
 }
@@ -1807,9 +1813,16 @@ function clearMOKeySelection() {
         container.innerHTML = usersHTML;
     }
 
-    // Populate key user select dropdown
-    function populateKeyUserSelect(permissions) {
+    // Fix the populateKeyUserSelect function
+function populateKeyUserSelect(permissions) {
     const select = document.getElementById('keyUserSelect');
+    
+    // Check if element exists before trying to modify it
+    if (!select) {
+        console.warn('keyUserSelect element not found in DOM');
+        return; // Exit early if element doesn't exist
+    }
+    
     select.innerHTML = '<option value="">Select a user...</option>';
     
     if (permissions && permissions.length > 0) {
@@ -1821,7 +1834,6 @@ function clearMOKeySelection() {
         });
     }
 }
-
 
     // Add user to MO permissions
     async function addToMOPermissions() {
@@ -2118,38 +2130,40 @@ function selectUserForMOKey(username, role, isBlacklisted) {
 
 
     
-    // Open MO Hacks modal
-    async function openMOHacksModal() {
-        // Check access first
-        try {
-            const token = getCookie('AuthToken');
-            const response = await fetch(`${SERVER_URL}/api/mo/check-access`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+ async function openMOHacksModal() {
+    // Check access first
+    try {
+        const token = getCookie('AuthToken');
+        const response = await fetch(`${SERVER_URL}/api/mo/check-access`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (!data.canManageMO) {
+                alert('You do not have permission to manage MO hacks');
+                return;
+            }
             
-            if (response.ok) {
-                const data = await response.json();
-                if (!data.canManageMO) {
-                    alert('You do not have permission to manage MO hacks');
-                    return;
-                }
-                
-                openModal('moHacksModal');
-                
-                // Load data
+            // Open the modal first to ensure DOM elements exist
+            openModal('moHacksModal');
+            
+            // Wait a tiny bit for DOM to render
+            setTimeout(async () => {
+                // Load data AFTER modal is visible
                 await loadMOPermissions();
                 await loadAvailableUsers();
-            }
-        } catch (error) {
-            console.error('Error opening MO hacks modal:', error);
-            alert('Error checking MO access');
+            }, 50);
         }
+    } catch (error) {
+        console.error('Error opening MO hacks modal:', error);
+        alert('Error checking MO access');
     }
-
+}
     // Function to get role badge class
     function getRoleBadgeClass(roleName) {
         const normalizedRole = roleName.toLowerCase().replace(/\s+/g, '-');
