@@ -1618,8 +1618,24 @@ async function generateMOKeyForUser() {
         });
         
         if (userCheck.ok) {
-            const users = await userCheck.json();
-            const user = users.find(u => u.username === selectedUserForMOKey);
+            const responseData = await userCheck.json();
+            
+            // FIX: Handle different possible response structures
+            let usersArray = [];
+            
+            if (Array.isArray(responseData)) {
+                // If response is already an array
+                usersArray = responseData;
+            } else if (responseData.users && Array.isArray(responseData.users)) {
+                // If response has a 'users' property that's an array
+                usersArray = responseData.users;
+            } else if (responseData.data && Array.isArray(responseData.data)) {
+                // If response has a 'data' property that's an array
+                usersArray = responseData.data;
+            }
+            
+            // Now safely search for the user
+            const user = usersArray.find(u => u.username === selectedUserForMOKey);
             
             if (user && user.blacklisted) {
                 alert('Cannot generate keys for blacklisted users');
