@@ -4200,69 +4200,69 @@ function selectUserForMOKey(username, role, isBlacklisted) {
         await loadRolesList();
     }
 
-    // Initialize color picker when DOM is loaded
-    document.addEventListener('DOMContentLoaded', function() {
-        updatePermissionsBasedOnWeight();
-        setupColorPicker();
-        
-        // Add event listener for key user select change
-        document.getElementById('keyUserSelect').addEventListener('change', async function() {
-    const username = this.value;
-    const keyStatusDiv = document.getElementById('existingKeyStatus');
+ // Initialize color picker when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    updatePermissionsBasedOnWeight();
+    setupColorPicker();
     
-    if (username) {
-        try {
-            const token = getCookie('AuthToken');
+    // Use event delegation - listens for ANY change, then checks if it's our element
+    document.addEventListener('change', async function(event) {
+        if (event.target.id === 'keyUserSelect') {
+            const username = event.target.value;
+            const keyStatusDiv = document.getElementById('existingKeyStatus');
             
-            // Check existing key system first
-            const response = await fetch(`${SERVER_URL}/api/keys/check`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (response.ok) {
-                const keyData = await response.json();
-                if (keyData.hasActiveKey) {
-                    const timeRemaining = new Date(keyData.expiresAt) - new Date();
-                    const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
-                    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+            if (username) {
+                try {
+                    const token = getCookie('AuthToken');
+                    const response = await fetch(`${SERVER_URL}/api/keys/check`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
                     
-                    keyStatusDiv.innerHTML = `
-                        <div class="p-3 bg-green-900 bg-opacity-30 border border-green-700 rounded-lg">
-                            <div class="flex items-center mb-2">
-                                <i data-feather="check-circle" class="w-5 h-5 text-green-400 mr-2"></i>
-                                <span class="font-medium">Active Key Found</span>
-                            </div>
-                            <p class="text-sm mb-1">Existing system key detected</p>
-                            <p class="text-sm text-gray-300">Expires in: ${hours}h ${minutes}m</p>
-                            <p class="text-xs text-gray-400 mt-1">
-                                ✓ Already integrated with existing key system
-                            </p>
-                        </div>
-                    `;
-                } else {
-                    keyStatusDiv.innerHTML = `
-                        <div class="p-3 bg-yellow-900 bg-opacity-30 border border-yellow-700 rounded-lg">
-                            <div class="flex items-center mb-2">
-                                <i data-feather="alert-circle" class="w-5 h-5 text-yellow-400 mr-2"></i>
-                                <span class="font-medium">No Active Key</span>
-                            </div>
-                            <p class="text-sm">User has no active key in existing system</p>
-                        </div>
-                    `;
+                    if (response.ok) {
+                        const keyData = await response.json();
+                        if (keyData.hasActiveKey) {
+                            const timeRemaining = new Date(keyData.expiresAt) - new Date();
+                            const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+                            const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+                            
+                            keyStatusDiv.innerHTML = `
+                                <div class="p-3 bg-green-900 bg-opacity-30 border border-green-700 rounded-lg">
+                                    <div class="flex items-center mb-2">
+                                        <i data-feather="check-circle" class="w-5 h-5 text-green-400 mr-2"></i>
+                                        <span class="font-medium">Active Key Found</span>
+                                    </div>
+                                    <p class="text-sm mb-1">Existing system key detected</p>
+                                    <p class="text-sm text-gray-300">Expires in: ${hours}h ${minutes}m</p>
+                                    <p class="text-xs text-gray-400 mt-1">
+                                        ✓ Already integrated with existing key system
+                                    </p>
+                                </div>
+                            `;
+                        } else {
+                            keyStatusDiv.innerHTML = `
+                                <div class="p-3 bg-yellow-900 bg-opacity-30 border border-yellow-700 rounded-lg">
+                                    <div class="flex items-center mb-2">
+                                        <i data-feather="alert-circle" class="w-5 h-5 text-yellow-400 mr-2"></i>
+                                        <span class="font-medium">No Active Key</span>
+                                    </div>
+                                    <p class="text-sm">User has no active key in existing system</p>
+                                </div>
+                            `;
+                        }
+                        keyStatusDiv.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    console.error('Error checking existing key:', error);
                 }
-                keyStatusDiv.classList.remove('hidden');
+            } else {
+                keyStatusDiv.classList.add('hidden');
             }
-        } catch (error) {
-            console.error('Error checking existing key:', error);
         }
-    } else {
-        keyStatusDiv.classList.add('hidden');
-    }
-    }); 
+    });
 });
 </script>
 </body>
