@@ -1593,6 +1593,7 @@ function displayKeyStatus(data) {
     feather.replace();
 }
 
+// Fix the generateMOKeyForUser function
 async function generateMOKeyForUser() {
     if (!selectedUserForMOKey) {
         alert('Please select a user first');
@@ -1608,42 +1609,7 @@ async function generateMOKeyForUser() {
     try {
         const token = getCookie('AuthToken');
         
-        // First, check if user exists and is not blacklisted
-        const userCheck = await fetch(`${SERVER_URL}/api/users/search?query=${encodeURIComponent(selectedUserForMOKey)}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (userCheck.ok) {
-            const responseData = await userCheck.json();
-            
-            // FIX: Handle different possible response structures
-            let usersArray = [];
-            
-            if (Array.isArray(responseData)) {
-                // If response is already an array
-                usersArray = responseData;
-            } else if (responseData.users && Array.isArray(responseData.users)) {
-                // If response has a 'users' property that's an array
-                usersArray = responseData.users;
-            } else if (responseData.data && Array.isArray(responseData.data)) {
-                // If response has a 'data' property that's an array
-                usersArray = responseData.data;
-            }
-            
-            // Now safely search for the user
-            const user = usersArray.find(u => u.username === selectedUserForMOKey);
-            
-            if (user && user.blacklisted) {
-                alert('Cannot generate keys for blacklisted users');
-                return;
-            }
-        }
-        
-        // Generate the MO key using a new endpoint that works for ANY user
+        // Use the correct endpoint
         const response = await fetch(`${SERVER_URL}/api/mo/keys/generate-for-user`, {
             method: 'POST',
             headers: {
