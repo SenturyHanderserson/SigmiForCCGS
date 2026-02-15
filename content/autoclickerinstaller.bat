@@ -238,8 +238,10 @@ echo Downloading VBS launcher...
 powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/SenturyHanderserson/SigmiForCCGS/main/content/launcher.vbs' -OutFile 'autoclicker\launcher.vbs'"
 if not exist "autoclicker\launcher.vbs" (
     echo [WARNING] Failed to download VBS launcher. Creating basic one...
-    echo CreateObject("Wscript.Shell").Run "pythonw MinecraftEducation.py", 0, False
+    powershell -NoProfile -Command ^
+      "Set-Content -Path 'autoclicker\launcher.vbs' -Value 'CreateObject(""WScript.Shell"").Run ""pythonw MinecraftEducation.py"", 0, False'"
 )
+
 echo [SUCCESS] VBS launcher ready!
 
 :START_BACKEND
