@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html><!--Terrible Emulator by MK Games--><!--Credit To GBA Bandicoot--><!--Visit GBA Bandicoot at https://github.com/xAsrielDreemurr/GBA-Bandicoot--><!--Oh Yeah. Why are you looking at the code ._.--><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Pokemon Emerald Version | MacVG</title>
+    <meta charset="UTF-8">
+    <!--Required Scripts-->
+    <script>
+      ROM_FILE = "pokemon-emerald-version";
+      if (ROM_FILE == "") {
+        ROM_FILE = location.hash.substr(1);
+        console.log("--fx--ROM_FILE--", ROM_FILE);
+      }
+    </script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/TypedArrayShim.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/Cartridge.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/DMA.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/Emulator.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/Graphics.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/RunLoop.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/Memory.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/IRQ.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/JoyPad.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/Serial.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/Sound.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/Timer.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/Wait.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/CPU.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/Saves.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/FIFO.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/Channel1.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/Channel2.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/Channel3.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/Channel4.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/ARM.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/THUMB.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/CPSR.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/Renderer.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/RendererProxy.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/BGTEXT.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/BG2FrameBuffer.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/BGMatrix.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/AffineBG.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/ColorEffects.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/Mosaic.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/OBJ.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/OBJWindow.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/Window.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/Compositor.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/DMA0.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/DMA1.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/DMA2.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/DMA3.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/SaveDeterminer.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/SRAM.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/FLASH.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/EEPROM.js"></script>
+
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/swfobject.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/resampler.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/XAudioServer.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/IodineGBAROMLoadGlueCode.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/IodineGBAJoyPadGlueCode.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/IodineGBASavesGlueCode.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/IodineGBAGraphicsGlueCode.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/IodineGBAAudioGlueCode.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/IodineGBACoreGlueCode.js"></script>
+    <script src="Pokemon%20Emerald%20Version%20_%20MacVG_files/base64.js"></script>
+    <link rel="stylesheet" href="Pokemon%20Emerald%20Version%20_%20MacVG_files/launcher.css">
+  </head>
+  <body data-new-gr-c-s-check-loaded="8.935.0" data-gr-ext-installed="">
+    <canvas id="emulator_target" width="1920" height="947" style="; image-rendering: auto;image-rendering: optimizeQuality;image-rendering: optimizeQuality;-ms-interpolation-mode: bicubic;; image-rendering: -webkit-optimize-contrast;image-rendering: -o-crisp-edges;image-rendering: -moz-crisp-edges;-ms-interpolation-mode: nearest-neighbor;"></canvas>
+    <span id="tempMessage" style="display: none;">Downloading "pokemon-emerald-version."</span>
+  
+
+</body><grammarly-desktop-integration data-grammarly-shadow-root="true"></grammarly-desktop-integration></html>
